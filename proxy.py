@@ -36,18 +36,46 @@ def tv_forex():
 # ── BINANCE FUNDING ───────────────────────────────────
 @app.route('/binance/funding', methods=['GET'])
 def binance_funding():
+    # Tenta múltiplos endpoints de funding rate
+    endpoints = [
+        'https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT',
+        'https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1',
+        'https://api.bybit.com/v5/market/funding/history?category=linear&symbol=BTCUSDT&limit=1',
+    ]
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    
+    # Tenta Binance primeiro
+    for url in endpoints[:2]:
+        try:
+            r = requests.get(url, headers=headers, timeout=8)
+            if not r.ok:
+                continue
+            data = r.json()
+            if isinstance(data, list) and len(data) > 0:
+                # fundingRate endpoint retorna lista
+                return jsonify({'lastFundingRate': data[0].get('fundingRate', '0'),
+                               'nextFundingTime': int(data[0].get('fundingTime', 0)) + 28800000})
+            if 'lastFundingRate' in data:
+                return jsonify(data)
+        except:
+            continue
+    
+    # Tenta Bybit como fallback
     try:
-        r = requests.get('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT', 
-            headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
-        if not r.ok:
-            return jsonify({'error': f'Binance HTTP {r.status_code}'}), 500
-        data = r.json()
-        # Garante que lastFundingRate existe
-        if 'lastFundingRate' not in data:
-            return jsonify({'error': 'Campo lastFundingRate ausente', 'raw': str(data)[:200]}), 500
-        return jsonify(data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        r = requests.get(endpoints[2], headers=headers, timeout=8)
+        if r.ok:
+            data = r.json()
+            items = data.get('result', {}).get('list', [])
+            if items:
+                fr = float(items[0].get('fundingRate', 0))
+                return jsonify({
+                    'lastFundingRate': str(fr),
+                    'nextFundingTime': int(items[0].get('fundingRateTimestamp', 0)) + 28800000
+                })
+    except:
+        pass
+    
+    return jsonify({'error': 'Todos endpoints indisponíveis'}), 500
 
 # ── DOW JONES VIA YAHOO ───────────────────────────────
 @app.route('/dji', methods=['GET'])
