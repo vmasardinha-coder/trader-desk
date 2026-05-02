@@ -477,7 +477,7 @@ function hlCryptoPrev(k){return HLC_PREV[k]!=null?parseFloat(HLC_PREV[k]):null;}
 // ── DOW JONES VIA PROXY ──────────────────────────────
 async function fetchDJI(){
   try{
-    const r=await fetch('http://localhost:8888/dji');
+    const r=await fetch('https://trader-desk.onrender.com/dji');
     if(!r.ok)throw 0;
     return await r.json();
   }catch{return null;}
@@ -487,7 +487,7 @@ async function fetchDJI(){
 async function fetchTV(){
   const out={};
   try{
-    const r=await fetch('http://localhost:8888/tv/brazil',{
+    const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:VALE3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
     });
@@ -500,7 +500,7 @@ async function fetchTV(){
     }
   }catch{}
   try{
-    const r=await fetch('http://localhost:8888/tv/forex',{
+    const r=await fetch('https://trader-desk.onrender.com/tv/forex',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({symbols:{tickers:['FX_IDC:USDBRL']},columns:['close','change_abs']})
     });
@@ -521,7 +521,7 @@ async function fetchTV(){
 // ── INDICADORES B3 + BTC ─────────────────────────────
 async function fetchIndicators(ticker){
   try{
-    const r=await fetch(`http://localhost:8888/indicators/${ticker}`);
+    const r=await fetch(`https://trader-desk.onrender.com/indicators/${ticker}`);
     if(!r.ok)throw 0;
     return await r.json();
   }catch{return null;}
@@ -529,7 +529,7 @@ async function fetchIndicators(ticker){
 
 async function fetchBTCIndicators(){
   try{
-    const r=await fetch('http://localhost:8888/btc/indicators');
+    const r=await fetch('https://trader-desk.onrender.com/btc/indicators');
     if(!r.ok)throw 0;
     return await r.json();
   }catch{return null;}
@@ -538,7 +538,7 @@ async function fetchBTCIndicators(){
 // ── BINANCE FUNDING ───────────────────────────────────
 async function fetchFunding(){
   try{
-    const r=await fetch('http://localhost:8888/binance/funding');
+    const r=await fetch('https://trader-desk.onrender.com/binance/funding');
     if(!r.ok)throw 0;
     const d=await r.json();
     const fr=parseFloat(d.lastFundingRate)*100;
