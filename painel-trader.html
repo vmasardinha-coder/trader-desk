@@ -541,7 +541,8 @@ async function fetchFunding(){
     const r=await fetch('https://trader-desk.onrender.com/binance/funding');
     if(!r.ok)throw 0;
     const d=await r.json();
-    const fr=parseFloat(d.lastFundingRate)*100;
+    const fr=parseFloat(d.lastFundingRate||d.fundingRate||'0')*100;
+    if(isNaN(fr)||fr===0&&!d.lastFundingRate){throw 0;}
     const diffMin=Math.round((d.nextFundingTime-Date.now())/60000);
     const frEl=document.getElementById('fr-bin');
     frEl.textContent=fr.toFixed(4)+'%';
