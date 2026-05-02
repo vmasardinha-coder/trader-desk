@@ -37,8 +37,15 @@ def tv_forex():
 @app.route('/binance/funding', methods=['GET'])
 def binance_funding():
     try:
-        r = requests.get('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT', timeout=5)
-        return jsonify(r.json())
+        r = requests.get('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT', 
+            headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+        if not r.ok:
+            return jsonify({'error': f'Binance HTTP {r.status_code}'}), 500
+        data = r.json()
+        # Garante que lastFundingRate existe
+        if 'lastFundingRate' not in data:
+            return jsonify({'error': 'Campo lastFundingRate ausente', 'raw': str(data)[:200]}), 500
+        return jsonify(data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
