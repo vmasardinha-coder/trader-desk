@@ -36,46 +36,30 @@ def tv_forex():
 # ── BINANCE FUNDING ───────────────────────────────────
 @app.route('/binance/funding', methods=['GET'])
 def binance_funding():
-    # Tenta múltiplos endpoints de funding rate
-    endpoints = [
-        'https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT',
-        'https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1',
-        'https://api.bybit.com/v5/market/funding/history?category=linear&symbol=BTCUSDT&limit=1',
-    ]
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    headers = {'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json'}
     
-    # Tenta Binance primeiro
-    for url in endpoints[:2]:
-        try:
-            r = requests.get(url, headers=headers, timeout=8)
-            if not r.ok:
-                continue
-            data = r.json()
-            if isinstance(data, list) and len(data) > 0:
-                # fundingRate endpoint retorna lista
-                return jsonify({'lastFundingRate': data[0].get('fundingRate', '0'),
-                               'nextFundingTime': int(data[0].get('fundingTime', 0)) + 28800000})
-            if 'lastFundingRate' in data:
-                return jsonify(data)
-        except:
-            continue
-    
-    # Tenta Bybit como fallback
+    # Hyperliquid funding rate — já funciona no Render (confirmado pelo painel)
     try:
-        r = requests.get(endpoints[2], headers=headers, timeout=8)
+        r = requests.post('https://api.hyperliquid.xyz/info',
+            json={'type': 'metaAndAssetCtxs'},
+            headers=headers, timeout=8)
         if r.ok:
             data = r.json()
-            items = data.get('result', {}).get('list', [])
-            if items:
-                fr = float(items[0].get('fundingRate', 0))
+            universe = data[0].get('universe', [])
+            ctxs = data[1] if len(data) > 1 else []
+            btc_idx = next((i for i, u in enumerate(universe) if u.get('name') == 'BTC'), None)
+            if btc_idx is not None and btc_idx < len(ctxs):
+                fr = float(ctxs[btc_idx].get('funding', 0)) * 8  # converte para 8h
+                next_funding = int(__import__('time').time() * 1000) + 3600000  # próxima hora
                 return jsonify({
                     'lastFundingRate': str(fr),
-                    'nextFundingTime': int(items[0].get('fundingRateTimestamp', 0)) + 28800000
+                    'nextFundingTime': next_funding,
+                    'source': 'Hyperliquid'
                 })
-    except:
+    except Exception as e:
         pass
-    
-    return jsonify({'error': 'Todos endpoints indisponíveis'}), 500
+
+    return jsonify({'error': 'Funding indisponível'}), 500
 
 # ── DOW JONES VIA YAHOO ───────────────────────────────
 @app.route('/dji', methods=['GET'])
