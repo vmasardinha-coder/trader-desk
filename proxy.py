@@ -367,43 +367,78 @@ def get_dji():
         return jsonify({'error': str(e)}), 500
 
 
-# ── FUNDAMENTUS SCRAPING ─────────────────────────────
-def get_fundamentus(ticker_base):
+# ── BRAPI FUNDAMENTAIS (sem token para PETR4/VALE3) ──
+def get_brapi_fundamentals(ticker_base):
     try:
-        url = f'https://www.fundamentus.com.br/detalhes.php?papel={ticker_base}'
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept-Language': 'pt-BR,pt;q=0.9',
-        }
-        r = requests.get(url, headers=headers, timeout=10)
+        url = f'https://brapi.dev/api/quote/{ticker_base}?modules=defaultKeyStatistics,summaryDetail,financialData,incomeStatementHistory'
+        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
         if not r.ok:
             return {}
-        text = r.text
-        result = {}
-
-        def extract_val(pattern):
-            m = re.search(pattern, text, re.DOTALL)
-            if not m:
-                return None
-            try:
-                s = m.group(1).replace('.', '').replace(',', '.').replace('%', '').strip()
-                return float(s)
-            except:
-                return None
-
-        result['pl']            = extract_val(r'P/L[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['pvp']           = extract_val(r'P/VP[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['dy']            = extract_val(r'Div\. Yield[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['roe']           = extract_val(r'ROE[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['ev_ebitda']     = extract_val(r'EV/EBITDA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['lpa']           = extract_val(r'LPA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['vpa']           = extract_val(r'VPA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['margem_liquida']= extract_val(r'Mrg\. L[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-        result['divida_ebitda'] = extract_val(r'[Dd][íi]v.*?EBITDA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
-
-        return {k: v for k, v in result.items() if v is not None}
+        data = r.json()
+        result_list = data.get('results', [])
+        if not result_list:
+            return {}
+        res = result_list[0]
+        
+        out = {}
+        
+        # P/L
+        pe = res.get('trailingPE') or res.get('forwardPE')
+        if pe: out['pl'] = round(float(pe), 2)
+        
+        # P/VP
+        pvp = res.get('priceToBook')
+        if pvp: out['pvp'] = round(float(pvp), 2)
+        
+        # Dividend Yield
+        dy = res.get('dividendYield') or res.get('trailingAnnualDividendYield')
+        if dy: out['dy'] = round(float(dy) * 100, 2)
+        
+        # Busca nos módulos
+        summary = res.get('summaryDetail', {}) or {}
+        stats = res.get('defaultKeyStatistics', {}) or {}
+        financial = res.get('financialData', {}) or {}
+        
+        def raw(d, k):
+            v = d.get(k, {})
+            return v.get('raw') if isinstance(v, dict) else v
+        
+        if not out.get('pl'):
+            pl_v = raw(summary, 'trailingPE') or raw(stats, 'trailingPE')
+            if pl_v: out['pl'] = round(float(pl_v), 2)
+        
+        if not out.get('pvp'):
+            pvp_v = raw(stats, 'priceToBook')
+            if pvp_v: out['pvp'] = round(float(pvp_v), 2)
+        
+        if not out.get('dy'):
+            dy_v = raw(summary, 'dividendYield') or raw(summary, 'trailingAnnualDividendYield')
+            if dy_v: out['dy'] = round(float(dy_v) * 100, 2)
+        
+        roe_v = raw(financial, 'returnOnEquity')
+        if roe_v: out['roe'] = round(float(roe_v) * 100, 2)
+        
+        ev_v = raw(stats, 'enterpriseToEbitda')
+        if ev_v: out['ev_ebitda'] = round(float(ev_v), 2)
+        
+        debt_v = raw(financial, 'totalDebt')
+        ebitda_v = raw(financial, 'ebitda')
+        if debt_v and ebitda_v and float(ebitda_v) != 0:
+            out['divida_ebitda'] = round(float(debt_v) / float(ebitda_v), 2)
+        
+        lpa_v = raw(stats, 'trailingEps')
+        if lpa_v: out['lpa'] = round(float(lpa_v), 2)
+        
+        vpa_v = raw(stats, 'bookValue')
+        if vpa_v: out['vpa'] = round(float(vpa_v), 2)
+        
+        ml_v = raw(financial, 'profitMargins')
+        if ml_v: out['margem_liquida'] = round(float(ml_v) * 100, 2)
+        
+        return out
     except Exception as e:
         return {}
+
 
 # ── INDICADORES AÇÕES B3 ──────────────────────────────
 @app.route('/indicators/<ticker>', methods=['GET'])
@@ -442,7 +477,7 @@ def get_indicators(ticker):
 
         # Fundamentais via Fundamentus (fonte brasileira)
         ticker_base = ticker.replace('.SA','').replace('.sa','').upper()
-        fund_data = get_fundamentus(ticker_base)
+        fund_data = get_brapi_fundamentals(ticker_base)
         pl          = fund_data.get('pl')
         pvp         = fund_data.get('pvp')
         dy          = fund_data.get('dy')
