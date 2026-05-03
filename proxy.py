@@ -366,6 +366,45 @@ def get_dji():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# ── FUNDAMENTUS SCRAPING ─────────────────────────────
+def get_fundamentus(ticker_base):
+    try:
+        url = f'https://www.fundamentus.com.br/detalhes.php?papel={ticker_base}'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept-Language': 'pt-BR,pt;q=0.9',
+        }
+        r = requests.get(url, headers=headers, timeout=10)
+        if not r.ok:
+            return {}
+        text = r.text
+        result = {}
+
+        def extract_val(pattern):
+            m = re.search(pattern, text, re.DOTALL)
+            if not m:
+                return None
+            try:
+                s = m.group(1).replace('.', '').replace(',', '.').replace('%', '').strip()
+                return float(s)
+            except:
+                return None
+
+        result['pl']            = extract_val(r'P/L[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['pvp']           = extract_val(r'P/VP[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['dy']            = extract_val(r'Div\. Yield[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['roe']           = extract_val(r'ROE[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['ev_ebitda']     = extract_val(r'EV/EBITDA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['lpa']           = extract_val(r'LPA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['vpa']           = extract_val(r'VPA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['margem_liquida']= extract_val(r'Mrg\. L[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+        result['divida_ebitda'] = extract_val(r'[Dd][íi]v.*?EBITDA[^<]*</td>\s*<td[^>]*>([\d.,]+)')
+
+        return {k: v for k, v in result.items() if v is not None}
+    except Exception as e:
+        return {}
+
 # ── INDICADORES AÇÕES B3 ──────────────────────────────
 @app.route('/indicators/<ticker>', methods=['GET'])
 def get_indicators(ticker):
@@ -401,57 +440,19 @@ def get_indicators(ticker):
         obv_20 = calc_obv(closes[-21:], volumes[-21:]) if len(closes)>=21 else None
         obv_trend = ('subindo' if (obv_20 or 0)>0 else 'caindo') if obv_20 is not None else None
 
-        # Fundamentais via Yahoo
-        pl = pvp = ev_ebitda = dy = roe = debt_ebitda = margem = lpa = vpa = market_cap = None
-        try:
-            r2 = requests.get(
-                f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?modules=summaryDetail,defaultKeyStatistics,financialData',
-                headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
-            if r2.ok:
-                fund = r2.json().get('quoteSummary',{}).get('result',[{}])[0]
-                summary = fund.get('summaryDetail',{})
-                stats = fund.get('defaultKeyStatistics',{})
-                financial = fund.get('financialData',{})
-
-                def raw(d, k):
-                    v = d.get(k,{})
-                    return v.get('raw') if isinstance(v,dict) else v
-
-                pl_val = raw(summary,'trailingPE')
-                pl = round(pl_val,1) if pl_val else None
-
-                pvp_val = raw(stats,'priceToBook')
-                pvp = round(pvp_val,2) if pvp_val else None
-
-                ev_val = raw(stats,'enterpriseToEbitda')
-                ev_ebitda = round(ev_val,1) if ev_val else None
-
-                dy_val = raw(summary,'dividendYield')
-                dy = round(dy_val*100,2) if dy_val else None
-
-                roe_val = raw(financial,'returnOnEquity')
-                roe = round(roe_val*100,1) if roe_val else None
-
-                # Dívida/EBITDA
-                debt_val = raw(financial,'totalDebt')
-                ebitda_val = raw(financial,'ebitda')
-                if debt_val and ebitda_val and ebitda_val != 0:
-                    debt_ebitda = round(debt_val/ebitda_val,2)
-
-                margem_val = raw(financial,'profitMargins')
-                margem = margem_val if margem_val else None
-
-                # LPA e VPA para Graham
-                lpa_val = raw(stats,'trailingEps')
-                lpa = lpa_val if lpa_val else None
-
-                bvps_val = raw(stats,'bookValue')
-                vpa = bvps_val if bvps_val else None
-
-                mc_val = raw(summary,'marketCap')
-                market_cap = mc_val if mc_val else None
-        except:
-            pass
+        # Fundamentais via Fundamentus (fonte brasileira)
+        ticker_base = ticker.replace('.SA','').replace('.sa','').upper()
+        fund_data = get_fundamentus(ticker_base)
+        pl          = fund_data.get('pl')
+        pvp         = fund_data.get('pvp')
+        dy          = fund_data.get('dy')
+        roe         = fund_data.get('roe')
+        ev_ebitda   = fund_data.get('ev_ebitda')
+        debt_ebitda = fund_data.get('divida_ebitda')
+        lpa         = fund_data.get('lpa')
+        vpa         = fund_data.get('vpa')
+        margem      = fund_data.get('margem_liquida')
+        market_cap  = None
 
         # Valor Justo Graham
         vj_graham = calc_graham(lpa, vpa) if lpa and vpa else None
