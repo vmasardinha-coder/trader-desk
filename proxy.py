@@ -1,7 +1,9 @@
 """
 Trader Desk — Proxy Server v3
-Indicadores técnicos + fundamentalistas + sinal combinado
+Indicadores técnicos + fundamentalistas completos
+CDI automático via BCB, Graham, Setor, ROE, P/VP, Dívida/EBITDA, MACD, Bollinger
 """
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import requests
@@ -12,88 +14,37 @@ app = Flask(__name__)
 CORS(app)
 
 import logging
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
-# ── SETORES E P/L MÉDIO HISTÓRICO ─────────────────────
+# ── SETORES B3 — P/L e P/VP médios históricos ─────────
 SETORES = {
-    'PETR4.SA': {'nome': 'Petróleo & Gás', 'pl_medio': 6.5,  'pvp_medio': 1.8, 'roe_medio': 18},
-    'VALE3.SA': {'nome': 'Mineração',       'pl_medio': 7.0,  'pvp_medio': 2.0, 'roe_medio': 20},
+    'PETR4.SA': {'nome': 'Petróleo & Gás', 'pl_medio': 6.0,  'pvp_medio': 1.5, 'roe_min': 15},
+    'VALE3.SA':  {'nome': 'Mineração',      'pl_medio': 7.0,  'pvp_medio': 1.8, 'roe_min': 15},
+    'ITUB4.SA':  {'nome': 'Bancos',         'pl_medio': 9.0,  'pvp_medio': 1.8, 'roe_min': 18},
+    'BBDC4.SA':  {'nome': 'Bancos',         'pl_medio': 9.0,  'pvp_medio': 1.5, 'roe_min': 18},
+    'WEGE3.SA':  {'nome': 'Ind. Mecânica',  'pl_medio': 30.0, 'pvp_medio': 8.0, 'roe_min': 20},
+    'MGLU3.SA':  {'nome': 'Varejo',         'pl_medio': 20.0, 'pvp_medio': 2.0, 'roe_min': 10},
+    'DEFAULT':   {'nome': 'Geral',          'pl_medio': 12.0, 'pvp_medio': 2.0, 'roe_min': 12},
 }
-SETOR_DEFAULT = {'nome': 'Geral', 'pl_medio': 12.0, 'pvp_medio': 2.0, 'roe_medio': 15}
 
-# ── TRADINGVIEW ───────────────────────────────────────
-@app.route('/tv/brazil', methods=['POST'])
-def tv_brazil():
-    try:
-        r = requests.post('https://scanner.tradingview.com/brazil/scan',
-            json=request.get_json(), timeout=5)
-        return jsonify(r.json())
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# ── CDI AUTOMÁTICO VIA BCB ────────────────────────────
+cdi_cache = {'valor': None, 'ts': 0}
 
-@app.route('/tv/forex', methods=['POST'])
-def tv_forex():
-    try:
-        r = requests.post('https://scanner.tradingview.com/forex/scan',
-            json=request.get_json(), timeout=5)
-        return jsonify(r.json())
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# ── DOW JONES ─────────────────────────────────────────
-@app.route('/dji', methods=['GET'])
-def get_dji():
-    try:
-        r = requests.get(
-            'https://query1.finance.yahoo.com/v8/finance/chart/%5EDJI?interval=1d&range=5d',
-            headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
-        if not r.ok:
-            return jsonify({'error': f'HTTP {r.status_code}'}), 500
-        data = r.json()
-        meta = data['chart']['result'][0]['meta']
-        closes = [c for c in data['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
-        price = meta.get('regularMarketPrice', closes[-1])
-        prev = meta.get('chartPreviousClose', closes[-2] if len(closes) > 1 else price)
-        return jsonify({'price': price, 'prev': prev})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# ── FUNDING RATE via Hyperliquid ──────────────────────
-@app.route('/binance/funding', methods=['GET'])
-def binance_funding():
-    try:
-        r = requests.post('https://api.hyperliquid.xyz/info',
-            json={'type': 'metaAndAssetCtxs'},
-            headers={'Content-Type': 'application/json'}, timeout=8)
-        if r.ok:
-            data = r.json()
-            universe = data[0].get('universe', [])
-            ctxs = data[1] if len(data) > 1 else []
-            btc_idx = next((i for i, u in enumerate(universe) if u.get('name') == 'BTC'), None)
-            if btc_idx is not None and btc_idx < len(ctxs):
-                fr = float(ctxs[btc_idx].get('funding', 0)) * 8
-                return jsonify({
-                    'lastFundingRate': str(fr),
-                    'nextFundingTime': int(time.time() * 1000) + 3600000,
-                    'source': 'Hyperliquid'
-                })
-    except Exception as e:
-        pass
-    return jsonify({'error': 'Funding indisponível'}), 500
-
-# ── CDI ATUAL VIA BANCO CENTRAL ───────────────────────
 def get_cdi():
+    global cdi_cache
+    if cdi_cache['valor'] and (time.time() - cdi_cache['ts']) < 3600:
+        return cdi_cache['valor']
     try:
         r = requests.get(
             'https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json',
-            timeout=5)
+            timeout=5
+        )
         if r.ok:
             data = r.json()
-            if data:
-                # CDI diário — converte para anual: (1 + cdi_diario/100)^252 - 1
-                cdi_diario = float(data[0]['valor'])
-                cdi_anual = ((1 + cdi_diario/100) ** 252 - 1) * 100
-                return round(cdi_anual, 2)
+            cdi = float(data[0]['valor'])
+            cdi_cache = {'valor': cdi, 'ts': time.time()}
+            return cdi
     except:
         pass
     return 10.5  # fallback CDI atual aproximado
@@ -112,307 +63,331 @@ def calc_rsi(closes, period=14):
     for i in range(period, len(gains)):
         ag = (ag * (period-1) + gains[i]) / period
         al = (al * (period-1) + losses[i]) / period
-    if al == 0:
-        return 100.0
+    if al == 0: return 100
     return round(100 - (100 / (1 + ag/al)), 2)
 
 def calc_mm(closes, period):
-    if len(closes) < period:
-        return None
+    if len(closes) < period: return None
     return round(sum(closes[-period:]) / period, 2)
 
-def calc_ema(closes, period):
-    if len(closes) < period:
-        return None
-    k = 2 / (period + 1)
-    ema = sum(closes[:period]) / period
-    for c in closes[period:]:
-        ema = c * k + ema * (1 - k)
-    return round(ema, 2)
+def calc_obv(closes, volumes):
+    if len(closes) < 2: return None
+    obv = 0
+    for i in range(1, len(closes)):
+        if closes[i] > closes[i-1]: obv += volumes[i]
+        elif closes[i] < closes[i-1]: obv -= volumes[i]
+    return obv
 
-def calc_macd(closes):
-    ema12 = calc_ema(closes, 12)
-    ema26 = calc_ema(closes, 26)
-    if ema12 is None or ema26 is None:
-        return None, None, None
-    macd_line = round(ema12 - ema26, 2)
-    # Signal line (EMA9 do MACD) — simplificado
-    if len(closes) >= 35:
-        macd_series = []
-        for i in range(26, len(closes)):
-            e12 = calc_ema(closes[:i+1], 12)
-            e26 = calc_ema(closes[:i+1], 26)
-            if e12 and e26:
-                macd_series.append(e12 - e26)
-        signal = calc_ema(macd_series, 9) if len(macd_series) >= 9 else None
-        histogram = round(macd_line - signal, 2) if signal else None
-    else:
-        signal = None
-        histogram = None
-    return macd_line, signal, histogram
+def calc_macd(closes, fast=12, slow=26, signal=9):
+    if len(closes) < slow + signal: return None, None, None
+    def ema(data, period):
+        k = 2/(period+1)
+        e = [data[0]]
+        for v in data[1:]: e.append(v*k + e[-1]*(1-k))
+        return e
+    ema_fast = ema(closes, fast)
+    ema_slow = ema(closes, slow)
+    macd_line = [f-s for f,s in zip(ema_fast[slow-1:], ema_slow[slow-1:])]
+    signal_line = ema(macd_line, signal)
+    histogram = [m-s for m,s in zip(macd_line[signal-1:], signal_line[signal-1:])]
+    return round(macd_line[-1], 4), round(signal_line[-1], 4), round(histogram[-1], 4) if histogram else None
 
 def calc_bollinger(closes, period=20, std_dev=2):
-    if len(closes) < period:
-        return None, None, None
+    if len(closes) < period: return None, None, None
     recent = closes[-period:]
     mm = sum(recent) / period
-    variance = sum((x - mm) ** 2 for x in recent) / period
+    variance = sum((x - mm)**2 for x in recent) / period
     std = math.sqrt(variance)
     upper = round(mm + std_dev * std, 2)
     lower = round(mm - std_dev * std, 2)
-    middle = round(mm, 2)
-    return upper, middle, lower
-
-def calc_obv(closes, volumes):
-    if len(closes) < 2:
-        return None, None
-    obv = 0
-    obv_series = [0]
-    for i in range(1, len(closes)):
-        if closes[i] > closes[i-1]:
-            obv += volumes[i]
-        elif closes[i] < closes[i-1]:
-            obv -= volumes[i]
-        obv_series.append(obv)
-    # Tendência OBV (últimos 20 dias)
-    if len(obv_series) >= 20:
-        trend = 'subindo' if obv_series[-1] > obv_series[-20] else 'caindo'
-    else:
-        trend = 'subindo' if obv > 0 else 'caindo'
-    return obv, trend
+    return round(upper, 2), round(mm, 2), round(lower, 2)
 
 def calc_graham(lpa, vpa):
-    if lpa and vpa and lpa > 0 and vpa > 0:
-        return round(math.sqrt(22.5 * lpa * vpa), 2)
-    return None
+    if not lpa or not vpa or lpa <= 0 or vpa <= 0: return None
+    return round(math.sqrt(22.5 * lpa * vpa), 2)
 
-# ── GERADOR DE SINAL ──────────────────────────────────
-def gerar_sinal(ind, cdi):
-    score_tec = 0
-    max_tec = 0
-    score_fund = 0
-    max_fund = 0
-    detalhes_tec = []
-    detalhes_fund = []
-
+# ── SINAL COMPLETO ────────────────────────────────────
+def gerar_sinal(ind, cdi, setor_info):
+    score = 0
+    max_score = 0
+    detalhes = []
     price = ind.get('price', 0)
-    setor = ind.get('setor', SETOR_DEFAULT)
 
-    # ── TÉCNICOS ──
+    # ── TÉCNICOS ─────────────────────
+    # RSI
     rsi = ind.get('rsi')
     if rsi is not None:
-        max_tec += 2
+        max_score += 2
         if rsi < 30:
-            score_tec += 2
-            detalhes_tec.append({'status':'buy','texto':f'RSI {rsi} — Sobrevenda ⚡'})
+            score += 2; detalhes.append({'status':'buy','texto':f'RSI {rsi} — Sobrevenda ✅'})
         elif rsi < 45:
-            score_tec += 1
-            detalhes_tec.append({'status':'neutral','texto':f'RSI {rsi} — Levemente favorável'})
+            score += 1; detalhes.append({'status':'neutral','texto':f'RSI {rsi} — Levemente favorável'})
         elif rsi > 70:
-            score_tec -= 1
-            detalhes_tec.append({'status':'sell','texto':f'RSI {rsi} — Sobrecompra ⚠'})
+            score -= 1; detalhes.append({'status':'sell','texto':f'RSI {rsi} — Sobrecompra ⚠️'})
         else:
-            detalhes_tec.append({'status':'neutral','texto':f'RSI {rsi} — Zona neutra'})
+            detalhes.append({'status':'neutral','texto':f'RSI {rsi} — Zona neutra'})
 
+    # MM200
     mm200 = ind.get('mm200')
     if mm200 and price:
-        max_tec += 2
+        max_score += 2
         if price > mm200:
-            score_tec += 2
-            detalhes_tec.append({'status':'buy','texto':f'Acima MM200 (R$ {mm200:.2f}) — Tendência alta'})
+            score += 2; detalhes.append({'status':'buy','texto':f'Acima da MM200 ({mm200:.2f}) — Tendência alta ✅'})
         else:
-            score_tec -= 1
-            detalhes_tec.append({'status':'sell','texto':f'Abaixo MM200 (R$ {mm200:.2f}) — Tendência baixa'})
+            score -= 1; detalhes.append({'status':'sell','texto':f'Abaixo da MM200 ({mm200:.2f}) — Tendência baixa ❌'})
 
+    # MM50
     mm50 = ind.get('mm50')
     if mm50 and price:
-        max_tec += 1
+        max_score += 1
         if price > mm50:
-            score_tec += 1
-            detalhes_tec.append({'status':'buy','texto':f'Acima MM50 (R$ {mm50:.2f})'})
+            score += 1; detalhes.append({'status':'buy','texto':f'Acima da MM50 ({mm50:.2f}) ✅'})
         else:
-            detalhes_tec.append({'status':'sell','texto':f'Abaixo MM50 (R$ {mm50:.2f})'})
+            detalhes.append({'status':'sell','texto':f'Abaixo da MM50 ({mm50:.2f})'})
 
+    # MM20
     mm20 = ind.get('mm20')
     if mm20 and price:
-        max_tec += 1
+        max_score += 1
         if price > mm20:
-            score_tec += 1
-            detalhes_tec.append({'status':'buy','texto':f'Acima MM20 (R$ {mm20:.2f})'})
+            score += 1; detalhes.append({'status':'buy','texto':f'Acima da MM20 ({mm20:.2f}) ✅'})
         else:
-            detalhes_tec.append({'status':'neutral','texto':f'Abaixo MM20 (R$ {mm20:.2f}) — Correção curto prazo'})
+            detalhes.append({'status':'neutral','texto':f'Abaixo da MM20 ({mm20:.2f}) — Correção curto prazo'})
 
+    # MACD
     macd = ind.get('macd')
+    macd_signal = ind.get('macd_signal')
     macd_hist = ind.get('macd_histogram')
-    if macd is not None and macd_hist is not None:
-        max_tec += 1
-        if macd_hist > 0:
-            score_tec += 1
-            detalhes_tec.append({'status':'buy','texto':f'MACD histograma positivo ({macd_hist:.2f}) — Momentum de alta'})
+    if macd is not None and macd_signal is not None:
+        max_score += 1
+        if macd > macd_signal:
+            score += 1; detalhes.append({'status':'buy','texto':f'MACD ({macd:.3f}) acima do sinal — Momentum positivo ✅'})
         else:
-            detalhes_tec.append({'status':'sell','texto':f'MACD histograma negativo ({macd_hist:.2f}) — Momentum de baixa'})
+            detalhes.append({'status':'sell','texto':f'MACD ({macd:.3f}) abaixo do sinal — Momentum negativo'})
 
-    boll_upper = ind.get('bollinger_upper')
-    boll_lower = ind.get('bollinger_lower')
-    boll_mid = ind.get('bollinger_mid')
-    if boll_upper and boll_lower and price:
-        max_tec += 1
-        boll_pct = (price - boll_lower) / (boll_upper - boll_lower) * 100 if boll_upper != boll_lower else 50
-        if price <= boll_lower:
-            score_tec += 1
-            detalhes_tec.append({'status':'buy','texto':f'Abaixo Banda Inferior Bollinger (R$ {boll_lower:.2f}) — Sobrevenda'})
-        elif price >= boll_upper:
-            detalhes_tec.append({'status':'sell','texto':f'Acima Banda Superior Bollinger (R$ {boll_upper:.2f}) — Sobrecompra'})
+    # Bollinger
+    bb_upper = ind.get('bb_upper')
+    bb_lower = ind.get('bb_lower')
+    bb_mid = ind.get('bb_mid')
+    if bb_upper and bb_lower and price:
+        max_score += 1
+        bb_pos = (price - bb_lower) / (bb_upper - bb_lower) if bb_upper != bb_lower else 0.5
+        if bb_pos < 0.2:
+            score += 1; detalhes.append({'status':'buy','texto':f'Preço próximo à banda inferior de Bollinger — Sobrevenda ✅'})
+        elif bb_pos > 0.8:
+            score -= 1; detalhes.append({'status':'sell','texto':f'Preço próximo à banda superior de Bollinger — Sobrecompra ⚠️'})
         else:
-            detalhes_tec.append({'status':'neutral','texto':f'Dentro das Bandas Bollinger ({boll_pct:.0f}% da faixa)'})
+            detalhes.append({'status':'neutral','texto':f'Preço no meio das Bandas de Bollinger (posição: {bb_pos:.0%})'})
 
+    # OBV
     obv_trend = ind.get('obv_trend')
     if obv_trend:
-        max_tec += 1
+        max_score += 1
         if obv_trend == 'subindo':
-            score_tec += 1
-            detalhes_tec.append({'status':'buy','texto':'OBV subindo — Volume confirma tendência'})
+            score += 1; detalhes.append({'status':'buy','texto':'OBV subindo — Volume confirma tendência ✅'})
         else:
-            detalhes_tec.append({'status':'sell','texto':'OBV caindo — Volume diverge'})
+            detalhes.append({'status':'sell','texto':'OBV caindo — Volume diverge da tendência'})
 
-    # ── FUNDAMENTALISTAS ──
+    # ── FUNDAMENTALISTAS ─────────────
+    # P/L vs setor
     pl = ind.get('pl')
-    pl_setor = setor.get('pl_medio', 12)
+    pl_setor = setor_info.get('pl_medio', 12)
     if pl and pl > 0:
-        max_fund += 2
+        max_score += 2
         if pl < pl_setor * 0.7:
-            score_fund += 2
-            detalhes_fund.append({'status':'buy','texto':f'P/L {pl:.1f}x — Barato vs setor ({pl_setor}x)'})
+            score += 2; detalhes.append({'status':'buy','texto':f'P/L {pl:.1f}x — Barato vs setor ({pl_setor}x) ✅'})
         elif pl < pl_setor:
-            score_fund += 1
-            detalhes_fund.append({'status':'buy','texto':f'P/L {pl:.1f}x — Abaixo da média do setor ({pl_setor}x)'})
-        elif pl > pl_setor * 1.5:
-            score_fund -= 1
-            detalhes_fund.append({'status':'sell','texto':f'P/L {pl:.1f}x — Caro vs setor ({pl_setor}x)'})
+            score += 1; detalhes.append({'status':'buy','texto':f'P/L {pl:.1f}x — Levemente abaixo do setor ({pl_setor}x)'})
+        elif pl > pl_setor * 1.3:
+            score -= 1; detalhes.append({'status':'sell','texto':f'P/L {pl:.1f}x — Caro vs setor ({pl_setor}x) ⚠️'})
         else:
-            detalhes_fund.append({'status':'neutral','texto':f'P/L {pl:.1f}x — Próximo da média do setor ({pl_setor}x)'})
+            detalhes.append({'status':'neutral','texto':f'P/L {pl:.1f}x — Em linha com setor ({pl_setor}x)'})
 
-    pvp = ind.get('pvp')
-    pvp_setor = setor.get('pvp_medio', 2.0)
+    # P/VP vs setor
+    pvp = ind.get('price_to_book')
+    pvp_setor = setor_info.get('pvp_medio', 2)
     if pvp and pvp > 0:
-        max_fund += 1
-        if pvp < 1.0:
-            score_fund += 1
-            detalhes_fund.append({'status':'buy','texto':f'P/VP {pvp:.2f}x — Abaixo do patrimônio (muito barato)'})
+        max_score += 1
+        if pvp < 1:
+            score += 1; detalhes.append({'status':'buy','texto':f'P/VP {pvp:.2f}x — Abaixo do patrimônio (Graham aprova) ✅'})
         elif pvp < pvp_setor:
-            score_fund += 1
-            detalhes_fund.append({'status':'buy','texto':f'P/VP {pvp:.2f}x — Abaixo da média do setor ({pvp_setor}x)'})
+            score += 1; detalhes.append({'status':'buy','texto':f'P/VP {pvp:.2f}x — Abaixo da média do setor ({pvp_setor}x) ✅'})
+        elif pvp > pvp_setor * 1.5:
+            detalhes.append({'status':'sell','texto':f'P/VP {pvp:.2f}x — Acima da média do setor ({pvp_setor}x)'})
         else:
-            detalhes_fund.append({'status':'neutral','texto':f'P/VP {pvp:.2f}x — Acima da média do setor ({pvp_setor}x)'})
+            detalhes.append({'status':'neutral','texto':f'P/VP {pvp:.2f}x — Em linha com setor'})
 
-    dy = ind.get('dividend_yield')
-    if dy and dy > 0:
-        max_fund += 2
-        if dy > cdi:
-            score_fund += 2
-            detalhes_fund.append({'status':'buy','texto':f'DY {dy:.1f}% > CDI {cdi:.1f}% — Dividendo supera renda fixa ⭐'})
-        elif dy > cdi * 0.7:
-            score_fund += 1
-            detalhes_fund.append({'status':'neutral','texto':f'DY {dy:.1f}% vs CDI {cdi:.1f}% — Próximo da renda fixa'})
+    # EV/EBITDA
+    ev_ebitda = ind.get('ev_ebitda')
+    if ev_ebitda and ev_ebitda > 0:
+        max_score += 1
+        if ev_ebitda < 6:
+            score += 1; detalhes.append({'status':'buy','texto':f'EV/EBITDA {ev_ebitda:.1f}x — Muito barato ✅'})
+        elif ev_ebitda < 10:
+            detalhes.append({'status':'neutral','texto':f'EV/EBITDA {ev_ebitda:.1f}x — Razoável'})
         else:
-            detalhes_fund.append({'status':'sell','texto':f'DY {dy:.1f}% < CDI {cdi:.1f}% — Dividendo abaixo da renda fixa'})
+            detalhes.append({'status':'sell','texto':f'EV/EBITDA {ev_ebitda:.1f}x — Caro'})
 
+    # ROE
     roe = ind.get('roe')
-    roe_setor = setor.get('roe_medio', 15)
+    roe_min = setor_info.get('roe_min', 12)
     if roe and roe > 0:
-        max_fund += 1
-        if roe > roe_setor:
-            score_fund += 1
-            detalhes_fund.append({'status':'buy','texto':f'ROE {roe:.1f}% — Acima da média do setor ({roe_setor}%)'})
-        elif roe > 10:
-            detalhes_fund.append({'status':'neutral','texto':f'ROE {roe:.1f}% — Retorno moderado'})
+        max_score += 1
+        if roe > roe_min * 1.3:
+            score += 1; detalhes.append({'status':'buy','texto':f'ROE {roe:.1f}% — Excelente vs mínimo do setor ({roe_min}%) ✅'})
+        elif roe > roe_min:
+            detalhes.append({'status':'neutral','texto':f'ROE {roe:.1f}% — Adequado para o setor'})
         else:
-            detalhes_fund.append({'status':'sell','texto':f'ROE {roe:.1f}% — Retorno fraco'})
+            detalhes.append({'status':'sell','texto':f'ROE {roe:.1f}% — Abaixo do esperado para o setor ({roe_min}%)'})
 
-    div_ebitda = ind.get('divida_ebitda')
+    # Dívida/EBITDA
+    div_ebitda = ind.get('debt_to_ebitda')
     if div_ebitda is not None:
-        max_fund += 1
+        max_score += 1
         if div_ebitda < 1.5:
-            score_fund += 1
-            detalhes_fund.append({'status':'buy','texto':f'Dívida/EBITDA {div_ebitda:.1f}x — Endividamento saudável'})
-        elif div_ebitda < 3.0:
-            detalhes_fund.append({'status':'neutral','texto':f'Dívida/EBITDA {div_ebitda:.1f}x — Endividamento moderado'})
+            score += 1; detalhes.append({'status':'buy','texto':f'Dívida/EBITDA {div_ebitda:.1f}x — Endividamento saudável ✅'})
+        elif div_ebitda < 3:
+            detalhes.append({'status':'neutral','texto':f'Dívida/EBITDA {div_ebitda:.1f}x — Endividamento moderado'})
         else:
-            detalhes_fund.append({'status':'sell','texto':f'Dívida/EBITDA {div_ebitda:.1f}x — Endividamento alto'})
+            detalhes.append({'status':'sell','texto':f'Dívida/EBITDA {div_ebitda:.1f}x — Endividamento elevado ⚠️'})
 
-    # Valor justo Graham vs preço atual
+    # Dividend Yield vs CDI
+    dy = ind.get('dividend_yield')
+    if dy and dy > 0 and cdi:
+        max_score += 2
+        dy_vs_cdi = dy / cdi
+        if dy_vs_cdi >= 1.0:
+            score += 2; detalhes.append({'status':'buy','texto':f'DY {dy:.1f}% ≥ CDI {cdi:.1f}% — Dividendo bate o CDI ✅✅'})
+        elif dy_vs_cdi >= 0.7:
+            score += 1; detalhes.append({'status':'neutral','texto':f'DY {dy:.1f}% vs CDI {cdi:.1f}% — Dividendo próximo ao CDI'})
+        else:
+            detalhes.append({'status':'sell','texto':f'DY {dy:.1f}% < CDI {cdi:.1f}% — Dividendo abaixo do CDI'})
+
+    # Valor Justo Graham vs Preço
     vj_graham = ind.get('valor_justo_graham')
     if vj_graham and price:
-        max_fund += 2
-        upside = (vj_graham - price) / price * 100
+        max_score += 2
+        upside = ((vj_graham - price) / price) * 100
         if upside > 20:
-            score_fund += 2
-            detalhes_fund.append({'status':'buy','texto':f'Upside Graham {upside:.0f}% — Ação subavaliada (VJ: R$ {vj_graham:.2f})'})
+            score += 2; detalhes.append({'status':'buy','texto':f'Valor Justo Graham R$ {vj_graham:.2f} — Upside de {upside:.1f}% ✅✅'})
         elif upside > 0:
-            score_fund += 1
-            detalhes_fund.append({'status':'buy','texto':f'Upside Graham {upside:.0f}% — Leve desconto (VJ: R$ {vj_graham:.2f})'})
+            score += 1; detalhes.append({'status':'buy','texto':f'Valor Justo Graham R$ {vj_graham:.2f} — Upside de {upside:.1f}%'})
         elif upside > -20:
-            detalhes_fund.append({'status':'neutral','texto':f'Desconto Graham {upside:.0f}% — Próximo do valor justo (VJ: R$ {vj_graham:.2f})'})
+            detalhes.append({'status':'neutral','texto':f'Valor Justo Graham R$ {vj_graham:.2f} — Downside de {abs(upside):.1f}%'})
         else:
-            score_fund -= 1
-            detalhes_fund.append({'status':'sell','texto':f'Sobrevalorizado {abs(upside):.0f}% acima do Graham (VJ: R$ {vj_graham:.2f})'})
+            score -= 1; detalhes.append({'status':'sell','texto':f'Valor Justo Graham R$ {vj_graham:.2f} — Sobrevalorizado em {abs(upside):.1f}% ⚠️'})
 
-    # ── SINAL COMBINADO ──
-    pct_tec = score_tec / max_tec if max_tec > 0 else 0
-    pct_fund = score_fund / max_fund if max_fund > 0 else 0
-    pct_total = (pct_tec * 0.5 + pct_fund * 0.5)  # peso igual técnico e fundamentalista
+    # Margem líquida
+    margem = ind.get('profit_margin')
+    if margem and margem > 0:
+        max_score += 1
+        if margem > 0.15:
+            score += 1; detalhes.append({'status':'buy','texto':f'Margem Líquida {margem*100:.1f}% — Excelente ✅'})
+        elif margem > 0.05:
+            detalhes.append({'status':'neutral','texto':f'Margem Líquida {margem*100:.1f}% — Adequada'})
+        else:
+            detalhes.append({'status':'sell','texto':f'Margem Líquida {margem*100:.1f}% — Baixa ⚠️'})
 
-    def classify(pct):
-        if pct >= 0.65: return 'COMPRA FORTE', 'green'
-        elif pct >= 0.40: return 'COMPRA MODERADA', 'accent'
-        elif pct >= 0.10: return 'NEUTRO', 'warn'
-        elif pct >= -0.20: return 'VENDA MODERADA', 'orange'
-        else: return 'VENDA FORTE', 'danger'
+    # Sinal final
+    if max_score == 0:
+        return {'sinal':'SEM DADOS','forca':0,'detalhes':detalhes}
 
-    sinal_tec, cor_tec = classify(pct_tec)
-    sinal_fund, cor_fund = classify(pct_fund)
-    sinal_total, cor_total = classify(pct_total)
+    pct = score / max_score
+    if pct >= 0.65:   sinal,cor = 'COMPRA FORTE','green'
+    elif pct >= 0.40: sinal,cor = 'COMPRA MODERADA','accent'
+    elif pct >= 0.10: sinal,cor = 'NEUTRO','warn'
+    elif pct >= -0.2: sinal,cor = 'VENDA MODERADA','orange'
+    else:             sinal,cor = 'VENDA FORTE','danger'
 
     return {
-        'sinal': sinal_total,
-        'cor': cor_total,
-        'forca': round(pct_total * 100),
-        'sinal_tecnico': sinal_tec,
-        'cor_tecnico': cor_tec,
-        'forca_tecnica': round(pct_tec * 100),
-        'sinal_fundamentalista': sinal_fund,
-        'cor_fundamentalista': cor_fund,
-        'forca_fundamentalista': round(pct_fund * 100),
-        'detalhes_tecnicos': detalhes_tec,
-        'detalhes_fundamentalistas': detalhes_fund,
-        'cdi_usado': cdi
+        'sinal': sinal, 'cor': cor,
+        'score': score, 'max_score': max_score,
+        'forca': round(pct * 100),
+        'cdi_usado': cdi,
+        'detalhes': detalhes
     }
 
-# ── INDICADORES B3 ────────────────────────────────────
-@app.route('/indicators/<path:ticker>', methods=['GET'])
+# ── ROTAS TRADINGVIEW ─────────────────────────────────
+@app.route('/tv/brazil', methods=['POST'])
+def tv_brazil():
+    try:
+        r = requests.post('https://scanner.tradingview.com/brazil/scan',
+            json=request.get_json(), timeout=5)
+        return jsonify(r.json())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/tv/forex', methods=['POST'])
+def tv_forex():
+    try:
+        r = requests.post('https://scanner.tradingview.com/forex/scan',
+            json=request.get_json(), timeout=5)
+        return jsonify(r.json())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ── FUNDING RATE VIA HYPERLIQUID ──────────────────────
+@app.route('/binance/funding', methods=['GET'])
+def binance_funding():
+    try:
+        r = requests.post('https://api.hyperliquid.xyz/info',
+            json={'type': 'metaAndAssetCtxs'},
+            headers={'Content-Type': 'application/json'}, timeout=8)
+        if r.ok:
+            data = r.json()
+            universe = data[0].get('universe', [])
+            ctxs = data[1] if len(data) > 1 else []
+            btc_idx = next((i for i,u in enumerate(universe) if u.get('name')=='BTC'), None)
+            if btc_idx is not None and btc_idx < len(ctxs):
+                fr = float(ctxs[btc_idx].get('funding', 0)) * 8
+                return jsonify({
+                    'lastFundingRate': str(fr),
+                    'nextFundingTime': int(time.time()*1000) + 3600000,
+                    'source': 'Hyperliquid'
+                })
+    except Exception as e:
+        pass
+    return jsonify({'error': 'Funding indisponível'}), 500
+
+# ── DOW JONES ─────────────────────────────────────────
+@app.route('/dji', methods=['GET'])
+def get_dji():
+    try:
+        r = requests.get(
+            'https://query1.finance.yahoo.com/v8/finance/chart/%5EDJI?interval=1d&range=5d',
+            headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+        if not r.ok: raise Exception(f'HTTP {r.status_code}')
+        data = r.json()
+        meta = data['chart']['result'][0]['meta']
+        closes = [c for c in data['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
+        price = meta.get('regularMarketPrice', closes[-1])
+        prev = meta.get('chartPreviousClose', closes[-2] if len(closes)>1 else price)
+        return jsonify({'price': price, 'prev': prev})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ── INDICADORES AÇÕES B3 ──────────────────────────────
+@app.route('/indicators/<ticker>', methods=['GET'])
 def get_indicators(ticker):
     try:
         cdi = get_cdi()
-        setor = SETORES.get(ticker, SETOR_DEFAULT)
+        setor = SETORES.get(ticker, SETORES['DEFAULT'])
 
         # Histórico de preços
-        url = f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=400d'
-        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
-        if not r.ok:
-            return jsonify({'error': f'Yahoo HTTP {r.status_code}'}), 500
+        r = requests.get(
+            f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=300d',
+            headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+        if not r.ok: return jsonify({'error': f'Yahoo HTTP {r.status_code}'}), 500
 
         data = r.json()
-        result = data.get('chart', {}).get('result', [{}])[0]
-        meta = result.get('meta', {})
-        quotes = result.get('indicators', {}).get('quote', [{}])[0]
-
-        closes_raw = quotes.get('close', [])
-        volumes_raw = quotes.get('volume', [])
+        result = data.get('chart',{}).get('result',[{}])[0]
+        meta = result.get('meta',{})
+        quotes = result.get('indicators',{}).get('quote',[{}])[0]
+        closes_raw = quotes.get('close',[])
+        volumes_raw = quotes.get('volume',[])
         closes = [c for c in closes_raw if c is not None]
         volumes = [v if v is not None else 0 for v in volumes_raw][-len(closes):]
-
-        if not closes:
-            return jsonify({'error': 'Sem dados de preço'}), 500
+        if not closes: return jsonify({'error': 'Sem dados'}), 500
 
         price = meta.get('regularMarketPrice', closes[-1])
 
@@ -421,103 +396,97 @@ def get_indicators(ticker):
         mm20 = calc_mm(closes, 20)
         mm50 = calc_mm(closes, 50)
         mm200 = calc_mm(closes, 200)
-        macd_line, macd_signal, macd_hist = calc_macd(closes)
-        boll_upper, boll_mid, boll_lower = calc_bollinger(closes)
-        obv_val, obv_trend = calc_obv(closes, volumes)
-
-        # Vol médio 20 dias
-        vol_medio = round(sum(volumes[-20:]) / min(20, len(volumes)), 0) if volumes else None
+        macd_line, macd_sig, macd_hist = calc_macd(closes)
+        bb_upper, bb_mid, bb_lower = calc_bollinger(closes)
+        obv_20 = calc_obv(closes[-21:], volumes[-21:]) if len(closes)>=21 else None
+        obv_trend = ('subindo' if (obv_20 or 0)>0 else 'caindo') if obv_20 is not None else None
 
         # Fundamentais via Yahoo
-        pl = pvp = dy = roe = ev_ebitda = divida_ebitda = market_cap = None
-        margem_liquida = crescimento_lucro = lpa = vpa = None
-
+        pl = pvp = ev_ebitda = dy = roe = debt_ebitda = margem = lpa = vpa = market_cap = None
         try:
-            url2 = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?modules=summaryDetail,defaultKeyStatistics,financialData,incomeStatementHistory'
-            r2 = requests.get(url2, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+            r2 = requests.get(
+                f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?modules=summaryDetail,defaultKeyStatistics,financialData',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
             if r2.ok:
-                fund = r2.json().get('quoteSummary', {}).get('result', [{}])[0]
-                summary = fund.get('summaryDetail', {})
-                stats = fund.get('defaultKeyStatistics', {})
-                financial = fund.get('financialData', {})
+                fund = r2.json().get('quoteSummary',{}).get('result',[{}])[0]
+                summary = fund.get('summaryDetail',{})
+                stats = fund.get('defaultKeyStatistics',{})
+                financial = fund.get('financialData',{})
 
-                def raw(d, key):
-                    v = d.get(key, {})
-                    return v.get('raw') if isinstance(v, dict) else v
+                def raw(d, k):
+                    v = d.get(k,{})
+                    return v.get('raw') if isinstance(v,dict) else v
 
-                pl = raw(summary, 'trailingPE')
-                pvp = raw(stats, 'priceToBook')
-                dy_val = raw(summary, 'dividendYield')
-                dy = round(dy_val * 100, 2) if dy_val else None
-                roe_val = raw(financial, 'returnOnEquity')
-                roe = round(roe_val * 100, 2) if roe_val else None
-                ev_ebitda = raw(stats, 'enterpriseToEbitda')
-                market_cap = raw(summary, 'marketCap')
+                pl_val = raw(summary,'trailingPE')
+                pl = round(pl_val,1) if pl_val else None
+
+                pvp_val = raw(stats,'priceToBook')
+                pvp = round(pvp_val,2) if pvp_val else None
+
+                ev_val = raw(stats,'enterpriseToEbitda')
+                ev_ebitda = round(ev_val,1) if ev_val else None
+
+                dy_val = raw(summary,'dividendYield')
+                dy = round(dy_val*100,2) if dy_val else None
+
+                roe_val = raw(financial,'returnOnEquity')
+                roe = round(roe_val*100,1) if roe_val else None
 
                 # Dívida/EBITDA
-                total_debt = raw(financial, 'totalDebt')
-                ebitda = raw(financial, 'ebitda')
-                if total_debt and ebitda and ebitda > 0:
-                    divida_ebitda = round(total_debt / ebitda, 2)
+                debt_val = raw(financial,'totalDebt')
+                ebitda_val = raw(financial,'ebitda')
+                if debt_val and ebitda_val and ebitda_val != 0:
+                    debt_ebitda = round(debt_val/ebitda_val,2)
+
+                margem_val = raw(financial,'profitMargins')
+                margem = margem_val if margem_val else None
 
                 # LPA e VPA para Graham
-                lpa = raw(stats, 'trailingEps')
-                bvps = raw(stats, 'bookValue')
-                vpa = bvps
+                lpa_val = raw(stats,'trailingEps')
+                lpa = lpa_val if lpa_val else None
 
-                # Margem líquida
-                ml = raw(financial, 'profitMargins')
-                margem_liquida = round(ml * 100, 2) if ml else None
+                bvps_val = raw(stats,'bookValue')
+                vpa = bvps_val if bvps_val else None
 
-        except Exception as e:
+                mc_val = raw(summary,'marketCap')
+                market_cap = mc_val if mc_val else None
+        except:
             pass
 
-        # Valor justo Graham
-        valor_justo_graham = calc_graham(lpa, vpa)
+        # Valor Justo Graham
+        vj_graham = calc_graham(lpa, vpa) if lpa and vpa else None
 
-        # Upside Graham
+        # Upside vs Graham
         upside_graham = None
-        if valor_justo_graham and price:
-            upside_graham = round((valor_justo_graham - price) / price * 100, 1)
-
-        # Formata valores
-        def fmt(v): return round(v, 2) if v is not None else None
+        if vj_graham and price:
+            upside_graham = round(((vj_graham - price) / price) * 100, 1)
 
         indicators = {
             'ticker': ticker,
-            'setor': setor,
             'price': round(price, 2),
+            'setor': setor['nome'],
+            'cdi': cdi,
             # Técnicos
             'rsi': rsi,
-            'mm20': mm20,
-            'mm50': mm50,
-            'mm200': mm200,
-            'macd': fmt(macd_line),
-            'macd_signal': fmt(macd_signal),
-            'macd_histogram': fmt(macd_hist),
-            'bollinger_upper': boll_upper,
-            'bollinger_mid': boll_mid,
-            'bollinger_lower': boll_lower,
+            'mm20': mm20, 'mm50': mm50, 'mm200': mm200,
+            'macd': macd_line, 'macd_signal': macd_sig, 'macd_histogram': macd_hist,
+            'bb_upper': bb_upper, 'bb_mid': bb_mid, 'bb_lower': bb_lower,
             'obv_trend': obv_trend,
-            'volume_medio_20d': vol_medio,
-            # Fundamentalistas
-            'pl': fmt(pl),
-            'pvp': fmt(pvp),
-            'ev_ebitda': fmt(ev_ebitda),
+            # Fundamentais
+            'pl': pl, 'pl_setor': setor['pl_medio'],
+            'price_to_book': pvp, 'pvp_setor': setor['pvp_medio'],
+            'ev_ebitda': ev_ebitda,
+            'roe': roe, 'roe_min_setor': setor['roe_min'],
+            'debt_to_ebitda': debt_ebitda,
             'dividend_yield': dy,
-            'roe': roe,
-            'divida_ebitda': fmt(divida_ebitda),
-            'margem_liquida': margem_liquida,
-            'lpa': fmt(lpa),
-            'vpa': fmt(vpa),
-            'valor_justo_graham': valor_justo_graham,
+            'profit_margin': margem,
+            'lpa': lpa, 'vpa': vpa,
+            'valor_justo_graham': vj_graham,
             'upside_graham': upside_graham,
             'market_cap': market_cap,
-            'cdi': cdi,
             'data_points': len(closes)
         }
-
-        indicators['sinal'] = gerar_sinal(indicators, cdi)
+        indicators['sinal'] = gerar_sinal(indicators, cdi, setor)
         return jsonify(indicators)
 
     except Exception as e:
@@ -530,8 +499,7 @@ def get_btc_indicators():
         r = requests.get(
             'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1w&limit=210',
             timeout=10)
-        if not r.ok:
-            return jsonify({'error': 'Binance indisponível'}), 500
+        if not r.ok: return jsonify({'error': 'Binance indisponível'}), 500
 
         candles = r.json()
         closes = [float(c[4]) for c in candles]
@@ -542,40 +510,38 @@ def get_btc_indicators():
         mm20 = calc_mm(closes, 20)
         mm50 = calc_mm(closes, 50)
         mm200 = calc_mm(closes, 200)
-        macd_line, macd_signal, macd_hist = calc_macd(closes)
-        boll_upper, boll_mid, boll_lower = calc_bollinger(closes)
-        obv_val, obv_trend = calc_obv(closes, volumes)
+        macd_line, macd_sig, macd_hist = calc_macd(closes)
+        bb_upper, bb_mid, bb_lower = calc_bollinger(closes)
+        obv_20 = calc_obv(closes[-21:], volumes[-21:]) if len(closes)>=21 else None
+        obv_trend = 'subindo' if (obv_20 or 0)>0 else 'caindo'
 
-        # Divergência bullish RSI
+        # Divergência RSI
         divergencia = None
         if rsi and len(closes) >= 60:
-            min_p_rec = min(closes[-15:])
-            min_p_prev = min(closes[-30:-15])
-            rsi_rec = calc_rsi(closes[-29:], 14)
-            rsi_prev = calc_rsi(closes[-44:-15], 14)
-            if rsi_rec and rsi_prev:
-                if min_p_rec < min_p_prev and rsi_rec > rsi_prev:
-                    divergencia = 'BULLISH ⚡ Preço faz mínima mais baixa mas RSI não confirma — Sinal de fundo potencial!'
-                elif min_p_rec > min_p_prev and rsi_rec < rsi_prev:
+            min_r = min(closes[-15:])
+            min_p = min(closes[-30:-15])
+            rsi_r = calc_rsi(closes[-29:], 14)
+            rsi_p = calc_rsi(closes[-44:-15], 14)
+            if rsi_r and rsi_p:
+                if min_r < min_p and rsi_r > rsi_p:
+                    divergencia = 'BULLISH ⚡ Preço faz mínima mais baixa mas RSI não confirma — Sinal de fundo!'
+                elif min_r > min_p and rsi_r < rsi_p:
                     divergencia = 'BEARISH ⚠ Preço faz máxima mais alta mas RSI não confirma — Sinal de topo!'
 
         return jsonify({
-            'ticker': 'BTC',
-            'price': round(price, 0),
+            'ticker': 'BTC', 'price': round(price, 0),
             'rsi_semanal': rsi,
-            'mm20_semanal': round(mm20, 0) if mm20 else None,
-            'mm50_semanal': round(mm50, 0) if mm50 else None,
-            'mm200_semanal': round(mm200, 0) if mm200 else None,
-            'macd': round(macd_line, 0) if macd_line else None,
-            'macd_histogram': round(macd_hist, 0) if macd_hist else None,
-            'bollinger_upper': round(boll_upper, 0) if boll_upper else None,
-            'bollinger_mid': round(boll_mid, 0) if boll_mid else None,
-            'bollinger_lower': round(boll_lower, 0) if boll_lower else None,
+            'mm20_semanal': round(mm20,0) if mm20 else None,
+            'mm50_semanal': round(mm50,0) if mm50 else None,
+            'mm200_semanal': round(mm200,0) if mm200 else None,
+            'macd': macd_line, 'macd_signal': macd_sig, 'macd_histogram': macd_hist,
+            'bb_upper': round(bb_upper,0) if bb_upper else None,
+            'bb_mid': round(bb_mid,0) if bb_mid else None,
+            'bb_lower': round(bb_lower,0) if bb_lower else None,
             'obv_trend': obv_trend,
             'divergencia_rsi': divergencia,
             'data_points': len(closes)
         })
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -594,6 +560,7 @@ def serve_panel():
 if __name__ == '__main__':
     print("=" * 50)
     print("  Trader Desk — Proxy v3")
-    print("  Acesse: http://localhost:8888")
+    print("  CDI + Graham + Setor + MACD + Bollinger")
+    print("  http://localhost:8888")
     print("=" * 50)
     app.run(host='0.0.0.0', port=8888, use_reloader=False, threaded=True)
