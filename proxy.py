@@ -23,6 +23,7 @@ SETORES = {
     'VALE3.SA':  {'nome': 'Mineração',      'pl_medio': 7.0,  'pvp_medio': 1.8, 'roe_min': 15},
     'ITUB4.SA':  {'nome': 'Bancos',         'pl_medio': 9.0,  'pvp_medio': 1.8, 'roe_min': 18},
     'BBDC4.SA':  {'nome': 'Bancos',         'pl_medio': 9.0,  'pvp_medio': 1.5, 'roe_min': 18},
+    'BBAS3.SA':  {'nome': 'Bancos',         'pl_medio': 8.0,  'pvp_medio': 1.2, 'roe_min': 18},
     'WEGE3.SA':  {'nome': 'Ind. Mecânica',  'pl_medio': 30.0, 'pvp_medio': 8.0, 'roe_min': 20},
     'MGLU3.SA':  {'nome': 'Varejo',         'pl_medio': 20.0, 'pvp_medio': 2.0, 'roe_min': 10},
     'DEFAULT':   {'nome': 'Geral',          'pl_medio': 12.0, 'pvp_medio': 2.0, 'roe_min': 12},
@@ -406,11 +407,7 @@ def get_brapi_fundamentals(ticker_base):
         
         # P/VP, LPA, VPA, EV/EBITDA — tenta com token do usuário se disponível
         # Ou usa valores hardcoded atualizados para PETR4/VALE3
-        hardcoded = {
-            'PETR4': {'pvp': 1.65, 'dy': 6.42, 'lpa': 8.54, 'vpa': 29.76, 'ev_ebitda': 3.2},
-            'VALE3': {'pvp': 1.80, 'dy': 8.50, 'lpa': 11.20, 'vpa': 47.30, 'ev_ebitda': 4.1},
-        }
-        hc = hardcoded.get(ticker_base.upper(), {})
+        hc = HARDCODED_FUND.get(ticker_base.upper(), {})
         for k, v in hc.items():
             if k not in out:
                 out[k] = v
@@ -558,6 +555,75 @@ def get_btc_indicators():
             'divergencia_rsi': divergencia,
             'data_points': len(closes)
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ── MONTE CARLO — Probabilidade de Sucesso ────────────
+import random as _random
+
+def _monte_carlo(S, K_call, K_put, T_days, sigma, n=100000, knock_down=None):
+    T = T_days / 252.0
+    sqrt_T = T ** 0.5
+    sucessos = call_ex_count = put_ex_count = kdo_count = 0
+    for _ in range(n):
+        z = _random.gauss(0, 1)
+        ST = S * math.exp(-0.5 * sigma**2 * T + sigma * sqrt_T * z)
+        if knock_down and ST <= knock_down:
+            kdo_count += 1
+        call_ex = ST > K_call
+        put_ex  = ST < K_put
+        if call_ex: call_ex_count += 1
+        if put_ex:  put_ex_count += 1
+        if not call_ex: sucessos += 1
+    return {
+        'prob_sucesso':       round(sucessos / n * 100, 2),
+        'prob_call_exercida': round(call_ex_count / n * 100, 2),
+        'prob_put_exercida':  round(put_ex_count / n * 100, 2),
+        'prob_kdo_atingido':  round(kdo_count / n * 100, 2) if knock_down else None,
+        'cenarios': n
+    }
+
+def _vol_historica(closes):
+    if len(closes) < 22:
+        return 0.35
+    rets = [math.log(closes[-i] / closes[-i-1]) for i in range(1, 22)]
+    media = sum(rets) / len(rets)
+    var = sum((r - media)**2 for r in rets) / len(rets)
+    return round(math.sqrt(var) * math.sqrt(252), 4)
+
+@app.route('/montecarlo', methods=['POST'])
+def run_montecarlo():
+    try:
+        data = request.get_json() or {}
+        ticker    = data.get('ticker', 'BBAS3.SA')
+        K_call    = float(data.get('k_call', 23.44))
+        K_put     = float(data.get('k_put',  23.44))
+        T_days    = int(data.get('t_days', 7))
+        n_sim     = int(data.get('n', 100000))
+        knock_down = float(data['knock_down']) if data.get('knock_down') else None
+
+        url = f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d'
+        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+        if not r.ok:
+            return jsonify({'error': f'Yahoo HTTP {r.status_code}'}), 500
+
+        d = r.json()
+        meta   = d['chart']['result'][0]['meta']
+        raw_c  = d['chart']['result'][0]['indicators']['quote'][0]['close']
+        closes = [c for c in raw_c if c is not None]
+        S = float(meta.get('regularMarketPrice', closes[-1]))
+
+        sigma  = _vol_historica(closes)
+        result = _monte_carlo(S, K_call, K_put, T_days, sigma, n_sim, knock_down)
+        result.update({
+            'preco_atual': round(S, 2),
+            'volatilidade_historica_pct': round(sigma * 100, 2),
+            'k_call': K_call, 'k_put': K_put,
+            'knock_down': knock_down, 't_days': T_days,
+            'ticker': ticker
+        })
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
