@@ -600,7 +600,7 @@ def run_montecarlo():
         K_call    = float(data.get('k_call', 23.44))
         K_put     = float(data.get('k_put',  23.44))
         T_days    = int(data.get('t_days', 7))
-        n_sim     = int(data.get('n', 100000))
+        n_sim     = int(data.get('n', 40000))
         knock_down = float(data['knock_down']) if data.get('knock_down') else None
 
         url = f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d'

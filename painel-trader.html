@@ -298,10 +298,14 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div class="pos-price loading" id="bb-pos-p">—</div>
     <div class="pos-chg" id="bb-pos-c">—</div>
     <div class="sb">
-      <div class="sb-row"><span class="sb-lbl">Call Vendida (Strike)</span><span class="sb-val warn">R$ 23,44</span></div>
-      <div class="sb-row"><span class="sb-lbl">Put Comprada (Strike)</span><span class="sb-val warn">R$ 23,44</span></div>
-      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 21,11</span></div>
-      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">2:1%</span></div>
+      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Trava de Baixa Sintética</span></div>
+      <div class="sb-row"><span class="sb-lbl">Call Vendida</span><span class="sb-val warn">Strike R$ 23,44 · Prêmio R$ 0,15</span></div>
+      <div class="sb-row"><span class="sb-lbl">Put Comprada</span><span class="sb-val warn">Strike R$ 23,44 · Custo R$ 0,06</span></div>
+      <div class="sb-row"><span class="sb-lbl">Prêmio líquido</span><span class="sb-val ok">R$ 0,09/ação · R$ 149,70 total</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 21,11 — barreira de proteção</span></div>
+      <div class="sb-row"><span class="sb-lbl">Objetivo</span><span class="sb-val ok">Manter prêmio se BBAS3 ≤ R$ 23,44</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">2,1% sobre capital alocado</span></div>
+      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">10/05/2026 · <span id="bb-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="bb-status">—</span></div>
     </div>
     <!-- MONTE CARLO -->
@@ -460,7 +464,7 @@ function setChg(id,p,prev,fmt){
 
 // ── FALLBACKS (valores de hoje corrigidos) ────────────
 const FB={
-  SP500:{p:7165,v:7080},NDX:{p:27301,v:27000},DJI:{p:49230,v:48800},
+  SP500:{p:7165,v:7080},ESFUT:{p:7194,v:7110},NDX:{p:27301,v:27000},NQFUT:{p:27435,v:27150},DJI:{p:49230,v:48800},
   DXY:{p:98.092,v:98.5},VIX:{p:22,v:23},
   IBOV:{p:130740,v:129500},USDBRL:{p:4.95,v:5.01},
   CL:{p:63.02,v:63.02},GOLD:{p:3320,v:3320},
@@ -522,12 +526,18 @@ function hlCrypto(k){return HLC[k]!=null?parseFloat(HLC[k]):null;}
 function hlCryptoPrev(k){return HLC_PREV[k]!=null?parseFloat(HLC_PREV[k]):null;}
 
 // ── DOW JONES VIA PROXY ──────────────────────────────
-async function fetchDJI(){
+async function fetchFutures(){
+  const results={dji:null,esf:null,nqf:null};
   try{
-    const r=await fetch('https://trader-desk.onrender.com/dji');
-    if(!r.ok)throw 0;
-    return await r.json();
-  }catch{return null;}
+    const r=await fetch('https://trader-desk.onrender.com/futures');
+    if(r.ok){
+      const d=await r.json();
+      results.dji=d.dji||null;
+      results.esf=d.esf||null;
+      results.nqf=d.nqf||null;
+    }
+  }catch{}
+  return results;
 }
 
 // ── TRADINGVIEW via proxy ─────────────────────────────
@@ -655,8 +665,22 @@ function doMacro(tv){
   setEl('ndx-p',fPTS(ndxP));setChg('ndx-c',ndxP,ndxV,'pts');
   document.getElementById('ndx-s').textContent=hlXyz('XYZ100')?'HL ✓':'fallback';
 
-  // Dow Jones — não tem na HL
-  setEl('dji-p',fPTS(FB.DJI.p));setChg('dji-c',FB.DJI.p,FB.DJI.v,'pts');
+  // Dow Jones + futuros via proxy Yahoo
+  const djiD=window._futures?.dji;
+  const djiP=djiD?.price||FB.DJI.p, djiV=djiD?.prev||FB.DJI.v;
+  setEl('dji-p',fPTS(djiP));setChg('dji-c',djiP,djiV,'pts');
+  document.getElementById('dji-s').textContent=djiD?'Yahoo ✓':'fallback';
+
+  const esfD=window._futures?.esf;
+  const esfP=esfD?.price||FB.ESFUT.p, esfV=esfD?.prev||FB.ESFUT.v;
+  setEl('esf-p',fPTS(esfP));setChg('esf-c',esfP,esfV,'pts');
+
+  const nqfD=window._futures?.nqf;
+  const nqfP=nqfD?.price||FB.NQFUT.p, nqfV=nqfD?.prev||FB.NQFUT.v;
+  setEl('nqf-p',fPTS(nqfP));setChg('nqf-c',nqfP,nqfV,'pts');
+
+  // WIN futuro
+  setEl('win-p',fPTS(ibovP*0.999));setChg('win-c',ibovP*0.999,ibovV*0.999,'pts');
 
   // VIX
   const vixP=hlXyz('VIX')||FB.VIX.p;
@@ -798,7 +822,7 @@ async function runMonteCarlo(){
         k_put:23.44,
         t_days:7,
         knock_down:21.11,
-        n:100000
+        n:40000
       })
     });
     if(!r.ok)throw 0;
@@ -955,7 +979,8 @@ async function fetchAll(){
   btn.disabled=true;upd.textContent='Atualizando...';upd.className='pill warn';
   checkMarkets();
 
-  const [,tv]=await Promise.all([fetchHL(),fetchTV()]);
+  const [,tv,futures]=await Promise.all([fetchHL(),fetchTV(),fetchFutures()]);
+  window._futures=futures;
 
   const macroData=doMacro(tv);
   const commData=doCommodities();
