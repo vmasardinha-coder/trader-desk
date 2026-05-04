@@ -291,9 +291,56 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
   </div>
 
+  <!-- BBAS3 POSIÇÃO -->
+  <div class="pos-card acao" style="margin-top:12px">
+    <div class="pos-label">Banco do Brasil · Trava de Baixa · Venc 10/05/2026</div>
+    <div class="pos-ticker">BBAS3</div>
+    <div class="pos-price loading" id="bb-pos-p">—</div>
+    <div class="pos-chg" id="bb-pos-c">—</div>
+    <div class="sb">
+      <div class="sb-row"><span class="sb-lbl">Call Vendida (Strike)</span><span class="sb-val warn">R$ 23,44</span></div>
+      <div class="sb-row"><span class="sb-lbl">Put Comprada (Strike)</span><span class="sb-val warn">R$ 23,44</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 21,11</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">2:1%</span></div>
+      <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="bb-status">—</span></div>
+    </div>
+    <!-- MONTE CARLO -->
+    <div class="signal" style="margin-top:8px;border-color:var(--blue)">
+      <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — 100k Cenários</div>
+      <div id="mc-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
+      <div id="mc-result" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ind-box">
+            <div class="ind-lbl">Prob. Sucesso</div>
+            <div class="ind-val ok" id="mc-sucesso">—</div>
+          </div>
+          <div class="ind-box">
+            <div class="ind-lbl">Call Exercida</div>
+            <div class="ind-val" id="mc-call">—</div>
+          </div>
+          <div class="ind-box">
+            <div class="ind-lbl">KDO Atingido</div>
+            <div class="ind-val" id="mc-kdo">—</div>
+          </div>
+          <div class="ind-box">
+            <div class="ind-lbl">Vol. Histórica</div>
+            <div class="ind-val warn" id="mc-vol">—</div>
+          </div>
+        </div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:6px" id="mc-info">—</div>
+      </div>
+    </div>
+  </div>
+
   <!-- INDICADORES PETR4 -->
   <div class="sec" style="margin-top:20px"><span>📊</span> Indicadores — PETR4</div>
   <div id="petr4-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
+  </div>
+
+  <!-- INDICADORES BBAS3 -->
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — BBAS3</div>
+  <div id="bbas3-ind-area">
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
   </div>
 
@@ -489,7 +536,7 @@ async function fetchTV(){
   try{
     const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:VALE3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
+      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:VALE3','BMFBOVESPA:BBAS3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
     });
     if(r.ok){
       const d=await r.json();
@@ -646,6 +693,10 @@ function doMacro(tv){
   const vlP=vlD?.p||FB.VALE3.p,vlV=vlD?.v||FB.VALE3.v;
   setEl('vale3q-p',fBRL(vlP));setChg('vale3q-c',vlP,vlV,'brl');
 
+  const bbD=tv['BMFBOVESPA:BBAS3'];
+  const bbP=bbD?.p||FB.BBAS3.p,bbV=bbD?.v||FB.BBAS3.v;
+  setEl('bbas3q-p',fBRL(bbP));setChg('bbas3q-c',bbP,bbV,'brl');
+
   return{usdP,usdV,ibovP,ibovV,ptP,ptV,vlP,vlV};
 }
 
@@ -735,6 +786,40 @@ function doPositions(tv,btcData){
   vlBar.style.width=vlPct+'%';vlBar.className='prog-bar '+(vlP>82?'danger':vlP>70?'warn':'ok');
 }
 
+// ── MONTE CARLO ───────────────────────────────────────
+async function runMonteCarlo(){
+  try{
+    const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        ticker:'BBAS3.SA',
+        k_call:23.44,
+        k_put:23.44,
+        t_days:7,
+        knock_down:21.11,
+        n:100000
+      })
+    });
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    document.getElementById('mc-loading').style.display='none';
+    document.getElementById('mc-result').style.display='block';
+    const sEl=document.getElementById('mc-sucesso');
+    sEl.textContent=d.prob_sucesso+'%';
+    sEl.className='ind-val '+(d.prob_sucesso>70?'ok':d.prob_sucesso>50?'warn':'down');
+    const cEl=document.getElementById('mc-call');
+    cEl.textContent=d.prob_call_exercida+'%';
+    cEl.className='ind-val '+(d.prob_call_exercida<30?'ok':d.prob_call_exercida<50?'warn':'down');
+    document.getElementById('mc-kdo').textContent=d.prob_kdo_atingido!=null?d.prob_kdo_atingido+'%':'—';
+    document.getElementById('mc-vol').textContent=d.volatilidade_historica_pct+'%';
+    document.getElementById('mc-info').textContent=
+      `Preço atual R$ ${d.preco_atual} · Strike Call/Put R$ ${d.k_call} · KDO R$ ${d.knock_down} · ${d.cenarios.toLocaleString()} cenários simulados`;
+  }catch(e){
+    document.getElementById('mc-loading').textContent='Monte Carlo indisponível';
+  }
+}
+
 // ── RENDER INDICADORES ───────────────────────────────
 function renderIndicators(containerId, ind, isBRL){
   const el=document.getElementById(containerId);
@@ -747,49 +832,73 @@ function renderIndicators(containerId, ind, isBRL){
   const sinal=ind.sinal||{};
   const corMap={green:'var(--green)',accent:'var(--accent)',warn:'var(--warn)',orange:'#fb923c',danger:'var(--danger)'};
   const cor=corMap[sinal.cor]||'var(--muted)';
-  const fmt=v=>isBRL?fBRL(v):fUSD(v);
+  const mm=isBRL?'R$':'US$';
+  const f2=v=>v!=null?Number(v).toFixed(2):'—';
 
   // Sinal principal
   let html=`
-  <div style="background:var(--bg3);border:1px solid ${cor};padding:14px;margin-bottom:10px">
-    <div style="font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">⚡ Sinal Automático</div>
-    <div style="font-size:1.4rem;font-weight:700;color:${cor};margin-bottom:4px">${sinal.sinal||'—'}</div>
-    <div style="font-size:.62rem;color:var(--muted)">Score: ${sinal.score||0}/${sinal.max_score||0} pontos (${sinal.forca||0}% favorável)</div>
+  <div style="background:var(--bg2);border:2px solid ${cor};padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">⚡ Sinal Automático — ${ind.setor||''}</div>
+      <div style="font-size:1.6rem;font-weight:800;color:${cor}">${sinal.sinal||'—'}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:2px">Score: ${sinal.score||0}/${sinal.max_score||0} · ${sinal.forca||0}% favorável · CDI: ${ind.cdi?.toFixed(1)||'—'}%</div>
+    </div>
+    ${ind.valor_justo_graham?`<div style="text-align:right">
+      <div style="font-size:.55rem;color:var(--muted);text-transform:uppercase">Valor Justo Graham</div>
+      <div style="font-size:1.2rem;font-weight:700;color:${(ind.upside_graham||0)>0?'var(--green)':'var(--red)'}">${mm} ${f2(ind.valor_justo_graham)}</div>
+      <div style="font-size:.68rem;color:${(ind.upside_graham||0)>0?'var(--green)':'var(--red)'}">${(ind.upside_graham||0)>0?'▲':'▼'} ${Math.abs(ind.upside_graham||0).toFixed(1)}% ${(ind.upside_graham||0)>0?'upside':'downside'}</div>
+    </div>`:''}
   </div>`;
 
-  // Grid de indicadores
-  const mm=isBRL?'R$':'US$';
-  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px">`;
-
-  const indItems=[
-    {l:'RSI (14)',v:ind.rsi?ind.rsi+'':null,cls:ind.rsi<30?'up':ind.rsi>70?'down':'warn'},
-    {l:'MM 20',v:ind.mm20?mm+' '+Number(ind.mm20).toFixed(2):null},
-    {l:'MM 50',v:ind.mm50?mm+' '+Number(ind.mm50).toFixed(2):null},
-    {l:'MM 200',v:ind.mm200?mm+' '+Number(ind.mm200).toFixed(2):null},
+  // Grid técnicos
+  html+=`<div style="font-size:.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:10px 0 6px">Indicadores Técnicos</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-bottom:12px">`;
+  const tecnicos=[
+    {l:'RSI (14)',v:ind.rsi!=null?ind.rsi+'':null,cls:ind.rsi<30?'up':ind.rsi>70?'down':'warn'},
+    {l:'MM 20',v:ind.mm20?mm+' '+f2(ind.mm20):null},
+    {l:'MM 50',v:ind.mm50?mm+' '+f2(ind.mm50):null},
+    {l:'MM 200',v:ind.mm200?mm+' '+f2(ind.mm200):null},
+    {l:'MACD',v:ind.macd!=null?ind.macd.toFixed(3):null,cls:ind.macd>ind.macd_signal?'up':'down'},
+    {l:'MACD Signal',v:ind.macd_signal!=null?ind.macd_signal.toFixed(3):null},
+    {l:'BB Superior',v:ind.bb_upper?mm+' '+f2(ind.bb_upper):null},
+    {l:'BB Inferior',v:ind.bb_lower?mm+' '+f2(ind.bb_lower):null},
     {l:'OBV Trend',v:ind.obv_trend||null,cls:ind.obv_trend==='subindo'?'up':'down'},
-    {l:'P/L',v:ind.pl?ind.pl+'x':null},
-    {l:'EV/EBITDA',v:ind.ev_ebitda?ind.ev_ebitda+'x':null},
-    {l:'Div. Yield',v:ind.dividend_yield?ind.dividend_yield+'%':null,cls:ind.dividend_yield>6?'up':''},
   ];
-
-  indItems.forEach(i=>{
+  tecnicos.forEach(i=>{
     if(!i.v)return;
-    const cls=i.cls||'';
-    html+=`<div class="ind-box">
-      <div class="ind-lbl">${i.l}</div>
-      <div class="ind-val ${cls}">${i.v}</div>
-    </div>`;
+    html+=`<div class="ind-box"><div class="ind-lbl">${i.l}</div><div class="ind-val ${i.cls||''}">${i.v}</div></div>`;
+  });
+  html+='</div>';
+
+  // Grid fundamentalistas
+  html+=`<div style="font-size:.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:10px 0 6px">Indicadores Fundamentalistas</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-bottom:12px">`;
+  const fundas=[
+    {l:'P/L',v:ind.pl?ind.pl+'x':null,cls:ind.pl<ind.pl_setor?'up':ind.pl>ind.pl_setor*1.3?'down':''},
+    {l:'P/L Setor',v:ind.pl_setor?ind.pl_setor+'x':null},
+    {l:'P/VP',v:ind.price_to_book?ind.price_to_book+'x':null,cls:ind.price_to_book<1?'up':ind.price_to_book>ind.pvp_setor?'down':''},
+    {l:'EV/EBITDA',v:ind.ev_ebitda?ind.ev_ebitda+'x':null,cls:ind.ev_ebitda<6?'up':ind.ev_ebitda>10?'down':''},
+    {l:'ROE',v:ind.roe?ind.roe+'%':null,cls:ind.roe>ind.roe_min_setor?'up':'down'},
+    {l:'Dív/EBITDA',v:ind.debt_to_ebitda!=null?ind.debt_to_ebitda+'x':null,cls:ind.debt_to_ebitda<1.5?'up':ind.debt_to_ebitda>3?'down':'warn'},
+    {l:'Div. Yield',v:ind.dividend_yield?ind.dividend_yield+'%':null,cls:ind.dividend_yield>=ind.cdi?'up':ind.dividend_yield>ind.cdi*0.7?'warn':''},
+    {l:'CDI Atual',v:ind.cdi?ind.cdi.toFixed(1)+'%':null},
+    {l:'Margem Liq.',v:ind.profit_margin?((ind.profit_margin||0)*100).toFixed(1)+'%':null,cls:ind.profit_margin>0.15?'up':ind.profit_margin<0.05?'down':''},
+    {l:'LPA',v:ind.lpa?mm+' '+f2(ind.lpa):null},
+    {l:'VPA',v:ind.vpa?mm+' '+f2(ind.vpa):null},
+  ];
+  fundas.forEach(i=>{
+    if(!i.v)return;
+    html+=`<div class="ind-box"><div class="ind-lbl">${i.l}</div><div class="ind-val ${i.cls||''}">${i.v}</div></div>`;
   });
   html+='</div>';
 
   // Detalhes do sinal
   if(sinal.detalhes?.length){
-    html+='<div style="background:var(--bg3);border:1px solid var(--border);padding:10px">';
-    html+='<div style="font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Análise Detalhada</div>';
+    html+=`<div style="background:var(--bg3);border:1px solid var(--border);padding:12px">
+    <div style="font-size:.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Análise Detalhada do Sinal</div>`;
     sinal.detalhes.forEach(d=>{
-      const icon=d.status==='buy'?'✅':d.status==='sell'?'❌':'⚠️';
       const c=d.status==='buy'?'var(--green)':d.status==='sell'?'var(--danger)':'var(--warn)';
-      html+=`<div style="font-size:.65rem;padding:4px 0;border-bottom:1px solid var(--border);color:${c}">${icon} ${d.texto}</div>`;
+      html+=`<div style="font-size:.65rem;padding:5px 0;border-bottom:1px solid var(--border);color:${c}">${d.texto}</div>`;
     });
     html+='</div>';
   }
@@ -805,14 +914,21 @@ function renderBTCIndicators(ind){
     return;
   }
 
-  let html=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:10px">`;
+  const f0=v=>v!=null?'US$ '+Number(v).toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+  const f3=v=>v!=null?v.toFixed(3):'—';
+
+  let html=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;margin-bottom:12px">`;
   const items=[
-    {l:'RSI Semanal',v:ind.rsi_semanal?ind.rsi_semanal+'':null,cls:ind.rsi_semanal<30?'up':ind.rsi_semanal>70?'down':'warn'},
-    {l:'MM 20 Sem.',v:ind.mm20_semanal?'US$ '+Number(ind.mm20_semanal).toLocaleString('en-US'):null},
-    {l:'MM 50 Sem.',v:ind.mm50_semanal?'US$ '+Number(ind.mm50_semanal).toLocaleString('en-US'):null},
-    {l:'MM 200 Sem.',v:ind.mm200_semanal?'US$ '+Number(ind.mm200_semanal).toLocaleString('en-US'):null},
+    {l:'RSI Semanal',v:ind.rsi_semanal!=null?ind.rsi_semanal+'':null,cls:ind.rsi_semanal<30?'up':ind.rsi_semanal>70?'down':'warn'},
+    {l:'MM 20 Sem.',v:ind.mm20_semanal?f0(ind.mm20_semanal):null},
+    {l:'MM 50 Sem.',v:ind.mm50_semanal?f0(ind.mm50_semanal):null},
+    {l:'MM 200 Sem.',v:ind.mm200_semanal?f0(ind.mm200_semanal):null},
+    {l:'MACD',v:ind.macd!=null?f3(ind.macd):null,cls:ind.macd>ind.macd_signal?'up':'down'},
+    {l:'MACD Signal',v:ind.macd_signal!=null?f3(ind.macd_signal):null},
+    {l:'BB Superior',v:ind.bb_upper?f0(ind.bb_upper):null},
+    {l:'BB Inferior',v:ind.bb_lower?f0(ind.bb_lower):null},
     {l:'OBV Trend',v:ind.obv_trend||null,cls:ind.obv_trend==='subindo'?'up':'down'},
-    {l:'Dados',v:ind.data_points?ind.data_points+' semanas':null},
+    {l:'Semanas',v:ind.data_points?ind.data_points+' sem.':null},
   ];
   items.forEach(i=>{
     if(!i.v)return;
@@ -822,12 +938,12 @@ function renderBTCIndicators(ind){
 
   if(ind.divergencia_rsi){
     const isBull=ind.divergencia_rsi.includes('BULLISH');
-    html+=`<div style="background:var(--bg3);border:1px solid ${isBull?'var(--accent)':'var(--danger)'};padding:12px;font-size:.68rem;line-height:1.6">
-      <div style="font-size:.55rem;color:${isBull?'var(--accent)':'var(--danger)'};letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Divergência RSI Detectada</div>
-      ${ind.divergencia_rsi}
+    html+=`<div style="background:var(--bg3);border:2px solid ${isBull?'var(--accent)':'var(--danger)'};padding:14px;font-size:.68rem;line-height:1.6;margin-bottom:8px">
+      <div style="font-size:.58rem;color:${isBull?'var(--accent)':'var(--danger)'};letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">⚡ Divergência RSI Detectada</div>
+      <div style="color:var(--text)">${ind.divergencia_rsi}</div>
     </div>`;
   } else {
-    html+=`<div style="background:var(--bg3);border:1px solid var(--border);padding:10px;font-size:.65rem;color:var(--muted)">Sem divergência de RSI detectada no semanal.</div>`;
+    html+=`<div style="background:var(--bg3);border:1px solid var(--border);padding:10px;font-size:.65rem;color:var(--muted);margin-bottom:8px">Sem divergência de RSI detectada no semanal.</div>`;
   }
 
   el.innerHTML=html;
@@ -872,13 +988,15 @@ async function fetchAll(){
 
   // Indicadores — carrega em background (pode demorar mais)
   setTimeout(async()=>{
-    const [petr4Ind,vale3Ind,btcInd]=await Promise.all([
+    const [petr4Ind,vale3Ind,bbas3Ind,btcInd]=await Promise.all([
       fetchIndicators('PETR4.SA'),
       fetchIndicators('VALE3.SA'),
+      fetchIndicators('BBAS3.SA'),
       fetchBTCIndicators()
     ]);
     renderIndicators('petr4-ind-area',petr4Ind,true);
     renderIndicators('vale3-ind-area',vale3Ind,true);
+    renderIndicators('bbas3-ind-area',bbas3Ind,true);
     renderBTCIndicators(btcInd);
   },1000);
 }
