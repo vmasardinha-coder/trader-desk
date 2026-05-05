@@ -327,6 +327,30 @@ def tv_forex():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ── FUTUROS + DJI VIA YAHOO ──────────────────────────
+def yahoo_quote_fn(ticker):
+    try:
+        r = requests.get(
+            f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=5d',
+            headers={'User-Agent': 'Mozilla/5.0'}, timeout=6)
+        if not r.ok: return None
+        data = r.json()
+        meta = data['chart']['result'][0]['meta']
+        closes = [c for c in data['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
+        price = meta.get('regularMarketPrice', closes[-1] if closes else None)
+        prev  = meta.get('chartPreviousClose', closes[-2] if len(closes)>1 else price)
+        if not price: return None
+        return {'price': round(float(price),2), 'prev': round(float(prev),2)}
+    except:
+        return None
+
+@app.route('/futures', methods=['GET'])
+def get_futures():
+    dji = yahoo_quote_fn('%5EDJI')
+    esf = yahoo_quote_fn('ES%3DF')
+    nqf = yahoo_quote_fn('NQ%3DF')
+    return jsonify({'dji': dji, 'esf': esf, 'nqf': nqf})
+
 # ── FUNDING RATE VIA HYPERLIQUID ──────────────────────
 @app.route('/binance/funding', methods=['GET'])
 def binance_funding():
