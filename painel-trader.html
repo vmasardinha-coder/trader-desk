@@ -665,19 +665,11 @@ function doMacro(tv){
   setEl('ndx-p',fPTS(ndxP));setChg('ndx-c',ndxP,ndxV,'pts');
   document.getElementById('ndx-s').textContent=hlXyz('XYZ100')?'HL ✓':'fallback';
 
-  // Dow Jones + futuros via proxy Yahoo
-  const djiD=window._futures?.dji;
-  const djiP=djiD?.price||FB.DJI.p, djiV=djiD?.prev||FB.DJI.v;
-  setEl('dji-p',fPTS(djiP));setChg('dji-c',djiP,djiV,'pts');
-  document.getElementById('dji-s').textContent=djiD?'Yahoo ✓':'fallback';
-
-  const esfD=window._futures?.esf;
-  const esfP=esfD?.price||FB.ESFUT.p, esfV=esfD?.prev||FB.ESFUT.v;
-  setEl('esf-p',fPTS(esfP));setChg('esf-c',esfP,esfV,'pts');
-
-  const nqfD=window._futures?.nqf;
-  const nqfP=nqfD?.price||FB.NQFUT.p, nqfV=nqfD?.prev||FB.NQFUT.v;
-  setEl('nqf-p',fPTS(nqfP));setChg('nqf-c',nqfP,nqfV,'pts');
+  // Dow Jones + futuros — atualizados em background via fetchFutures
+  // Mostra fallback inicialmente
+  if(!window._futures?.dji){setEl('dji-p',fPTS(FB.DJI.p));setChg('dji-c',FB.DJI.p,FB.DJI.v,'pts');}
+  if(!window._futures?.esf){setEl('esf-p',fPTS(FB.ESFUT.p));setChg('esf-c',FB.ESFUT.p,FB.ESFUT.v,'pts');}
+  if(!window._futures?.nqf){setEl('nqf-p',fPTS(FB.NQFUT.p));setChg('nqf-c',FB.NQFUT.p,FB.NQFUT.v,'pts');}
 
   // WIN futuro
   setEl('win-p',fPTS(ibovP*0.999));setChg('win-c',ibovP*0.999,ibovV*0.999,'pts');
@@ -979,8 +971,20 @@ async function fetchAll(){
   btn.disabled=true;upd.textContent='Atualizando...';upd.className='pill warn';
   checkMarkets();
 
-  const [,tv,futures]=await Promise.all([fetchHL(),fetchTV(),fetchFutures()]);
-  window._futures=futures;
+  // HL e TV em paralelo — não bloqueia por futuros
+  const [,tv]=await Promise.all([fetchHL(),fetchTV()]);
+  
+  // Futuros em background — não bloqueia cotações principais
+  fetchFutures().then(futures=>{
+    window._futures=futures;
+    // Atualiza apenas os cards de futuros
+    const djiD=futures?.dji;
+    if(djiD){setEl('dji-p',fPTS(djiD.price));setChg('dji-c',djiD.price,djiD.prev,'pts');document.getElementById('dji-s').textContent='Yahoo ✓';}
+    const esfD=futures?.esf;
+    if(esfD){setEl('esf-p',fPTS(esfD.price));setChg('esf-c',esfD.price,esfD.prev,'pts');}
+    const nqfD=futures?.nqf;
+    if(nqfD){setEl('nqf-p',fPTS(nqfD.price));setChg('nqf-c',nqfD.price,nqfD.prev,'pts');}
+  }).catch(()=>{});
 
   const macroData=doMacro(tv);
   const commData=doCommodities();
