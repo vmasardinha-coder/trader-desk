@@ -469,7 +469,7 @@ const FB={
   IBOV:{p:130740,v:129500},USDBRL:{p:4.95,v:5.01},
   CL:{p:63.02,v:63.02},GOLD:{p:3320,v:3320},
   SILVER:{p:32.50,v:32.50},COPPER:{p:4.85,v:4.85},
-  PETR4:{p:47.44,v:47.01},VALE3:{p:85.38,v:85.82},
+  PETR4:{p:47.44,v:47.01},VALE3:{p:85.38,v:85.82},BBAS3:{p:23.44,v:23.20},
   BTC:{p:75940,v:75940}
 };
 
@@ -671,9 +671,6 @@ function doMacro(tv){
   if(!window._futures?.esf){setEl('esf-p',fPTS(FB.ESFUT.p));setChg('esf-c',FB.ESFUT.p,FB.ESFUT.v,'pts');}
   if(!window._futures?.nqf){setEl('nqf-p',fPTS(FB.NQFUT.p));setChg('nqf-c',FB.NQFUT.p,FB.NQFUT.v,'pts');}
 
-  // WIN futuro
-  setEl('win-p',fPTS(ibovP*0.999));setChg('win-c',ibovP*0.999,ibovV*0.999,'pts');
-
   // VIX
   const vixP=hlXyz('VIX')||FB.VIX.p;
   const vixV=hlXyzPrev('VIX')||FB.VIX.v;
@@ -699,6 +696,8 @@ function doMacro(tv){
   const ibovP=ibovD?.p||FB.IBOV.p,ibovV=ibovD?.v||FB.IBOV.v;
   setEl('ibov-p',fPTS(ibovP));setChg('ibov-c',ibovP,ibovV,'pts');
   document.getElementById('ibov-s').textContent=ibovD?'TV ✓':'fallback';
+  // WIN futuro
+  setEl('win-p',fPTS(ibovP*0.999));setChg('win-c',ibovP*0.999,ibovV*0.999,'pts');
 
   // PETR4 e VALE3 na aba cotações
   const ptD=tv['BMFBOVESPA:PETR4'];
