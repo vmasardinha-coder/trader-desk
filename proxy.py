@@ -584,29 +584,47 @@ def get_btc_indicators():
 
 
 # ── MONTE CARLO — Probabilidade de Sucesso ────────────
-import random as _random
-
-def _monte_carlo(S, K_call, K_put, T_days, sigma, n=100000, knock_down=None):
+def _monte_carlo(S, K_call, K_put, T_days, sigma, n=40000, knock_down=None):
     T = T_days / 252.0
     sqrt_T = T ** 0.5
-    sucessos = call_ex_count = put_ex_count = kdo_count = 0
-    for _ in range(n):
-        z = _random.gauss(0, 1)
-        ST = S * math.exp(-0.5 * sigma**2 * T + sigma * sqrt_T * z)
-        if knock_down and ST <= knock_down:
-            kdo_count += 1
+    drift = -0.5 * sigma**2 * T
+    try:
+        import numpy as np
+        # Numpy é muito mais rápido
+        z = np.random.standard_normal(n)
+        ST = S * np.exp(drift + sigma * sqrt_T * z)
         call_ex = ST > K_call
         put_ex  = ST < K_put
-        if call_ex: call_ex_count += 1
-        if put_ex:  put_ex_count += 1
-        if not call_ex: sucessos += 1
-    return {
-        'prob_sucesso':       round(sucessos / n * 100, 2),
-        'prob_call_exercida': round(call_ex_count / n * 100, 2),
-        'prob_put_exercida':  round(put_ex_count / n * 100, 2),
-        'prob_kdo_atingido':  round(kdo_count / n * 100, 2) if knock_down else None,
-        'cenarios': n
-    }
+        kdo_hit = (ST <= knock_down) if knock_down else np.zeros(n, dtype=bool)
+        return {
+            'prob_sucesso':       round(float((~call_ex).mean() * 100), 2),
+            'prob_call_exercida': round(float(call_ex.mean() * 100), 2),
+            'prob_put_exercida':  round(float(put_ex.mean() * 100), 2),
+            'prob_kdo_atingido':  round(float(kdo_hit.mean() * 100), 2) if knock_down else None,
+            'cenarios': n,
+            'engine': 'numpy'
+        }
+    except ImportError:
+        # Fallback puro Python otimizado
+        import random
+        import array
+        sucessos = call_ex_count = put_ex_count = kdo_count = 0
+        # Gera todos os randoms de uma vez
+        zs = [random.gauss(0,1) for _ in range(n)]
+        for z in zs:
+            ST = S * math.exp(drift + sigma * sqrt_T * z)
+            if knock_down and ST <= knock_down: kdo_count += 1
+            if ST > K_call: call_ex_count += 1
+            else: sucessos += 1
+            if ST < K_put: put_ex_count += 1
+        return {
+            'prob_sucesso':       round(sucessos / n * 100, 2),
+            'prob_call_exercida': round(call_ex_count / n * 100, 2),
+            'prob_put_exercida':  round(put_ex_count / n * 100, 2),
+            'prob_kdo_atingido':  round(kdo_count / n * 100, 2) if knock_down else None,
+            'cenarios': n,
+            'engine': 'python'
+        }
 
 def _vol_historica(closes):
     if len(closes) < 22:
