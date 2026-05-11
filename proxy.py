@@ -31,12 +31,17 @@ FUND = {
 # ── CDI ───────────────────────────────────────────────
 def get_cdi():
     try:
+        # Serie 4389 = CDI diario em % ao dia
         r = requests.get('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json', timeout=5)
         if r.ok:
-            cdi_d = float(r.json()[0]['valor'])
-            return round(((1 + cdi_d/100)**252 - 1)*100, 2)
+            cdi_d = float(r.json()[0]['valor'])  # ex: 0.0416 (% ao dia)
+            cdi_anual = ((1 + cdi_d/100)**252 - 1)*100
+            # Sanity check: CDI anual deve estar entre 5% e 20%
+            if 5 <= cdi_anual <= 20:
+                return round(cdi_anual, 2)
     except: pass
-    return 10.5
+    # Fallback: CDI atual aproximado maio/2026
+    return 14.40
 
 # ── CALC TECNICO ──────────────────────────────────────
 def rsi(closes, p=14):
@@ -258,7 +263,7 @@ def run_montecarlo():
         K_call=float(data.get('k_call',23.44))
         K_put=float(data.get('k_put',23.44))
         T_days=int(data.get('t_days',7))
-        n=int(data.get('n',40000))
+        n=min(int(data.get('n',10000)),20000)  # max 20k no Render gratuito
         kd=float(data['knock_down']) if data.get('knock_down') else None
 
         r=requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',

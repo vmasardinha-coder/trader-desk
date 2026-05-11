@@ -169,6 +169,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 <!-- TABS -->
 <div class="tabs">
   <div class="tab active" onclick="switchTab('cotacoes')">📊 Cotações</div>
+  <div class="tab" onclick="switchTab('indicadores')">📈 Indicadores & Sinais</div>
   <div class="tab" onclick="switchTab('posicoes')">💼 Minhas Posições</div>
 </div>
 
@@ -336,24 +337,6 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     </div>
   </div>
 
-  <!-- INDICADORES PETR4 -->
-  <div class="sec" style="margin-top:20px"><span>📊</span> Indicadores — PETR4</div>
-  <div id="petr4-ind-area">
-    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
-  </div>
-
-  <!-- INDICADORES BBAS3 -->
-  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — BBAS3</div>
-  <div id="bbas3-ind-area">
-    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
-  </div>
-
-  <!-- INDICADORES VALE3 -->
-  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — VALE3</div>
-  <div id="vale3-ind-area">
-    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
-  </div>
-
   <div class="sec"><span>02</span> Cripto — Bitcoin · Estratégia</div>
   <div class="grid2">
 
@@ -401,6 +384,33 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
 </div><!-- /tab-posicoes -->
 
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TAB: INDICADORES & SINAIS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="tab-indicadores" class="tab-content">
+
+  <div class="sec"><span>📊</span> Indicadores & Sinal — PETR4 <span class="src">· Yahoo Finance + Fundamentus</span></div>
+  <div id="petr4-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
+  </div>
+
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores & Sinal — VALE3</div>
+  <div id="vale3-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
+  </div>
+
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores & Sinal — BBAS3</div>
+  <div id="bbas3-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
+  </div>
+
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — Bitcoin Semanal</div>
+  <div id="btc-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores BTC...</div>
+  </div>
+
+</div><!-- /tab-indicadores -->
+
 <footer>
   <span>Hyperliquid xyz: (índices + commodities + cripto) · TradingView proxy (B3) · Binance Futures (funding)</span>
   <span id="ftr">—</span>
@@ -422,6 +432,11 @@ function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   event.target.classList.add('active');
+  // Load indicators when switching to that tab
+  if(tab==='indicadores' && !window._indLoaded){
+    window._indLoaded=true;
+    loadIndicators();
+  }
 }
 
 // ── CLOCK ─────────────────────────────────────────────
@@ -784,6 +799,21 @@ function doBTC(){
 }
 
 function doPositions(tv,btcData){
+  // BBAS3 cotacao e status
+  const bbD=tv['BMFBOVESPA:BBAS3'];
+  const bbP=bbD?.p||FB.BBAS3.p,bbV=bbD?.v||FB.BBAS3.v;
+  setEl('bb-pos-p',fBRL(bbP));setChg('bb-pos-c',bbP,bbV,'brl');
+  const venc=new Date('2026-05-10');
+  const dias=Math.max(0,Math.ceil((venc-new Date())/(1000*60*60*24)));
+  const diasEl=document.getElementById('bb-dias');
+  if(diasEl) diasEl.textContent=dias+' dias';
+  const bbStatus=document.getElementById('bb-status');
+  if(bbStatus){
+    if(bbP<=21.11){bbStatus.textContent='🔴 KDO ATINGIDO';bbStatus.className='sb-val itm';}
+    else if(bbP>23.44){bbStatus.textContent='⚠ Acima do strike';bbStatus.className='sb-val warn';}
+    else{bbStatus.textContent='✅ No range — caminhando pro lucro';bbStatus.className='sb-val ok';}
+  }
+
   const ptD=tv['BMFBOVESPA:PETR4'];
   const ptP=ptD?.p||FB.PETR4.p,ptV=ptD?.v||FB.PETR4.v;
   setEl('pt-pos-p',fBRL(ptP));setChg('pt-pos-c',ptP,ptV,'brl');
@@ -813,7 +843,7 @@ async function runMonteCarlo(){
         k_put:23.44,
         t_days:7,
         knock_down:21.11,
-        n:40000
+        n:10000
       })
     });
     if(!r.ok)throw 0;
@@ -964,6 +994,25 @@ function renderBTCIndicators(ind){
   el.innerHTML=html;
 }
 
+// ── LOAD INDICATORS ──────────────────────────────────
+async function loadIndicators(){
+  const areas=['petr4-ind-area','vale3-ind-area','bbas3-ind-area','btc-ind-area'];
+  areas.forEach(a=>{
+    const el=document.getElementById(a);
+    if(el) el.innerHTML='<div style="color:var(--muted);font-size:.65rem;padding:10px;animation:pulse 1.5s infinite">Calculando indicadores...</div>';
+  });
+  const [p4,v3,bb,btc]=await Promise.all([
+    fetchIndicators('PETR4.SA'),
+    fetchIndicators('VALE3.SA'),
+    fetchIndicators('BBAS3.SA'),
+    fetchBTCIndicators()
+  ]);
+  renderIndicators('petr4-ind-area',p4,true);
+  renderIndicators('vale3-ind-area',v3,true);
+  renderIndicators('bbas3-ind-area',bb,true);
+  renderBTCIndicators(btc);
+}
+
 // ── MAIN ──────────────────────────────────────────────
 async function fetchAll(){
   const btn=document.getElementById('btn-ref'),upd=document.getElementById('pill-upd');
@@ -1014,19 +1063,8 @@ async function fetchAll(){
 
   setTimeout(fetchFunding,3000);
 
-  // Indicadores — carrega em background (pode demorar mais)
-  setTimeout(async()=>{
-    const [petr4Ind,vale3Ind,bbas3Ind,btcInd]=await Promise.all([
-      fetchIndicators('PETR4.SA'),
-      fetchIndicators('VALE3.SA'),
-      fetchIndicators('BBAS3.SA'),
-      fetchBTCIndicators()
-    ]);
-    renderIndicators('petr4-ind-area',petr4Ind,true);
-    renderIndicators('vale3-ind-area',vale3Ind,true);
-    renderIndicators('bbas3-ind-area',bbas3Ind,true);
-    renderBTCIndicators(btcInd);
-  },1000);
+  // Indicadores carregam apenas quando usuario clica na aba
+  window._indLoaded=false;
 }
 
 fetchAll();
