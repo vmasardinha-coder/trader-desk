@@ -140,6 +140,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding-bot
 #debug-bar .err{color:var(--danger)}
 
 footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.52rem;color:var(--muted);flex-wrap:wrap;gap:6px}
+/* TOOLTIPS */
+.ind-box{position:relative;cursor:help}
+.ind-box .tooltip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1a2530;border:1px solid var(--border);color:var(--text);font-size:.55rem;padding:6px 10px;white-space:nowrap;z-index:100;line-height:1.5;min-width:180px;max-width:260px;white-space:normal}
+.ind-box:hover .tooltip{display:block}
 </style>
 </head>
 <body>
@@ -294,19 +298,18 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
   <!-- BBAS3 POSIÇÃO -->
   <div class="pos-card acao" style="margin-top:12px">
-    <div class="pos-label">Banco do Brasil · Trava de Baixa · Venc 10/05/2026</div>
+    <div class="pos-label">Banco do Brasil · Trava de Baixa · Venc 01/06/2026</div>
     <div class="pos-ticker">BBAS3</div>
     <div class="pos-price loading" id="bb-pos-p">—</div>
     <div class="pos-chg" id="bb-pos-c">—</div>
     <div class="sb">
       <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Trava de Baixa Sintética</span></div>
-      <div class="sb-row"><span class="sb-lbl">Call Vendida</span><span class="sb-val warn">Strike R$ 23,44 · Prêmio R$ 0,15</span></div>
-      <div class="sb-row"><span class="sb-lbl">Put Comprada</span><span class="sb-val warn">Strike R$ 23,44 · Custo R$ 0,06</span></div>
-      <div class="sb-row"><span class="sb-lbl">Prêmio líquido</span><span class="sb-val ok">R$ 0,09/ação · R$ 149,70 total</span></div>
-      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 21,11 — barreira de proteção</span></div>
-      <div class="sb-row"><span class="sb-lbl">Objetivo</span><span class="sb-val ok">Manter prêmio se BBAS3 ≤ R$ 23,44</span></div>
-      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">2,1% sobre capital alocado</span></div>
-      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">10/05/2026 · <span id="bb-dias">—</span> dias</span></div>
+      <div class="sb-row"><span class="sb-lbl">Strike (Call + Put)</span><span class="sb-val warn">R$ 22,68</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 19,70 — barreira de proteção</span></div>
+      <div class="sb-row"><span class="sb-lbl">Proteção na queda</span><span class="sb-val ok">até 10% abaixo do strike</span></div>
+      <div class="sb-row"><span class="sb-lbl">Objetivo</span><span class="sb-val ok">Manter prêmio se BBAS3 ≤ R$ 22,68</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">3,4% sobre capital alocado</span></div>
+      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">01/06/2026 · <span id="bb-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="bb-status">—</span></div>
     </div>
     <!-- MONTE CARLO -->
@@ -480,7 +483,7 @@ function setChg(id,p,prev,fmt){
 // ── FALLBACKS (valores de hoje corrigidos) ────────────
 const FB={
   SP500:{p:7165,v:7080},ESFUT:{p:7194,v:7110},NDX:{p:27301,v:27000},NQFUT:{p:27435,v:27150},DJI:{p:49230,v:48800},
-  DXY:{p:98.092,v:98.5},VIX:{p:22,v:23},
+  DXY:{p:97.879,v:98.2},VIX:{p:22,v:23},
   IBOV:{p:130740,v:129500},USDBRL:{p:4.95,v:5.01},
   CL:{p:63.02,v:63.02},GOLD:{p:3320,v:3320},
   SILVER:{p:32.50,v:32.50},COPPER:{p:4.85,v:4.85},
@@ -803,15 +806,15 @@ function doPositions(tv,btcData){
   const bbD=tv['BMFBOVESPA:BBAS3'];
   const bbP=bbD?.p||FB.BBAS3.p,bbV=bbD?.v||FB.BBAS3.v;
   setEl('bb-pos-p',fBRL(bbP));setChg('bb-pos-c',bbP,bbV,'brl');
-  const venc=new Date('2026-05-10');
+  const venc=new Date('2026-06-01');
   const dias=Math.max(0,Math.ceil((venc-new Date())/(1000*60*60*24)));
   const diasEl=document.getElementById('bb-dias');
   if(diasEl) diasEl.textContent=dias+' dias';
   const bbStatus=document.getElementById('bb-status');
   if(bbStatus){
-    if(bbP<=21.11){bbStatus.textContent='🔴 KDO ATINGIDO';bbStatus.className='sb-val itm';}
-    else if(bbP>23.44){bbStatus.textContent='⚠ Acima do strike';bbStatus.className='sb-val warn';}
-    else{bbStatus.textContent='✅ No range — caminhando pro lucro';bbStatus.className='sb-val ok';}
+    if(bbP<=19.70){bbStatus.textContent='🔴 KDO ATINGIDO — barreira rompida';bbStatus.className='sb-val itm';}
+    else if(bbP>22.68){bbStatus.textContent='⚠ Acima do strike — call em risco';bbStatus.className='sb-val warn';}
+    else{bbStatus.textContent='✅ No range — retorno 3,4% garantido';bbStatus.className='sb-val ok';}
   }
 
   const ptD=tv['BMFBOVESPA:PETR4'];
@@ -839,11 +842,11 @@ async function runMonteCarlo(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         ticker:'BBAS3.SA',
-        k_call:23.44,
-        k_put:23.44,
-        t_days:7,
-        knock_down:21.11,
-        n:10000
+        k_call:22.68,
+        k_put:22.68,
+        t_days:21,
+        knock_down:19.70,
+        n:5000
       })
     });
     if(!r.ok)throw 0;
@@ -898,6 +901,28 @@ function renderIndicators(containerId, ind, isBRL){
   // Grid técnicos
   html+=`<div style="font-size:.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:10px 0 6px">Indicadores Técnicos</div>`;
   html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-bottom:12px">`;
+  const TIPS={
+    'RSI (14)':'Índice de Força Relativa. <30=sobrevenda(compra), >70=sobrecompra(venda), neutro=30-70.',
+    'MM 20':'Média Móvel 20 períodos. Tendência de curto prazo. Preço acima=positivo.',
+    'MM 50':'Média Móvel 50 períodos. Tendência de médio prazo.',
+    'MM 200':'Média Móvel 200 períodos. Tendência principal de longo prazo. Mais importante.',
+    'MACD':'Convergência/Divergência de Médias. Positivo=momentum de alta.',
+    'MACD Signal':'Linha de sinal do MACD (EMA 9). MACD acima do sinal=compra.',
+    'BB Superior':'Banda Superior de Bollinger (2 desvios). Preço próximo=sobrecompra.',
+    'BB Inferior':'Banda Inferior de Bollinger (2 desvios). Preço próximo=sobrevenda.',
+    'OBV Trend':'On Balance Volume. Confirma tendência pelo volume. Subindo=positivo.',
+    'P/L':'Preço/Lucro. Quanto o mercado paga por R$1 de lucro. Menor=mais barato.',
+    'P/L Setor':'Média histórica do P/L do setor. Referência para comparação.',
+    'P/VP':'Preço/Valor Patrimonial. <1=ação abaixo do patrimônio(muito barato).',
+    'EV/EBITDA':'Valor da empresa / EBITDA. Menor=mais barato. <6x=atrativo.',
+    'ROE':'Retorno sobre Patrimônio. Mede eficiência. >15%=bom.',
+    'Dív/EBITDA':'Dívida líquida / EBITDA. Endividamento. <1.5x=saudável, >3x=alto.',
+    'Div. Yield':'Dividendo/Preço. Retorno em dividendos. Comparar com CDI.',
+    'CDI Atual':'Taxa CDI anual atual (renda fixa). DY>CDI=ação supera RF.',
+    'Margem Liq.':'Lucro líquido / Receita. Rentabilidade real. >15%=bom.',
+    'LPA':'Lucro Por Ação. Base para cálculo do valor justo Graham.',
+    'VPA':'Valor Patrimonial Por Ação. Base para cálculo do valor justo Graham.',
+  };
   const tecnicos=[
     {l:'RSI (14)',v:ind.rsi!=null?ind.rsi+'':null,cls:ind.rsi<30?'up':ind.rsi>70?'down':'warn'},
     {l:'MM 20',v:ind.mm20?mm+' '+f2(ind.mm20):null},
@@ -911,7 +936,8 @@ function renderIndicators(containerId, ind, isBRL){
   ];
   tecnicos.forEach(i=>{
     if(!i.v)return;
-    html+=`<div class="ind-box"><div class="ind-lbl">${i.l}</div><div class="ind-val ${i.cls||''}">${i.v}</div></div>`;
+    const tip=TIPS[i.l]||'';
+    html+=`<div class="ind-box"><div class="ind-lbl">${i.l} ${tip?'❓':''}</div><div class="ind-val ${i.cls||''}">${i.v}</div>${tip?`<div class="tooltip">${tip}</div>`:''}</div>`;
   });
   html+='</div>';
 
@@ -933,7 +959,8 @@ function renderIndicators(containerId, ind, isBRL){
   ];
   fundas.forEach(i=>{
     if(!i.v)return;
-    html+=`<div class="ind-box"><div class="ind-lbl">${i.l}</div><div class="ind-val ${i.cls||''}">${i.v}</div></div>`;
+    const tip=TIPS[i.l]||'';
+    html+=`<div class="ind-box"><div class="ind-lbl">${i.l} ${tip?'❓':''}</div><div class="ind-val ${i.cls||''}">${i.v}</div>${tip?`<div class="tooltip">${tip}</div>`:''}</div>`;
   });
   html+='</div>';
 

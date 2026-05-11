@@ -258,56 +258,44 @@ def binance_funding():
 @app.route('/montecarlo', methods=['POST'])
 def run_montecarlo():
     try:
+        import numpy as np
         data=request.get_json() or {}
         ticker=data.get('ticker','BBAS3.SA')
-        K_call=float(data.get('k_call',23.44))
-        K_put=float(data.get('k_put',23.44))
-        T_days=int(data.get('t_days',7))
-        n=min(int(data.get('n',10000)),20000)  # max 20k no Render gratuito
+        K_call=float(data.get('k_call',22.68))
+        K_put=float(data.get('k_put',22.68))
+        T_days=int(data.get('t_days',21))
+        n=5000  # fixo em 5k — rapido e estatisticamente valido
         kd=float(data['knock_down']) if data.get('knock_down') else None
 
+        # Busca preco atual
         r=requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
             headers={'User-Agent':'Mozilla/5.0'},timeout=8)
-        if not r.ok: return jsonify({'error':'Yahoo indisponivel'}),500
+        if not r.ok: return jsonify({'error':f'Yahoo {r.status_code}'}),500
         d=r.json()
         meta=d['chart']['result'][0]['meta']
         cl=[c for c in d['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
         S=float(meta.get('regularMarketPrice',cl[-1]))
         sigma=vol_hist(cl)
-        T=T_days/252.0; sqT=T**0.5; drift=-0.5*sigma**2*T
+        T=max(T_days,1)/252.0
+        sqT=math.sqrt(T)
+        drift=-0.5*sigma**2*T
 
-        try:
-            import numpy as np
-            z=np.random.standard_normal(n)
-            ST=S*np.exp(drift+sigma*sqT*z)
-            call_ex=ST>K_call; put_ex=ST<K_put
-            kdo_hit=(ST<=kd) if kd else np.zeros(n,dtype=bool)
-            res={
-                'prob_sucesso':round(float((~call_ex).mean()*100),2),
-                'prob_call_exercida':round(float(call_ex.mean()*100),2),
-                'prob_put_exercida':round(float(put_ex.mean()*100),2),
-                'prob_kdo_atingido':round(float(kdo_hit.mean()*100),2) if kd else None,
-                'cenarios':n,'engine':'numpy'
-            }
-        except ImportError:
-            import random
-            s=ce=pe=ke=0
-            for _ in range(n):
-                z=random.gauss(0,1)
-                ST=S*math.exp(drift+sigma*sqT*z)
-                if kd and ST<=kd: ke+=1
-                if ST>K_call: ce+=1
-                else: s+=1
-                if ST<K_put: pe+=1
-            res={
-                'prob_sucesso':round(s/n*100,2),
-                'prob_call_exercida':round(ce/n*100,2),
-                'prob_put_exercida':round(pe/n*100,2),
-                'prob_kdo_atingido':round(ke/n*100,2) if kd else None,
-                'cenarios':n,'engine':'python'
-            }
-        res.update({'preco_atual':round(S,2),'volatilidade_historica_pct':round(sigma*100,2),
-                    'k_call':K_call,'k_put':K_put,'knock_down':kd,'t_days':T_days,'ticker':ticker})
+        # Numpy Monte Carlo
+        z=np.random.standard_normal(n)
+        ST=S*np.exp(drift+sigma*sqT*z)
+        call_ex=ST>K_call
+        kdo_hit=(ST<=kd) if kd else np.zeros(n,dtype=bool)
+
+        res={
+            'prob_sucesso':round(float((~call_ex).mean()*100),2),
+            'prob_call_exercida':round(float(call_ex.mean()*100),2),
+            'prob_kdo_atingido':round(float(kdo_hit.mean()*100),2) if kd else None,
+            'cenarios':n,'engine':'numpy',
+            'preco_atual':round(S,2),
+            'volatilidade_historica_pct':round(sigma*100,2),
+            'k_call':K_call,'k_put':K_put,
+            'knock_down':kd,'t_days':T_days,'ticker':ticker
+        }
         return jsonify(res)
     except Exception as e:
         return jsonify({'error':str(e)}),500
