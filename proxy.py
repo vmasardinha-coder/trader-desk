@@ -8,6 +8,13 @@ import requests
 import math
 import time
 
+# Pre-import numpy at startup to avoid timeout on first call
+try:
+    import numpy as _np
+    _NUMPY = True
+except ImportError:
+    _NUMPY = False
+
 app = Flask(__name__)
 CORS(app)
 import logging

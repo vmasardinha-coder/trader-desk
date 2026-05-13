@@ -130,8 +130,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding-bot
 /* IND GRID */
 .ind-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
 .ind-box{background:var(--bg3);border:1px solid var(--border);padding:9px}
-.ind-lbl{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-.ind-val{font-size:.88rem;font-weight:600;color:var(--text)}
+.ind-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.ind-val{font-size:.95rem;font-weight:600;color:var(--text)}
 .ind-val.up{color:var(--green)}.ind-val.down{color:var(--red)}.ind-val.warn{color:var(--warn)}
 
 /* DEBUG */
@@ -142,7 +142,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding-bot
 footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.52rem;color:var(--muted);flex-wrap:wrap;gap:6px}
 /* TOOLTIPS */
 .ind-box{position:relative;cursor:help}
-.ind-box .tooltip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1a2530;border:1px solid var(--border);color:var(--text);font-size:.55rem;padding:6px 10px;white-space:nowrap;z-index:100;line-height:1.5;min-width:180px;max-width:260px;white-space:normal}
+.ind-box .tooltip{display:none;font-size:.6rem;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1a2530;border:1px solid var(--border);color:var(--text);font-size:.55rem;padding:6px 10px;white-space:nowrap;z-index:100;line-height:1.5;min-width:180px;max-width:260px;white-space:normal}
 .ind-box:hover .tooltip{display:block}
 </style>
 </head>
@@ -192,12 +192,12 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div class="card blue"><div class="c-label">Volatilidade</div><div class="c-name">VIX</div><div class="c-price loading" id="vix-p">—</div><div class="c-change" id="vix-c">—</div><div class="c-src">HL</div></div>
     <div class="card warn"><div class="c-label">Índice Dólar</div><div class="c-name">DXY</div><div class="c-price loading" id="dxy-p">—</div><div class="c-change" id="dxy-c">—</div><div class="c-src">HL</div></div>
     <div class="card warn"><div class="c-label">Câmbio · Spot</div><div class="c-name">USD / BRL</div><div class="c-price loading" id="usd-p">—</div><div class="c-change" id="usd-c">—</div><div class="c-src" id="usd-s">TV</div></div>
-    <div class="card green"><div class="c-label">BR · Futuro</div><div class="c-name">WIN Futuro</div><div class="c-price loading" id="win-p">—</div><div class="c-change" id="win-c">—</div><div class="c-src">ref</div></div>
   </div>
 
   <div class="sec"><span>02</span> B3 — Brasil <span class="src">· TradingView via proxy</span></div>
   <div class="grid">
     <div class="card green"><div class="c-label">BR · Índice</div><div class="c-name">Ibovespa</div><div class="c-price loading" id="ibov-p">—</div><div class="c-change" id="ibov-c">—</div><div class="c-src" id="ibov-s">TV</div></div>
+    <div class="card green"><div class="c-label">BR · Futuro</div><div class="c-name">WIN Futuro</div><div class="c-price loading" id="win-p">—</div><div class="c-change" id="win-c">—</div><div class="c-src">ref</div></div>
     <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">PETR4</div><div class="c-price loading" id="petr4q-p">—</div><div class="c-change" id="petr4q-c">—</div><div class="c-src">TV</div></div>
     <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">VALE3</div><div class="c-price loading" id="vale3q-p">—</div><div class="c-change" id="vale3q-c">—</div><div class="c-src">TV</div></div>
   </div>
@@ -892,7 +892,7 @@ function renderIndicators(containerId, ind, isBRL){
     <div>
       <div style="font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">⚡ Sinal Automático — ${ind.setor||''}</div>
       <div style="font-size:1.6rem;font-weight:800;color:${cor}">${sinal.sinal||'—'}</div>
-      <div style="font-size:.62rem;color:var(--muted);margin-top:2px">Score: ${sinal.score||0}/${sinal.max_score||0} · ${sinal.forca||0}% favorável · CDI: ${ind.cdi?.toFixed(1)||'—'}%</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:2px">Score: ${sinal.score||0}/${sinal.max_score||0} pts (máx 20 possíveis) · ${sinal.forca||0}% favorável · CDI: ${Number(ind.cdi||0).toFixed(1)}%</div>
     </div>
     ${ind.valor_justo_graham?`<div style="text-align:right">
       <div style="font-size:.55rem;color:var(--muted);text-transform:uppercase">Valor Justo Graham</div>
