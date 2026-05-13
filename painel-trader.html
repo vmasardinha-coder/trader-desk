@@ -313,6 +313,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="sb-row"><span class="sb-lbl">Objetivo</span><span class="sb-val ok">Manter prêmio se BBAS3 ≤ R$ 22,68</span></div>
       <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">3,4% sobre capital alocado</span></div>
       <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">01/06/2026 · <span id="bb-dias">—</span> dias</span></div>
+      <div class="sb-row"><span class="sb-lbl">% p/ Strike</span><span class="sb-val" id="bb-pct-strike">—</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="bb-status">—</span></div>
     </div>
     <!-- MONTE CARLO -->
@@ -486,7 +487,7 @@ function setChg(id,p,prev,fmt){
 // ── FALLBACKS (valores de hoje corrigidos) ────────────
 const FB={
   SP500:{p:7165,v:7080},ESFUT:{p:7194,v:7110},NDX:{p:27301,v:27000},NQFUT:{p:27435,v:27150},DJI:{p:49230,v:48800},
-  DXY:{p:97.879,v:98.2},VIX:{p:22,v:23},
+  DXY:{p:98.511,v:98.2},VIX:{p:22,v:23},
   IBOV:{p:130740,v:129500},USDBRL:{p:4.95,v:5.01},
   CL:{p:63.02,v:63.02},GOLD:{p:3320,v:3320},
   SILVER:{p:32.50,v:32.50},COPPER:{p:4.85,v:4.85},
@@ -717,8 +718,9 @@ function doMacro(tv){
   const ibovP=ibovD?.p||FB.IBOV.p,ibovV=ibovD?.v||FB.IBOV.v;
   setEl('ibov-p',fPTS(ibovP));setChg('ibov-c',ibovP,ibovV,'pts');
   document.getElementById('ibov-s').textContent=ibovD?'TV ✓':'fallback';
-  // WIN futuro
-  setEl('win-p',fPTS(ibovP*0.999));setChg('win-c',ibovP*0.999,ibovV*0.999,'pts');
+  // WIN futuro — WINFUT = IBOV * 0.2 (ponto do mini contrato)
+  const winP=Math.round(ibovP); const winV=Math.round(ibovV);
+  setEl('win-p',fPTS(winP));setChg('win-c',winP,winV,'pts');
 
   // PETR4 e VALE3 na aba cotações
   const ptD=tv['BMFBOVESPA:PETR4'];
@@ -824,6 +826,8 @@ function doPositions(tv,btcData){
   const ptP=ptD?.p||FB.PETR4.p,ptV=ptD?.v||FB.PETR4.v;
   setEl('pt-pos-p',fBRL(ptP));setChg('pt-pos-c',ptP,ptV,'brl');
   setEl('pt-itm',`R$ ${(ptP-32).toFixed(2)} acima do strike`);
+  const ptGatilho=document.getElementById('pt-pct-gatilho');
+  if(ptGatilho){const pct=((40-ptP)/ptP*100);ptGatilho.textContent=ptP<40?`+${pct.toFixed(1)}% para R$40`:`R$40 já atingido ⚠`;}
   const ptPct=Math.min(100,Math.max(0,((ptP-32)/(65-32))*100));
   const ptBar=document.getElementById('pt-bar');
   ptBar.style.width=ptPct+'%';ptBar.className='prog-bar '+(ptP>48?'danger':ptP>40?'warn':'ok');
@@ -832,6 +836,8 @@ function doPositions(tv,btcData){
   const vlP=vlD?.p||FB.VALE3.p,vlV=vlD?.v||FB.VALE3.v;
   setEl('vl-pos-p',fBRL(vlP));setChg('vl-pos-c',vlP,vlV,'brl');
   setEl('vl-itm',`R$ ${(vlP-57).toFixed(2)} acima do strike`);
+  const vlGatilho=document.getElementById('vl-pct-gatilho');
+  if(vlGatilho){const pct=((70-vlP)/vlP*100);vlGatilho.textContent=vlP<70?`+${pct.toFixed(1)}% para R$70`:`R$70 já atingido ⚠`;}
   const vlPct=Math.min(100,Math.max(0,((vlP-57)/(110-57))*100));
   const vlBar=document.getElementById('vl-bar');
   vlBar.style.width=vlPct+'%';vlBar.className='prog-bar '+(vlP>82?'danger':vlP>70?'warn':'ok');

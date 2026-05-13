@@ -397,10 +397,17 @@ def get_indicators(ticker):
 @app.route('/btc/indicators', methods=['GET'])
 def get_btc_indicators():
     try:
-        r=requests.get('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1w&limit=210',timeout=10)
-        if not r.ok: return jsonify({'error':'Binance indisponivel'}),500
-        candles=r.json()
-        cl=[float(c[4]) for c in candles]; vl=[float(c[5]) for c in candles]
+        # CoinGecko — historico diario BTC (sem bloqueio no Render)
+        r=requests.get('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=400&interval=daily',
+            headers={'User-Agent':'Mozilla/5.0'},timeout=15)
+        if not r.ok: return jsonify({'error':f'CoinGecko HTTP {r.status_code}'}),500
+        d=r.json()
+        prices=d.get('prices',[])
+        volumes=d.get('total_volumes',[])
+        if not prices: return jsonify({'error':'Sem dados CoinGecko'}),500
+        # Converte diario para semanal (pega 1 por semana)
+        cl=[p[1] for p in prices[::7]]
+        vl=[v[1] for v in volumes[::7]] if volumes else [0]*len(cl)
         price=cl[-1]
         rsi_v=rsi(cl,14); mm20_v=mm(cl,20); mm50_v=mm(cl,50); mm200_v=mm(cl,200)
         ml,ms,mh=macd(cl); bu,bm,bl=bollinger(cl); _,ot=obv(cl,vl)
