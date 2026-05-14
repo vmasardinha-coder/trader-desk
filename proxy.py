@@ -240,7 +240,15 @@ def yquote(ticker):
 def get_futures():
     # Tenta múltiplos tickers para VIX e DXY
     vix = yquote('%5EVIX') or yquote('VIXY')
-    dxy = yquote('DX%3DF')  # DX=F = DXY futures, preco real do indice dolar
+    # DXY — tenta varios tickers do Yahoo
+    dxy = yquote('DXYZ25.CBT') or yquote('DXYZF.CBT') or yquote('%5EDXY')
+    if not dxy:
+        # Fallback: calcula via EUR/USD (DXY é inversamente correlacionado)
+        eurusd = yquote('EURUSD%3DX')
+        if eurusd and eurusd['price']:
+            # DXY aproximado = 103.448 / EURUSD (peso EUR = 57.6% do DXY)
+            dxy_est = round(103.448 / eurusd['price'], 3)
+            dxy = {'price': dxy_est, 'prev': round(103.448 / eurusd['prev'], 3)} if eurusd['prev'] else None
     # WIN futuro B3 — não tem no Yahoo, calcula via IBOV
     win = None
     try:
