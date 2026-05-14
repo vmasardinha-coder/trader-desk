@@ -693,18 +693,18 @@ function doMacro(tv){
   if(!window._futures?.esf){setEl('esf-p',fPTS(FB.ESFUT.p));setChg('esf-c',FB.ESFUT.p,FB.ESFUT.v,'pts');}
   if(!window._futures?.nqf){setEl('nqf-p',fPTS(FB.NQFUT.p));setChg('nqf-c',FB.NQFUT.p,FB.NQFUT.v,'pts');}
 
-  // VIX
-  const vixP=hlXyz('VIX')||FB.VIX.p;
-  const vixV=hlXyzPrev('VIX')||FB.VIX.v;
+  // VIX — via proxy Yahoo (atualizado em background)
+  const vixFut=window._futures?.vix;
+  const vixP=vixFut?.price||hlXyz('VIX')||FB.VIX.p;
+  const vixV=vixFut?.prev||FB.VIX.v;
   setEl('vix-p',Number(vixP).toFixed(2));setChg('vix-c',vixP,vixV,'usd');
 
-  // DXY — sempre mostra valor atual da HL xyz
-  const dxyRaw=hlXyz('DXY');
-  const dxyP=dxyRaw||FB.DXY.p;
+  // DXY — via proxy Yahoo + fallback HL xyz
+  const dxyFut=window._futures?.dxy;
+  const dxyRaw=dxyFut?.price||hlXyz('DXY')||FB.DXY.p;
+  const dxyP=dxyRaw; const dxyV=dxyFut?.prev||FB.DXY.v;
   const dxyEl=document.getElementById('dxy-p');
   if(dxyEl){dxyEl.textContent=Number(dxyP).toFixed(3);dxyEl.className=dxyEl.className.replace(/\bloading\b/g,'').trim();}
-  // Variacao vs fallback do dia anterior
-  const dxyV=FB.DXY.v;
   const dxyD=dxyP-dxyV; const dxyPct=(dxyD/dxyV*100); const dxyS=dxyD>=0?'+':'';
   const dxyCEl=document.getElementById('dxy-c');
   if(dxyCEl){dxyCEl.textContent=`${dxyS}${dxyPct.toFixed(2)}%`;dxyCEl.className='c-change '+(dxyD>=0?'up':'down');}
@@ -1103,13 +1103,25 @@ async function fetchAll(){
   // Futuros em background — não bloqueia cotações principais
   fetchFutures().then(futures=>{
     window._futures=futures;
-    // Atualiza apenas os cards de futuros
     const djiD=futures?.dji;
     if(djiD){setEl('dji-p',fPTS(djiD.price));setChg('dji-c',djiD.price,djiD.prev,'pts');document.getElementById('dji-s').textContent='Yahoo ✓';}
     const esfD=futures?.esf;
     if(esfD){setEl('esf-p',fPTS(esfD.price));setChg('esf-c',esfD.price,esfD.prev,'pts');}
     const nqfD=futures?.nqf;
     if(nqfD){setEl('nqf-p',fPTS(nqfD.price));setChg('nqf-c',nqfD.price,nqfD.prev,'pts');}
+    // WIN futuro
+    const winD=futures?.win;
+    if(winD){setEl('win-p',fPTS(winD.price));setChg('win-c',winD.price,winD.prev,'pts');}
+    // VIX via Yahoo
+    const vixD=futures?.vix;
+    if(vixD){setEl('vix-p',Number(vixD.price).toFixed(2));setChg('vix-c',vixD.price,vixD.prev,'usd');}
+    // DXY via Yahoo
+    const dxyD2=futures?.dxy;
+    if(dxyD2){
+      const dxyEl2=document.getElementById('dxy-p');
+      if(dxyEl2){dxyEl2.textContent=Number(dxyD2.price).toFixed(3);dxyEl2.className=dxyEl2.className.replace(/loading/g,'').trim();}
+      setChg('dxy-c',dxyD2.price,dxyD2.prev,'usd');
+    }
   }).catch(()=>{});
 
   const macroData=doMacro(tv);

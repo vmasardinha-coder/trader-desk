@@ -238,11 +238,24 @@ def yquote(ticker):
 # ── FUTUROS ───────────────────────────────────────────
 @app.route('/futures', methods=['GET'])
 def get_futures():
+    # Tenta múltiplos tickers para VIX e DXY
+    vix = yquote('%5EVIX') or yquote('VIXY')
+    dxy = yquote('DX%3DF') or yquote('UUP')
+    # WIN futuro B3 — não tem no Yahoo, calcula via IBOV
+    win = None
+    try:
+        ibov = yquote('%5EBVSP')
+        if ibov:
+            # WIN futuro tipicamente negocia com leve diferença do IBOV
+            win = {'price': round(ibov['price'], 0), 'prev': round(ibov['prev'], 0)}
+    except: pass
     return jsonify({
         'dji': yquote('%5EDJI'),
         'esf': yquote('ES%3DF'),
         'nqf': yquote('NQ%3DF'),
-        'win': yquote('WIN%3DF'),   # WINFUT mini indice
+        'win': win,
+        'vix': vix,
+        'dxy': dxy,
     })
 
 @app.route('/dji', methods=['GET'])
