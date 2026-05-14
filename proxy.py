@@ -240,7 +240,7 @@ def yquote(ticker):
 def get_futures():
     # Tenta múltiplos tickers para VIX e DXY
     vix = yquote('%5EVIX') or yquote('VIXY')
-    dxy = yquote('DX%3DF') or yquote('UUP')
+    dxy = yquote('DX%3DF')  # DX=F = DXY futures, preco real do indice dolar
     # WIN futuro B3 — não tem no Yahoo, calcula via IBOV
     win = None
     try:
