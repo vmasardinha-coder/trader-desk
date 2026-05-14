@@ -238,7 +238,12 @@ def yquote(ticker):
 # ── FUTUROS ───────────────────────────────────────────
 @app.route('/futures', methods=['GET'])
 def get_futures():
-    return jsonify({'dji':yquote('%5EDJI'),'esf':yquote('ES%3DF'),'nqf':yquote('NQ%3DF')})
+    return jsonify({
+        'dji': yquote('%5EDJI'),
+        'esf': yquote('ES%3DF'),
+        'nqf': yquote('NQ%3DF'),
+        'win': yquote('WIN%3DF'),   # WINFUT mini indice
+    })
 
 @app.route('/dji', methods=['GET'])
 def get_dji():
@@ -397,17 +402,19 @@ def get_indicators(ticker):
 @app.route('/btc/indicators', methods=['GET'])
 def get_btc_indicators():
     try:
-        # CoinGecko — historico diario BTC (sem bloqueio no Render)
-        r=requests.get('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=400&interval=daily',
-            headers={'User-Agent':'Mozilla/5.0'},timeout=15)
-        if not r.ok: return jsonify({'error':f'CoinGecko HTTP {r.status_code}'}),500
+        # Yahoo Finance — historico semanal BTC-USD
+        r=requests.get('https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1wk&range=4y',
+            headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},timeout=15)
+        if not r.ok:
+            # Fallback: tenta query2
+            r=requests.get('https://query2.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1wk&range=4y',
+                headers={'User-Agent':'Mozilla/5.0'},timeout=15)
+        if not r.ok: return jsonify({'error':f'Yahoo BTC HTTP {r.status_code}'}),500
         d=r.json()
-        prices=d.get('prices',[])
-        volumes=d.get('total_volumes',[])
-        if not prices: return jsonify({'error':'Sem dados CoinGecko'}),500
-        # Converte diario para semanal (pega 1 por semana)
-        cl=[p[1] for p in prices[::7]]
-        vl=[v[1] for v in volumes[::7]] if volumes else [0]*len(cl)
+        result=d['chart']['result'][0]
+        q=result['indicators']['quote'][0]
+        cl=[c for c in q.get('close',[]) if c is not None]
+        vl=[v if v else 0 for v in q.get('volume',[])][-len(cl):]
         price=cl[-1]
         rsi_v=rsi(cl,14); mm20_v=mm(cl,20); mm50_v=mm(cl,50); mm200_v=mm(cl,200)
         ml,ms,mh=macd(cl); bu,bm,bl=bollinger(cl); _,ot=obv(cl,vl)
