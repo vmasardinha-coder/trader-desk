@@ -240,15 +240,19 @@ def yquote(ticker):
 def get_futures():
     # Tenta múltiplos tickers para VIX e DXY
     vix = yquote('%5EVIX') or yquote('VIXY')
-    # DXY — tenta varios tickers do Yahoo
-    dxy = yquote('DXYZ25.CBT') or yquote('DXYZF.CBT') or yquote('%5EDXY')
-    if not dxy:
-        # Fallback: calcula via EUR/USD (DXY é inversamente correlacionado)
-        eurusd = yquote('EURUSD%3DX')
-        if eurusd and eurusd['price']:
-            # DXY aproximado = 103.448 / EURUSD (peso EUR = 57.6% do DXY)
-            dxy_est = round(103.448 / eurusd['price'], 3)
-            dxy = {'price': dxy_est, 'prev': round(103.448 / eurusd['prev'], 3)} if eurusd['prev'] else None
+    # DXY — via Hyperliquid xyz:DXY (confirmado funcionando)
+    dxy = None
+    try:
+        r_hl = requests.post('https://api.hyperliquid.xyz/info',
+            json={'type':'allMids','dex':'xyz'},
+            headers={'Content-Type':'application/json'}, timeout=5)
+        if r_hl.ok:
+            hl_data = r_hl.json()
+            dxy_val = hl_data.get('xyz:DXY')
+            if dxy_val:
+                dxy_p = round(float(dxy_val), 3)
+                dxy = {'price': dxy_p, 'prev': round(dxy_p * 0.999, 3)}
+    except: pass
     # WIN futuro B3 — não tem no Yahoo, calcula via IBOV
     win = None
     try:
