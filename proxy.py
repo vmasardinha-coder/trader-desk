@@ -469,10 +469,16 @@ import os
 @app.route('/')
 @app.route('/painel-trader.html')
 def serve_panel():
+    # Tenta arquivo local primeiro
     p=os.path.join(os.path.dirname(os.path.abspath(__file__)),'painel-trader.html')
     if os.path.exists(p):
         with open(p,'r',encoding='utf-8') as f:
-            return f.read(),200,{'Content-Type':'text/html; charset=utf-8'}
+            html=f.read()
+        resp=app.response_class(response=html,status=200,mimetype='text/html')
+        resp.headers['Cache-Control']='no-cache, no-store, must-revalidate'
+        resp.headers['Pragma']='no-cache'
+        resp.headers['Expires']='0'
+        return resp
     return 'painel-trader.html nao encontrado',404
 
 if __name__=='__main__':
