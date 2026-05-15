@@ -1118,17 +1118,24 @@ async function fetchAll(){
     if(esfD){setEl('esf-p',fPTS(esfD.price));setChg('esf-c',esfD.price,esfD.prev,'pts');}
     const nqfD=futures?.nqf;
     if(nqfD){setEl('nqf-p',fPTS(nqfD.price));setChg('nqf-c',nqfD.price,nqfD.prev,'pts');}
-    // WIN futuro
+    // WIN futuro — pontos do indice (~180k é correto)
     const winD=futures?.win;
-    if(winD){setEl('win-p',fPTS(winD.price));setChg('win-c',winD.price,winD.prev,'pts');}
-    // VIX via Yahoo
+    if(winD&&winD.price>50000){
+      setEl('win-p',fPTS(winD.price));
+      setChg('win-c',winD.price,winD.prev,'pts');
+    }
+    // VIX — ex: 17.26
     const vixD=futures?.vix;
-    if(vixD){setEl('vix-p',Number(vixD.price).toFixed(2));setChg('vix-c',vixD.price,vixD.prev,'usd');}
-    // DXY via Yahoo
+    if(vixD&&vixD.price>5&&vixD.price<100){
+      const vEl=document.getElementById('vix-p');
+      if(vEl){vEl.textContent=Number(vixD.price).toFixed(2);vEl.className=vEl.className.replace(/loading/g,'').trim();}
+      setChg('vix-c',vixD.price,vixD.prev,'usd');
+    }
+    // DXY — ex: 97.15 (range 70-120)
     const dxyD2=futures?.dxy;
-    if(dxyD2){
-      const dxyEl2=document.getElementById('dxy-p');
-      if(dxyEl2){dxyEl2.textContent=Number(dxyD2.price).toFixed(3);dxyEl2.className=dxyEl2.className.replace(/loading/g,'').trim();}
+    if(dxyD2&&dxyD2.price>70&&dxyD2.price<120){
+      const dEl=document.getElementById('dxy-p');
+      if(dEl){dEl.textContent=Number(dxyD2.price).toFixed(2);dEl.className=dEl.className.replace(/loading/g,'').trim();}
       setChg('dxy-c',dxyD2.price,dxyD2.prev,'usd');
     }
   }).catch(()=>{});
