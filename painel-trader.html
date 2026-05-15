@@ -269,6 +269,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div class="sb-row"><span class="sb-lbl">Distância ITM</span><span class="sb-val itm" id="pt-itm">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val itm">⚠ DEEP ITM</span></div>
         <div class="sb-row"><span class="sb-lbl">Gatilho reest.</span><span class="sb-val warn">≈ R$ 40</span></div>
+        <div class="sb-row"><span class="sb-lbl">% p/ gatilho</span><span class="sb-val warn" id="pt-pct-gatilho">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Estratégia</span><span class="sb-val">Call vendida · prêmio recorrente</span></div>
         <div class="prog-wrap"><div class="prog-bar danger" id="pt-bar" style="width:0%"></div></div>
       </div>
@@ -289,6 +290,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div class="sb-row"><span class="sb-lbl">Distância ITM</span><span class="sb-val itm" id="vl-itm">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val itm">⚠ DEEP ITM</span></div>
         <div class="sb-row"><span class="sb-lbl">Gatilhos</span><span class="sb-val warn">R$ 70 · R$ 80 · R$ 85</span></div>
+        <div class="sb-row"><span class="sb-lbl">% p/ R$70</span><span class="sb-val warn" id="vl-pct-gatilho">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Estratégia</span><span class="sb-val">Call vendida · prêmio + dividendos</span></div>
         <div class="prog-wrap"><div class="prog-bar danger" id="vl-bar" style="width:0%"></div></div>
       </div>
@@ -856,9 +858,12 @@ function doPositions(tv,btcData){
 // ── MONTE CARLO ───────────────────────────────────────
 async function runMonteCarlo(){
   try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),25000);
     const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
       body:JSON.stringify({
         ticker:'BBAS3.SA',
         k_call:22.68,
@@ -868,8 +873,10 @@ async function runMonteCarlo(){
         n:5000
       })
     });
-    if(!r.ok)throw 0;
+    clearTimeout(timeout);
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
+    if(d.error)throw new Error(d.error);
     document.getElementById('mc-loading').style.display='none';
     document.getElementById('mc-result').style.display='block';
     const sEl=document.getElementById('mc-sucesso');
@@ -883,7 +890,8 @@ async function runMonteCarlo(){
     document.getElementById('mc-info').textContent=
       `Preço atual R$ ${d.preco_atual} · Strike Call/Put R$ ${d.k_call} · KDO R$ ${d.knock_down} · ${d.cenarios.toLocaleString()} cenários simulados`;
   }catch(e){
-    document.getElementById('mc-loading').textContent='Monte Carlo indisponível';
+    const mcEl=document.getElementById('mc-loading');
+    if(mcEl)mcEl.textContent='Erro: '+(e.message||'Monte Carlo indisponível');
   }
 }
 
