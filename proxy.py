@@ -469,15 +469,23 @@ import os
 @app.route('/')
 @app.route('/painel-trader.html')
 def serve_panel():
-    # Tenta arquivo local primeiro
+    # Busca HTML do GitHub sempre (sem cache)
+    try:
+        r=requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/painel-trader.html',
+            timeout=10)
+        if r.ok:
+            resp=app.response_class(response=r.text,status=200,mimetype='text/html')
+            resp.headers['Cache-Control']='no-cache, no-store, must-revalidate'
+            return resp
+    except: pass
+    # Fallback: arquivo local
     p=os.path.join(os.path.dirname(os.path.abspath(__file__)),'painel-trader.html')
     if os.path.exists(p):
         with open(p,'r',encoding='utf-8') as f:
             html=f.read()
         resp=app.response_class(response=html,status=200,mimetype='text/html')
         resp.headers['Cache-Control']='no-cache, no-store, must-revalidate'
-        resp.headers['Pragma']='no-cache'
-        resp.headers['Expires']='0'
         return resp
     return 'painel-trader.html nao encontrado',404
 
