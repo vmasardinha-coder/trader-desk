@@ -466,9 +466,9 @@ def get_btc_indicators():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-17 13:41
+# HTML EMBUTIDO — atualizado em 2026-05-17 21:45
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.3 - 2026-05-17 13:41 -->
+<!-- Trader Desk v5.4 - 2026-05-17 21:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1637,6 +1637,9 @@ async function fetchAll(){
   btn.disabled=false;
 
   setTimeout(fetchFunding,3000);
+
+  // Monte Carlo BBAS3 — roda após cotações carregarem
+  setTimeout(runMonteCarlo, 5000);
 
   // Indicadores carregam apenas quando usuario clica na aba
   window._indLoaded=false;
