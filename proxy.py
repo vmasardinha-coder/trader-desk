@@ -466,9 +466,9 @@ def get_btc_indicators():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-16 11:03
+# HTML EMBUTIDO — atualizado em 2026-05-17 13:41
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.2 - 2026-05-15 00:44 -->
+<!-- Trader Desk v5.3 - 2026-05-17 13:41 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
