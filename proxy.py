@@ -466,9 +466,9 @@ def get_btc_indicators():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-17 21:45
+# HTML EMBUTIDO — atualizado em 2026-05-18 11:40
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.4 - 2026-05-17 21:45 -->
+<!-- Trader Desk v5.5 - 2026-05-18 11:40 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -790,7 +790,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     </div>
     <!-- MONTE CARLO -->
     <div class="signal" style="margin-top:8px;border-color:var(--blue)">
-      <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — 100k Cenários</div>
+      <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — 5k Cenários (Numpy)</div>
       <div id="mc-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
       <div id="mc-result" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
@@ -1297,6 +1297,11 @@ function doPositions(tv,btcData){
   const diasEl=document.getElementById('bb-dias');
   if(diasEl) diasEl.textContent=dias+' dias';
   const bbStatus=document.getElementById('bb-status');
+  const bbPctEl=document.getElementById('bb-pct-strike');
+  if(bbPctEl){
+    if(bbP<=22.68){const pct=((22.68-bbP)/bbP*100);bbPctEl.textContent=`-${pct.toFixed(1)}% abaixo do strike ✅`;}
+    else{const pct=((bbP-22.68)/22.68*100);bbPctEl.textContent=`+${pct.toFixed(1)}% acima do strike ⚠`;}
+  }
   if(bbStatus){
     if(bbP<=19.70){bbStatus.textContent='🔴 KDO ATINGIDO — barreira rompida';bbStatus.className='sb-val itm';}
     else if(bbP>22.68){bbStatus.textContent='⚠ Acima do strike — call em risco';bbStatus.className='sb-val warn';}
@@ -1641,7 +1646,7 @@ async function fetchAll(){
   // Monte Carlo BBAS3 — roda após cotações carregarem
   setTimeout(runMonteCarlo, 5000);
 
-  // Indicadores carregam apenas quando usuario clica na aba
+  // Indicadores carregam ao clicar na aba
   window._indLoaded=false;
 }
 
