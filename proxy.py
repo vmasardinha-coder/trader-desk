@@ -466,9 +466,9 @@ def get_btc_indicators():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-18 11:40
+# HTML EMBUTIDO — atualizado em 2026-05-19 11:31
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.5 - 2026-05-18 11:40 -->
+<!-- Trader Desk v5.6 - 2026-05-19 11:31 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -959,7 +959,7 @@ function setChg(id,p,prev,fmt){
 // ── FALLBACKS (valores de hoje corrigidos) ────────────
 const FB={
   SP500:{p:7165,v:7080},ESFUT:{p:7194,v:7110},NDX:{p:27301,v:27000},NQFUT:{p:27435,v:27150},DJI:{p:49230,v:48800},
-  DXY:{p:98.511,v:98.2},VIX:{p:22,v:23},
+  DXY:{p:99.024,v:98.8},VIX:{p:18.26,v:18.5},
   IBOV:{p:130740,v:129500},USDBRL:{p:4.95,v:5.01},
   CL:{p:63.02,v:63.02},GOLD:{p:3320,v:3320},
   SILVER:{p:32.50,v:32.50},COPPER:{p:4.85,v:4.85},
@@ -1165,21 +1165,14 @@ function doMacro(tv){
   if(!window._futures?.esf){setEl('esf-p',fPTS(FB.ESFUT.p));setChg('esf-c',FB.ESFUT.p,FB.ESFUT.v,'pts');}
   if(!window._futures?.nqf){setEl('nqf-p',fPTS(FB.NQFUT.p));setChg('nqf-c',FB.NQFUT.p,FB.NQFUT.v,'pts');}
 
-  // VIX — via proxy Yahoo (atualizado em background)
-  const vixFut=window._futures?.vix;
-  const vixP=vixFut?.price||hlXyz('VIX')||FB.VIX.p;
-  const vixV=vixFut?.prev||FB.VIX.v;
-  setEl('vix-p',Number(vixP).toFixed(2));setChg('vix-c',vixP,vixV,'usd');
+  // VIX — via proxy /futures (atualizado em background)
+  const vixEl=document.getElementById('vix-p');
+  if(vixEl&&vixEl.className.includes('loading')){vixEl.textContent=FB.VIX.p.toFixed(2);}
 
-  // DXY — via proxy Yahoo + fallback HL xyz
-  const dxyFut=window._futures?.dxy;
-  const dxyRaw=dxyFut?.price||hlXyz('DXY')||FB.DXY.p;
-  const dxyP=dxyRaw; const dxyV=dxyFut?.prev||FB.DXY.v;
+  // DXY — via proxy /futures (atualizado em background)
+  // Mostra fallback até futures carregar
   const dxyEl=document.getElementById('dxy-p');
-  if(dxyEl){dxyEl.textContent=Number(dxyP).toFixed(3);dxyEl.className=dxyEl.className.replace(/\\bloading\\b/g,'').trim();}
-  const dxyD=dxyP-dxyV; const dxyPct=(dxyD/dxyV*100); const dxyS=dxyD>=0?'+':'';
-  const dxyCEl=document.getElementById('dxy-c');
-  if(dxyCEl){dxyCEl.textContent=`${dxyS}${dxyPct.toFixed(2)}%`;dxyCEl.className='c-change '+(dxyD>=0?'up':'down');}
+  if(dxyEl&&dxyEl.className.includes('loading')){dxyEl.textContent=FB.DXY.p.toFixed(2);}
 
   // USD/BRL via USAR
   const usarP=hlXyz('USAR');
@@ -1194,14 +1187,9 @@ function doMacro(tv){
   const ibovP=ibovD?.p||FB.IBOV.p,ibovV=ibovD?.v||FB.IBOV.v;
   setEl('ibov-p',fPTS(ibovP));setChg('ibov-c',ibovP,ibovV,'pts');
   document.getElementById('ibov-s').textContent=ibovD?'TV ✓':'fallback';
-  // WIN futuro — busca do proxy /futures se disponivel
-  const winFut=window._futures?.win;
-  if(winFut){
-    setEl('win-p',fPTS(winFut.price));setChg('win-c',winFut.price,winFut.prev,'pts');
-  } else {
-    // Fallback: IBOV * fator aproximado
-    setEl('win-p',fPTS(Math.round(ibovP)));setChg('win-c',Math.round(ibovP),Math.round(ibovV),'pts');
-  }
+  // WIN futuro — via proxy /futures
+  const winEl=document.getElementById('win-p');
+  if(winEl&&winEl.className.includes('loading')){winEl.textContent=fPTS(FB.IBOV.p);}
 
   // PETR4 e VALE3 na aba cotações
   const ptD=tv['BMFBOVESPA:PETR4'];
