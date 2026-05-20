@@ -466,9 +466,9 @@ def get_btc_indicators():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-19 11:31
+# HTML EMBUTIDO — atualizado em 2026-05-20 10:59
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.6 - 2026-05-19 11:31 -->
+<!-- Trader Desk v5.7 - 2026-05-20 10:59 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -773,18 +773,18 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
   <!-- BBAS3 POSIÇÃO -->
   <div class="pos-card acao" style="margin-top:12px">
-    <div class="pos-label">Banco do Brasil · Trava de Baixa · Venc 01/06/2026</div>
+    <div class="pos-label">Banco do Brasil · Trava de Baixa · Venc 15/06/2026</div>
     <div class="pos-ticker">BBAS3</div>
     <div class="pos-price loading" id="bb-pos-p">—</div>
     <div class="pos-chg" id="bb-pos-c">—</div>
     <div class="sb">
       <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Trava de Baixa Sintética</span></div>
       <div class="sb-row"><span class="sb-lbl">Strike (Call + Put)</span><span class="sb-val warn">R$ 22,68</span></div>
-      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 19,70 — barreira de proteção</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Knock-Down)</span><span class="sb-val warn">R$ 18,60 (10% abaixo do strike</span></div>
       <div class="sb-row"><span class="sb-lbl">Proteção na queda</span><span class="sb-val ok">até 10% abaixo do strike</span></div>
-      <div class="sb-row"><span class="sb-lbl">Objetivo</span><span class="sb-val ok">Manter prêmio se BBAS3 ≤ R$ 22,68</span></div>
+      <div class="sb-row"><span class="sb-lbl">Objetivo</span><span class="sb-val ok">Manter prêmio se BBAS3 ≤ R$ 21,24</span></div>
       <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">3,4% sobre capital alocado</span></div>
-      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">01/06/2026 · <span id="bb-dias">—</span> dias</span></div>
+      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">15/06/2026 · <span id="bb-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">% p/ Strike</span><span class="sb-val" id="bb-pct-strike">—</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="bb-status">—</span></div>
     </div>
@@ -1280,20 +1280,20 @@ function doPositions(tv,btcData){
   const bbD=tv['BMFBOVESPA:BBAS3'];
   const bbP=bbD?.p||FB.BBAS3.p,bbV=bbD?.v||FB.BBAS3.v;
   setEl('bb-pos-p',fBRL(bbP));setChg('bb-pos-c',bbP,bbV,'brl');
-  const venc=new Date('2026-06-01');
+  const venc=new Date('2026-06-15');
   const dias=Math.max(0,Math.ceil((venc-new Date())/(1000*60*60*24)));
   const diasEl=document.getElementById('bb-dias');
   if(diasEl) diasEl.textContent=dias+' dias';
   const bbStatus=document.getElementById('bb-status');
   const bbPctEl=document.getElementById('bb-pct-strike');
   if(bbPctEl){
-    if(bbP<=22.68){const pct=((22.68-bbP)/bbP*100);bbPctEl.textContent=`-${pct.toFixed(1)}% abaixo do strike ✅`;}
-    else{const pct=((bbP-22.68)/22.68*100);bbPctEl.textContent=`+${pct.toFixed(1)}% acima do strike ⚠`;}
+    if(bbP<=21.24){const pct=((21.24-bbP)/bbP*100);bbPctEl.textContent=`-${pct.toFixed(1)}% abaixo do strike ✅`;}
+    else{const pct=((bbP-21.24)/21.24*100);bbPctEl.textContent=`+${pct.toFixed(1)}% acima do strike`;}
   }
   if(bbStatus){
-    if(bbP<=19.70){bbStatus.textContent='🔴 KDO ATINGIDO — barreira rompida';bbStatus.className='sb-val itm';}
-    else if(bbP>22.68){bbStatus.textContent='⚠ Acima do strike — call em risco';bbStatus.className='sb-val warn';}
-    else{bbStatus.textContent='✅ No range — retorno 3,4% garantido';bbStatus.className='sb-val ok';}
+    if(bbP<=18.60){bbStatus.textContent='🔴 KDO ATINGIDO — barreira rompida';bbStatus.className='sb-val itm';}
+    else if(bbP>21.24){bbStatus.textContent='⚠ Acima do strike — call em risco';bbStatus.className='sb-val warn';}
+    else{bbStatus.textContent='✅ No range — retorno 3,4% projetado';bbStatus.className='sb-val ok';}
   }
 
   const ptD=tv['BMFBOVESPA:PETR4'];
@@ -1301,7 +1301,11 @@ function doPositions(tv,btcData){
   setEl('pt-pos-p',fBRL(ptP));setChg('pt-pos-c',ptP,ptV,'brl');
   setEl('pt-itm',`R$ ${(ptP-32).toFixed(2)} acima do strike`);
   const ptGatilho=document.getElementById('pt-pct-gatilho');
-  if(ptGatilho){const pct=((40-ptP)/ptP*100);ptGatilho.textContent=ptP<40?`+${pct.toFixed(1)}% para R$40`:`R$40 já atingido ⚠`;}
+  if(ptGatilho){
+    const pctITM=((ptP-32)/32*100);
+    const pctGatilho=((ptP-40)/40*100);
+    ptGatilho.textContent=`ITM: +${pctITM.toFixed(1)}% acima do strike | ${ptP>40?`+${pctGatilho.toFixed(1)}% acima do gatilho ⚠`:`${Math.abs(((40-ptP)/ptP*100)).toFixed(1)}% para gatilho R$40`}`;
+  }
   const ptPct=Math.min(100,Math.max(0,((ptP-32)/(65-32))*100));
   const ptBar=document.getElementById('pt-bar');
   ptBar.style.width=ptPct+'%';ptBar.className='prog-bar '+(ptP>48?'danger':ptP>40?'warn':'ok');
@@ -1311,7 +1315,11 @@ function doPositions(tv,btcData){
   setEl('vl-pos-p',fBRL(vlP));setChg('vl-pos-c',vlP,vlV,'brl');
   setEl('vl-itm',`R$ ${(vlP-57).toFixed(2)} acima do strike`);
   const vlGatilho=document.getElementById('vl-pct-gatilho');
-  if(vlGatilho){const pct=((70-vlP)/vlP*100);vlGatilho.textContent=vlP<70?`+${pct.toFixed(1)}% para R$70`:`R$70 já atingido ⚠`;}
+  if(vlGatilho){
+    const pctITM=((vlP-57)/57*100);
+    const pctGat70=((vlP-70)/70*100);
+    vlGatilho.textContent=`ITM: +${pctITM.toFixed(1)}% acima do strike | ${vlP>70?`+${pctGat70.toFixed(1)}% acima do gatilho ⚠`:`${Math.abs(((70-vlP)/vlP*100)).toFixed(1)}% para gatilho R$70`}`;
+  }
   const vlPct=Math.min(100,Math.max(0,((vlP-57)/(110-57))*100));
   const vlBar=document.getElementById('vl-bar');
   vlBar.style.width=vlPct+'%';vlBar.className='prog-bar '+(vlP>82?'danger':vlP>70?'warn':'ok');
@@ -1328,10 +1336,10 @@ async function runMonteCarlo(){
       signal:controller.signal,
       body:JSON.stringify({
         ticker:'BBAS3.SA',
-        k_call:22.68,
-        k_put:22.68,
-        t_days:21,
-        knock_down:19.70,
+        k_call:21.24,
+        k_put:21.24,
+        t_days:27,
+        knock_down:18.60,
         n:5000
       })
     });
@@ -1580,20 +1588,21 @@ async function fetchAll(){
     if(esfD){setEl('esf-p',fPTS(esfD.price));setChg('esf-c',esfD.price,esfD.prev,'pts');}
     const nqfD=futures?.nqf;
     if(nqfD){setEl('nqf-p',fPTS(nqfD.price));setChg('nqf-c',nqfD.price,nqfD.prev,'pts');}
-    // WIN futuro — pontos do indice (~180k é correto)
+    // WIN futuro
     const winD=futures?.win;
     if(winD&&winD.price>50000){
-      setEl('win-p',fPTS(winD.price));
+      const wEl=document.getElementById('win-p');
+      if(wEl){wEl.textContent=fPTS(winD.price);wEl.className=wEl.className.replace(/loading/g,'').trim();}
       setChg('win-c',winD.price,winD.prev,'pts');
     }
-    // VIX — ex: 17.26
+    // VIX
     const vixD=futures?.vix;
     if(vixD&&vixD.price>5&&vixD.price<100){
       const vEl=document.getElementById('vix-p');
       if(vEl){vEl.textContent=Number(vixD.price).toFixed(2);vEl.className=vEl.className.replace(/loading/g,'').trim();}
       setChg('vix-c',vixD.price,vixD.prev,'usd');
     }
-    // DXY — ex: 97.15 (range 70-120)
+    // DXY
     const dxyD2=futures?.dxy;
     if(dxyD2&&dxyD2.price>70&&dxyD2.price<120){
       const dEl=document.getElementById('dxy-p');
