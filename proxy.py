@@ -466,9 +466,9 @@ def get_btc_indicators():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-20 10:59
+# HTML EMBUTIDO — atualizado em 2026-05-21 12:12
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.7 - 2026-05-20 10:59 -->
+<!-- Trader Desk v5.8 - 2026-05-21 12:12 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -746,6 +746,17 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div class="sig-title">📋 Status da Posição</div>
         <div id="pt-status">Strike em R$ 32 — preço atual muito acima. Monitorar oportunidade de rolagem quando próximo de R$ 40.</div>
       </div>
+      <div class="signal" style="margin-top:8px;border-color:var(--blue)">
+        <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. atingir strike R$32</div>
+        <div id="mc-pt-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
+        <div id="mc-pt-result" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div class="ind-box"><div class="ind-lbl">Prob. Strike</div><div class="ind-val" id="mc-pt-strike">—</div></div>
+            <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-pt-vol">—</div></div>
+          </div>
+          <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-pt-info">—</div>
+        </div>
+      </div>
     </div>
 
     <!-- VALE3 POSIÇÃO -->
@@ -766,6 +777,17 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="signal" style="margin-top:8px">
         <div class="sig-title">📋 Status da Posição</div>
         <div id="vl-status">Strike em R$ 57 — preço atual acima. Avaliar reestruturação nos gatilhos R$ 70, R$ 80 ou R$ 85.</div>
+      </div>
+      <div class="signal" style="margin-top:8px;border-color:var(--blue)">
+        <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. atingir strike R$57</div>
+        <div id="mc-vl-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
+        <div id="mc-vl-result" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div class="ind-box"><div class="ind-lbl">Prob. Strike</div><div class="ind-val" id="mc-vl-strike">—</div></div>
+            <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-vl-vol">—</div></div>
+          </div>
+          <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-vl-info">—</div>
+        </div>
       </div>
     </div>
 
@@ -1303,8 +1325,8 @@ function doPositions(tv,btcData){
   const ptGatilho=document.getElementById('pt-pct-gatilho');
   if(ptGatilho){
     const pctITM=((ptP-32)/32*100);
-    const pctGatilho=((ptP-40)/40*100);
-    ptGatilho.textContent=`ITM: +${pctITM.toFixed(1)}% acima do strike | ${ptP>40?`+${pctGatilho.toFixed(1)}% acima do gatilho ⚠`:`${Math.abs(((40-ptP)/ptP*100)).toFixed(1)}% para gatilho R$40`}`;
+    ptGatilho.textContent=`+${pctITM.toFixed(1)}% acima do strike R$32`;
+    ptGatilho.style.color=pctITM>50?'var(--danger)':'var(--warn)';
   }
   const ptPct=Math.min(100,Math.max(0,((ptP-32)/(65-32))*100));
   const ptBar=document.getElementById('pt-bar');
@@ -1317,8 +1339,8 @@ function doPositions(tv,btcData){
   const vlGatilho=document.getElementById('vl-pct-gatilho');
   if(vlGatilho){
     const pctITM=((vlP-57)/57*100);
-    const pctGat70=((vlP-70)/70*100);
-    vlGatilho.textContent=`ITM: +${pctITM.toFixed(1)}% acima do strike | ${vlP>70?`+${pctGat70.toFixed(1)}% acima do gatilho ⚠`:`${Math.abs(((70-vlP)/vlP*100)).toFixed(1)}% para gatilho R$70`}`;
+    vlGatilho.textContent=`+${pctITM.toFixed(1)}% acima do strike R$57`;
+    vlGatilho.style.color=pctITM>50?'var(--danger)':'var(--warn)';
   }
   const vlPct=Math.min(100,Math.max(0,((vlP-57)/(110-57))*100));
   const vlBar=document.getElementById('vl-bar');
@@ -1326,6 +1348,37 @@ function doPositions(tv,btcData){
 }
 
 // ── MONTE CARLO ───────────────────────────────────────
+async function runMCForAtivo(ticker, strike, dias, loadingId, resultId, strikeId, volId, infoId){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),25000);
+    const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({ticker,k_call:strike,k_put:strike,t_days:dias,n:5000})
+    });
+    clearTimeout(timeout);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    document.getElementById(loadingId).style.display='none';
+    document.getElementById(resultId).style.display='block';
+    // Para calls vendidas ITM, queremos prob de cair até o strike
+    const probStrike=d.prob_put_exercida||d.prob_call_exercida;
+    const sEl=document.getElementById(strikeId);
+    sEl.textContent=probStrike+'%';
+    sEl.className='ind-val '+(probStrike<20?'ok':probStrike<40?'warn':'down');
+    document.getElementById(volId).textContent=d.volatilidade_historica_pct+'%';
+    document.getElementById(infoId).textContent=
+      `Preço R$ ${d.preco_atual} · Strike R$ ${d.k_call} · ${d.cenarios.toLocaleString()} cenários · ${d.t_days} dias`;
+  }catch(e){
+    const el=document.getElementById(loadingId);
+    if(el)el.textContent='Erro: '+(e.message||'indisponível');
+  }
+}
+
+
 async function runMonteCarlo(){
   try{
     const controller=new AbortController();
@@ -1582,32 +1635,43 @@ async function fetchAll(){
   // Futuros em background — não bloqueia cotações principais
   fetchFutures().then(futures=>{
     window._futures=futures;
-    const djiD=futures?.dji;
-    if(djiD){setEl('dji-p',fPTS(djiD.price));setChg('dji-c',djiD.price,djiD.prev,'pts');document.getElementById('dji-s').textContent='Yahoo ✓';}
-    const esfD=futures?.esf;
-    if(esfD){setEl('esf-p',fPTS(esfD.price));setChg('esf-c',esfD.price,esfD.prev,'pts');}
-    const nqfD=futures?.nqf;
-    if(nqfD){setEl('nqf-p',fPTS(nqfD.price));setChg('nqf-c',nqfD.price,nqfD.prev,'pts');}
-    // WIN futuro
-    const winD=futures?.win;
+    if(!futures) return;
+    const djiD=futures.dji;
+    if(djiD){
+      const el=document.getElementById('dji-p');
+      if(el){el.textContent=fPTS(djiD.price);el.className=el.className.replace(/loading/g,'').trim();}
+      setChg('dji-c',djiD.price,djiD.prev,'pts');
+      const sl=document.getElementById('dji-s');if(sl)sl.textContent='Yahoo ✓';
+    }
+    const esfD=futures.esf;
+    if(esfD){
+      const el=document.getElementById('esf-p');
+      if(el){el.textContent=fPTS(esfD.price);el.className=el.className.replace(/loading/g,'').trim();}
+      setChg('esf-c',esfD.price,esfD.prev,'pts');
+    }
+    const nqfD=futures.nqf;
+    if(nqfD){
+      const el=document.getElementById('nqf-p');
+      if(el){el.textContent=fPTS(nqfD.price);el.className=el.className.replace(/loading/g,'').trim();}
+      setChg('nqf-c',nqfD.price,nqfD.prev,'pts');
+    }
+    const winD=futures.win;
     if(winD&&winD.price>50000){
-      const wEl=document.getElementById('win-p');
-      if(wEl){wEl.textContent=fPTS(winD.price);wEl.className=wEl.className.replace(/loading/g,'').trim();}
+      const el=document.getElementById('win-p');
+      if(el){el.textContent=fPTS(winD.price);el.className=el.className.replace(/loading/g,'').trim();}
       setChg('win-c',winD.price,winD.prev,'pts');
     }
-    // VIX
-    const vixD=futures?.vix;
+    const vixD=futures.vix;
     if(vixD&&vixD.price>5&&vixD.price<100){
-      const vEl=document.getElementById('vix-p');
-      if(vEl){vEl.textContent=Number(vixD.price).toFixed(2);vEl.className=vEl.className.replace(/loading/g,'').trim();}
+      const el=document.getElementById('vix-p');
+      if(el){el.textContent=Number(vixD.price).toFixed(2);el.className=el.className.replace(/loading/g,'').trim();}
       setChg('vix-c',vixD.price,vixD.prev,'usd');
     }
-    // DXY
-    const dxyD2=futures?.dxy;
-    if(dxyD2&&dxyD2.price>70&&dxyD2.price<120){
-      const dEl=document.getElementById('dxy-p');
-      if(dEl){dEl.textContent=Number(dxyD2.price).toFixed(2);dEl.className=dEl.className.replace(/loading/g,'').trim();}
-      setChg('dxy-c',dxyD2.price,dxyD2.prev,'usd');
+    const dxyD=futures.dxy;
+    if(dxyD&&dxyD.price>70&&dxyD.price<120){
+      const el=document.getElementById('dxy-p');
+      if(el){el.textContent=Number(dxyD.price).toFixed(2);el.className=el.className.replace(/loading/g,'').trim();}
+      setChg('dxy-c',dxyD.price,dxyD.prev,'usd');
     }
   }).catch(()=>{});
 
@@ -1640,8 +1704,14 @@ async function fetchAll(){
 
   setTimeout(fetchFunding,3000);
 
-  // Monte Carlo BBAS3 — roda após cotações carregarem
-  setTimeout(runMonteCarlo, 5000);
+  // Monte Carlo — roda para todos os ativos estruturados
+  setTimeout(()=>{
+    runMonteCarlo();
+    // PETR4 — prob de cair até R$32 no vencimento (dez/26 = ~210 dias)
+    runMCForAtivo('PETR4.SA',32,210,'mc-pt-loading','mc-pt-result','mc-pt-strike','mc-pt-vol','mc-pt-info');
+    // VALE3 — prob de cair até R$57 no vencimento (fev/27 = ~270 dias)
+    runMCForAtivo('VALE3.SA',57,270,'mc-vl-loading','mc-vl-result','mc-vl-strike','mc-vl-vol','mc-vl-info');
+  }, 5000);
 
   // Indicadores carregam ao clicar na aba
   window._indLoaded=false;
