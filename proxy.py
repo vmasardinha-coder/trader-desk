@@ -25,6 +25,7 @@ SETORES = {
     'PETR4.SA': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
     'VALE3.SA':  {'nome':'Mineracao',    'pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
     'BBAS3.SA':  {'nome':'Bancos',       'pl_medio':8.0,'pvp_medio':1.2,'roe_min':18},
+    'AXIA3.SA':  {'nome':'Financeiro',    'pl_medio':9.0, 'pvp_medio':1.5,'roe_min':15},
     'DEFAULT':   {'nome':'Geral',        'pl_medio':12.0,'pvp_medio':2.0,'roe_min':12},
 }
 
@@ -33,6 +34,7 @@ FUND = {
     'PETR4': {'pvp':1.65,'dy':6.42,'lpa':8.54, 'vpa':29.76,'ev_ebitda':3.2, 'roe':22.5,'debt_ebitda':0.8, 'margem':18.3},
     'VALE3': {'pvp':1.80,'dy':8.50,'lpa':11.20,'vpa':47.30,'ev_ebitda':4.1, 'roe':24.1,'debt_ebitda':0.6, 'margem':22.1},
     'BBAS3': {'pvp':0.95,'dy':9.80,'lpa':4.20, 'vpa':24.80,'ev_ebitda':None,'roe':19.8,'debt_ebitda':None,'margem':28.5},
+    'AXIA3': {'pvp':1.20,'dy':5.50,'lpa':2.80, 'vpa':8.50, 'ev_ebitda':8.0, 'roe':15.0,'debt_ebitda':2.5, 'margem':12.0},
 }
 
 # ── CDI ───────────────────────────────────────────────
@@ -463,12 +465,30 @@ def get_btc_indicators():
     except Exception as e:
         return jsonify({'error':str(e)}),500
 
+# ── FEAR & GREED INDEX ───────────────────────────────
+@app.route('/feargreed', methods=['GET'])
+def get_fear_greed():
+    try:
+        r=requests.get('https://api.alternative.me/fng/?limit=1',
+            headers={'User-Agent':'Mozilla/5.0'},timeout=8)
+        if r.ok:
+            d=r.json()
+            item=d.get('data',[{}])[0]
+            return jsonify({
+                'value': int(item.get('value',50)),
+                'value_classification': item.get('value_classification','Neutro'),
+                'timestamp': item.get('timestamp','')
+            })
+    except: pass
+    return jsonify({'value':50,'value_classification':'Neutro','timestamp':''}),200
+
+# Add AXIA3 to SETORES
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-21 12:12
+# HTML EMBUTIDO — atualizado em 2026-05-22 00:45
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.8 - 2026-05-21 12:12 -->
+<!-- Trader Desk v5.9 - 2026-05-22 00:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -751,7 +771,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div id="mc-pt-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
         <div id="mc-pt-result" style="display:none">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-            <div class="ind-box"><div class="ind-lbl">Prob. Strike</div><div class="ind-val" id="mc-pt-strike">—</div></div>
+            <div class="ind-box"><div class="ind-lbl">Prob. cair ao strike</div><div class="ind-val ok" id="mc-pt-strike">—</div></div>
             <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-pt-vol">—</div></div>
           </div>
           <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-pt-info">—</div>
@@ -783,7 +803,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div id="mc-vl-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
         <div id="mc-vl-result" style="display:none">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-            <div class="ind-box"><div class="ind-lbl">Prob. Strike</div><div class="ind-val" id="mc-vl-strike">—</div></div>
+            <div class="ind-box"><div class="ind-lbl">Prob. cair ao strike</div><div class="ind-val ok" id="mc-vl-strike">—</div></div>
             <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-vl-vol">—</div></div>
           </div>
           <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-vl-info">—</div>
@@ -905,7 +925,15 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
   </div>
 
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores & Sinal — AXI A3</div>
+  <div id="axia3-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
+  </div>
+
   <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — Bitcoin Semanal</div>
+  <div id="fear-greed-area" style="margin-bottom:10px">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando Fear & Greed...</div>
+  </div>
   <div id="btc-ind-area">
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores BTC...</div>
   </div>
@@ -1347,6 +1375,49 @@ function doPositions(tv,btcData){
   vlBar.style.width=vlPct+'%';vlBar.className='prog-bar '+(vlP>82?'danger':vlP>70?'warn':'ok');
 }
 
+// ── FEAR & GREED INDEX ───────────────────────────────
+async function fetchFearGreed(){
+  try{
+    const r=await fetch('https://trader-desk.onrender.com/feargreed');
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    const el=document.getElementById('fear-greed-area');
+    if(!el)return;
+    const v=d.value||50;
+    const cls=v<=25?'var(--red)':v<=45?'var(--warn)':v<=55?'var(--muted)':v<=75?'var(--accent)':'var(--green)';
+    const label=d.value_classification||'Neutro';
+    // Gauge visual
+    const pct=v;
+    el.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:14px">
+      <div style="font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">😱 Fear & Greed Index — Bitcoin</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="font-size:2.5rem;font-weight:800;color:${cls}">${v}</div>
+        <div style="flex:1">
+          <div style="font-size:.9rem;font-weight:700;color:${cls};margin-bottom:6px">${label}</div>
+          <div style="height:8px;background:linear-gradient(90deg,var(--red),var(--warn),var(--green));border-radius:4px;position:relative">
+            <div style="position:absolute;top:-4px;left:${pct}%;width:3px;height:16px;background:#fff;transform:translateX(-50%);border-radius:2px"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.5rem;color:var(--muted);margin-top:4px">
+            <span>0 Medo Extremo</span><span>50 Neutro</span><span>100 Ganância</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:8px">
+        ${v<=25?'⚡ Medo extremo — historicamente bom momento de compra':
+          v<=45?'⚠ Medo — mercado pessimista, possível oportunidade':
+          v<=55?'Neutro — sem sinal extremo':
+          v<=75?'Ganância — cuidado com posições longas alavancadas':
+          '🔴 Ganância extrema — risco elevado de correção'}
+      </div>
+      <div style="font-size:.5rem;color:var(--muted);margin-top:4px">Fonte: Alternative.me · Atualizado: ${d.timestamp||'agora'}</div>
+    </div>`;
+  }catch(e){
+    const el=document.getElementById('fear-greed-area');
+    if(el)el.innerHTML='<div style="color:var(--danger);font-size:.65rem;padding:10px">Fear & Greed indisponível</div>';
+  }
+}
+
 // ── MONTE CARLO ───────────────────────────────────────
 async function runMCForAtivo(ticker, strike, dias, loadingId, resultId, strikeId, volId, infoId){
   try{
@@ -1368,10 +1439,10 @@ async function runMCForAtivo(ticker, strike, dias, loadingId, resultId, strikeId
     const probStrike=d.prob_put_exercida||d.prob_call_exercida;
     const sEl=document.getElementById(strikeId);
     sEl.textContent=probStrike+'%';
-    sEl.className='ind-val '+(probStrike<20?'ok':probStrike<40?'warn':'down');
+    sEl.className='ind-val '+(probStrike<15?'ok':probStrike<30?'warn':'down'); // baixo = bom p/ call vendida
     document.getElementById(volId).textContent=d.volatilidade_historica_pct+'%';
     document.getElementById(infoId).textContent=
-      `Preço R$ ${d.preco_atual} · Strike R$ ${d.k_call} · ${d.cenarios.toLocaleString()} cenários · ${d.t_days} dias`;
+      `Preço R$ ${d.preco_atual} · Strike R$ ${d.k_call} · ${d.cenarios.toLocaleString()} cenários · ${d.t_days} dias · probabilidade BAIXA = favorável para call vendida`;
   }catch(e){
     const el=document.getElementById(loadingId);
     if(el)el.textContent='Erro: '+(e.message||'indisponível');
@@ -1611,16 +1682,19 @@ async function loadIndicators(){
     const el=document.getElementById(a);
     if(el) el.innerHTML='<div style="color:var(--muted);font-size:.65rem;padding:10px;animation:pulse 1.5s infinite">Calculando indicadores...</div>';
   });
-  const [p4,v3,bb,btc]=await Promise.all([
+  const [p4,v3,bb,ax,btc]=await Promise.all([
     fetchIndicators('PETR4.SA'),
     fetchIndicators('VALE3.SA'),
     fetchIndicators('BBAS3.SA'),
+    fetchIndicators('AXI A3.SA'),
     fetchBTCIndicators()
   ]);
   renderIndicators('petr4-ind-area',p4,true);
   renderIndicators('vale3-ind-area',v3,true);
   renderIndicators('bbas3-ind-area',bb,true);
+  renderIndicators('axia3-ind-area',ax,true);
   renderBTCIndicators(btc);
+  fetchFearGreed();
 }
 
 // ── MAIN ──────────────────────────────────────────────
@@ -1629,10 +1703,22 @@ async function fetchAll(){
   btn.disabled=true;upd.textContent='Atualizando...';upd.className='pill warn';
   checkMarkets();
 
-  // HL e TV em paralelo — não bloqueia por futuros
-  const [,tv]=await Promise.all([fetchHL(),fetchTV()]);
-  
-  // Futuros em background — não bloqueia cotações principais
+  // HL, TV e Futuros em paralelo
+  const [,tv,futuresData]=await Promise.all([fetchHL(),fetchTV(),fetchFutures()]);
+  window._futures=futuresData;
+
+  // Aplica futuros imediatamente
+  if(futuresData){
+    const f=futuresData;
+    if(f.dji){const e=document.getElementById('dji-p');if(e){e.textContent=fPTS(f.dji.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('dji-c',f.dji.price,f.dji.prev,'pts');}
+    if(f.esf){const e=document.getElementById('esf-p');if(e){e.textContent=fPTS(f.esf.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('esf-c',f.esf.price,f.esf.prev,'pts');}
+    if(f.nqf){const e=document.getElementById('nqf-p');if(e){e.textContent=fPTS(f.nqf.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('nqf-c',f.nqf.price,f.nqf.prev,'pts');}
+    if(f.win&&f.win.price>50000){const e=document.getElementById('win-p');if(e){e.textContent=fPTS(f.win.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('win-c',f.win.price,f.win.prev,'pts');}
+    if(f.vix&&f.vix.price>5&&f.vix.price<100){const e=document.getElementById('vix-p');if(e){e.textContent=Number(f.vix.price).toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('vix-c',f.vix.price,f.vix.prev,'usd');}
+    if(f.dxy&&f.dxy.price>70&&f.dxy.price<120){const e=document.getElementById('dxy-p');if(e){e.textContent=Number(f.dxy.price).toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('dxy-c',f.dxy.price,f.dxy.prev,'usd');}
+  }
+
+  // Mantém callback para atualizações futuras
   fetchFutures().then(futures=>{
     window._futures=futures;
     if(!futures) return;
