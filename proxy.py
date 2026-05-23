@@ -25,7 +25,7 @@ SETORES = {
     'PETR4.SA': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
     'VALE3.SA':  {'nome':'Mineracao',    'pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
     'BBAS3.SA':  {'nome':'Bancos',       'pl_medio':8.0,'pvp_medio':1.2,'roe_min':18},
-    'AXIA3.SA':  {'nome':'Financeiro',    'pl_medio':9.0, 'pvp_medio':1.5,'roe_min':15},
+    'AXIA3.SA':  {'nome':'Energia Eletrica','pl_medio':12.0,'pvp_medio':1.2,'roe_min':10},
     'DEFAULT':   {'nome':'Geral',        'pl_medio':12.0,'pvp_medio':2.0,'roe_min':12},
 }
 
@@ -34,7 +34,7 @@ FUND = {
     'PETR4': {'pvp':1.65,'dy':6.42,'lpa':8.54, 'vpa':29.76,'ev_ebitda':3.2, 'roe':22.5,'debt_ebitda':0.8, 'margem':18.3},
     'VALE3': {'pvp':1.80,'dy':8.50,'lpa':11.20,'vpa':47.30,'ev_ebitda':4.1, 'roe':24.1,'debt_ebitda':0.6, 'margem':22.1},
     'BBAS3': {'pvp':0.95,'dy':9.80,'lpa':4.20, 'vpa':24.80,'ev_ebitda':None,'roe':19.8,'debt_ebitda':None,'margem':28.5},
-    'AXIA3': {'pvp':1.20,'dy':5.50,'lpa':2.80, 'vpa':8.50, 'ev_ebitda':8.0, 'roe':15.0,'debt_ebitda':2.5, 'margem':12.0},
+    'AXIA3': {'pvp':0.85,'dy':4.20,'lpa':1.90, 'vpa':12.50,'ev_ebitda':7.5, 'roe':10.0,'debt_ebitda':3.2, 'margem':15.0},
 }
 
 # ── CDI ───────────────────────────────────────────────
@@ -486,9 +486,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-22 00:45
+# HTML EMBUTIDO — atualizado em 2026-05-23 08:49
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v5.9 - 2026-05-22 00:45 -->
+<!-- Trader Desk v6.0 - 2026-05-23 08:49 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -771,7 +771,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div id="mc-pt-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
         <div id="mc-pt-result" style="display:none">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-            <div class="ind-box"><div class="ind-lbl">Prob. cair ao strike</div><div class="ind-val ok" id="mc-pt-strike">—</div></div>
+            <div class="ind-box"><div class="ind-lbl">Prob. cair ao strike</div><div class="ind-val down" id="mc-pt-strike">—</div></div>
             <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-pt-vol">—</div></div>
           </div>
           <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-pt-info">—</div>
@@ -803,7 +803,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div id="mc-vl-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
         <div id="mc-vl-result" style="display:none">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-            <div class="ind-box"><div class="ind-lbl">Prob. cair ao strike</div><div class="ind-val ok" id="mc-vl-strike">—</div></div>
+            <div class="ind-box"><div class="ind-lbl">Prob. cair ao strike</div><div class="ind-val down" id="mc-vl-strike">—</div></div>
             <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-vl-vol">—</div></div>
           </div>
           <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-vl-info">—</div>
@@ -931,8 +931,15 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
   </div>
 
   <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — Bitcoin Semanal</div>
-  <div id="fear-greed-area" style="margin-bottom:10px">
-    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando Fear & Greed...</div>
+  <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px;align-items:start">
+    <div id="fear-greed-area">
+      <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando Fear & Greed...</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:14px;min-width:130px;text-align:center">
+      <div style="font-size:.55rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">BTC / USD</div>
+      <div class="c-price btc-c loading" id="btc-ind-price">—</div>
+      <div class="c-change" id="btc-ind-chg">—</div>
+    </div>
   </div>
   <div id="btc-ind-area">
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores BTC...</div>
@@ -1237,9 +1244,7 @@ function doMacro(tv){
   const ibovP=ibovD?.p||FB.IBOV.p,ibovV=ibovD?.v||FB.IBOV.v;
   setEl('ibov-p',fPTS(ibovP));setChg('ibov-c',ibovP,ibovV,'pts');
   document.getElementById('ibov-s').textContent=ibovD?'TV ✓':'fallback';
-  // WIN futuro — via proxy /futures
-  const winEl=document.getElementById('win-p');
-  if(winEl&&winEl.className.includes('loading')){winEl.textContent=fPTS(FB.IBOV.p);}
+  // WIN — via /futures (parallel) — nao sobrescrever aqui
 
   // PETR4 e VALE3 na aba cotações
   const ptD=tv['BMFBOVESPA:PETR4'];
@@ -1322,6 +1327,8 @@ function doBTC(){
   document.getElementById('btc-sig').innerHTML=sigTxt;
   document.getElementById('btc-pos-sig').innerHTML=sigTxt;
 
+  // Update BTC price in indicators tab too
+  setEl('btc-ind-price',fUSD(btcP));setChg('btc-ind-chg',btcP,btcV||btcP,'usd');
   return{p:btcP,v:btcV||btcP};
 }
 
@@ -1435,14 +1442,18 @@ async function runMCForAtivo(ticker, strike, dias, loadingId, resultId, strikeId
     if(d.error)throw new Error(d.error);
     document.getElementById(loadingId).style.display='none';
     document.getElementById(resultId).style.display='block';
-    // Para calls vendidas ITM, queremos prob de cair até o strike
-    const probStrike=d.prob_put_exercida||d.prob_call_exercida;
+    // Call vendida ITM: prob de CAIR ao strike = prob_put_exercida
+    const probCair=d.prob_put_exercida||0;
     const sEl=document.getElementById(strikeId);
-    sEl.textContent=probStrike+'%';
-    sEl.className='ind-val '+(probStrike<15?'ok':probStrike<30?'warn':'down'); // baixo = bom p/ call vendida
+    sEl.textContent=probCair+'%';
+    // Para call vendida: baixa prob de cair = RUIM (não recompra barato)
+    // alta prob de cair = BOM (recompra no strike)
+    sEl.className='ind-val '+(probCair>30?'ok':probCair>15?'warn':'down');
     document.getElementById(volId).textContent=d.volatilidade_historica_pct+'%';
+    const precoAtual=d.preco_atual;
+    const distancia=((precoAtual-strike)/precoAtual*100).toFixed(1);
     document.getElementById(infoId).textContent=
-      `Preço R$ ${d.preco_atual} · Strike R$ ${d.k_call} · ${d.cenarios.toLocaleString()} cenários · ${d.t_days} dias · probabilidade BAIXA = favorável para call vendida`;
+      `Preço R$ ${precoAtual} · Strike R$ ${strike} · Distância: -${distancia}% · ${d.cenarios.toLocaleString()} cenários · ${d.t_days} dias`;
   }catch(e){
     const el=document.getElementById(loadingId);
     if(el)el.textContent='Erro: '+(e.message||'indisponível');
@@ -1686,7 +1697,7 @@ async function loadIndicators(){
     fetchIndicators('PETR4.SA'),
     fetchIndicators('VALE3.SA'),
     fetchIndicators('BBAS3.SA'),
-    fetchIndicators('AXI A3.SA'),
+    fetchIndicators('AXIA3.SA'),
     fetchBTCIndicators()
   ]);
   renderIndicators('petr4-ind-area',p4,true);
