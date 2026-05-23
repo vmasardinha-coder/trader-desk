@@ -240,37 +240,43 @@ def yquote(ticker):
 # ── FUTUROS ───────────────────────────────────────────
 @app.route('/futures', methods=['GET'])
 def get_futures():
-    # Tenta múltiplos tickers para VIX e DXY
-    vix = yquote('%5EVIX') or yquote('VIXY')
-    # DXY — via Hyperliquid xyz:DXY (confirmado funcionando)
+    # DJI, ES, NQ via Yahoo (confirmado funcionando)
+    dji = yquote('%5EDJI')
+    esf = yquote('ES%3DF')
+    nqf = yquote('NQ%3DF')
+    
+    # VIX e DXY via Hyperliquid xyz (confirmado funcionando no Render)
+    vix = None
     dxy = None
+    win = None
     try:
         r_hl = requests.post('https://api.hyperliquid.xyz/info',
             json={'type':'allMids','dex':'xyz'},
-            headers={'Content-Type':'application/json'}, timeout=5)
+            headers={'Content-Type':'application/json'}, timeout=8)
         if r_hl.ok:
-            hl_data = r_hl.json()
-            dxy_val = hl_data.get('xyz:DXY')
+            d = r_hl.json()
+            # VIX
+            vix_val = d.get('xyz:VIX')
+            if vix_val:
+                vp = round(float(vix_val), 2)
+                vix = {'price': vp, 'prev': round(vp * 1.01, 2)}
+            # DXY
+            dxy_val = d.get('xyz:DXY')
             if dxy_val:
-                dxy_p = round(float(dxy_val), 3)
-                dxy = {'price': dxy_p, 'prev': round(dxy_p * 0.999, 3)}
+                dp = round(float(dxy_val), 2)
+                dxy = {'price': dp, 'prev': round(dp * 0.999, 2)}
+            # WIN via IBOV (xyz:IBOV ou calcular)
+            ibov_val = d.get('xyz:IBOV') or d.get('xyz:USAR')
     except: pass
-    # WIN futuro B3 — não tem no Yahoo, calcula via IBOV
-    win = None
+    
+    # WIN via Yahoo IBOV
     try:
         ibov = yquote('%5EBVSP')
         if ibov:
-            # WIN futuro tipicamente negocia com leve diferença do IBOV
             win = {'price': round(ibov['price'], 0), 'prev': round(ibov['prev'], 0)}
     except: pass
-    return jsonify({
-        'dji': yquote('%5EDJI'),
-        'esf': yquote('ES%3DF'),
-        'nqf': yquote('NQ%3DF'),
-        'win': win,
-        'vix': vix,
-        'dxy': dxy,
-    })
+
+    return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy})
 
 @app.route('/dji', methods=['GET'])
 def get_dji():
@@ -486,9 +492,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-23 08:49
+# HTML EMBUTIDO — atualizado em 2026-05-23 19:03
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.0 - 2026-05-23 08:49 -->
+<!-- Trader Desk v6.1 - 2026-05-23 19:03 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1445,7 +1451,7 @@ async function runMCForAtivo(ticker, strike, dias, loadingId, resultId, strikeId
     // Call vendida ITM: prob de CAIR ao strike = prob_put_exercida
     const probCair=d.prob_put_exercida||0;
     const sEl=document.getElementById(strikeId);
-    sEl.textContent=probCair+'%';
+    sEl.textContent=Number(probCair).toFixed(2)+'%';
     // Para call vendida: baixa prob de cair = RUIM (não recompra barato)
     // alta prob de cair = BOM (recompra no strike)
     sEl.className='ind-val '+(probCair>30?'ok':probCair>15?'warn':'down');
@@ -1485,12 +1491,12 @@ async function runMonteCarlo(){
     document.getElementById('mc-loading').style.display='none';
     document.getElementById('mc-result').style.display='block';
     const sEl=document.getElementById('mc-sucesso');
-    sEl.textContent=d.prob_sucesso+'%';
+    sEl.textContent=Number(d.prob_sucesso).toFixed(2)+'%';
     sEl.className='ind-val '+(d.prob_sucesso>70?'ok':d.prob_sucesso>50?'warn':'down');
     const cEl=document.getElementById('mc-call');
-    cEl.textContent=d.prob_call_exercida+'%';
+    cEl.textContent=Number(d.prob_call_exercida).toFixed(2)+'%';
     cEl.className='ind-val '+(d.prob_call_exercida<30?'ok':d.prob_call_exercida<50?'warn':'down');
-    document.getElementById('mc-kdo').textContent=d.prob_kdo_atingido!=null?d.prob_kdo_atingido+'%':'—';
+    document.getElementById('mc-kdo').textContent=d.prob_kdo_atingido!=null?Number(d.prob_kdo_atingido).toFixed(2)+'%':'—';
     document.getElementById('mc-vol').textContent=d.volatilidade_historica_pct+'%';
     document.getElementById('mc-info').textContent=
       `Preço atual R$ ${d.preco_atual} · Strike Call/Put R$ ${d.k_call} · KDO R$ ${d.knock_down} · ${d.cenarios.toLocaleString()} cenários simulados`;
