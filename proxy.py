@@ -492,9 +492,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-23 19:03
+# HTML EMBUTIDO — atualizado em 2026-05-24 00:47
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.1 - 2026-05-23 19:03 -->
+<!-- Trader Desk v6.2 - 2026-05-24 00:47 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1228,9 +1228,7 @@ function doMacro(tv){
   if(!window._futures?.esf){setEl('esf-p',fPTS(FB.ESFUT.p));setChg('esf-c',FB.ESFUT.p,FB.ESFUT.v,'pts');}
   if(!window._futures?.nqf){setEl('nqf-p',fPTS(FB.NQFUT.p));setChg('nqf-c',FB.NQFUT.p,FB.NQFUT.v,'pts');}
 
-  // VIX — via proxy /futures (atualizado em background)
-  const vixEl=document.getElementById('vix-p');
-  if(vixEl&&vixEl.className.includes('loading')){vixEl.textContent=FB.VIX.p.toFixed(2);}
+  // VIX handled by futures block
 
   // DXY — via proxy /futures (atualizado em background)
   // Mostra fallback até futures carregar
@@ -1250,7 +1248,7 @@ function doMacro(tv){
   const ibovP=ibovD?.p||FB.IBOV.p,ibovV=ibovD?.v||FB.IBOV.v;
   setEl('ibov-p',fPTS(ibovP));setChg('ibov-c',ibovP,ibovV,'pts');
   document.getElementById('ibov-s').textContent=ibovD?'TV ✓':'fallback';
-  // WIN — via /futures (parallel) — nao sobrescrever aqui
+  // WIN handled by futures block
 
   // PETR4 e VALE3 na aba cotações
   const ptD=tv['BMFBOVESPA:PETR4'];
@@ -1779,6 +1777,18 @@ async function fetchAll(){
   }).catch(()=>{});
 
   const macroData=doMacro(tv);
+  // Aplica futuros APÓS doMacro para não ser sobrescrito
+  if(futuresData){
+    const f=futuresData;
+    const applyF=(id,val,fmt)=>{const e=document.getElementById(id);if(e){e.textContent=val;e.className=e.className.replace(/loading/g,'').trim();}};
+    if(f.dji){applyF('dji-p',fPTS(f.dji.price));setChg('dji-c',f.dji.price,f.dji.prev,'pts');}
+    if(f.esf){applyF('esf-p',fPTS(f.esf.price));setChg('esf-c',f.esf.price,f.esf.prev,'pts');}
+    if(f.nqf){applyF('nqf-p',fPTS(f.nqf.price));setChg('nqf-c',f.nqf.price,f.nqf.prev,'pts');}
+    if(f.win&&f.win.price>50000){applyF('win-p',fPTS(f.win.price));setChg('win-c',f.win.price,f.win.prev,'pts');}
+    if(f.vix&&f.vix.price>5&&f.vix.price<100){applyF('vix-p',Number(f.vix.price).toFixed(2));setChg('vix-c',f.vix.price,f.vix.prev,'usd');}
+    if(f.dxy&&f.dxy.price>70&&f.dxy.price<120){applyF('dxy-p',Number(f.dxy.price).toFixed(2));setChg('dxy-c',f.dxy.price,f.dxy.prev,'usd');}
+  }
+
   const commData=doCommodities();
   const btcData=doBTC();
   doPositions(tv,btcData);
