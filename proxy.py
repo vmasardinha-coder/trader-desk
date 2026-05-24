@@ -245,35 +245,48 @@ def get_futures():
     esf = yquote('ES%3DF')
     nqf = yquote('NQ%3DF')
     
-    # VIX e DXY via Hyperliquid xyz (confirmado funcionando no Render)
     vix = None
     dxy = None
     win = None
+
+    # VIX via Yahoo Finance (confirmado funcionando antes)
+    vix = yquote('%5EVIX')
+
+    # DXY via TradingView forex scanner
     try:
-        r_hl = requests.post('https://api.hyperliquid.xyz/info',
-            json={'type':'allMids','dex':'xyz'},
-            headers={'Content-Type':'application/json'}, timeout=8)
-        if r_hl.ok:
-            d = r_hl.json()
-            # VIX
-            vix_val = d.get('xyz:VIX')
-            if vix_val:
-                vp = round(float(vix_val), 2)
-                vix = {'price': vp, 'prev': round(vp * 1.01, 2)}
-            # DXY
-            dxy_val = d.get('xyz:DXY')
-            if dxy_val:
-                dp = round(float(dxy_val), 2)
-                dxy = {'price': dp, 'prev': round(dp * 0.999, 2)}
-            # WIN via IBOV (xyz:IBOV ou calcular)
-            ibov_val = d.get('xyz:IBOV') or d.get('xyz:USAR')
+        r_dxy = requests.post('https://scanner.tradingview.com/forex/scan',
+            json={"symbols":{"tickers":["TVC:DXY"]},"columns":["close","change_abs"]},
+            timeout=6)
+        if r_dxy.ok:
+            items = r_dxy.json().get('data',[])
+            if items:
+                d = items[0].get('d',[])
+                if d and d[0]:
+                    close = round(float(d[0]),2)
+                    chg = float(d[1]) if len(d)>1 and d[1] else 0
+                    dxy = {'price':close,'prev':round(close-chg,2)}
     except: pass
-    
+
+    # DXY fallback via America scanner
+    if not dxy:
+        try:
+            r_dxy2 = requests.post('https://scanner.tradingview.com/america/scan',
+                json={"symbols":{"tickers":["TVC:DXY"]},"columns":["close","change_abs"]},
+                timeout=6)
+            if r_dxy2.ok:
+                items = r_dxy2.json().get('data',[])
+                if items:
+                    d = items[0].get('d',[])
+                    if d and d[0]:
+                        close = round(float(d[0]),2)
+                        chg = float(d[1]) if len(d)>1 and d[1] else 0
+                        dxy = {'price':close,'prev':round(close-chg,2)}
+        except: pass
+
     # WIN via Yahoo IBOV
     try:
         ibov = yquote('%5EBVSP')
-        if ibov:
-            win = {'price': round(ibov['price'], 0), 'prev': round(ibov['prev'], 0)}
+        if ibov: win = {'price':round(ibov['price'],0),'prev':round(ibov['prev'],0)}
     except: pass
 
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy})
@@ -471,6 +484,32 @@ def get_btc_indicators():
     except Exception as e:
         return jsonify({'error':str(e)}),500
 
+# ── VIX e DXY via TradingView ────────────────────────
+@app.route('/tv/macro', methods=['GET'])
+def tv_macro():
+    try:
+        payload = {
+            "symbols": {"tickers": ["TVC:VIX","TVC:DXY","BMFBOVESPA:WIN1!"]},
+            "columns": ["close","change_abs","change"]
+        }
+        r = requests.post('https://scanner.tradingview.com/global/scan',
+            json=payload, timeout=5)
+        if not r.ok:
+            return jsonify({'error': f'TV {r.status_code}'}), 500
+        data = r.json()
+        result = {}
+        for item in data.get('data', []):
+            s = item.get('s','')
+            d = item.get('d', [])
+            if len(d) >= 1 and d[0]:
+                close = d[0]
+                chg = d[1] if len(d) > 1 else 0
+                prev = close - chg if chg else close
+                result[s] = {'price': round(float(close),2), 'prev': round(float(prev),2)}
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ── FEAR & GREED INDEX ───────────────────────────────
 @app.route('/feargreed', methods=['GET'])
 def get_fear_greed():
@@ -492,9 +531,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-24 01:11
+# HTML EMBUTIDO — atualizado em 2026-05-24 19:48
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.4 - 2026-05-24 01:11 -->
+<!-- Trader Desk v6.6 - 2026-05-24 19:48 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
