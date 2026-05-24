@@ -492,9 +492,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-24 00:47
+# HTML EMBUTIDO — atualizado em 2026-05-24 01:06
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.2 - 2026-05-24 00:47 -->
+<!-- Trader Desk v6.3 - 2026-05-24 01:06 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1756,37 +1756,22 @@ async function fetchAll(){
       if(el){el.textContent=fPTS(nqfD.price);el.className=el.className.replace(/loading/g,'').trim();}
       setChg('nqf-c',nqfD.price,nqfD.prev,'pts');
     }
-    const winD=futures.win;
-    if(winD&&winD.price>50000){
-      const el=document.getElementById('win-p');
-      if(el){el.textContent=fPTS(winD.price);el.className=el.className.replace(/loading/g,'').trim();}
-      setChg('win-c',winD.price,winD.prev,'pts');
-    }
-    const vixD=futures.vix;
-    if(vixD&&vixD.price>5&&vixD.price<100){
-      const el=document.getElementById('vix-p');
-      if(el){el.textContent=Number(vixD.price).toFixed(2);el.className=el.className.replace(/loading/g,'').trim();}
-      setChg('vix-c',vixD.price,vixD.prev,'usd');
-    }
-    const dxyD=futures.dxy;
-    if(dxyD&&dxyD.price>70&&dxyD.price<120){
-      const el=document.getElementById('dxy-p');
-      if(el){el.textContent=Number(dxyD.price).toFixed(2);el.className=el.className.replace(/loading/g,'').trim();}
-      setChg('dxy-c',dxyD.price,dxyD.prev,'usd');
-    }
+    if(futures.win&&futures.win.price){const p=Number(futures.win.price),v=Number(futures.win.prev);const e=document.getElementById('win-p');if(e){e.textContent=fPTS(p);e.className=e.className.replace(/loading/g,'').trim();}setChg('win-c',p,v,'pts');}
+    if(futures.vix&&futures.vix.price){const p=Number(futures.vix.price),v=Number(futures.vix.prev);const e=document.getElementById('vix-p');if(e){e.textContent=p.toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('vix-c',p,v,'usd');}
+    if(futures.dxy&&futures.dxy.price){const p=Number(futures.dxy.price),v=Number(futures.dxy.prev);const e=document.getElementById('dxy-p');if(e){e.textContent=p.toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('dxy-c',p,v,'usd');}
   }).catch(()=>{});
 
   const macroData=doMacro(tv);
   // Aplica futuros APÓS doMacro para não ser sobrescrito
   if(futuresData){
     const f=futuresData;
-    const applyF=(id,val,fmt)=>{const e=document.getElementById(id);if(e){e.textContent=val;e.className=e.className.replace(/loading/g,'').trim();}};
-    if(f.dji){applyF('dji-p',fPTS(f.dji.price));setChg('dji-c',f.dji.price,f.dji.prev,'pts');}
-    if(f.esf){applyF('esf-p',fPTS(f.esf.price));setChg('esf-c',f.esf.price,f.esf.prev,'pts');}
-    if(f.nqf){applyF('nqf-p',fPTS(f.nqf.price));setChg('nqf-c',f.nqf.price,f.nqf.prev,'pts');}
-    if(f.win&&f.win.price>50000){applyF('win-p',fPTS(f.win.price));setChg('win-c',f.win.price,f.win.prev,'pts');}
-    if(f.vix&&f.vix.price>5&&f.vix.price<100){applyF('vix-p',Number(f.vix.price).toFixed(2));setChg('vix-c',f.vix.price,f.vix.prev,'usd');}
-    if(f.dxy&&f.dxy.price>70&&f.dxy.price<120){applyF('dxy-p',Number(f.dxy.price).toFixed(2));setChg('dxy-c',f.dxy.price,f.dxy.prev,'usd');}
+    const applyF=(id,val)=>{const e=document.getElementById(id);if(e){e.textContent=val;e.className=e.className.replace(/loading/g,'').trim();}};
+    if(f.dji&&f.dji.price){const p=Number(f.dji.price),v=Number(f.dji.prev);applyF('dji-p',fPTS(p));setChg('dji-c',p,v,'pts');}
+    if(f.esf&&f.esf.price){const p=Number(f.esf.price),v=Number(f.esf.prev);applyF('esf-p',fPTS(p));setChg('esf-c',p,v,'pts');}
+    if(f.nqf&&f.nqf.price){const p=Number(f.nqf.price),v=Number(f.nqf.prev);applyF('nqf-p',fPTS(p));setChg('nqf-c',p,v,'pts');}
+    if(f.win&&f.win.price){const p=Number(f.win.price),v=Number(f.win.prev);applyF('win-p',fPTS(p));setChg('win-c',p,v,'pts');}
+    if(f.vix&&f.vix.price){const p=Number(f.vix.price),v=Number(f.vix.prev);applyF('vix-p',p.toFixed(2));setChg('vix-c',p,v,'usd');}
+    if(f.dxy&&f.dxy.price){const p=Number(f.dxy.price),v=Number(f.dxy.prev);applyF('dxy-p',p.toFixed(2));setChg('dxy-c',p,v,'usd');}
   }
 
   const commData=doCommodities();
