@@ -492,9 +492,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-24 01:06
+# HTML EMBUTIDO — atualizado em 2026-05-24 01:11
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.3 - 2026-05-24 01:06 -->
+<!-- Trader Desk v6.4 - 2026-05-24 01:11 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1801,6 +1801,19 @@ async function fetchAll(){
   btn.disabled=false;
 
   setTimeout(fetchFunding,3000);
+
+  // Força atualização VIX/DXY/WIN após tudo renderizar
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/futures');
+      const d=await r.json();
+      const set=(id,txt)=>{const e=document.getElementById(id);if(e){e.textContent=txt;e.className=e.className.replace(/loading/g,'').trim();}};
+      if(d.vix&&d.vix.price) set('vix-p', Number(d.vix.price).toFixed(2));
+      if(d.dxy&&d.dxy.price) set('dxy-p', Number(d.dxy.price).toFixed(2));
+      if(d.win&&d.win.price) set('win-p', Number(d.win.price).toLocaleString('pt-BR',{maximumFractionDigits:0}));
+      if(d.dji&&d.dji.price) set('dji-p', Number(d.dji.price).toLocaleString('pt-BR',{maximumFractionDigits:0}));
+    }catch(e){}
+  }, 4000);
 
   // Monte Carlo — roda para todos os ativos estruturados
   setTimeout(()=>{
