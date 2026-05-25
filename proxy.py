@@ -471,21 +471,30 @@ def get_btc_onchain():
         # Realized Cap via Blockchain.com (total output volume proxy)
         # Usa realized price = 61k como base e ajusta pelo preco atual
         # MVRV = market_cap / realized_cap
-        realized_price = 61120  # Atualizar mensalmente
-        supply = 19700000  # aprox BTC em circulacao
-        realized_cap = realized_price * supply if realized_price else None
-        
-        mvrv = None
-        nupl = None
-        if market_cap and realized_cap:
-            mvrv = round(market_cap / realized_cap, 2)
-            # NUPL = (market_cap - realized_cap) / market_cap
-            nupl = round((market_cap - realized_cap) / market_cap, 2)
+        realized_price = 61120  # Realized price atual (atualizar mensalmente)
+        supply = 19700000  # BTC em circulacao
+        realized_cap = realized_price * supply
 
-        # MVRV Z-Score (aproximado)
-        # Z-Score = (MVRV - mean_MVRV) / std_MVRV
-        # Media historica MVRV ~1.5, std ~1.2 (aproximado)
-        mvrv_zscore = round((mvrv - 1.5) / 1.2, 2) if mvrv else 0.77
+        # Se CoinGecko falhou, calcula market_cap pelo preco atual da HL
+        if not market_cap and price_usd:
+            market_cap = price_usd * supply
+        elif not market_cap:
+            # Busca preco BTC da HL como fallback
+            try:
+                rh = requests.post('https://api.hyperliquid.xyz/info',
+                    json={'type':'allMids'}, headers={'Content-Type':'application/json'}, timeout=5)
+                if rh.ok:
+                    btc_price = float(rh.json().get('BTC', 77000))
+                    market_cap = btc_price * supply
+            except:
+                market_cap = 77000 * supply  # fallback absoluto
+
+        mvrv = round(market_cap / realized_cap, 2) if market_cap else 1.28
+        nupl = round((market_cap - realized_cap) / market_cap, 2) if market_cap else 0.22
+
+        # MVRV Z-Score = (MVRV - media_historica) / std_historico
+        # Media ~1.5, std ~1.2 baseado em dados historicos
+        mvrv_zscore = round((mvrv - 1.5) / 1.2, 2)
 
         # Puell Multiple via blockchain hashrate proxy
         # Aproxima usando preco BTC vs media 365d
@@ -506,8 +515,8 @@ def get_btc_onchain():
         return result
     except Exception as e:
         return {
-            'mvrv_zscore': 0.77, 'nupl': 0.30, 'puell_multiple': 0.85,
-            'sopr': 0.98, 'realized_price': 61120, 'updated': 'cache'
+            'mvrv_zscore': -0.18, 'nupl': 0.22, 'puell_multiple': 0.85,
+            'sopr': 0.98, 'realized_price': 61120, 'updated': 'cache (fallback)'
         }
 
 @app.route('/btc/cycle', methods=['GET'])
@@ -645,9 +654,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-25 02:46
+# HTML EMBUTIDO — atualizado em 2026-05-25 18:28
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.8 - 2026-05-25 02:46 -->
+<!-- Trader Desk v6.9 - 2026-05-25 18:28 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
