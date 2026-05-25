@@ -445,6 +445,63 @@ def get_indicators(ticker):
         return jsonify({'error':str(e)}),500
 
 # ── INDICADORES BTC ───────────────────────────────────
+
+# BTC CYCLE INDICATORS
+BTC_ONCHAIN = {
+    'mvrv_zscore': 0.77, 'nupl': 0.30,
+    'puell_multiple': 0.85, 'sopr': 0.98,
+    'realized_price': 61120, 'updated': '2026-05-17'
+}
+
+@app.route('/btc/cycle', methods=['GET'])
+def get_btc_cycle():
+    try:
+        import time as _t, math as _m
+        r=requests.get('https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&range=4y',
+            headers={'User-Agent':'Mozilla/5.0'},timeout=15)
+        if not r.ok: return jsonify({'error':f'Yahoo {r.status_code}'}),500
+        cl=[c for c in r.json()['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
+        price=cl[-1]
+        dma111=mm(cl,111); dma350=mm(cl,350)
+        dma350x2=round(dma350*2,0) if dma350 else None
+        pi_dist=round(dma350x2-dma111,0) if (dma111 and dma350x2) else None
+        if dma111 and dma350x2:
+            if dma111>=dma350x2: pi_sig="TOPO DETECTADO Pi Cycle cruzou!"
+            elif pi_dist<10000: pi_sig="Proximidade de topo critica"
+            elif pi_dist<30000: pi_sig="Monitorar distancia diminuindo"
+            else: pi_sig=f"Seguro distancia US$ {pi_dist:,.0f}"
+        else: pi_sig="Dados insuficientes"
+        days=(_t.time()-1231006505)/86400
+        fair=10**(5.84*_m.log10(days)-17.01)
+        mults=[0.10,0.20,0.35,0.55,0.80,1.20,1.70,2.50,4.00]
+        names=["Fire Sale","Buy","Accumulate","Still Cheap","HODL!","Bubble?","FOMO","Sell","Max Bubble"]
+        colors=["green","green","green","accent","warn","warn","danger","danger","danger"]
+        rb=names[-1]; rc=colors[-1]
+        for i,mv in enumerate(mults):
+            if price<fair*mv: rb=names[i]; rc=colors[i]; break
+        rw=requests.get('https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1wk&range=4y',
+            headers={'User-Agent':'Mozilla/5.0'},timeout=10)
+        ma200w=None
+        if rw.ok:
+            clw=[c for c in rw.json()['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
+            ma200w=mm(clw,200)
+        oc=BTC_ONCHAIN
+        def ml(v): return "Capitulacao" if v<-1 else "Valor Justo" if v<1 else "Valorizado" if v<2 else "Aquecendo" if v<3 else "Sobrevalorizado" if v<5 else "Euforia TOPO"
+        def nl(v): return "Capitulacao" if v<0 else "Esperanca/Medo" if v<0.25 else "Otimismo" if v<0.50 else "Crenca/Negacao" if v<0.75 else "Euforia TOPO"
+        def pl(v): return "Estresse mineradores" if v<0.5 else "Pos-halving" if v<1.0 else "Normal" if v<2.0 else "Aquecendo" if v<3.4 else "Topo de ciclo"
+        return jsonify({'price':round(price,0),
+            'pi_cycle':{'dma111':dma111,'dma350x2':dma350x2,'distance':pi_dist,'signal':pi_sig},
+            'rainbow':{'band':rb,'color':rc},
+            'ma200w':round(ma200w,0) if ma200w else None,
+            'ma200w_pct':round((price-ma200w)/ma200w*100,1) if ma200w else None,
+            'mvrv_zscore':{'value':oc['mvrv_zscore'],'label':ml(oc['mvrv_zscore'])},
+            'nupl':{'value':oc['nupl'],'label':nl(oc['nupl'])},
+            'puell':{'value':oc['puell_multiple'],'label':pl(oc['puell_multiple'])},
+            'sopr':oc['sopr'],'realized_price':oc['realized_price'],
+            'onchain_updated':oc['updated']})
+    except Exception as e:
+        return jsonify({'error':str(e)}),500
+
 @app.route('/btc/indicators', methods=['GET'])
 def get_btc_indicators():
     try:
@@ -531,9 +588,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-24 19:48
+# HTML EMBUTIDO — atualizado em 2026-05-25 02:41
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.6 - 2026-05-24 19:48 -->
+<!-- Trader Desk v6.7 - 2026-05-25 02:41 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -975,7 +1032,12 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
   </div>
 
-  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores — Bitcoin Semanal</div>
+  <div class="sec" style="margin-top:16px"><span>🔄</span> Dashboard de Ciclo — Bitcoin</div>
+  <div id="btc-cycle-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores de ciclo...</div>
+  </div>
+
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores Técnicos — Bitcoin Semanal</div>
   <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px;align-items:start">
     <div id="fear-greed-area">
       <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando Fear & Greed...</div>
@@ -1175,6 +1237,14 @@ async function fetchTV(){
 async function fetchIndicators(ticker){
   try{
     const r=await fetch(`https://trader-desk.onrender.com/indicators/${ticker}`);
+    if(!r.ok)throw 0;
+    return await r.json();
+  }catch{return null;}
+}
+
+async function fetchBTCCycle(){
+  try{
+    const r=await fetch('https://trader-desk.onrender.com/btc/cycle');
     if(!r.ok)throw 0;
     return await r.json();
   }catch{return null;}
@@ -1658,6 +1728,78 @@ function renderIndicators(containerId, ind, isBRL){
   el.innerHTML=html;
 }
 
+function renderBTCCycle(d){
+  const el=document.getElementById('btc-cycle-area');
+  if(!el||!d||d.error)return;
+  const f0=v=>v!=null?'US$ '+Number(v).toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+  const corMap={'green':'var(--green)','accent':'var(--accent)','warn':'var(--warn)','danger':'var(--danger)','muted':'var(--muted)'};
+
+  let html=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <!-- MVRV Z-Score -->
+    <div class="ind-box" style="border-color:var(--blue)">
+      <div class="ind-lbl">MVRV Z-Score ❓<div class="tooltip">Mede desvio do preco vs custo medio. <0=fundo, >5=topo</div></div>
+      <div class="ind-val" style="font-size:1.2rem;font-weight:800;color:${d.mvrv_zscore.value<1?'var(--green)':d.mvrv_zscore.value<3?'var(--warn)':'var(--red)'}">${d.mvrv_zscore.value}</div>
+      <div style="font-size:.58rem;color:var(--muted);margin-top:2px">${d.mvrv_zscore.label}</div>
+      <div style="font-size:.5rem;color:var(--muted)">Topo>5 | Fundo<-1</div>
+    </div>
+    <!-- NUPL -->
+    <div class="ind-box" style="border-color:var(--blue)">
+      <div class="ind-lbl">NUPL ❓<div class="tooltip">Net Unrealized Profit/Loss. >0.75=euforia(topo), <0=capitulacao(fundo)</div></div>
+      <div class="ind-val" style="font-size:1.2rem;font-weight:800;color:${d.nupl.value<0?'var(--green)':d.nupl.value<0.5?'var(--accent)':d.nupl.value<0.75?'var(--warn)':'var(--red)'}">${(d.nupl.value*100).toFixed(0)}%</div>
+      <div style="font-size:.58rem;color:var(--muted);margin-top:2px">${d.nupl.label}</div>
+      <div style="font-size:.5rem;color:var(--muted)">Euforia>75% | Capitulacao<0%</div>
+    </div>
+    <!-- Puell Multiple -->
+    <div class="ind-box" style="border-color:var(--blue)">
+      <div class="ind-lbl">Puell Multiple ❓<div class="tooltip">Lucratividade dos mineradores. <0.5=fundo, >3.4=topo</div></div>
+      <div class="ind-val" style="font-size:1.2rem;font-weight:800;color:${d.puell.value<0.5?'var(--green)':d.puell.value<1?'var(--accent)':d.puell.value<3.4?'var(--warn)':'var(--red)'}">${d.puell.value}</div>
+      <div style="font-size:.58rem;color:var(--muted);margin-top:2px">${d.puell.label}</div>
+      <div style="font-size:.5rem;color:var(--muted)">Topo>3.4 | Fundo<0.5</div>
+    </div>
+    <!-- SOPR -->
+    <div class="ind-box" style="border-color:var(--blue)">
+      <div class="ind-lbl">SOPR ❓<div class="tooltip">Spent Output Profit Ratio. >1=vendas em lucro, <1=capitulacao</div></div>
+      <div class="ind-val" style="font-size:1.2rem;font-weight:800;color:${d.sopr>1?'var(--green)':'var(--warn)'}">${d.sopr}</div>
+      <div style="font-size:.58rem;color:var(--muted);margin-top:2px">${d.sopr>1.02?'Realizando lucros':'Zona de capitulacao' }</div>
+      <div style="font-size:.5rem;color:var(--muted)">Fundo<1 | Topo>1.05</div>
+    </div>
+  </div>
+
+  <!-- Pi Cycle Top -->
+  <div style="background:var(--bg2);border:1px solid ${d.pi_cycle.distance<10000?'var(--danger)':d.pi_cycle.distance<30000?'var(--warn)':'var(--border)'};padding:12px;margin-bottom:8px">
+    <div style="font-size:.55rem;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">🔄 Pi Cycle Top Indicator</div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <div><div style="font-size:.55rem;color:var(--muted)">111 DMA</div><div style="font-weight:700;color:var(--text)">${f0(d.pi_cycle.dma111)}</div></div>
+      <div><div style="font-size:.55rem;color:var(--muted)">350 DMA × 2</div><div style="font-weight:700;color:var(--danger)">${f0(d.pi_cycle.dma350x2)}</div></div>
+      <div><div style="font-size:.55rem;color:var(--muted)">Distância</div><div style="font-weight:700;color:var(--accent)">${f0(d.pi_cycle.distance)}</div></div>
+    </div>
+    <div style="font-size:.65rem;color:var(--text)">${d.pi_cycle.signal}</div>
+  </div>
+
+  <!-- Rainbow Chart + 200W MA -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:12px">
+      <div style="font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">🌈 Rainbow Chart</div>
+      <div style="font-size:.95rem;font-weight:700;color:${corMap[d.rainbow.color]||'var(--text)'}">${d.rainbow.band}</div>
+      <div style="font-size:.55rem;color:var(--muted);margin-top:4px">Regressão logarítmica histórica</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:12px">
+      <div style="font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">📊 200W MA</div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--accent)">${f0(d.ma200w)}</div>
+      <div style="font-size:.65rem;color:${d.ma200w_pct>0?'var(--green)':'var(--red)'};margin-top:2px">+${d.ma200w_pct}% acima ${d.ma200w_pct>0?'✅ Suporte mantido':''}</div>
+    </div>
+  </div>
+
+  <!-- Realized Price -->
+  <div style="font-size:.58rem;color:var(--muted);text-align:right;margin-top:4px">
+    Realized Price: ${f0(d.realized_price)} · On-chain atualizado: ${d.onchain_updated}
+    <br>⚠ MVRV, NUPL, Puell, SOPR são atualizados manualmente (fonte: Glassnode)
+  </div>`;
+
+  el.innerHTML=html;
+}
+
 function renderBTCIndicators(ind){
   const el=document.getElementById('btc-ind-area');
   if(!el)return;
@@ -1736,18 +1878,20 @@ async function loadIndicators(){
     const el=document.getElementById(a);
     if(el) el.innerHTML='<div style="color:var(--muted);font-size:.65rem;padding:10px;animation:pulse 1.5s infinite">Calculando indicadores...</div>';
   });
-  const [p4,v3,bb,ax,btc]=await Promise.all([
+  const [p4,v3,bb,ax,btc,cycle]=await Promise.all([
     fetchIndicators('PETR4.SA'),
     fetchIndicators('VALE3.SA'),
     fetchIndicators('BBAS3.SA'),
     fetchIndicators('AXIA3.SA'),
-    fetchBTCIndicators()
+    fetchBTCIndicators(),
+    fetchBTCCycle()
   ]);
   renderIndicators('petr4-ind-area',p4,true);
   renderIndicators('vale3-ind-area',v3,true);
   renderIndicators('bbas3-ind-area',bb,true);
   renderIndicators('axia3-ind-area',ax,true);
   renderBTCIndicators(btc);
+  renderBTCCycle(cycle);
   fetchFearGreed();
 }
 
