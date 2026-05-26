@@ -447,10 +447,21 @@ def run_montecarlo():
 
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
+        if not sigma or sigma==0.35:
+            vol_defaults={'AXIA3':0.35,'ROXO34':0.45,'PETR4':0.30,'VALE3':0.32}
+            sigma=vol_defaults.get(ticker.replace('.SA','').upper(),0.35)
         
-        # Calcula vol historica se tiver dados e nao foi passada
+        # Vol historica - usa dados do Yahoo se disponivel, senao padrao por ativo
         if cl and not data.get('sigma'):
             sigma=vol_hist(cl)
+        elif not cl:
+            # Vol padrao por tipo de ativo quando Yahoo nao tem dados
+            vol_defaults = {
+                'AXIA3': 0.35, 'ROXO34': 0.45,
+                'PETR4': 0.30, 'VALE3': 0.32, 'BBAS3': 0.28,
+            }
+            ticker_base = ticker.replace('.SA','').upper()
+            sigma = vol_defaults.get(ticker_base, 0.35)
         T=max(T_days,1)/252.0
         sqT=math.sqrt(T)
         drift=-0.5*sigma**2*T
@@ -771,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-26 20:32
+# HTML EMBUTIDO — atualizado em 2026-05-26 20:38
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.3 - 2026-05-26 15:21 -->
+<!-- Trader Desk v7.4 - 2026-05-26 20:38 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
