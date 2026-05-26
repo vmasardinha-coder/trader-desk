@@ -26,6 +26,7 @@ SETORES = {
     'VALE3.SA':  {'nome':'Mineracao',    'pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
     'BBAS3.SA':  {'nome':'Bancos',       'pl_medio':8.0,'pvp_medio':1.2,'roe_min':18},
     'AXIA3.SA':  {'nome':'Energia Eletrica','pl_medio':12.0,'pvp_medio':1.2,'roe_min':10},
+    'ROXO34.SA': {'nome':'Fintech/BDR',    'pl_medio':40.0,'pvp_medio':5.0,'roe_min':10},
     'DEFAULT':   {'nome':'Geral',        'pl_medio':12.0,'pvp_medio':2.0,'roe_min':12},
 }
 
@@ -35,6 +36,7 @@ FUND = {
     'VALE3': {'pvp':1.80,'dy':8.50,'lpa':11.20,'vpa':47.30,'ev_ebitda':4.1, 'roe':24.1,'debt_ebitda':0.6, 'margem':22.1},
     'BBAS3': {'pvp':0.95,'dy':9.80,'lpa':4.20, 'vpa':24.80,'ev_ebitda':None,'roe':19.8,'debt_ebitda':None,'margem':28.5},
     'AXIA3': {'pvp':0.85,'dy':4.20,'lpa':1.90, 'vpa':12.50,'ev_ebitda':7.5, 'roe':10.0,'debt_ebitda':3.2, 'margem':15.0},
+    'ROXO34':{'pvp':3.50,'dy':0.00,'lpa':0.45, 'vpa':3.60, 'ev_ebitda':None,'roe':8.5, 'debt_ebitda':None,'margem':18.0},
 }
 
 # ── CDI ───────────────────────────────────────────────
@@ -283,11 +285,26 @@ def get_futures():
                         dxy = {'price':close,'prev':round(close-chg,2)}
         except: pass
 
-    # WIN via Yahoo IBOV
+    # WIN1! via TradingView scanner (contrato futuro mini índice)
     try:
-        ibov = yquote('%5EBVSP')
-        if ibov: win = {'price':round(ibov['price'],0),'prev':round(ibov['prev'],0)}
+        r_win = requests.post('https://scanner.tradingview.com/brazil/scan',
+            json={"symbols":{"tickers":["BMFBOVESPA:WIN1!"]},"columns":["close","change_abs"]},
+            timeout=6)
+        if r_win.ok:
+            items = r_win.json().get('data',[])
+            if items:
+                d = items[0].get('d',[])
+                if d and d[0]:
+                    close = round(float(d[0]),0)
+                    chg = float(d[1]) if len(d)>1 and d[1] else 0
+                    win = {'price':close,'prev':round(close-chg,0)}
     except: pass
+    # Fallback WIN via Yahoo IBOV
+    if not win:
+        try:
+            ibov = yquote('%5EBVSP')
+            if ibov: win = {'price':round(ibov['price'],0),'prev':round(ibov['prev'],0)}
+        except: pass
 
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy})
 
@@ -313,6 +330,64 @@ def binance_funding():
     return jsonify({'error':'indisponivel'}),500
 
 # ── MONTE CARLO ───────────────────────────────────────
+@app.route('/montecarlo/barrier', methods=['POST'])
+def run_montecarlo_barrier():
+    """Monte Carlo com simulacao de caminhos para opcoes com barreiras"""
+    try:
+        import numpy as _np
+        data = request.get_json() or {}
+        ticker   = data.get('ticker', 'AXIA3.SA')
+        entry    = float(data.get('entry', 54.31))
+        kdo      = float(data.get('kdo', 43.39))   # knock-down barrier
+        kuo      = float(data.get('kuo', 68.48))   # knock-up barrier
+        T_days   = int(data.get('t_days', 113))
+        n        = 5000
+        steps    = T_days  # um passo por dia
+
+        r2 = requests.get(
+            f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
+            headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
+        if not r2.ok:
+            return jsonify({'error': f'Yahoo {r2.status_code}'}), 500
+        d2 = r2.json()
+        meta = d2['chart']['result'][0]['meta']
+        cl = [c for c in d2['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
+        S = float(meta.get('regularMarketPrice', cl[-1]))
+        sigma = vol_hist(cl)
+        dt = 1/252.0
+        drift = (0 - 0.5 * sigma**2) * dt
+        vol_step = sigma * (dt**0.5)
+
+        # Simula N caminhos completos
+        z = _np.random.standard_normal((n, steps))
+        log_returns = drift + vol_step * z
+        paths = S * _np.exp(_np.cumsum(log_returns, axis=1))
+
+        # Verifica barreiras em cada caminho
+        max_prices = _np.max(paths, axis=1)
+        min_prices = _np.min(paths, axis=1)
+        final_prices = paths[:, -1]
+
+        kuo_hit = max_prices >= kuo
+        kdo_hit = min_prices <= kdo
+        no_barrier = ~kuo_hit & ~kdo_hit
+
+        prob_no_barrier = round(float(no_barrier.mean() * 100), 2)
+        prob_kuo_hit    = round(float(kuo_hit.mean() * 100), 2)
+        prob_kdo_hit    = round(float(kdo_hit.mean() * 100), 2)
+
+        return jsonify({
+            'ticker': ticker, 'preco_atual': round(S, 2),
+            'entry': entry, 'kdo': kdo, 'kuo': kuo, 't_days': T_days,
+            'volatilidade_historica_pct': round(sigma * 100, 2),
+            'prob_sem_barreira': prob_no_barrier,
+            'prob_barreira_alta': prob_kuo_hit,
+            'prob_barreira_baixa': prob_kdo_hit,
+            'cenarios': n, 'engine': 'numpy-paths'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/montecarlo', methods=['POST'])
 def run_montecarlo():
     try:
@@ -654,9 +729,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-25 18:28
+# HTML EMBUTIDO — atualizado em 2026-05-25 23:40
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v6.9 - 2026-05-25 18:28 -->
+<!-- Trader Desk v7.0 - 2026-05-25 18:54 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -922,7 +997,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="pos-price loading" id="pt-pos-p">—</div>
       <div class="pos-chg" id="pt-pos-c">—</div>
       <div class="sb">
-        <div class="sb-row"><span class="sb-lbl">Strike vendido</span><span class="sb-val warn">R$ 32,00</span></div>
+        <div class="sb-row"><span class="sb-lbl">Strike vendido</span><span class="sb-val warn">R$ 31,33</span></div>
         <div class="sb-row"><span class="sb-lbl">Distância ITM</span><span class="sb-val itm" id="pt-itm">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val itm">⚠ DEEP ITM</span></div>
         <div class="sb-row"><span class="sb-lbl">Gatilho reest.</span><span class="sb-val warn">≈ R$ 40</span></div>
@@ -932,7 +1007,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       </div>
       <div class="signal" style="margin-top:8px">
         <div class="sig-title">📋 Status da Posição</div>
-        <div id="pt-status">Strike em R$ 32 — preço atual muito acima. Monitorar oportunidade de rolagem quando próximo de R$ 40.</div>
+        <div id="pt-status">Strike em R$ 31,33 — preço atual muito acima. Monitorar oportunidade de rolagem quando próximo de R$ 40.</div>
       </div>
       <div class="signal" style="margin-top:8px;border-color:var(--blue)">
         <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. atingir strike R$32</div>
@@ -954,7 +1029,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="pos-price loading" id="vl-pos-p">—</div>
       <div class="pos-chg" id="vl-pos-c">—</div>
       <div class="sb">
-        <div class="sb-row"><span class="sb-lbl">Strike vendido</span><span class="sb-val warn">R$ 57,00</span></div>
+        <div class="sb-row"><span class="sb-lbl">Strike vendido</span><span class="sb-val warn">R$ 57,40</span></div>
         <div class="sb-row"><span class="sb-lbl">Distância ITM</span><span class="sb-val itm" id="vl-itm">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val itm">⚠ DEEP ITM</span></div>
         <div class="sb-row"><span class="sb-lbl">Gatilhos</span><span class="sb-val warn">R$ 70 · R$ 80 · R$ 85</span></div>
@@ -964,7 +1039,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       </div>
       <div class="signal" style="margin-top:8px">
         <div class="sig-title">📋 Status da Posição</div>
-        <div id="vl-status">Strike em R$ 57 — preço atual acima. Avaliar reestruturação nos gatilhos R$ 70, R$ 80 ou R$ 85.</div>
+        <div id="vl-status">Strike em R$ 57,40 — preço atual acima. Avaliar reestruturação nos gatilhos R$ 70, R$ 80 ou R$ 85.</div>
       </div>
       <div class="signal" style="margin-top:8px;border-color:var(--blue)">
         <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. atingir strike R$57</div>
@@ -1022,6 +1097,68 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
           </div>
         </div>
         <div style="font-size:.62rem;color:var(--muted);margin-top:6px" id="mc-info">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AXIA3 POSIÇÃO -->
+  <div class="pos-card acao" style="margin-top:12px">
+    <div class="pos-label">AXIA3 · Fence com Barreiras · Venc 14/09/2026</div>
+    <div class="pos-ticker">AXIA3</div>
+    <div class="pos-price loading" id="axia3-pos-p">—</div>
+    <div class="pos-chg" id="axia3-pos-c">—</div>
+    <div class="sb">
+      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Fence c/ Barreiras (3 pernas)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Preço entrada</span><span class="sb-val">R$ 54,31</span></div>
+      <div class="sb-row"><span class="sb-lbl">KUO (Barreira Alta)</span><span class="sb-val warn">R$ 68,48 (+26%)</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Barreira Baixa)</span><span class="sb-val warn">R$ 43,39 (-20%)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno s/ barreira</span><span class="sb-val ok">Até +26% na alta / +20% na queda</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno c/ barreira alta</span><span class="sb-val warn">+4% (capped)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno c/ barreira baixa</span><span class="sb-val itm">Proporcional à queda</span></div>
+      <div class="sb-row"><span class="sb-lbl">Distância ao KDO</span><span class="sb-val" id="axia3-kdo-dist">—</span></div>
+      <div class="sb-row"><span class="sb-lbl">Distância ao KUO</span><span class="sb-val" id="axia3-kuo-dist">—</span></div>
+      <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="axia3-status">—</span></div>
+    </div>
+    <div class="signal" style="margin-top:8px;border-color:var(--blue)">
+      <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. de cada cenário</div>
+      <div id="mc-axia3-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
+      <div id="mc-axia3-result" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+          <div class="ind-box"><div class="ind-lbl">Sem Barreira</div><div class="ind-val ok" id="mc-axia3-nobr">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Bar. Alta KUO</div><div class="ind-val warn" id="mc-axia3-kuo">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Bar. Baixa KDO</div><div class="ind-val down" id="mc-axia3-kdo">—</div></div>
+        </div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3-info">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROXO34 POSIÇÃO -->
+  <div class="pos-card acao" style="margin-top:12px">
+    <div class="pos-label">ROXO34 · BDR Nubank · Prefixado 7,1% · Venc 01/07/2026</div>
+    <div class="pos-ticker">ROXO34</div>
+    <div class="pos-price loading" id="roxo34-pos-p">—</div>
+    <div class="pos-chg" id="roxo34-pos-c">—</div>
+    <div class="sb">
+      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Retorno Prefixado c/ Barreira</span></div>
+      <div class="sb-row"><span class="sb-lbl">Preço entrada</span><span class="sb-val">R$ 12,67</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Barreira)</span><span class="sb-val warn">R$ 9,60 (-18,70%)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val ok">7,10% prefixado</span></div>
+      <div class="sb-row"><span class="sb-lbl">Condição</span><span class="sb-val ok">ROXO34 não cair -18,7%</span></div>
+      <div class="sb-row"><span class="sb-lbl">Se barreira atingida</span><span class="sb-val itm">Proporcional à queda</span></div>
+      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">01/07/2026 · <span id="roxo34-dias">—</span> dias</span></div>
+      <div class="sb-row"><span class="sb-lbl">% p/ barreira</span><span class="sb-val" id="roxo34-kdo-dist">—</span></div>
+      <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="roxo34-status">—</span></div>
+    </div>
+    <div class="signal" style="margin-top:8px;border-color:var(--blue)">
+      <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. retorno 7,1%</div>
+      <div id="mc-roxo34-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
+      <div id="mc-roxo34-result" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ind-box"><div class="ind-lbl">Prob. 7,1% ✅</div><div class="ind-val ok" id="mc-roxo34-sucesso">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-roxo34-vol">—</div></div>
+        </div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-roxo34-info">—</div>
       </div>
     </div>
   </div>
@@ -1093,8 +1230,13 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
   </div>
 
-  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores & Sinal — AXI A3</div>
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores & Sinal — AXIA3</div>
   <div id="axia3-ind-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
+  </div>
+
+  <div class="sec" style="margin-top:16px"><span>📊</span> Indicadores & Sinal — ROXO34</div>
+  <div id="roxo34-ind-area">
     <div style="color:var(--muted);font-size:.65rem;padding:10px">Carregando indicadores...</div>
   </div>
 
@@ -1426,6 +1568,55 @@ function doMacro(tv){
   // WIN handled by futures block
 
   // PETR4 e VALE3 na aba cotações
+  // AXIA3 posição
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/AXIA3.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          setEl('axia3-pos-p',fBRL(d.price));
+          const entry=54.31,kdo=43.39,kuo=68.48,p=d.price;
+          const kdoDist=document.getElementById('axia3-kdo-dist');
+          const kuoDist=document.getElementById('axia3-kuo-dist');
+          const axSt=document.getElementById('axia3-status');
+          if(kdoDist)kdoDist.textContent=`${((p-kdo)/p*100).toFixed(1)}% acima do KDO`;
+          if(kuoDist)kuoDist.textContent=`${((kuo-p)/p*100).toFixed(1)}% para o KUO`;
+          if(axSt){
+            if(p<=kdo){axSt.textContent='🔴 KDO ATINGIDO';axSt.className='sb-val itm';}
+            else if(p>=kuo){axSt.textContent='⚠ KUO ATINGIDO — retorno 4%';axSt.className='sb-val warn';}
+            else{axSt.textContent='✅ Dentro do range — até +26%';axSt.className='sb-val ok';}
+          }
+        }
+      }
+    }catch(e){}
+  },2000);
+
+  // ROXO34 posição
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/ROXO34.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          setEl('roxo34-pos-p',fBRL(d.price));
+          const kdo=9.60,p=d.price;
+          const venc=new Date('2026-07-01');
+          const dias=Math.max(0,Math.ceil((venc-new Date())/(1000*60*60*24)));
+          const diasEl=document.getElementById('roxo34-dias');
+          if(diasEl)diasEl.textContent=dias+' dias';
+          const distEl=document.getElementById('roxo34-kdo-dist');
+          if(distEl)distEl.textContent=`${((p-kdo)/p*100).toFixed(1)}% acima da barreira`;
+          const stEl=document.getElementById('roxo34-status');
+          if(stEl){
+            if(p<=kdo){stEl.textContent='🔴 BARREIRA ATINGIDA';stEl.className='sb-val itm';}
+            else{stEl.textContent='✅ No range — retorno 7,1% projetado';stEl.className='sb-val ok';}
+          }
+        }
+      }
+    }catch(e){}
+  },2500);
+
   const ptD=tv['BMFBOVESPA:PETR4'];
   const ptP=ptD?.p||FB.PETR4.p,ptV=ptD?.v||FB.PETR4.v;
   setEl('petr4q-p',fBRL(ptP));setChg('petr4q-c',ptP,ptV,'brl');
@@ -1532,31 +1723,80 @@ function doPositions(tv,btcData){
     else{bbStatus.textContent='✅ No range — retorno 3,4% projetado';bbStatus.className='sb-val ok';}
   }
 
+  // AXIA3 posição
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/AXIA3.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          setEl('axia3-pos-p',fBRL(d.price));
+          const entry=54.31,kdo=43.39,kuo=68.48,p=d.price;
+          const kdoDist=document.getElementById('axia3-kdo-dist');
+          const kuoDist=document.getElementById('axia3-kuo-dist');
+          const axSt=document.getElementById('axia3-status');
+          if(kdoDist)kdoDist.textContent=`${((p-kdo)/p*100).toFixed(1)}% acima do KDO`;
+          if(kuoDist)kuoDist.textContent=`${((kuo-p)/p*100).toFixed(1)}% para o KUO`;
+          if(axSt){
+            if(p<=kdo){axSt.textContent='🔴 KDO ATINGIDO';axSt.className='sb-val itm';}
+            else if(p>=kuo){axSt.textContent='⚠ KUO ATINGIDO — retorno 4%';axSt.className='sb-val warn';}
+            else{axSt.textContent='✅ Dentro do range — até +26%';axSt.className='sb-val ok';}
+          }
+        }
+      }
+    }catch(e){}
+  },2000);
+
+  // ROXO34 posição
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/ROXO34.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          setEl('roxo34-pos-p',fBRL(d.price));
+          const kdo=9.60,p=d.price;
+          const venc=new Date('2026-07-01');
+          const dias=Math.max(0,Math.ceil((venc-new Date())/(1000*60*60*24)));
+          const diasEl=document.getElementById('roxo34-dias');
+          if(diasEl)diasEl.textContent=dias+' dias';
+          const distEl=document.getElementById('roxo34-kdo-dist');
+          if(distEl)distEl.textContent=`${((p-kdo)/p*100).toFixed(1)}% acima da barreira`;
+          const stEl=document.getElementById('roxo34-status');
+          if(stEl){
+            if(p<=kdo){stEl.textContent='🔴 BARREIRA ATINGIDA';stEl.className='sb-val itm';}
+            else{stEl.textContent='✅ No range — retorno 7,1% projetado';stEl.className='sb-val ok';}
+          }
+        }
+      }
+    }catch(e){}
+  },2500);
+
   const ptD=tv['BMFBOVESPA:PETR4'];
   const ptP=ptD?.p||FB.PETR4.p,ptV=ptD?.v||FB.PETR4.v;
   setEl('pt-pos-p',fBRL(ptP));setChg('pt-pos-c',ptP,ptV,'brl');
-  setEl('pt-itm',`R$ ${(ptP-32).toFixed(2)} acima do strike`);
+  setEl('pt-itm',`R$ ${(ptP-31.33).toFixed(2)} acima do strike`);
   const ptGatilho=document.getElementById('pt-pct-gatilho');
   if(ptGatilho){
-    const pctITM=((ptP-32)/32*100);
+    const pctITM=((ptP-31.33)/31.33*100);
     ptGatilho.textContent=`+${pctITM.toFixed(1)}% acima do strike R$32`;
     ptGatilho.style.color=pctITM>50?'var(--danger)':'var(--warn)';
   }
-  const ptPct=Math.min(100,Math.max(0,((ptP-32)/(65-32))*100));
+  const ptPct=Math.min(100,Math.max(0,((ptP-31.33)/(65-31.33))*100));
   const ptBar=document.getElementById('pt-bar');
   ptBar.style.width=ptPct+'%';ptBar.className='prog-bar '+(ptP>48?'danger':ptP>40?'warn':'ok');
 
   const vlD=tv['BMFBOVESPA:VALE3'];
   const vlP=vlD?.p||FB.VALE3.p,vlV=vlD?.v||FB.VALE3.v;
   setEl('vl-pos-p',fBRL(vlP));setChg('vl-pos-c',vlP,vlV,'brl');
-  setEl('vl-itm',`R$ ${(vlP-57).toFixed(2)} acima do strike`);
+  setEl('vl-itm',`R$ ${(vlP-57.40).toFixed(2)} acima do strike`);
   const vlGatilho=document.getElementById('vl-pct-gatilho');
   if(vlGatilho){
-    const pctITM=((vlP-57)/57*100);
+    const pctITM=((vlP-57.40)/57.40*100);
     vlGatilho.textContent=`+${pctITM.toFixed(1)}% acima do strike R$57`;
     vlGatilho.style.color=pctITM>50?'var(--danger)':'var(--warn)';
   }
-  const vlPct=Math.min(100,Math.max(0,((vlP-57)/(110-57))*100));
+  const vlPct=Math.min(100,Math.max(0,((vlP-57.40)/(110-57.40))*100));
   const vlBar=document.getElementById('vl-bar');
   vlBar.style.width=vlPct+'%';vlBar.className='prog-bar '+(vlP>82?'danger':vlP>70?'warn':'ok');
 }
@@ -1601,6 +1841,61 @@ async function fetchFearGreed(){
   }catch(e){
     const el=document.getElementById('fear-greed-area');
     if(el)el.innerHTML='<div style="color:var(--danger);font-size:.65rem;padding:10px">Fear & Greed indisponível</div>';
+  }
+}
+
+// ── MONTE CARLO BARREIRA (AXIA3) ─────────────────────
+async function runMCBarrier(ticker, entry, kdo, kuo, dias){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),25000);
+    const r=await fetch('https://trader-desk.onrender.com/montecarlo/barrier',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({ticker,entry,kdo,kuo,t_days:dias,n:5000})
+    });
+    clearTimeout(timeout);
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    document.getElementById('mc-axia3-loading').style.display='none';
+    document.getElementById('mc-axia3-result').style.display='block';
+    document.getElementById('mc-axia3-nobr').textContent=d.prob_sem_barreira.toFixed(2)+'%';
+    document.getElementById('mc-axia3-kuo').textContent=d.prob_barreira_alta.toFixed(2)+'%';
+    document.getElementById('mc-axia3-kdo').textContent=d.prob_barreira_baixa.toFixed(2)+'%';
+    document.getElementById('mc-axia3-info').textContent=
+      `Preço R$ ${d.preco_atual} · KDO R$ ${d.kdo} · KUO R$ ${d.kuo} · ${d.cenarios.toLocaleString()} cenários`;
+  }catch(e){
+    const el=document.getElementById('mc-axia3-loading');
+    if(el)el.textContent='Erro: '+(e.message||'indisponível');
+  }
+}
+
+async function runMCPrefixado(ticker, entry, kdo, dias){
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),25000);
+    const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({ticker,k_call:entry,k_put:entry,t_days:dias,knock_down:kdo,n:5000})
+    });
+    clearTimeout(timeout);
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    document.getElementById('mc-roxo34-loading').style.display='none';
+    document.getElementById('mc-roxo34-result').style.display='block';
+    const prob=d.prob_sucesso;
+    const sEl=document.getElementById('mc-roxo34-sucesso');
+    sEl.textContent=Number(prob).toFixed(2)+'%';
+    sEl.className='ind-val '+(prob>70?'ok':prob>50?'warn':'down');
+    document.getElementById('mc-roxo34-vol').textContent=d.volatilidade_historica_pct+'%';
+    document.getElementById('mc-roxo34-info').textContent=
+      `Preço R$ ${d.preco_atual} · KDO R$ ${d.knock_down} · ${d.cenarios.toLocaleString()} cenários`;
+  }catch(e){
+    const el=document.getElementById('mc-roxo34-loading');
+    if(el)el.textContent='Erro: '+(e.message||'indisponível');
   }
 }
 
@@ -1944,11 +2239,12 @@ async function loadIndicators(){
     const el=document.getElementById(a);
     if(el) el.innerHTML='<div style="color:var(--muted);font-size:.65rem;padding:10px;animation:pulse 1.5s infinite">Calculando indicadores...</div>';
   });
-  const [p4,v3,bb,ax,btc,cycle]=await Promise.all([
+  const [p4,v3,bb,ax,rx,btc,cycle]=await Promise.all([
     fetchIndicators('PETR4.SA'),
     fetchIndicators('VALE3.SA'),
     fetchIndicators('BBAS3.SA'),
     fetchIndicators('AXIA3.SA'),
+    fetchIndicators('ROXO34.SA'),
     fetchBTCIndicators(),
     fetchBTCCycle()
   ]);
@@ -1956,6 +2252,7 @@ async function loadIndicators(){
   renderIndicators('vale3-ind-area',v3,true);
   renderIndicators('bbas3-ind-area',bb,true);
   renderIndicators('axia3-ind-area',ax,true);
+  renderIndicators('roxo34-ind-area',rx,true);
   renderBTCIndicators(btc);
   renderBTCCycle(cycle);
   fetchFearGreed();
@@ -2051,6 +2348,20 @@ async function fetchAll(){
 
   setTimeout(fetchFunding,3000);
 
+  // ROXO34 via Yahoo Finance
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/ROXO34.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          const el=document.getElementById('roxo34q-p');
+          if(el){el.textContent='R$ '+Number(d.price).toFixed(2);el.className=el.className.replace(/loading/g,'').trim();}
+        }
+      }
+    }catch(e){}
+  },3000);
+
   // Força atualização VIX/DXY/WIN após tudo renderizar
   setTimeout(async()=>{
     try{
@@ -2068,9 +2379,9 @@ async function fetchAll(){
   setTimeout(()=>{
     runMonteCarlo();
     // PETR4 — prob de cair até R$32 no vencimento (dez/26 = ~210 dias)
-    runMCForAtivo('PETR4.SA',32,210,'mc-pt-loading','mc-pt-result','mc-pt-strike','mc-pt-vol','mc-pt-info');
+    runMCForAtivo('PETR4.SA',31.33,210,'mc-pt-loading','mc-pt-result','mc-pt-strike','mc-pt-vol','mc-pt-info');
     // VALE3 — prob de cair até R$57 no vencimento (fev/27 = ~270 dias)
-    runMCForAtivo('VALE3.SA',57,270,'mc-vl-loading','mc-vl-result','mc-vl-strike','mc-vl-vol','mc-vl-info');
+    runMCForAtivo('VALE3.SA',57.40,270,'mc-vl-loading','mc-vl-result','mc-vl-strike','mc-vl-vol','mc-vl-info');
   }, 5000);
 
   // Indicadores carregam ao clicar na aba
