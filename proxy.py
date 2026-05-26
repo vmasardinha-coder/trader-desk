@@ -285,25 +285,27 @@ def get_futures():
                         dxy = {'price':close,'prev':round(close-chg,2)}
         except: pass
 
-    # WIN1! via TradingView scanner (contrato futuro mini índice)
-    try:
-        r_win = requests.post('https://scanner.tradingview.com/brazil/scan',
-            json={"symbols":{"tickers":["BMFBOVESPA:WIN1!"]},"columns":["close","change_abs"]},
-            timeout=6)
-        if r_win.ok:
-            items = r_win.json().get('data',[])
-            if items:
-                d = items[0].get('d',[])
-                if d and d[0]:
+    # WIN1! via múltiplas fontes
+    for win_ticker in ['BMFBOVESPA:WIN1!', 'BMFBOVESPA:WINFUT', 'BMFBOVESPA:WIN']:
+        try:
+            r_win = requests.post('https://scanner.tradingview.com/brazil/scan',
+                json={"symbols":{"tickers":[win_ticker]},"columns":["close","change_abs","prev_close_price"]},
+                timeout=6)
+            if r_win.ok:
+                items = r_win.json().get('data',[])
+                if items and items[0].get('d') and items[0]['d'][0]:
+                    d = items[0]['d']
                     close = round(float(d[0]),0)
                     chg = float(d[1]) if len(d)>1 and d[1] else 0
-                    win = {'price':close,'prev':round(close-chg,0)}
-    except: pass
-    # Fallback WIN via Yahoo IBOV
+                    prev = round(close-chg,0)
+                    win = {'price':close,'prev':prev,'source':win_ticker}
+                    break
+        except: pass
+    # Fallback via Yahoo IBOV
     if not win:
         try:
             ibov = yquote('%5EBVSP')
-            if ibov: win = {'price':round(ibov['price'],0),'prev':round(ibov['prev'],0)}
+            if ibov: win = {'price':round(ibov['price'],0),'prev':round(ibov['prev'],0),'source':'IBOV'}
         except: pass
 
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy})
@@ -341,8 +343,8 @@ def run_montecarlo_barrier():
         kdo      = float(data.get('kdo', 43.39))   # knock-down barrier
         kuo      = float(data.get('kuo', 68.48))   # knock-up barrier
         T_days   = int(data.get('t_days', 113))
-        n        = 5000
-        steps    = T_days  # um passo por dia
+        n        = 3000
+        steps    = max(T_days // 5, 10)  # passos semanais para velocidade
 
         r2 = requests.get(
             f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
@@ -729,9 +731,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-25 23:40
+# HTML EMBUTIDO — atualizado em 2026-05-26 10:28
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.0 - 2026-05-25 18:54 -->
+<!-- Trader Desk v7.1 - 2026-05-26 10:28 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1097,6 +1099,37 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
           </div>
         </div>
         <div style="font-size:.62rem;color:var(--muted);margin-top:6px" id="mc-info">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AXIA3 CALL SPREAD -->
+  <div class="pos-card acao" style="margin-top:12px">
+    <div class="pos-label">AXIA3 · Call Spread · Venc 14/09/2026</div>
+    <div class="pos-ticker">AXIA3</div>
+    <div class="pos-price loading" id="axia3s-pos-p">—</div>
+    <div class="pos-chg" id="axia3s-pos-c">—</div>
+    <div class="sb">
+      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Call Spread (2 pernas)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Put Vendida (AXIAU600)</span><span class="sb-val warn">Strike R$ 60,00 — recebe prêmio</span></div>
+      <div class="sb-row"><span class="sb-lbl">Call Comprada (AXIAI505)</span><span class="sb-val ok">Strike R$ 50,50 — direito de compra</span></div>
+      <div class="sb-row"><span class="sb-lbl">Range ideal</span><span class="sb-val ok">R$ 50,50 a R$ 60,00</span></div>
+      <div class="sb-row"><span class="sb-lbl">Abaixo R$ 50,50</span><span class="sb-val warn">Só prêmio da put</span></div>
+      <div class="sb-row"><span class="sb-lbl">Acima R$ 60,00</span><span class="sb-val itm">Put exercida — compra obrigatória</span></div>
+      <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="axia3s-status">—</span></div>
+      <div class="sb-row"><span class="sb-lbl">% p/ Call (R$50,50)</span><span class="sb-val" id="axia3s-call-dist">—</span></div>
+      <div class="sb-row"><span class="sb-lbl">% p/ Put (R$60,00)</span><span class="sb-val" id="axia3s-put-dist">—</span></div>
+    </div>
+    <div class="signal" style="margin-top:8px;border-color:var(--blue)">
+      <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. em cada zona</div>
+      <div id="mc-axia3s-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
+      <div id="mc-axia3s-result" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+          <div class="ind-box"><div class="ind-lbl">No range ✅</div><div class="ind-val ok" id="mc-axia3s-range">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Abaixo R$50,50</div><div class="ind-val warn" id="mc-axia3s-below">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Acima R$60,00</div><div class="ind-val down" id="mc-axia3s-above">—</div></div>
+        </div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3s-info">—</div>
       </div>
     </div>
   </div>
@@ -1568,7 +1601,31 @@ function doMacro(tv){
   // WIN handled by futures block
 
   // PETR4 e VALE3 na aba cotações
-  // AXIA3 posição
+  // AXIA3 Call Spread status
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/AXIA3.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          const p=d.price, cs=50.50, ps=60.00;
+          setEl('axia3s-pos-p',fBRL(p));
+          const cdEl=document.getElementById('axia3s-call-dist');
+          const pdEl=document.getElementById('axia3s-put-dist');
+          const stEl=document.getElementById('axia3s-status');
+          if(cdEl)cdEl.textContent=p>cs?`+${((p-cs)/cs*100).toFixed(1)}% acima da call`:`${((cs-p)/p*100).toFixed(1)}% para a call`;
+          if(pdEl)pdEl.textContent=p<ps?`${((ps-p)/p*100).toFixed(1)}% para a put`:`+${((p-ps)/ps*100).toFixed(1)}% acima da put ⚠`;
+          if(stEl){
+            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put em risco';stEl.className='sb-val itm';}
+            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — lucro máximo';stEl.className='sb-val ok';}
+            else{stEl.textContent='⚠ Abaixo de R$50,50 — só prêmio';stEl.className='sb-val warn';}
+          }
+        }
+      }
+    }catch(e){}
+  },2000);
+
+  // AXIA3 Fence posição
   setTimeout(async()=>{
     try{
       const r=await fetch('https://trader-desk.onrender.com/indicators/AXIA3.SA');
@@ -1723,7 +1780,31 @@ function doPositions(tv,btcData){
     else{bbStatus.textContent='✅ No range — retorno 3,4% projetado';bbStatus.className='sb-val ok';}
   }
 
-  // AXIA3 posição
+  // AXIA3 Call Spread status
+  setTimeout(async()=>{
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/indicators/AXIA3.SA');
+      if(r.ok){
+        const d=await r.json();
+        if(d.price){
+          const p=d.price, cs=50.50, ps=60.00;
+          setEl('axia3s-pos-p',fBRL(p));
+          const cdEl=document.getElementById('axia3s-call-dist');
+          const pdEl=document.getElementById('axia3s-put-dist');
+          const stEl=document.getElementById('axia3s-status');
+          if(cdEl)cdEl.textContent=p>cs?`+${((p-cs)/cs*100).toFixed(1)}% acima da call`:`${((cs-p)/p*100).toFixed(1)}% para a call`;
+          if(pdEl)pdEl.textContent=p<ps?`${((ps-p)/p*100).toFixed(1)}% para a put`:`+${((p-ps)/ps*100).toFixed(1)}% acima da put ⚠`;
+          if(stEl){
+            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put em risco';stEl.className='sb-val itm';}
+            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — lucro máximo';stEl.className='sb-val ok';}
+            else{stEl.textContent='⚠ Abaixo de R$50,50 — só prêmio';stEl.className='sb-val warn';}
+          }
+        }
+      }
+    }catch(e){}
+  },2000);
+
+  // AXIA3 Fence posição
   setTimeout(async()=>{
     try{
       const r=await fetch('https://trader-desk.onrender.com/indicators/AXIA3.SA');
@@ -1845,6 +1926,40 @@ async function fetchFearGreed(){
 }
 
 // ── MONTE CARLO BARREIRA (AXIA3) ─────────────────────
+async function runMCSpread(ticker, callStrike, putStrike, dias, loadId, resId, rangeId, belowId, aboveId, infoId){
+  try{
+    const controller=new AbortController();
+    const to=setTimeout(()=>controller.abort(),25000);
+    const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({ticker,k_call:putStrike,k_put:callStrike,t_days:dias,n:5000})
+    });
+    clearTimeout(to);
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    // prob abaixo do callStrike = prob_put_exercida
+    // prob acima do putStrike = prob_call_exercida  
+    // prob no range = 100 - ambos
+    const below=Number(d.prob_put_exercida||0);
+    const above=Number(d.prob_call_exercida||0);
+    const inRange=Math.max(0,100-below-above);
+    document.getElementById(loadId).style.display='none';
+    document.getElementById(resId).style.display='block';
+    const rEl=document.getElementById(rangeId);
+    rEl.textContent=inRange.toFixed(2)+'%';
+    rEl.className='ind-val '+(inRange>50?'ok':inRange>30?'warn':'down');
+    document.getElementById(belowId).textContent=below.toFixed(2)+'%';
+    document.getElementById(aboveId).textContent=above.toFixed(2)+'%';
+    document.getElementById(infoId).textContent=
+      `Preço R$ ${d.preco_atual} · Call R$ ${callStrike} · Put R$ ${putStrike} · ${d.cenarios.toLocaleString()} cenários`;
+  }catch(e){
+    const el=document.getElementById(loadId);
+    if(el)el.textContent='Erro: '+(e.message||'indisponível');
+  }
+}
+
 async function runMCBarrier(ticker, entry, kdo, kuo, dias){
   try{
     const controller=new AbortController();
