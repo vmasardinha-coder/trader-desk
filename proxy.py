@@ -357,21 +357,24 @@ def run_montecarlo_barrier():
         n        = 3000
         steps    = max(T_days // 5, 10)  # passos semanais para velocidade
 
-        S=None; sigma=0.35; cl=[]
-        for host in ['query1','query2']:
-            try:
-                r2=requests.get(
-                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
-                    headers={'User-Agent':'Mozilla/5.0'},timeout=6)
-                if r2.ok:
-                    d2=r2.json()
-                    meta=d2['chart']['result'][0]['meta']
-                    raw_cl=d2['chart']['result'][0]['indicators']['quote'][0]['close']
-                    cl=[c for c in raw_cl if c is not None]
-                    S=float(meta.get('regularMarketPrice',cl[-1] if cl else 0))
-                    if cl: sigma=vol_hist(cl)
-                    break
-            except: continue
+        S = float(data.get('price',0)) or None
+        sigma = float(data.get('sigma', 0.35))
+        
+        if not S:
+            for host in ['query1','query2']:
+                try:
+                    r2=requests.get(
+                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
+                        headers={'User-Agent':'Mozilla/5.0'},timeout=6)
+                    if r2.ok:
+                        d2=r2.json()
+                        meta=d2['chart']['result'][0]['meta']
+                        raw_cl=d2['chart']['result'][0]['indicators']['quote'][0]['close']
+                        cl=[c for c in raw_cl if c is not None]
+                        S=float(meta.get('regularMarketPrice',cl[-1] if cl else 0))
+                        if cl: sigma=vol_hist(cl)
+                        break
+                except: continue
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
         dt = 1/252.0
@@ -420,25 +423,34 @@ def run_montecarlo():
         n=5000
         kd=float(data['knock_down']) if data.get('knock_down') else None
 
-        # Preco e vol — tenta Yahoo com timeout curto
-        S=None; sigma=0.35; cl=[]
-        for host in ['query1','query2']:
-            try:
-                r=requests.get(
-                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
-                    headers={'User-Agent':'Mozilla/5.0'},timeout=6)
-                if r.ok:
-                    d=r.json()
-                    meta=d['chart']['result'][0]['meta']
-                    raw_cl=d['chart']['result'][0]['indicators']['quote'][0]['close']
-                    cl=[c for c in raw_cl if c is not None]
-                    S=float(meta.get('regularMarketPrice',cl[-1] if cl else 0))
-                    if cl: sigma=vol_hist(cl)
-                    break
-            except: continue
+        # Preco: usa valor passado diretamente se disponivel (evita Yahoo lento)
+        S = float(data['price']) if data.get('price') else None
+        sigma = float(data['sigma']) if data.get('sigma') else 0.35
+        cl = []
+
+        if not S:
+            # Busca Yahoo com fallback
+            for host in ['query1','query2']:
+                try:
+                    r=requests.get(
+                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
+                        headers={'User-Agent':'Mozilla/5.0'},timeout=6)
+                    if r.ok:
+                        d=r.json()
+                        meta=d['chart']['result'][0]['meta']
+                        raw_cl=d['chart']['result'][0]['indicators']['quote'][0]['close']
+                        cl=[c for c in raw_cl if c is not None]
+                        S=float(meta.get('regularMarketPrice',cl[-1] if cl else 0))
+                        if cl: sigma=vol_hist(cl)
+                        break
+                except: continue
 
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
+        
+        # Calcula vol historica se tiver dados e nao foi passada
+        if cl and not data.get('sigma'):
+            sigma=vol_hist(cl)
         T=max(T_days,1)/252.0
         sqT=math.sqrt(T)
         drift=-0.5*sigma**2*T
@@ -759,9 +771,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-26 11:03
+# HTML EMBUTIDO — atualizado em 2026-05-26 20:32
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.2 - 2026-05-26 11:03 -->
+<!-- Trader Desk v7.3 - 2026-05-26 15:21 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1954,14 +1966,16 @@ async function fetchFearGreed(){
 }
 
 // ── MONTE CARLO BARREIRA (AXIA3) ─────────────────────
-async function runMCSpread(ticker, callStrike, putStrike, dias, loadId, resId, rangeId, belowId, aboveId, infoId){
+async function runMCSpread(ticker, callStrike, putStrike, dias, loadId, resId, rangeId, belowId, aboveId, infoId, price=null){
   try{
     const controller=new AbortController();
     const to=setTimeout(()=>controller.abort(),25000);
+    const body={ticker,k_call:putStrike,k_put:callStrike,t_days:dias,n:5000};
+    if(price&&price>0) body.price=price;
     const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
       method:'POST',headers:{'Content-Type':'application/json'},
       signal:controller.signal,
-      body:JSON.stringify({ticker,k_call:putStrike,k_put:callStrike,t_days:dias,n:5000})
+      body:JSON.stringify(body)
     });
     clearTimeout(to);
     if(!r.ok)throw 0;
@@ -1988,14 +2002,14 @@ async function runMCSpread(ticker, callStrike, putStrike, dias, loadId, resId, r
   }
 }
 
-async function runMCBarrier(ticker, entry, kdo, kuo, dias){
+async function runMCBarrier(ticker, entry, kdo, kuo, dias, price=null){
   try{
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),25000);
     const r=await fetch('https://trader-desk.onrender.com/montecarlo/barrier',{
       method:'POST',headers:{'Content-Type':'application/json'},
       signal:controller.signal,
-      body:JSON.stringify({ticker,entry,kdo,kuo,t_days:dias,n:5000})
+      body:JSON.stringify({ticker,entry,kdo,kuo,t_days:dias,n:5000,...(price&&price>0?{price}:{})})
     });
     clearTimeout(timeout);
     if(!r.ok)throw 0;
@@ -2014,14 +2028,14 @@ async function runMCBarrier(ticker, entry, kdo, kuo, dias){
   }
 }
 
-async function runMCPrefixado(ticker, entry, kdo, dias){
+async function runMCPrefixado(ticker, entry, kdo, dias, price=null){
   try{
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),25000);
     const r=await fetch('https://trader-desk.onrender.com/montecarlo',{
       method:'POST',headers:{'Content-Type':'application/json'},
       signal:controller.signal,
-      body:JSON.stringify({ticker,k_call:entry,k_put:entry,t_days:dias,knock_down:kdo,n:5000})
+      body:JSON.stringify({ticker,k_call:entry,k_put:entry,t_days:dias,knock_down:kdo,n:5000,...(price&&price>0?{price}:{})})
     });
     clearTimeout(timeout);
     if(!r.ok)throw 0;
