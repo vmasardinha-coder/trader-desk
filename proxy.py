@@ -285,21 +285,32 @@ def get_futures():
                         dxy = {'price':close,'prev':round(close-chg,2)}
         except: pass
 
-    # WIN1! via múltiplas fontes
-    for win_ticker in ['BMFBOVESPA:WIN1!', 'BMFBOVESPA:WINFUT', 'BMFBOVESPA:WIN']:
+    # WIN1! via TradingView futures scanner
+    try:
+        r_win = requests.post('https://scanner.tradingview.com/futures/scan',
+            json={"symbols":{"tickers":["BMFBOVESPA:WIN1!"]},"columns":["close","change_abs"]},
+            timeout=6)
+        if r_win.ok:
+            items = r_win.json().get('data',[])
+            if items and items[0].get('d') and items[0]['d'][0]:
+                d2 = items[0]['d']
+                close = round(float(d2[0]),0)
+                chg = float(d2[1]) if len(d2)>1 and d2[1] else 0
+                win = {'price':close,'prev':round(close-chg,0),'source':'TV futures'}
+    except: pass
+    # Fallback: brazil scanner
+    if not win:
         try:
-            r_win = requests.post('https://scanner.tradingview.com/brazil/scan',
-                json={"symbols":{"tickers":[win_ticker]},"columns":["close","change_abs","prev_close_price"]},
+            r_win2 = requests.post('https://scanner.tradingview.com/brazil/scan',
+                json={"symbols":{"tickers":["BMFBOVESPA:WIN1!"]},"columns":["close","change_abs"]},
                 timeout=6)
-            if r_win.ok:
-                items = r_win.json().get('data',[])
-                if items and items[0].get('d') and items[0]['d'][0]:
-                    d = items[0]['d']
-                    close = round(float(d[0]),0)
-                    chg = float(d[1]) if len(d)>1 and d[1] else 0
-                    prev = round(close-chg,0)
-                    win = {'price':close,'prev':prev,'source':win_ticker}
-                    break
+            if r_win2.ok:
+                items2 = r_win2.json().get('data',[])
+                if items2 and items2[0].get('d') and items2[0]['d'][0]:
+                    d3 = items2[0]['d']
+                    close = round(float(d3[0]),0)
+                    chg = float(d3[1]) if len(d3)>1 and d3[1] else 0
+                    win = {'price':close,'prev':round(close-chg,0),'source':'TV brazil'}
         except: pass
     # Fallback via Yahoo IBOV
     if not win:
@@ -346,16 +357,23 @@ def run_montecarlo_barrier():
         n        = 3000
         steps    = max(T_days // 5, 10)  # passos semanais para velocidade
 
-        r2 = requests.get(
-            f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
-            headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
-        if not r2.ok:
-            return jsonify({'error': f'Yahoo {r2.status_code}'}), 500
-        d2 = r2.json()
-        meta = d2['chart']['result'][0]['meta']
-        cl = [c for c in d2['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
-        S = float(meta.get('regularMarketPrice', cl[-1]))
-        sigma = vol_hist(cl)
+        S=None; sigma=0.35; cl=[]
+        for host in ['query1','query2']:
+            try:
+                r2=requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
+                    headers={'User-Agent':'Mozilla/5.0'},timeout=6)
+                if r2.ok:
+                    d2=r2.json()
+                    meta=d2['chart']['result'][0]['meta']
+                    raw_cl=d2['chart']['result'][0]['indicators']['quote'][0]['close']
+                    cl=[c for c in raw_cl if c is not None]
+                    S=float(meta.get('regularMarketPrice',cl[-1] if cl else 0))
+                    if cl: sigma=vol_hist(cl)
+                    break
+            except: continue
+        if not S or S<=0:
+            return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
         dt = 1/252.0
         drift = (0 - 0.5 * sigma**2) * dt
         vol_step = sigma * (dt**0.5)
@@ -399,18 +417,28 @@ def run_montecarlo():
         K_call=float(data.get('k_call',22.68))
         K_put=float(data.get('k_put',22.68))
         T_days=int(data.get('t_days',21))
-        n=5000  # fixo em 5k — rapido e estatisticamente valido
+        n=5000
         kd=float(data['knock_down']) if data.get('knock_down') else None
 
-        # Busca preco atual
-        r=requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
-            headers={'User-Agent':'Mozilla/5.0'},timeout=8)
-        if not r.ok: return jsonify({'error':f'Yahoo {r.status_code}'}),500
-        d=r.json()
-        meta=d['chart']['result'][0]['meta']
-        cl=[c for c in d['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
-        S=float(meta.get('regularMarketPrice',cl[-1]))
-        sigma=vol_hist(cl)
+        # Preco e vol — tenta Yahoo com timeout curto
+        S=None; sigma=0.35; cl=[]
+        for host in ['query1','query2']:
+            try:
+                r=requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
+                    headers={'User-Agent':'Mozilla/5.0'},timeout=6)
+                if r.ok:
+                    d=r.json()
+                    meta=d['chart']['result'][0]['meta']
+                    raw_cl=d['chart']['result'][0]['indicators']['quote'][0]['close']
+                    cl=[c for c in raw_cl if c is not None]
+                    S=float(meta.get('regularMarketPrice',cl[-1] if cl else 0))
+                    if cl: sigma=vol_hist(cl)
+                    break
+            except: continue
+
+        if not S or S<=0:
+            return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
         T=max(T_days,1)/252.0
         sqT=math.sqrt(T)
         drift=-0.5*sigma**2*T
@@ -731,9 +759,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-26 10:28
+# HTML EMBUTIDO — atualizado em 2026-05-26 11:03
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.1 - 2026-05-26 10:28 -->
+<!-- Trader Desk v7.2 - 2026-05-26 11:03 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
