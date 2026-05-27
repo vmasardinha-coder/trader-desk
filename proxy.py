@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-27 10:50
+# HTML EMBUTIDO — atualizado em 2026-05-27 15:52
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.5 - 2026-05-27 10:50 -->
+<!-- Trader Desk v7.7 - 2026-05-27 15:52 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1053,7 +1053,8 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div class="sb-row"><span class="sb-lbl">Strike vendido</span><span class="sb-val warn">R$ 31,33</span></div>
         <div class="sb-row"><span class="sb-lbl">Distância ITM</span><span class="sb-val itm" id="pt-itm">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val itm">⚠ DEEP ITM</span></div>
-        <div class="sb-row"><span class="sb-lbl">Gatilho reest.</span><span class="sb-val warn">≈ R$ 40</span></div>
+        <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">18/12/2026 · <span id="pt-dias">—</span> dias</span></div>
+      <div class="sb-row"><span class="sb-lbl">Gatilho reest.</span><span class="sb-val warn">≈ R$ 40</span></div>
         <div class="sb-row"><span class="sb-lbl">% p/ gatilho</span><span class="sb-val warn" id="pt-pct-gatilho">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Estratégia</span><span class="sb-val">Call vendida · prêmio recorrente</span></div>
         <div class="prog-wrap"><div class="prog-bar danger" id="pt-bar" style="width:0%"></div></div>
@@ -1085,7 +1086,8 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
         <div class="sb-row"><span class="sb-lbl">Strike vendido</span><span class="sb-val warn">R$ 57,40</span></div>
         <div class="sb-row"><span class="sb-lbl">Distância ITM</span><span class="sb-val itm" id="vl-itm">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val itm">⚠ DEEP ITM</span></div>
-        <div class="sb-row"><span class="sb-lbl">Gatilhos</span><span class="sb-val warn">R$ 70 · R$ 80 · R$ 85</span></div>
+        <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">19/02/2027 · <span id="vl-dias">—</span> dias</span></div>
+      <div class="sb-row"><span class="sb-lbl">Gatilhos</span><span class="sb-val warn">R$ 70 · R$ 80 · R$ 85</span></div>
         <div class="sb-row"><span class="sb-lbl">% p/ R$70</span><span class="sb-val warn" id="vl-pct-gatilho">—</span></div>
         <div class="sb-row"><span class="sb-lbl">Estratégia</span><span class="sb-val">Call vendida · prêmio + dividendos</span></div>
         <div class="prog-wrap"><div class="prog-bar danger" id="vl-bar" style="width:0%"></div></div>
@@ -1167,6 +1169,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="sb-row"><span class="sb-lbl">Range ideal</span><span class="sb-val ok">R$ 50,50 a R$ 60,00</span></div>
       <div class="sb-row"><span class="sb-lbl">Abaixo R$ 50,50</span><span class="sb-val warn">Só prêmio da put</span></div>
       <div class="sb-row"><span class="sb-lbl">Acima R$ 60,00</span><span class="sb-val itm">Put exercida — compra obrigatória</span></div>
+      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">14/09/2026 · <span id="axia3s-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="axia3s-status">—</span></div>
       <div class="sb-row"><span class="sb-lbl">% p/ Call (R$50,50)</span><span class="sb-val" id="axia3s-call-dist">—</span></div>
       <div class="sb-row"><span class="sb-lbl">% p/ Put (R$60,00)</span><span class="sb-val" id="axia3s-put-dist">—</span></div>
@@ -1181,6 +1184,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
           <div class="ind-box"><div class="ind-lbl">Acima R$60,00</div><div class="ind-val down" id="mc-axia3s-above">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3s-info">—</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:4px">Vol. Histórica: <span id="mc-axia3s-vol">—</span></div>
       </div>
     </div>
   </div>
@@ -1201,6 +1205,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="sb-row"><span class="sb-lbl">Retorno c/ barreira baixa</span><span class="sb-val itm">Proporcional à queda</span></div>
       <div class="sb-row"><span class="sb-lbl">Distância ao KDO</span><span class="sb-val" id="axia3-kdo-dist">—</span></div>
       <div class="sb-row"><span class="sb-lbl">Distância ao KUO</span><span class="sb-val" id="axia3-kuo-dist">—</span></div>
+      <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">14/09/2026 · <span id="axia3f-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="axia3-status">—</span></div>
     </div>
     <div class="signal" style="margin-top:8px;border-color:var(--blue)">
@@ -1213,6 +1218,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
           <div class="ind-box"><div class="ind-lbl">Bar. Baixa KDO</div><div class="ind-val down" id="mc-axia3-kdo">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3-info">—</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:4px">Vol. Histórica: <span id="mc-axia3-vol">—</span></div>
       </div>
     </div>
   </div>
@@ -1239,7 +1245,9 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div id="mc-roxo34-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
       <div id="mc-roxo34-result" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-          <div class="ind-box"><div class="ind-lbl">Prob. 7,1% ✅</div><div class="ind-val ok" id="mc-roxo34-sucesso">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Prob. Sucesso</div><div class="ind-val ok" id="mc-roxo34-sucesso">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Call Exercida</div><div class="ind-val" id="mc-roxo34-call">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">KDO Atingido</div><div class="ind-val" id="mc-roxo34-kdo">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-roxo34-vol">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-roxo34-info">—</div>
@@ -1652,6 +1660,18 @@ function doMacro(tv){
   // WIN handled by futures block
 
   // PETR4 e VALE3 na aba cotações
+  // Calcula dias restantes para todos os vencimentos
+  const calcDias=(dateStr,elId)=>{
+    const v=new Date(dateStr);
+    const d=Math.max(0,Math.ceil((v-new Date())/(1000*60*60*24)));
+    const el=document.getElementById(elId);
+    if(el)el.textContent=d;
+  };
+  calcDias('2026-12-18','pt-dias');
+  calcDias('2027-02-19','vl-dias');
+  calcDias('2026-09-14','axia3s-dias');
+  calcDias('2026-09-14','axia3f-dias');
+
   // AXIA3 Call Spread status
   setTimeout(async()=>{
     try{
@@ -1831,6 +1851,18 @@ function doPositions(tv,btcData){
     else{bbStatus.textContent='✅ No range — retorno 3,4% projetado';bbStatus.className='sb-val ok';}
   }
 
+  // Calcula dias restantes para todos os vencimentos
+  const calcDias=(dateStr,elId)=>{
+    const v=new Date(dateStr);
+    const d=Math.max(0,Math.ceil((v-new Date())/(1000*60*60*24)));
+    const el=document.getElementById(elId);
+    if(el)el.textContent=d;
+  };
+  calcDias('2026-12-18','pt-dias');
+  calcDias('2027-02-19','vl-dias');
+  calcDias('2026-09-14','axia3s-dias');
+  calcDias('2026-09-14','axia3f-dias');
+
   // AXIA3 Call Spread status
   setTimeout(async()=>{
     try{
@@ -2007,6 +2039,8 @@ async function runMCSpread(ticker, callStrike, putStrike, dias, loadId, resId, r
     document.getElementById(aboveId).textContent=above.toFixed(2)+'%';
     document.getElementById(infoId).textContent=
       `Preço R$ ${d.preco_atual} · Call R$ ${callStrike} · Put R$ ${putStrike} · ${d.cenarios.toLocaleString()} cenários`;
+    const volEl=document.getElementById('mc-axia3s-vol');
+    if(volEl)volEl.textContent=d.volatilidade_historica_pct+'%';
   }catch(e){
     const el=document.getElementById(loadId);
     if(el)el.textContent='Erro: '+(e.message||'indisponível');
@@ -2033,6 +2067,8 @@ async function runMCBarrier(ticker, entry, kdo, kuo, dias, price=null){
     document.getElementById('mc-axia3-kdo').textContent=d.prob_barreira_baixa.toFixed(2)+'%';
     document.getElementById('mc-axia3-info').textContent=
       `Preço R$ ${d.preco_atual} · KDO R$ ${d.kdo} · KUO R$ ${d.kuo} · ${d.cenarios.toLocaleString()} cenários`;
+    const axVolEl=document.getElementById('mc-axia3-vol');
+    if(axVolEl)axVolEl.textContent=d.volatilidade_historica_pct+'%';
   }catch(e){
     const el=document.getElementById('mc-axia3-loading');
     if(el)el.textContent='Erro: '+(e.message||'indisponível');
@@ -2054,13 +2090,16 @@ async function runMCPrefixado(ticker, entry, kdo, dias, price=null){
     if(d.error)throw new Error(d.error);
     document.getElementById('mc-roxo34-loading').style.display='none';
     document.getElementById('mc-roxo34-result').style.display='block';
-    const prob=d.prob_sucesso;
     const sEl=document.getElementById('mc-roxo34-sucesso');
-    sEl.textContent=Number(prob).toFixed(2)+'%';
-    sEl.className='ind-val '+(prob>70?'ok':prob>50?'warn':'down');
+    sEl.textContent=Number(d.prob_sucesso).toFixed(2)+'%';
+    sEl.className='ind-val '+(d.prob_sucesso>70?'ok':d.prob_sucesso>50?'warn':'down');
+    const cEl=document.getElementById('mc-roxo34-call');
+    if(cEl){cEl.textContent=Number(d.prob_call_exercida).toFixed(2)+'%';cEl.className='ind-val '+(d.prob_call_exercida<30?'ok':d.prob_call_exercida<50?'warn':'down');}
+    const kEl=document.getElementById('mc-roxo34-kdo');
+    if(kEl)kEl.textContent=d.prob_kdo_atingido!=null?Number(d.prob_kdo_atingido).toFixed(2)+'%':'—';
     document.getElementById('mc-roxo34-vol').textContent=d.volatilidade_historica_pct+'%';
     document.getElementById('mc-roxo34-info').textContent=
-      `Preço R$ ${d.preco_atual} · KDO R$ ${d.knock_down} · ${d.cenarios.toLocaleString()} cenários`;
+      `Preço R$ ${d.preco_atual} · Strike R$ ${d.k_call} · KDO R$ ${d.knock_down} · ${d.cenarios.toLocaleString()} cenários`;
   }catch(e){
     const el=document.getElementById('mc-roxo34-loading');
     if(el)el.textContent='Erro: '+(e.message||'indisponível');
