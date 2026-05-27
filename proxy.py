@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-26 20:38
+# HTML EMBUTIDO — atualizado em 2026-05-27 10:50
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.4 - 2026-05-26 20:38 -->
+<!-- Trader Desk v7.5 - 2026-05-27 10:50 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2543,14 +2543,19 @@ async function fetchAll(){
     }catch(e){}
   }, 4000);
 
-  // Monte Carlo — roda para todos os ativos estruturados
+  // Monte Carlo BBAS3, PETR4, VALE3 — t=5s
   setTimeout(()=>{
     runMonteCarlo();
-    // PETR4 — prob de cair até R$32 no vencimento (dez/26 = ~210 dias)
     runMCForAtivo('PETR4.SA',31.33,210,'mc-pt-loading','mc-pt-result','mc-pt-strike','mc-pt-vol','mc-pt-info');
-    // VALE3 — prob de cair até R$57 no vencimento (fev/27 = ~270 dias)
     runMCForAtivo('VALE3.SA',57.40,270,'mc-vl-loading','mc-vl-result','mc-vl-strike','mc-vl-vol','mc-vl-info');
   }, 5000);
+
+  // Monte Carlo AXIA3 e ROXO34 — t=10s com preco fixo
+  setTimeout(()=>{
+    runMCSpread('AXIA3.SA',50.50,60.00,113,'mc-axia3s-loading','mc-axia3s-result','mc-axia3s-range','mc-axia3s-below','mc-axia3s-above','mc-axia3s-info',56.54);
+    runMCBarrier('AXIA3.SA',54.31,43.39,68.48,113,56.54);
+    runMCPrefixado('ROXO34.SA',12.67,9.60,37,12.67);
+  }, 10000);
 
   // Indicadores carregam ao clicar na aba
   window._indLoaded=false;
