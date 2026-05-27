@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-27 15:52
+# HTML EMBUTIDO — atualizado em 2026-05-27 21:01
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.7 - 2026-05-27 15:52 -->
+<!-- Trader Desk v7.8 - 2026-05-27 21:01 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1178,13 +1178,13 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. em cada zona</div>
       <div id="mc-axia3s-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
       <div id="mc-axia3s-result" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
           <div class="ind-box"><div class="ind-lbl">No range ✅</div><div class="ind-val ok" id="mc-axia3s-range">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Abaixo R$50,50</div><div class="ind-val warn" id="mc-axia3s-below">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Acima R$60,00</div><div class="ind-val down" id="mc-axia3s-above">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-axia3s-vol">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3s-info">—</div>
-        <div style="font-size:.6rem;color:var(--muted);margin-top:4px">Vol. Histórica: <span id="mc-axia3s-vol">—</span></div>
       </div>
     </div>
   </div>
@@ -1212,13 +1212,13 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="sig-title" style="color:var(--blue)">🎲 Monte Carlo — Prob. de cada cenário</div>
       <div id="mc-axia3-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
       <div id="mc-axia3-result" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
-          <div class="ind-box"><div class="ind-lbl">Sem Barreira</div><div class="ind-val ok" id="mc-axia3-nobr">—</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+          <div class="ind-box"><div class="ind-lbl">Sem Barreira ✅</div><div class="ind-val ok" id="mc-axia3-nobr">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Bar. Alta KUO</div><div class="ind-val warn" id="mc-axia3-kuo">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Bar. Baixa KDO</div><div class="ind-val down" id="mc-axia3-kdo">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-axia3-vol">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3-info">—</div>
-        <div style="font-size:.6rem;color:var(--muted);margin-top:4px">Vol. Histórica: <span id="mc-axia3-vol">—</span></div>
       </div>
     </div>
   </div>
