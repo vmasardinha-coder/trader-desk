@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-27 21:34
+# HTML EMBUTIDO — atualizado em 2026-05-28 21:51
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.9 - 2026-05-27 21:34 -->
+<!-- Trader Desk v8.2 - 2026-05-28 21:51 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -971,9 +971,9 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
   <div class="sec"><span>01</span> Índices EUA <span class="src">· Hyperliquid xyz: dex</span></div>
   <div class="grid">
     <div class="card blue"><div class="c-label">Índice · EUA</div><div class="c-name">S&amp;P 500</div><div class="c-price loading" id="sp-p">—</div><div class="c-change" id="sp-c">—</div><div class="c-src" id="sp-s">HL</div></div>
-    <div class="card blue"><div class="c-label">Futuro · EUA</div><div class="c-name">S&amp;P ES1*</div><div class="c-price loading" id="esf-p">—</div><div class="c-change" id="esf-c">—</div><div class="c-src" id="esf-s">proxy</div></div>
+    <div class="card blue"><div class="c-label">Futuro · EUA</div><div class="c-name">S&amp;P ES1*</div><div class="c-price loading" id="esf-p" style="color:var(--accent)">—</div><div class="c-change" id="esf-c">—</div><div class="c-src" id="esf-s">proxy</div></div>
     <div class="card blue"><div class="c-label">Índice · EUA</div><div class="c-name">Nasdaq 100</div><div class="c-price loading" id="ndx-p">—</div><div class="c-change" id="ndx-c">—</div><div class="c-src" id="ndx-s">HL</div></div>
-    <div class="card blue"><div class="c-label">Futuro · EUA</div><div class="c-name">NQ Futuro</div><div class="c-price loading" id="nqf-p">—</div><div class="c-change" id="nqf-c">—</div><div class="c-src" id="nqf-s">proxy</div></div>
+    <div class="card blue"><div class="c-label">Futuro · EUA</div><div class="c-name">NQ Futuro</div><div class="c-price loading" id="nqf-p" style="color:var(--accent)">—</div><div class="c-change" id="nqf-c">—</div><div class="c-src" id="nqf-s">proxy</div></div>
     <div class="card blue"><div class="c-label">Índice · EUA</div><div class="c-name">Dow Jones</div><div class="c-price loading" id="dji-p">—</div><div class="c-change" id="dji-c">—</div><div class="c-src" id="dji-s">proxy</div></div>
     <div class="card blue"><div class="c-label">Volatilidade</div><div class="c-name">VIX</div><div class="c-price loading" id="vix-p">—</div><div class="c-change" id="vix-c">—</div><div class="c-src">HL</div></div>
     <div class="card warn"><div class="c-label">Índice Dólar</div><div class="c-name">DXY</div><div class="c-price loading" id="dxy-p">—</div><div class="c-change" id="dxy-c">—</div><div class="c-src">HL</div></div>
@@ -1167,8 +1167,8 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="sb-row"><span class="sb-lbl">Put Vendida (AXIAU600)</span><span class="sb-val warn">Strike R$ 60,00 — obrigado a comprar se cair</span></div>
       <div class="sb-row"><span class="sb-lbl">Call Comprada (AXIAI505)</span><span class="sb-val ok">Strike R$ 50,50 — direito de compra</span></div>
       <div class="sb-row"><span class="sb-lbl">Range ideal</span><span class="sb-val ok">Entre R$ 50,50 e R$ 60,00 — lucro máximo</span></div>
-      <div class="sb-row"><span class="sb-lbl">Abaixo R$ 50,50</span><span class="sb-val itm">Call exercida — obrigado a vender</span></div>
-      <div class="sb-row"><span class="sb-lbl">Acima R$ 60,00</span><span class="sb-val itm">Put exercida — obrigado a comprar</span></div>
+      <div class="sb-row"><span class="sb-lbl">Abaixo R$ 50,50</span><span class="sb-val warn">Call exercida — entrega as ações a R$50,50 ⚠</span></div>
+      <div class="sb-row"><span class="sb-lbl">Acima R$ 60,00</span><span class="sb-val itm">Put exercida — obrigado a vender a R$60 ⚠</span></div>
       <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">14/09/2026 · <span id="axia3s-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="axia3s-status">—</span></div>
       <div class="sb-row"><span class="sb-lbl">% p/ Call (R$50,50)</span><span class="sb-val" id="axia3s-call-dist">—</span></div>
@@ -1180,8 +1180,8 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div id="mc-axia3s-result" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
           <div class="ind-box"><div class="ind-lbl">No range ✅ (lucro)</div><div class="ind-val ok" id="mc-axia3s-range">—</div></div>
-          <div class="ind-box"><div class="ind-lbl">Call exercida ⚠</div><div class="ind-val warn" id="mc-axia3s-below">—</div></div>
-          <div class="ind-box"><div class="ind-lbl">Put exercida ⚠</div><div class="ind-val warn" id="mc-axia3s-above">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Call exercida (entrega ações)</div><div class="ind-val warn" id="mc-axia3s-below">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Put exercida (vende R$60)</div><div class="ind-val warn" id="mc-axia3s-above">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-axia3s-vol">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3s-info">—</div>
@@ -1370,6 +1370,58 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
 <script>
 // ── TABS ──────────────────────────────────────────────
+function toggleSector(id){
+  const el=document.getElementById('sec-'+id);
+  const arr=document.getElementById('arr-'+id);
+  if(!el)return;
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(arr)arr.textContent=open?'▲':'▼';
+  // Fetch sector data on first open
+  if(open&&!el.dataset.loaded){
+    el.dataset.loaded='1';
+    fetchSector(id);
+  }
+}
+
+// Sector tickers map
+const SECTOR_TICKERS={
+  'financeiro':['ITUB4','BBDC4','BBAS3','SANB11','B3SA3','BPAC11','IRBR3','SULA11','PSSA3','CIEL3'],
+  'petroleo_e_gas':['PETR4','PETR3','PRIO3','UGPA3','VBBR3','CSAN3','RECV3','RRRP3','DMMO3','ENAT3'],
+  'materiais_basicos':['VALE3','GGBR4','CSNA3','SUZB3','KLBN11','USIM5','BRAP4','UNIP6','FESA4','CBAV3'],
+  'utilidade_publica':['ELET3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','TRPL4','AURE3','EGIE3'],
+  'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','COGN3','LWSA3','VIVA3'],
+  'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NTCO3','MDIA3','BEEF3','SLCE3','SMFT3','PCAR3','CAML3'],
+  'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUALS3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
+  'bens_industriais':['WEGE3','EMBR3','RAIL3','TGMA3','ROMI3','FRAS3','TUPY3','PMAM3','VLID3','LPSB3'],
+  'ti_e_comunicacoes':['VIVT3','TIMS3','TOTVS3','OIBR3','LWSA3','INTB3','MLAS3','ANIM3','DESK3','SQIA3'],
+};
+
+async function fetchSector(id){
+  const tickers=SECTOR_TICKERS[id];
+  if(!tickers)return;
+  try{
+    const tvTickers=tickers.map(t=>'BMFBOVESPA:'+t);
+    const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({symbols:{tickers:tvTickers},columns:['close','change_abs']})
+    });
+    if(!r.ok)return;
+    const d=await r.json();
+    (d.data||[]).forEach(x=>{
+      const t=x.s.replace('BMFBOVESPA:','').toLowerCase();
+      const [close,chg]=x.d||[];
+      if(close!=null){
+        const prev=close-(chg||0);
+        const pEl=document.getElementById(`s-${t}-p`);
+        const cEl=document.getElementById(`s-${t}-c`);
+        if(pEl){pEl.textContent=fBRL(close);pEl.className=pEl.className.replace(/loading/g,'').trim();}
+        if(cEl)setChg(`s-${t}-c`,close,prev,'brl');
+      }
+    });
+  }catch(e){}
+}
+
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
@@ -1504,7 +1556,7 @@ async function fetchTV(){
   try{
     const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:VALE3','BMFBOVESPA:BBAS3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
+      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:ITUB4','BMFBOVESPA:VALE3','BMFBOVESPA:BBDC4','BMFBOVESPA:ABEV3','BMFBOVESPA:BBAS3','BMFBOVESPA:WEGE3','BMFBOVESPA:RDOR3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
     });
     if(r.ok){
       const d=await r.json();
@@ -1687,9 +1739,9 @@ function doMacro(tv){
           if(cdEl)cdEl.textContent=p>cs?`+${((p-cs)/cs*100).toFixed(1)}% acima da call`:`${((cs-p)/p*100).toFixed(1)}% para a call`;
           if(pdEl)pdEl.textContent=p<ps?`${((ps-p)/p*100).toFixed(1)}% para a put`:`+${((p-ps)/ps*100).toFixed(1)}% acima da put ⚠`;
           if(stEl){
-            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put exercida';stEl.className='sb-val itm';}
-            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — prêmio garantido';stEl.className='sb-val ok';}
-            else{stEl.textContent='⚠ Abaixo de R$50,50 — call exercida';stEl.className='sb-val itm';}
+            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put exercida (vende a R$60)';stEl.className='sb-val warn';}
+            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — prêmio garantido dos dois lados';stEl.className='sb-val ok';}
+            else{stEl.textContent='⚠ Abaixo de R$50,50 — call exercida (entrega ações)';stEl.className='sb-val warn';}
           }
         }
       }
@@ -1756,6 +1808,15 @@ function doMacro(tv){
   const bbD=tv['BMFBOVESPA:BBAS3'];
   const bbP=bbD?.p||FB.BBAS3.p,bbV=bbD?.v||FB.BBAS3.v;
   setEl('bbas3q-p',fBRL(bbP));setChg('bbas3q-c',bbP,bbV,'brl');
+
+  // Top 10 adicionais
+  ['ITUB4','BBDC4','ABEV3','WEGE3','RDOR3'].forEach(t=>{
+    const d=tv['BMFBOVESPA:'+t];
+    if(d){
+      setEl(t.toLowerCase()+'q-p',fBRL(d.p));
+      setChg(t.toLowerCase()+'q-c',d.p,d.v,'brl');
+    }
+  });
 
   return{usdP,usdV,ibovP,ibovV,ptP,ptV,vlP,vlV};
 }
@@ -1878,9 +1939,9 @@ function doPositions(tv,btcData){
           if(cdEl)cdEl.textContent=p>cs?`+${((p-cs)/cs*100).toFixed(1)}% acima da call`:`${((cs-p)/p*100).toFixed(1)}% para a call`;
           if(pdEl)pdEl.textContent=p<ps?`${((ps-p)/p*100).toFixed(1)}% para a put`:`+${((p-ps)/ps*100).toFixed(1)}% acima da put ⚠`;
           if(stEl){
-            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put exercida';stEl.className='sb-val itm';}
-            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — prêmio garantido';stEl.className='sb-val ok';}
-            else{stEl.textContent='⚠ Abaixo de R$50,50 — call exercida';stEl.className='sb-val itm';}
+            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put exercida (vende a R$60)';stEl.className='sb-val warn';}
+            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — prêmio garantido dos dois lados';stEl.className='sb-val ok';}
+            else{stEl.textContent='⚠ Abaixo de R$50,50 — call exercida (entrega ações)';stEl.className='sb-val warn';}
           }
         }
       }
@@ -2152,8 +2213,8 @@ async function runMonteCarlo(){
       signal:controller.signal,
       body:JSON.stringify({
         ticker:'BBAS3.SA',
-        k_call:21.24,
-        k_put:21.24,
+        k_call:20.70,
+        k_put:20.70,
         t_days:27,
         knock_down:18.60,
         n:5000
@@ -2591,9 +2652,9 @@ async function fetchAll(){
 
   // Monte Carlo AXIA3 e ROXO34 — t=10s com preco fixo
   setTimeout(()=>{
-    runMCSpread('AXIA3.SA',50.50,60.00,113,'mc-axia3s-loading','mc-axia3s-result','mc-axia3s-range','mc-axia3s-below','mc-axia3s-above','mc-axia3s-info',56.54);
-    runMCBarrier('AXIA3.SA',54.31,43.39,68.48,113,56.54);
-    runMCPrefixado('ROXO34.SA',12.67,9.60,37,12.67);
+    runMCSpread('AXIA3.SA',50.50,60.00,113,'mc-axia3s-loading','mc-axia3s-result','mc-axia3s-range','mc-axia3s-below','mc-axia3s-above','mc-axia3s-info',54.31);
+    runMCBarrier('AXIA3.SA',54.31,43.39,68.48,113,54.31);
+    runMCPrefixado('ROXO34.SA',11.82,9.60,37,11.82);
   }, 10000);
 
   // Indicadores carregam ao clicar na aba
