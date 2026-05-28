@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-27 21:01
+# HTML EMBUTIDO — atualizado em 2026-05-27 21:34
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v7.8 - 2026-05-27 21:01 -->
+<!-- Trader Desk v7.9 - 2026-05-27 21:34 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1158,17 +1158,17 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
   <!-- AXIA3 CALL SPREAD -->
   <div class="pos-card acao" style="margin-top:12px">
-    <div class="pos-label">AXIA3 · Call Spread · Venc 14/09/2026</div>
+    <div class="pos-label">AXIA3 · Short Strangle · Venc 14/09/2026</div>
     <div class="pos-ticker">AXIA3</div>
     <div class="pos-price loading" id="axia3s-pos-p">—</div>
     <div class="pos-chg" id="axia3s-pos-c">—</div>
     <div class="sb">
-      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Call Spread (2 pernas)</span></div>
-      <div class="sb-row"><span class="sb-lbl">Put Vendida (AXIAU600)</span><span class="sb-val warn">Strike R$ 60,00 — recebe prêmio</span></div>
+      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Short Strangle (2 pernas)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Put Vendida (AXIAU600)</span><span class="sb-val warn">Strike R$ 60,00 — obrigado a comprar se cair</span></div>
       <div class="sb-row"><span class="sb-lbl">Call Comprada (AXIAI505)</span><span class="sb-val ok">Strike R$ 50,50 — direito de compra</span></div>
-      <div class="sb-row"><span class="sb-lbl">Range ideal</span><span class="sb-val ok">R$ 50,50 a R$ 60,00</span></div>
-      <div class="sb-row"><span class="sb-lbl">Abaixo R$ 50,50</span><span class="sb-val warn">Só prêmio da put</span></div>
-      <div class="sb-row"><span class="sb-lbl">Acima R$ 60,00</span><span class="sb-val itm">Put exercida — compra obrigatória</span></div>
+      <div class="sb-row"><span class="sb-lbl">Range ideal</span><span class="sb-val ok">Entre R$ 50,50 e R$ 60,00 — lucro máximo</span></div>
+      <div class="sb-row"><span class="sb-lbl">Abaixo R$ 50,50</span><span class="sb-val itm">Call exercida — obrigado a vender</span></div>
+      <div class="sb-row"><span class="sb-lbl">Acima R$ 60,00</span><span class="sb-val itm">Put exercida — obrigado a comprar</span></div>
       <div class="sb-row"><span class="sb-lbl">Vencimento</span><span class="sb-val">14/09/2026 · <span id="axia3s-dias">—</span> dias</span></div>
       <div class="sb-row"><span class="sb-lbl">Situação</span><span class="sb-val" id="axia3s-status">—</span></div>
       <div class="sb-row"><span class="sb-lbl">% p/ Call (R$50,50)</span><span class="sb-val" id="axia3s-call-dist">—</span></div>
@@ -1179,9 +1179,9 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div id="mc-axia3s-loading" style="font-size:.65rem;color:var(--muted)">Calculando...</div>
       <div id="mc-axia3s-result" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
-          <div class="ind-box"><div class="ind-lbl">No range ✅</div><div class="ind-val ok" id="mc-axia3s-range">—</div></div>
-          <div class="ind-box"><div class="ind-lbl">Abaixo R$50,50</div><div class="ind-val warn" id="mc-axia3s-below">—</div></div>
-          <div class="ind-box"><div class="ind-lbl">Acima R$60,00</div><div class="ind-val down" id="mc-axia3s-above">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">No range ✅ (lucro)</div><div class="ind-val ok" id="mc-axia3s-range">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Call exercida ⚠</div><div class="ind-val warn" id="mc-axia3s-below">—</div></div>
+          <div class="ind-box"><div class="ind-lbl">Put exercida ⚠</div><div class="ind-val warn" id="mc-axia3s-above">—</div></div>
           <div class="ind-box"><div class="ind-lbl">Vol. Histórica</div><div class="ind-val warn" id="mc-axia3s-vol">—</div></div>
         </div>
         <div style="font-size:.6rem;color:var(--muted);margin-top:6px" id="mc-axia3s-info">—</div>
@@ -1687,9 +1687,9 @@ function doMacro(tv){
           if(cdEl)cdEl.textContent=p>cs?`+${((p-cs)/cs*100).toFixed(1)}% acima da call`:`${((cs-p)/p*100).toFixed(1)}% para a call`;
           if(pdEl)pdEl.textContent=p<ps?`${((ps-p)/p*100).toFixed(1)}% para a put`:`+${((p-ps)/ps*100).toFixed(1)}% acima da put ⚠`;
           if(stEl){
-            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put em risco';stEl.className='sb-val itm';}
-            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — lucro máximo';stEl.className='sb-val ok';}
-            else{stEl.textContent='⚠ Abaixo de R$50,50 — só prêmio';stEl.className='sb-val warn';}
+            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put exercida';stEl.className='sb-val itm';}
+            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — prêmio garantido';stEl.className='sb-val ok';}
+            else{stEl.textContent='⚠ Abaixo de R$50,50 — call exercida';stEl.className='sb-val itm';}
           }
         }
       }
@@ -1878,9 +1878,9 @@ function doPositions(tv,btcData){
           if(cdEl)cdEl.textContent=p>cs?`+${((p-cs)/cs*100).toFixed(1)}% acima da call`:`${((cs-p)/p*100).toFixed(1)}% para a call`;
           if(pdEl)pdEl.textContent=p<ps?`${((ps-p)/p*100).toFixed(1)}% para a put`:`+${((p-ps)/ps*100).toFixed(1)}% acima da put ⚠`;
           if(stEl){
-            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put em risco';stEl.className='sb-val itm';}
-            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — lucro máximo';stEl.className='sb-val ok';}
-            else{stEl.textContent='⚠ Abaixo de R$50,50 — só prêmio';stEl.className='sb-val warn';}
+            if(p>=ps){stEl.textContent='⚠ Acima de R$60 — put exercida';stEl.className='sb-val itm';}
+            else if(p>=cs&&p<ps){stEl.textContent='✅ No range — prêmio garantido';stEl.className='sb-val ok';}
+            else{stEl.textContent='⚠ Abaixo de R$50,50 — call exercida';stEl.className='sb-val itm';}
           }
         }
       }
