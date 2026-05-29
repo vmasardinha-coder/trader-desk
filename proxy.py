@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-28 21:55
+# HTML EMBUTIDO — atualizado em 2026-05-29 19:39
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.3 - 2026-05-28 21:55 -->
+<!-- Trader Desk v8.4 - 2026-05-29 19:39 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1468,7 +1468,7 @@ const fPTS=v=>Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0});
 
 function setEl(id,txt){
   const e=document.getElementById(id);if(!e)return;
-  e.textContent=txt;e.className=e.className.replace(/\\\\bloading\\\\b/g,'').trim();
+  e.textContent=txt;e.className=e.className.replace(/\\\\\\\\bloading\\\\\\\\b/g,'').trim();
 }
 function setChg(id,p,prev,fmt){
   const e=document.getElementById(id);if(!e||!prev||isNaN(prev)||isNaN(p))return;
@@ -1560,6 +1560,22 @@ async function fetchFutures(){
 // ── TRADINGVIEW via proxy ─────────────────────────────
 async function fetchTV(){
   const out={};
+  // Chamada 1: principais
+  try{
+    const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:VALE3','BMFBOVESPA:BBAS3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
+    });
+    if(r.ok){const d=await r.json();(d.data||[]).forEach(x=>{const[c,ca]=x.d||[];if(c!=null)out[x.s]={p:c,v:c-(ca||0)};});}
+  }catch{}
+  // Chamada 2: top 10 extras
+  try{
+    const r2=await fetch('https://trader-desk.onrender.com/tv/brazil',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:ITUB4','BMFBOVESPA:BBDC4','BMFBOVESPA:ABEV3','BMFBOVESPA:WEGE3','BMFBOVESPA:RDOR3']},columns:['close','change_abs']})
+    });
+    if(r2.ok){const d2=await r2.json();(d2.data||[]).forEach(x=>{const[c,ca]=x.d||[];if(c!=null)out[x.s]={p:c,v:c-(ca||0)};});}
+  }catch{}
   try{
     const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
       method:'POST',headers:{'Content-Type':'application/json'},
