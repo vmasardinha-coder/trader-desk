@@ -1,5 +1,5 @@
-"""
-Trader Desk — Proxy Server v4
+"""  # v8.3
+Trader Desk — Proxy Server v8.3
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
 """
 from flask import Flask, jsonify, request
