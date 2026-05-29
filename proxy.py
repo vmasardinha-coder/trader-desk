@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-28 21:51
+# HTML EMBUTIDO — atualizado em 2026-05-28 21:55
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.2 - 2026-05-28 21:51 -->
+<!-- Trader Desk v8.3 - 2026-05-28 21:55 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -985,7 +985,14 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div class="card green"><div class="c-label">BR · Índice</div><div class="c-name">Ibovespa</div><div class="c-price loading" id="ibov-p">—</div><div class="c-change" id="ibov-c">—</div><div class="c-src" id="ibov-s">TV</div></div>
     <div class="card green"><div class="c-label">BR · Futuro</div><div class="c-name">WIN Futuro</div><div class="c-price loading" id="win-p">—</div><div class="c-change" id="win-c">—</div><div class="c-src">ref</div></div>
     <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">PETR4</div><div class="c-price loading" id="petr4q-p">—</div><div class="c-change" id="petr4q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">ITUB4</div><div class="c-price loading" id="itub4q-p">—</div><div class="c-change" id="itub4q-c">—</div><div class="c-src">TV</div></div>
     <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">VALE3</div><div class="c-price loading" id="vale3q-p">—</div><div class="c-change" id="vale3q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">BBDC4</div><div class="c-price loading" id="bbdc4q-p">—</div><div class="c-change" id="bbdc4q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">ABEV3</div><div class="c-price loading" id="abev3q-p">—</div><div class="c-change" id="abev3q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">BBAS3</div><div class="c-price loading" id="bbas3q-p">—</div><div class="c-change" id="bbas3q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">WEGE3</div><div class="c-price loading" id="wege3q-p">—</div><div class="c-change" id="wege3q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card green"><div class="c-label">Ação · BR</div><div class="c-name">RDOR3</div><div class="c-price loading" id="rdor3q-p">—</div><div class="c-change" id="rdor3q-c">—</div><div class="c-src">TV</div></div>
+    <div class="card warn"><div class="c-label">BDR · Nubank</div><div class="c-name">ROXO34</div><div class="c-price loading" id="roxo34q-p">—</div><div class="c-change" id="roxo34q-c">—</div><div class="c-src">Yahoo</div></div>
   </div>
 
   <div class="sec"><span>03</span> Commodities <span class="src">· Hyperliquid 24/7</span></div>
@@ -1461,7 +1468,7 @@ const fPTS=v=>Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0});
 
 function setEl(id,txt){
   const e=document.getElementById(id);if(!e)return;
-  e.textContent=txt;e.className=e.className.replace(/\\bloading\\b/g,'').trim();
+  e.textContent=txt;e.className=e.className.replace(/\\\\bloading\\\\b/g,'').trim();
 }
 function setChg(id,p,prev,fmt){
   const e=document.getElementById(id);if(!e||!prev||isNaN(prev)||isNaN(p))return;
