@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-30 15:47
+# HTML EMBUTIDO — atualizado em 2026-05-30 20:48
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.5 - 2026-05-30 15:47 -->
+<!-- Trader Desk v8.6 - 2026-05-30 20:48 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1422,7 +1422,7 @@ async function fetchSector(id){
         const prev=close-(chg||0);
         const pEl=document.getElementById(`s-${t}-p`);
         const cEl=document.getElementById(`s-${t}-c`);
-        if(pEl){pEl.textContent=fBRL(close);pEl.className=pEl.className.replace(/loading/g,'').trim();}
+        if(pEl){pEl.textContent=fBRL(close);pEl.className=pEl.classList.remove('loading');}
         if(cEl)setChg(`s-${t}-c`,close,prev,'brl');
       }
     });
@@ -1468,7 +1468,7 @@ const fPTS=v=>Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0});
 
 function setEl(id,txt){
   const e=document.getElementById(id);if(!e)return;
-  e.textContent=txt;e.className=e.className.replace(/\\\\\\\\\\\\\\\\bloading\\\\\\\\\\\\\\\\b/g,'').trim();
+  e.textContent=txt;e.classList.remove('loading');
 }
 function setChg(id,p,prev,fmt){
   const e=document.getElementById(id);if(!e||!prev||isNaN(prev)||isNaN(p))return;
@@ -1826,7 +1826,7 @@ function doMacro(tv){
       const pid=t.toLowerCase()+'q-p';
       const cid=t.toLowerCase()+'q-c';
       const el=document.getElementById(pid);
-      if(el){el.textContent=fBRL(d.p);el.className=el.className.replace(/loading/g,'').trim();}
+      if(el){el.textContent=fBRL(d.p);el.classList.remove('loading');}
       setChg(cid,d.p,d.v,'brl');
     }
   });
@@ -2552,12 +2552,12 @@ async function fetchAll(){
   // Aplica futuros imediatamente
   if(futuresData){
     const f=futuresData;
-    if(f.dji){const e=document.getElementById('dji-p');if(e){e.textContent=fPTS(f.dji.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('dji-c',f.dji.price,f.dji.prev,'pts');}
-    if(f.esf){const e=document.getElementById('esf-p');if(e){e.textContent=fPTS(f.esf.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('esf-c',f.esf.price,f.esf.prev,'pts');}
-    if(f.nqf){const e=document.getElementById('nqf-p');if(e){e.textContent=fPTS(f.nqf.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('nqf-c',f.nqf.price,f.nqf.prev,'pts');}
-    if(f.win&&f.win.price>50000){const e=document.getElementById('win-p');if(e){e.textContent=fPTS(f.win.price);e.className=e.className.replace(/loading/g,'').trim();}setChg('win-c',f.win.price,f.win.prev,'pts');}
-    if(f.vix&&f.vix.price>5&&f.vix.price<100){const e=document.getElementById('vix-p');if(e){e.textContent=Number(f.vix.price).toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('vix-c',f.vix.price,f.vix.prev,'usd');}
-    if(f.dxy&&f.dxy.price>70&&f.dxy.price<120){const e=document.getElementById('dxy-p');if(e){e.textContent=Number(f.dxy.price).toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('dxy-c',f.dxy.price,f.dxy.prev,'usd');}
+    if(f.dji){const e=document.getElementById('dji-p');if(e){e.textContent=fPTS(f.dji.price);e.classList.remove('loading');}setChg('dji-c',f.dji.price,f.dji.prev,'pts');}
+    if(f.esf){const e=document.getElementById('esf-p');if(e){e.textContent=fPTS(f.esf.price);e.classList.remove('loading');}setChg('esf-c',f.esf.price,f.esf.prev,'pts');}
+    if(f.nqf){const e=document.getElementById('nqf-p');if(e){e.textContent=fPTS(f.nqf.price);e.classList.remove('loading');}setChg('nqf-c',f.nqf.price,f.nqf.prev,'pts');}
+    if(f.win&&f.win.price>50000){const e=document.getElementById('win-p');if(e){e.textContent=fPTS(f.win.price);e.classList.remove('loading');}setChg('win-c',f.win.price,f.win.prev,'pts');}
+    if(f.vix&&f.vix.price>5&&f.vix.price<100){const e=document.getElementById('vix-p');if(e){e.textContent=Number(f.vix.price).toFixed(2);e.classList.remove('loading');}setChg('vix-c',f.vix.price,f.vix.prev,'usd');}
+    if(f.dxy&&f.dxy.price>70&&f.dxy.price<120){const e=document.getElementById('dxy-p');if(e){e.textContent=Number(f.dxy.price).toFixed(2);e.classList.remove('loading');}setChg('dxy-c',f.dxy.price,f.dxy.prev,'usd');}
   }
 
   // Mantém callback para atualizações futuras
@@ -2567,32 +2567,32 @@ async function fetchAll(){
     const djiD=futures.dji;
     if(djiD){
       const el=document.getElementById('dji-p');
-      if(el){el.textContent=fPTS(djiD.price);el.className=el.className.replace(/loading/g,'').trim();}
+      if(el){el.textContent=fPTS(djiD.price);el.classList.remove('loading');}
       setChg('dji-c',djiD.price,djiD.prev,'pts');
       const sl=document.getElementById('dji-s');if(sl)sl.textContent='Yahoo ✓';
     }
     const esfD=futures.esf;
     if(esfD){
       const el=document.getElementById('esf-p');
-      if(el){el.textContent=fPTS(esfD.price);el.className=el.className.replace(/loading/g,'').trim();}
+      if(el){el.textContent=fPTS(esfD.price);el.classList.remove('loading');}
       setChg('esf-c',esfD.price,esfD.prev,'pts');
     }
     const nqfD=futures.nqf;
     if(nqfD){
       const el=document.getElementById('nqf-p');
-      if(el){el.textContent=fPTS(nqfD.price);el.className=el.className.replace(/loading/g,'').trim();}
+      if(el){el.textContent=fPTS(nqfD.price);el.classList.remove('loading');}
       setChg('nqf-c',nqfD.price,nqfD.prev,'pts');
     }
-    if(futures.win&&futures.win.price){const p=Number(futures.win.price),v=Number(futures.win.prev);const e=document.getElementById('win-p');if(e){e.textContent=fPTS(p);e.className=e.className.replace(/loading/g,'').trim();}setChg('win-c',p,v,'pts');}
-    if(futures.vix&&futures.vix.price){const p=Number(futures.vix.price),v=Number(futures.vix.prev);const e=document.getElementById('vix-p');if(e){e.textContent=p.toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('vix-c',p,v,'usd');}
-    if(futures.dxy&&futures.dxy.price){const p=Number(futures.dxy.price),v=Number(futures.dxy.prev);const e=document.getElementById('dxy-p');if(e){e.textContent=p.toFixed(2);e.className=e.className.replace(/loading/g,'').trim();}setChg('dxy-c',p,v,'usd');}
+    if(futures.win&&futures.win.price){const p=Number(futures.win.price),v=Number(futures.win.prev);const e=document.getElementById('win-p');if(e){e.textContent=fPTS(p);e.classList.remove('loading');}setChg('win-c',p,v,'pts');}
+    if(futures.vix&&futures.vix.price){const p=Number(futures.vix.price),v=Number(futures.vix.prev);const e=document.getElementById('vix-p');if(e){e.textContent=p.toFixed(2);e.classList.remove('loading');}setChg('vix-c',p,v,'usd');}
+    if(futures.dxy&&futures.dxy.price){const p=Number(futures.dxy.price),v=Number(futures.dxy.prev);const e=document.getElementById('dxy-p');if(e){e.textContent=p.toFixed(2);e.classList.remove('loading');}setChg('dxy-c',p,v,'usd');}
   }).catch(()=>{});
 
   const macroData=doMacro(tv);
   // Aplica futuros APÓS doMacro para não ser sobrescrito
   if(futuresData){
     const f=futuresData;
-    const applyF=(id,val)=>{const e=document.getElementById(id);if(e){e.textContent=val;e.className=e.className.replace(/loading/g,'').trim();}};
+    const applyF=(id,val)=>{const e=document.getElementById(id);if(e){e.textContent=val;e.classList.remove('loading');}};
     if(f.dji&&f.dji.price){const p=Number(f.dji.price),v=Number(f.dji.prev);applyF('dji-p',fPTS(p));setChg('dji-c',p,v,'pts');}
     if(f.esf&&f.esf.price){const p=Number(f.esf.price),v=Number(f.esf.prev);applyF('esf-p',fPTS(p));setChg('esf-c',p,v,'pts');}
     if(f.nqf&&f.nqf.price){const p=Number(f.nqf.price),v=Number(f.nqf.prev);applyF('nqf-p',fPTS(p));setChg('nqf-c',p,v,'pts');}
@@ -2637,7 +2637,7 @@ async function fetchAll(){
         const d=await r.json();
         if(d.price){
           const el=document.getElementById('roxo34q-p');
-          if(el){el.textContent='R$ '+Number(d.price).toFixed(2);el.className=el.className.replace(/loading/g,'').trim();}
+          if(el){el.textContent='R$ '+Number(d.price).toFixed(2);el.classList.remove('loading');}
         }
       }
     }catch(e){}
@@ -2648,7 +2648,7 @@ async function fetchAll(){
     try{
       const r=await fetch('https://trader-desk.onrender.com/futures');
       const d=await r.json();
-      const set=(id,txt)=>{const e=document.getElementById(id);if(e){e.textContent=txt;e.className=e.className.replace(/loading/g,'').trim();}};
+      const set=(id,txt)=>{const e=document.getElementById(id);if(e){e.textContent=txt;e.classList.remove('loading');}};
       if(d.vix&&d.vix.price) set('vix-p', Number(d.vix.price).toFixed(2));
       if(d.dxy&&d.dxy.price) set('dxy-p', Number(d.dxy.price).toFixed(2));
       if(d.win&&d.win.price) set('win-p', Number(d.win.price).toLocaleString('pt-BR',{maximumFractionDigits:0}));
