@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-05-29 19:39
+# HTML EMBUTIDO — atualizado em 2026-05-30 15:47
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.4 - 2026-05-29 19:39 -->
+<!-- Trader Desk v8.5 - 2026-05-30 15:47 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1468,7 +1468,7 @@ const fPTS=v=>Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0});
 
 function setEl(id,txt){
   const e=document.getElementById(id);if(!e)return;
-  e.textContent=txt;e.className=e.className.replace(/\\\\\\\\bloading\\\\\\\\b/g,'').trim();
+  e.textContent=txt;e.className=e.className.replace(/\\\\\\\\\\\\\\\\bloading\\\\\\\\\\\\\\\\b/g,'').trim();
 }
 function setChg(id,p,prev,fmt){
   const e=document.getElementById(id);if(!e||!prev||isNaN(prev)||isNaN(p))return;
@@ -1560,32 +1560,19 @@ async function fetchFutures(){
 // ── TRADINGVIEW via proxy ─────────────────────────────
 async function fetchTV(){
   const out={};
-  // Chamada 1: principais
+  // Busca todos os ativos B3 de uma vez
+  const allTickers=['BMFBOVESPA:PETR4','BMFBOVESPA:ITUB4','BMFBOVESPA:VALE3','BMFBOVESPA:BBDC4',
+    'BMFBOVESPA:ABEV3','BMFBOVESPA:BBAS3','BMFBOVESPA:WEGE3','BMFBOVESPA:RDOR3','BMFBOVESPA:IBOV'];
   try{
     const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:VALE3','BMFBOVESPA:BBAS3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
-    });
-    if(r.ok){const d=await r.json();(d.data||[]).forEach(x=>{const[c,ca]=x.d||[];if(c!=null)out[x.s]={p:c,v:c-(ca||0)};});}
-  }catch{}
-  // Chamada 2: top 10 extras
-  try{
-    const r2=await fetch('https://trader-desk.onrender.com/tv/brazil',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:ITUB4','BMFBOVESPA:BBDC4','BMFBOVESPA:ABEV3','BMFBOVESPA:WEGE3','BMFBOVESPA:RDOR3']},columns:['close','change_abs']})
-    });
-    if(r2.ok){const d2=await r2.json();(d2.data||[]).forEach(x=>{const[c,ca]=x.d||[];if(c!=null)out[x.s]={p:c,v:c-(ca||0)};});}
-  }catch{}
-  try{
-    const r=await fetch('https://trader-desk.onrender.com/tv/brazil',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:ITUB4','BMFBOVESPA:VALE3','BMFBOVESPA:BBDC4','BMFBOVESPA:ABEV3','BMFBOVESPA:BBAS3','BMFBOVESPA:WEGE3','BMFBOVESPA:RDOR3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})
+      body:JSON.stringify({symbols:{tickers:allTickers},columns:['close','change_abs']})
     });
     if(r.ok){
       const d=await r.json();
       (d.data||[]).forEach(x=>{
-        const [close,chgAbs]=x.d||[];
-        if(close!=null)out[x.s]={p:close,v:close-(chgAbs||0)};
+        const[c,ca]=x.d||[];
+        if(c!=null)out[x.s]={p:c,v:c-(ca||0)};
       });
     }
   }catch{}
@@ -1832,12 +1819,15 @@ function doMacro(tv){
   const bbP=bbD?.p||FB.BBAS3.p,bbV=bbD?.v||FB.BBAS3.v;
   setEl('bbas3q-p',fBRL(bbP));setChg('bbas3q-c',bbP,bbV,'brl');
 
-  // Top 10 adicionais
+  // Top 10 — atualiza todos
   ['ITUB4','BBDC4','ABEV3','WEGE3','RDOR3'].forEach(t=>{
     const d=tv['BMFBOVESPA:'+t];
-    if(d){
-      setEl(t.toLowerCase()+'q-p',fBRL(d.p));
-      setChg(t.toLowerCase()+'q-c',d.p,d.v,'brl');
+    if(d&&d.p){
+      const pid=t.toLowerCase()+'q-p';
+      const cid=t.toLowerCase()+'q-c';
+      const el=document.getElementById(pid);
+      if(el){el.textContent=fBRL(d.p);el.className=el.className.replace(/loading/g,'').trim();}
+      setChg(cid,d.p,d.v,'brl');
     }
   });
 
