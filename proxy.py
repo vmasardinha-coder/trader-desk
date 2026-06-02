@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-06-01 19:10
+# HTML EMBUTIDO — atualizado em 2026-06-02 11:22
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.7 - 2026-06-01 19:10 -->
+<!-- Trader Desk v8.8 - 2026-06-02 11:22 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1542,10 +1542,10 @@ const SECTOR_TICKERS={
   'materiais_basicos':['VALE3','GGBR4','CSNA3','SUZB3','KLBN11','USIM5','BRAP4','UNIP6','FESA4','CBAV3'],
   'utilidade_publica':['ELET3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','TRPL4','AURE3','EGIE3'],
   'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','COGN3','LWSA3','VIVA3'],
-  'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NTCO3','MDIA3','BEEF3','SLCE3','SMFT3','PCAR3','CAML3'],
-  'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUALS3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
+  'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NATU3','MDIA3','BEEF3','SLCE3','MTRE3','PCAR3','CAML3'],
+  'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUAL3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
   'bens_industriais':['WEGE3','EMBR3','RAIL3','TGMA3','ROMI3','FRAS3','TUPY3','PMAM3','VLID3','LPSB3'],
-  'ti_e_comunicacoes':['VIVT3','TIMS3','TOTVS3','OIBR3','LWSA3','INTB3','MLAS3','ANIM3','DESK3','SQIA3'],
+  'ti_e_comunicacoes':['VIVT3','TIMS3','TOTVS3','OIBR3','LWSA3','INTB3','MLAS3','ANIM3','DESK3','LWSA3'],
 };
 
 async function fetchSector(id){
@@ -2687,14 +2687,14 @@ async function loadIndicators(){
 // ── SEGMENTOS B3 ─────────────────────────────────────
 const SEG_TICKERS={
   'financeiro':['ITUB4','BBDC4','BBAS3','SANB11','B3SA3','BPAC11','ITSA4','BRSR6','ABCB4','BMGB4'],
-  'petroleo':['PETR4','PETR3','PRIO3','UGPA3','VBBR3','CSAN3','RECV3','RRRP3','ENAT3','PGAS3'],
+  'petroleo':['PETR4','PETR3','PRIO3','UGPA3','VBBR3','CSAN3','RECV3','BRAV3','RECV3','UGPA3'],
   'materiais':['VALE3','GGBR4','CSNA3','SUZB3','KLBN11','USIM5','BRAP4','UNIP6','FESA4','DXCO3'],
   'utilidade':['ELET3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','TRPL4','AURE3','EGIE3'],
-  'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','SBFG3','VIVA3','SOMA3'],
-  'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NTCO3','MDIA3','BEEF3','SLCE3','SMFT3','CAML3','PCAR3'],
-  'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUALS3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
+  'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','SBFG3','VIVA3','AZZA3'],
+  'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NATU3','MDIA3','BEEF3','SLCE3','MTRE3','CAML3','PCAR3'],
+  'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUAL3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
   'industriais':['WEGE3','EMBR3','RAIL3','TGMA3','ROMI3','FRAS3','TUPY3','VLID3','IRBR3','LPSB3'],
-  'ti_telecom':['VIVT3','TIMS3','TOTVS3','OIBR3','LWSA3','INTB3','MLAS3','ANIM3','CASH3','SQIA3'],
+  'ti_telecom':['VIVT3','TIMS3','TOTVS3','OIBR3','LWSA3','INTB3','MLAS3','ANIM3','CASH3','LWSA3'],
 };
 
 function toggleSeg(id){
