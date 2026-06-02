@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-06-02 11:22
+# HTML EMBUTIDO — atualizado em 2026-06-02 21:55
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.8 - 2026-06-02 11:22 -->
+<!-- Trader Desk v8.9 - 2026-06-02 21:55 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1028,9 +1028,9 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">VBBR3</div><div class="c-price loading" id="sg-vbbr3-p">—</div><div class="c-change" id="sg-vbbr3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CSAN3</div><div class="c-price loading" id="sg-csan3-p">—</div><div class="c-change" id="sg-csan3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">RECV3</div><div class="c-price loading" id="sg-recv3-p">—</div><div class="c-change" id="sg-recv3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">RRRP3</div><div class="c-price loading" id="sg-rrrp3-p">—</div><div class="c-change" id="sg-rrrp3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">ENAT3</div><div class="c-price loading" id="sg-enat3-p">—</div><div class="c-change" id="sg-enat3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">PGAS3</div><div class="c-price loading" id="sg-pgas3-p">—</div><div class="c-change" id="sg-pgas3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">BRAV3</div><div class="c-price loading" id="sg-brav3-p">—</div><div class="c-change" id="sg-brav3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">CGAS3</div><div class="c-price loading" id="sg-cgas3-p">—</div><div class="c-change" id="sg-cgas3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">RECV3</div><div class="c-price loading" id="sg-recv3-p">—</div><div class="c-change" id="sg-recv3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -1075,7 +1075,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">GOLL4</div><div class="c-price loading" id="sg-goll4-p">—</div><div class="c-change" id="sg-goll4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">SBFG3</div><div class="c-price loading" id="sg-sbfg3-p">—</div><div class="c-change" id="sg-sbfg3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">VIVA3</div><div class="c-price loading" id="sg-viva3-p">—</div><div class="c-change" id="sg-viva3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">SOMA3</div><div class="c-price loading" id="sg-soma3-p">—</div><div class="c-change" id="sg-soma3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">AZZA3</div><div class="c-price loading" id="sg-azza3-p">—</div><div class="c-change" id="sg-azza3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -1084,11 +1084,11 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div class="grid"><div class="card green"><div class="c-label">B3</div><div class="c-name">ABEV3</div><div class="c-price loading" id="sg-abev3-p">—</div><div class="c-change" id="sg-abev3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">JBSS3</div><div class="c-price loading" id="sg-jbss3-p">—</div><div class="c-change" id="sg-jbss3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">BRFS3</div><div class="c-price loading" id="sg-brfs3-p">—</div><div class="c-change" id="sg-brfs3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">NTCO3</div><div class="c-price loading" id="sg-ntco3-p">—</div><div class="c-change" id="sg-ntco3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">NATU3</div><div class="c-price loading" id="sg-natu3-p">—</div><div class="c-change" id="sg-natu3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">MDIA3</div><div class="c-price loading" id="sg-mdia3-p">—</div><div class="c-change" id="sg-mdia3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">BEEF3</div><div class="c-price loading" id="sg-beef3-p">—</div><div class="c-change" id="sg-beef3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">SLCE3</div><div class="c-price loading" id="sg-slce3-p">—</div><div class="c-change" id="sg-slce3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">SMFT3</div><div class="c-price loading" id="sg-smft3-p">—</div><div class="c-change" id="sg-smft3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">MTRE3</div><div class="c-price loading" id="sg-mtre3-p">—</div><div class="c-change" id="sg-mtre3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CAML3</div><div class="c-price loading" id="sg-caml3-p">—</div><div class="c-change" id="sg-caml3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">PCAR3</div><div class="c-price loading" id="sg-pcar3-p">—</div><div class="c-change" id="sg-pcar3-c">—</div><div class="c-src">TV</div></div>
       </div>
@@ -1100,7 +1100,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">HAPV3</div><div class="c-price loading" id="sg-hapv3-p">—</div><div class="c-change" id="sg-hapv3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">FLRY3</div><div class="c-price loading" id="sg-flry3-p">—</div><div class="c-change" id="sg-flry3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">DASA3</div><div class="c-price loading" id="sg-dasa3-p">—</div><div class="c-change" id="sg-dasa3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">QUALS3</div><div class="c-price loading" id="sg-quals3-p">—</div><div class="c-change" id="sg-quals3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">QUAL3</div><div class="c-price loading" id="sg-qual3-p">—</div><div class="c-change" id="sg-qual3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">ONCO3</div><div class="c-price loading" id="sg-onco3-p">—</div><div class="c-change" id="sg-onco3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">PNVL3</div><div class="c-price loading" id="sg-pnvl3-p">—</div><div class="c-change" id="sg-pnvl3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">ODPV3</div><div class="c-price loading" id="sg-odpv3-p">—</div><div class="c-change" id="sg-odpv3-c">—</div><div class="c-src">TV</div></div>
@@ -1135,7 +1135,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">MLAS3</div><div class="c-price loading" id="sg-mlas3-p">—</div><div class="c-change" id="sg-mlas3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">ANIM3</div><div class="c-price loading" id="sg-anim3-p">—</div><div class="c-change" id="sg-anim3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CASH3</div><div class="c-price loading" id="sg-cash3-p">—</div><div class="c-change" id="sg-cash3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">SQIA3</div><div class="c-price loading" id="sg-sqia3-p">—</div><div class="c-change" id="sg-sqia3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">LWSA3</div><div class="c-price loading" id="sg-lwsa3-p">—</div><div class="c-change" id="sg-lwsa3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -2687,7 +2687,7 @@ async function loadIndicators(){
 // ── SEGMENTOS B3 ─────────────────────────────────────
 const SEG_TICKERS={
   'financeiro':['ITUB4','BBDC4','BBAS3','SANB11','B3SA3','BPAC11','ITSA4','BRSR6','ABCB4','BMGB4'],
-  'petroleo':['PETR4','PETR3','PRIO3','UGPA3','VBBR3','CSAN3','RECV3','BRAV3','RECV3','UGPA3'],
+  'petroleo':['PETR4','PETR3','PRIO3','BRAV3','VBBR3','CSAN3','RECV3','UGPA3','CGAS3','RRRP3'],
   'materiais':['VALE3','GGBR4','CSNA3','SUZB3','KLBN11','USIM5','BRAP4','UNIP6','FESA4','DXCO3'],
   'utilidade':['ELET3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','TRPL4','AURE3','EGIE3'],
   'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','SBFG3','VIVA3','AZZA3'],
