@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-06-02 21:55
+# HTML EMBUTIDO — atualizado em 2026-06-03 07:27
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v8.9 - 2026-06-02 21:55 -->
+<!-- Trader Desk v9.0 - 2026-06-03 07:27 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -998,12 +998,6 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
   <div class="sec" style="margin-top:16px"><span>📂</span> B3 por Segmento <span class="src">· clique para expandir · top 10 por market cap</span></div>
 
-  <style>
-  .sector-header{background:var(--bg2);border:1px solid var(--border);padding:8px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px;transition:border-color .2s}
-  .sector-header:hover{border-color:var(--accent);color:var(--text)}
-  .sector-body{display:none;padding-top:4px}
-  </style>
-
   <div class="sector-header" onclick="toggleSeg('financeiro')"><span>🏦 Financeiro</span><span id="sarr-financeiro">▼</span></div>
   <div class="sector-body" id="sbody-financeiro">
     <div class="grid"><div class="card green"><div class="c-label">B3</div><div class="c-name">ITUB4</div><div class="c-price loading" id="sg-itub4-p">—</div><div class="c-change" id="sg-itub4-c">—</div><div class="c-src">TV</div></div>
@@ -1024,28 +1018,43 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     <div class="grid"><div class="card green"><div class="c-label">B3</div><div class="c-name">PETR4</div><div class="c-price loading" id="sg-petr4-p">—</div><div class="c-change" id="sg-petr4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">PETR3</div><div class="c-price loading" id="sg-petr3-p">—</div><div class="c-change" id="sg-petr3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">PRIO3</div><div class="c-price loading" id="sg-prio3-p">—</div><div class="c-change" id="sg-prio3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">UGPA3</div><div class="c-price loading" id="sg-ugpa3-p">—</div><div class="c-change" id="sg-ugpa3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">BRAV3</div><div class="c-price loading" id="sg-brav3-p">—</div><div class="c-change" id="sg-brav3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">VBBR3</div><div class="c-price loading" id="sg-vbbr3-p">—</div><div class="c-change" id="sg-vbbr3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CSAN3</div><div class="c-price loading" id="sg-csan3-p">—</div><div class="c-change" id="sg-csan3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">RECV3</div><div class="c-price loading" id="sg-recv3-p">—</div><div class="c-change" id="sg-recv3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">BRAV3</div><div class="c-price loading" id="sg-brav3-p">—</div><div class="c-change" id="sg-brav3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">UGPA3</div><div class="c-price loading" id="sg-ugpa3-p">—</div><div class="c-change" id="sg-ugpa3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CGAS3</div><div class="c-price loading" id="sg-cgas3-p">—</div><div class="c-change" id="sg-cgas3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">RECV3</div><div class="c-price loading" id="sg-recv3-p">—</div><div class="c-change" id="sg-recv3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">SEQL3</div><div class="c-price loading" id="sg-seql3-p">—</div><div class="c-change" id="sg-seql3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
-  <div class="sector-header" onclick="toggleSeg('materiais')"><span>⛏ Materiais Básicos</span><span id="sarr-materiais">▼</span></div>
-  <div class="sector-body" id="sbody-materiais">
+  <div class="sector-header" onclick="toggleSeg('mineracao')"><span>⛏ Mineração</span><span id="sarr-mineracao">▼</span></div>
+  <div class="sector-body" id="sbody-mineracao">
     <div class="grid"><div class="card green"><div class="c-label">B3</div><div class="c-name">VALE3</div><div class="c-price loading" id="sg-vale3-p">—</div><div class="c-change" id="sg-vale3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">GGBR4</div><div class="c-price loading" id="sg-ggbr4-p">—</div><div class="c-change" id="sg-ggbr4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CSNA3</div><div class="c-price loading" id="sg-csna3-p">—</div><div class="c-change" id="sg-csna3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">SUZB3</div><div class="c-price loading" id="sg-suzb3-p">—</div><div class="c-change" id="sg-suzb3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">KLBN11</div><div class="c-price loading" id="sg-klbn11-p">—</div><div class="c-change" id="sg-klbn11-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">USIM5</div><div class="c-price loading" id="sg-usim5-p">—</div><div class="c-change" id="sg-usim5-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">BRAP4</div><div class="c-price loading" id="sg-brap4-p">—</div><div class="c-change" id="sg-brap4-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">UNIP6</div><div class="c-price loading" id="sg-unip6-p">—</div><div class="c-change" id="sg-unip6-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">FESA4</div><div class="c-price loading" id="sg-fesa4-p">—</div><div class="c-change" id="sg-fesa4-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">CMIN3</div><div class="c-price loading" id="sg-cmin3-p">—</div><div class="c-change" id="sg-cmin3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">CBAV3</div><div class="c-price loading" id="sg-cbav3-p">—</div><div class="c-change" id="sg-cbav3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">MBLY3</div><div class="c-price loading" id="sg-mbly3-p">—</div><div class="c-change" id="sg-mbly3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">PGMN3</div><div class="c-price loading" id="sg-pgmn3-p">—</div><div class="c-change" id="sg-pgmn3-c">—</div><div class="c-src">TV</div></div>
+      </div>
+  </div>
+
+  <div class="sector-header" onclick="toggleSeg('materiais')"><span>🌲 Papel & Celulose</span><span id="sarr-materiais">▼</span></div>
+  <div class="sector-body" id="sbody-materiais">
+    <div class="grid"><div class="card green"><div class="c-label">B3</div><div class="c-name">SUZB3</div><div class="c-price loading" id="sg-suzb3-p">—</div><div class="c-change" id="sg-suzb3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">KLBN11</div><div class="c-price loading" id="sg-klbn11-p">—</div><div class="c-change" id="sg-klbn11-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">DXCO3</div><div class="c-price loading" id="sg-dxco3-p">—</div><div class="c-change" id="sg-dxco3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">UNIP6</div><div class="c-price loading" id="sg-unip6-p">—</div><div class="c-change" id="sg-unip6-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">RANI3</div><div class="c-price loading" id="sg-rani3-p">—</div><div class="c-change" id="sg-rani3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">DTEX3</div><div class="c-price loading" id="sg-dtex3-p">—</div><div class="c-change" id="sg-dtex3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">BCSA3</div><div class="c-price loading" id="sg-bcsa3-p">—</div><div class="c-change" id="sg-bcsa3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">SMTO3</div><div class="c-price loading" id="sg-smto3-p">—</div><div class="c-change" id="sg-smto3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">TESA3</div><div class="c-price loading" id="sg-tesa3-p">—</div><div class="c-change" id="sg-tesa3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">ORVR3</div><div class="c-price loading" id="sg-orvr3-p">—</div><div class="c-change" id="sg-orvr3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -1073,14 +1082,14 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">MRVE3</div><div class="c-price loading" id="sg-mrve3-p">—</div><div class="c-change" id="sg-mrve3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">AZUL4</div><div class="c-price loading" id="sg-azul4-p">—</div><div class="c-change" id="sg-azul4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">GOLL4</div><div class="c-price loading" id="sg-goll4-p">—</div><div class="c-change" id="sg-goll4-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">SBFG3</div><div class="c-price loading" id="sg-sbfg3-p">—</div><div class="c-change" id="sg-sbfg3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">VIVA3</div><div class="c-price loading" id="sg-viva3-p">—</div><div class="c-change" id="sg-viva3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">AZZA3</div><div class="c-price loading" id="sg-azza3-p">—</div><div class="c-change" id="sg-azza3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">VIVA3</div><div class="c-price loading" id="sg-viva3-p">—</div><div class="c-change" id="sg-viva3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">SBFG3</div><div class="c-price loading" id="sg-sbfg3-p">—</div><div class="c-change" id="sg-sbfg3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
-  <div class="sector-header" onclick="toggleSeg('consumo_nao_ciclico')"><span>🛒 Consumo Não Cíclico</span><span id="sarr-consumo_nao_ciclico">▼</span></div>
-  <div class="sector-body" id="sbody-consumo_nao_ciclico">
+  <div class="sector-header" onclick="toggleSeg('consumo_nao')"><span>🛒 Consumo Não Cíclico</span><span id="sarr-consumo_nao">▼</span></div>
+  <div class="sector-body" id="sbody-consumo_nao">
     <div class="grid"><div class="card green"><div class="c-label">B3</div><div class="c-name">ABEV3</div><div class="c-price loading" id="sg-abev3-p">—</div><div class="c-change" id="sg-abev3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">JBSS3</div><div class="c-price loading" id="sg-jbss3-p">—</div><div class="c-change" id="sg-jbss3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">BRFS3</div><div class="c-price loading" id="sg-brfs3-p">—</div><div class="c-change" id="sg-brfs3-c">—</div><div class="c-src">TV</div></div>
@@ -1135,9 +1144,10 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">MLAS3</div><div class="c-price loading" id="sg-mlas3-p">—</div><div class="c-change" id="sg-mlas3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">ANIM3</div><div class="c-price loading" id="sg-anim3-p">—</div><div class="c-change" id="sg-anim3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CASH3</div><div class="c-price loading" id="sg-cash3-p">—</div><div class="c-change" id="sg-cash3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">LWSA3</div><div class="c-price loading" id="sg-lwsa3-p">—</div><div class="c-change" id="sg-lwsa3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">POSI3</div><div class="c-price loading" id="sg-posi3-p">—</div><div class="c-change" id="sg-posi3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
+
 
   <div class="sec"><span>03</span> Commodities <span class="src">· Hyperliquid 24/7</span></div>
   <div class="grid">
@@ -2685,17 +2695,20 @@ async function loadIndicators(){
 
 
 // ── SEGMENTOS B3 ─────────────────────────────────────
+
 const SEG_TICKERS={
-  'financeiro':['ITUB4','BBDC4','BBAS3','SANB11','B3SA3','BPAC11','ITSA4','BRSR6','ABCB4','BMGB4'],
-  'petroleo':['PETR4','PETR3','PRIO3','BRAV3','VBBR3','CSAN3','RECV3','UGPA3','CGAS3','RRRP3'],
-  'materiais':['VALE3','GGBR4','CSNA3','SUZB3','KLBN11','USIM5','BRAP4','UNIP6','FESA4','DXCO3'],
-  'utilidade':['ELET3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','TRPL4','AURE3','EGIE3'],
-  'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','SBFG3','VIVA3','AZZA3'],
-  'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NATU3','MDIA3','BEEF3','SLCE3','MTRE3','CAML3','PCAR3'],
-  'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUAL3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
-  'industriais':['WEGE3','EMBR3','RAIL3','TGMA3','ROMI3','FRAS3','TUPY3','VLID3','IRBR3','LPSB3'],
-  'ti_telecom':['VIVT3','TIMS3','TOTVS3','OIBR3','LWSA3','INTB3','MLAS3','ANIM3','CASH3','LWSA3'],
+  'financeiro':['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'B3SA3', 'BPAC11', 'ITSA4', 'BRSR6', 'ABCB4', 'BMGB4'],
+  'petroleo':['PETR4', 'PETR3', 'PRIO3', 'BRAV3', 'VBBR3', 'CSAN3', 'RECV3', 'UGPA3', 'CGAS3', 'SEQL3'],
+  'mineracao':['VALE3', 'GGBR4', 'CSNA3', 'USIM5', 'BRAP4', 'FESA4', 'CMIN3', 'CBAV3', 'MBLY3', 'PGMN3'],
+  'materiais':['SUZB3', 'KLBN11', 'DXCO3', 'UNIP6', 'RANI3', 'DTEX3', 'BCSA3', 'SMTO3', 'TESA3', 'ORVR3'],
+  'utilidade':['ELET3', 'EQTL3', 'CPFE3', 'SBSP3', 'CMIG4', 'ENGI11', 'TAEE11', 'TRPL4', 'AURE3', 'EGIE3'],
+  'consumo_ciclico':['RENT3', 'LREN3', 'MGLU3', 'CYRE3', 'MRVE3', 'AZUL4', 'GOLL4', 'AZZA3', 'VIVA3', 'SBFG3'],
+  'consumo_nao':['ABEV3', 'JBSS3', 'BRFS3', 'NATU3', 'MDIA3', 'BEEF3', 'SLCE3', 'MTRE3', 'CAML3', 'PCAR3'],
+  'saude':['RDOR3', 'HAPV3', 'FLRY3', 'DASA3', 'QUAL3', 'ONCO3', 'PNVL3', 'ODPV3', 'MATD3', 'AALR3'],
+  'industriais':['WEGE3', 'EMBR3', 'RAIL3', 'TGMA3', 'ROMI3', 'FRAS3', 'TUPY3', 'VLID3', 'IRBR3', 'LPSB3'],
+  'ti_telecom':['VIVT3', 'TIMS3', 'TOTVS3', 'OIBR3', 'LWSA3', 'INTB3', 'MLAS3', 'ANIM3', 'CASH3', 'POSI3'],
 };
+
 
 function toggleSeg(id){
   const body=document.getElementById('sbody-'+id);
