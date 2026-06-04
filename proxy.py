@@ -782,9 +782,9 @@ def get_fear_greed():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-06-03 23:42
+# HTML EMBUTIDO — atualizado em 2026-06-04 21:20
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v9.1 - 2026-06-03 23:42 -->
+<!-- Trader Desk v9.2 - 2026-06-04 21:20 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1041,7 +1041,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">FESA4</div><div class="c-price loading" id="sg-fesa4-p">—</div><div class="c-change" id="sg-fesa4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CMIN3</div><div class="c-price loading" id="sg-cmin3-p">—</div><div class="c-change" id="sg-cmin3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CBAV3</div><div class="c-price loading" id="sg-cbav3-p">—</div><div class="c-change" id="sg-cbav3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">MBLY3</div><div class="c-price loading" id="sg-mbly3-p">—</div><div class="c-change" id="sg-mbly3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">TOKY3</div><div class="c-price loading" id="sg-toky3-p">—</div><div class="c-change" id="sg-toky3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">PGMN3</div><div class="c-price loading" id="sg-pgmn3-p">—</div><div class="c-change" id="sg-pgmn3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
@@ -1054,9 +1054,9 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">UNIP6</div><div class="c-price loading" id="sg-unip6-p">—</div><div class="c-change" id="sg-unip6-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">RANI3</div><div class="c-price loading" id="sg-rani3-p">—</div><div class="c-change" id="sg-rani3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">DTEX3</div><div class="c-price loading" id="sg-dtex3-p">—</div><div class="c-change" id="sg-dtex3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">BCSA3</div><div class="c-price loading" id="sg-bcsa3-p">—</div><div class="c-change" id="sg-bcsa3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">RANI3</div><div class="c-price loading" id="sg-rani3-p">—</div><div class="c-change" id="sg-rani3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">SMTO3</div><div class="c-price loading" id="sg-smto3-p">—</div><div class="c-change" id="sg-smto3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">TESA3</div><div class="c-price loading" id="sg-tesa3-p">—</div><div class="c-change" id="sg-tesa3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">ORVR3</div><div class="c-price loading" id="sg-orvr3-p">—</div><div class="c-change" id="sg-orvr3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">ORVR3</div><div class="c-price loading" id="sg-orvr3-p">—</div><div class="c-change" id="sg-orvr3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
@@ -1084,7 +1084,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CYRE3</div><div class="c-price loading" id="sg-cyre3-p">—</div><div class="c-change" id="sg-cyre3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">MRVE3</div><div class="c-price loading" id="sg-mrve3-p">—</div><div class="c-change" id="sg-mrve3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">AZUL4</div><div class="c-price loading" id="sg-azul4-p">—</div><div class="c-change" id="sg-azul4-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">GOLL4</div><div class="c-price loading" id="sg-goll4-p">—</div><div class="c-change" id="sg-goll4-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">CVCB3</div><div class="c-price loading" id="sg-cvcb3-p">—</div><div class="c-change" id="sg-cvcb3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">AZZA3</div><div class="c-price loading" id="sg-azza3-p">—</div><div class="c-change" id="sg-azza3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">VIVA3</div><div class="c-price loading" id="sg-viva3-p">—</div><div class="c-change" id="sg-viva3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">SBFG3</div><div class="c-price loading" id="sg-sbfg3-p">—</div><div class="c-change" id="sg-sbfg3-c">—</div><div class="c-src">TV</div></div>
@@ -1419,6 +1419,22 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
     </div>
   </div>
 
+  <div class="sec" style="margin-top:16px"><span>📁</span> Posições Encerradas</div>
+  <div class="pos-card acao" style="margin-top:8px;opacity:0.75;border-color:var(--muted)">
+    <div class="pos-label" style="color:var(--muted)">ROXO34 · BDR Nubank · Encerrada em 04/06/2026</div>
+    <div class="pos-ticker" style="color:var(--muted)">ROXO34</div>
+    <div class="sb">
+      <div class="sb-row"><span class="sb-lbl">Estrutura</span><span class="sb-val">Retorno Prefixado c/ Barreira</span></div>
+      <div class="sb-row"><span class="sb-lbl">Preço entrada</span><span class="sb-val">R$ 12,67</span></div>
+      <div class="sb-row"><span class="sb-lbl">Preço saída</span><span class="sb-val ok">R$ 11,82</span></div>
+      <div class="sb-row"><span class="sb-lbl">KDO (Barreira)</span><span class="sb-val">R$ 9,60 (-18,70%)</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno alvo</span><span class="sb-val">7,10% prefixado</span></div>
+      <div class="sb-row"><span class="sb-lbl">Retorno obtido</span><span class="sb-val ok">~5,17% (72% do alvo) ✅</span></div>
+      <div class="sb-row"><span class="sb-lbl">Tempo no trade</span><span class="sb-val ok">~50% do prazo total</span></div>
+      <div class="sb-row"><span class="sb-lbl">Resultado</span><span class="sb-val ok">✅ Encerrada com lucro antes do vencimento</span></div>
+    </div>
+  </div>
+
   <div class="sec"><span>02</span> Cripto — Bitcoin · Estratégia</div>
   <div class="grid2">
 
@@ -1554,7 +1570,7 @@ const SECTOR_TICKERS={
   'petroleo_e_gas':['PETR4','PETR3','PRIO3','UGPA3','VBBR3','CSAN3','RECV3','RRRP3','DMMO3','ENAT3'],
   'materiais_basicos':['VALE3','GGBR4','CSNA3','SUZB3','KLBN11','USIM5','BRAP4','UNIP6','FESA4','CBAV3'],
   'utilidade_publica':['ELET3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','TRPL4','AURE3','EGIE3'],
-  'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','GOLL4','COGN3','LWSA3','VIVA3'],
+  'consumo_ciclico':['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZUL4','CVCB3','COGN3','LWSA3','VIVA3'],
   'consumo_nao_ciclico':['ABEV3','JBSS3','BRFS3','NATU3','MDIA3','BEEF3','SLCE3','MTRE3','PCAR3','CAML3'],
   'saude':['RDOR3','HAPV3','FLRY3','DASA3','QUAL3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
   'bens_industriais':['WEGE3','EMBR3','RAIL3','TGMA3','ROMI3','FRAS3','TUPY3','PMAM3','VLID3','LPSB3'],
@@ -2702,10 +2718,10 @@ async function loadIndicators(){
 const SEG_TICKERS={
   'financeiro':['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'B3SA3', 'BPAC11', 'ITSA4', 'BRSR6', 'ABCB4', 'BMGB4'],
   'petroleo':['PETR4', 'PETR3', 'PRIO3', 'BRAV3', 'VBBR3', 'CSAN3', 'RECV3', 'UGPA3', 'CGAS3', 'SEQL3'],
-  'mineracao':['VALE3', 'GGBR4', 'CSNA3', 'USIM5', 'BRAP4', 'FESA4', 'CMIN3', 'CBAV3', 'MBLY3', 'PGMN3'],
-  'materiais':['SUZB3', 'KLBN11', 'DXCO3', 'UNIP6', 'RANI3', 'DTEX3', 'BCSA3', 'SMTO3', 'TESA3', 'ORVR3'],
+  'mineracao':['VALE3', 'GGBR4', 'CSNA3', 'USIM5', 'BRAP4', 'FESA4', 'CMIN3', 'CBAV3', 'TOKY3', 'PGMN3'],
+  'materiais':['SUZB3', 'KLBN11', 'DXCO3', 'UNIP6', 'RANI3', 'DTEX3', 'RANI3', 'SMTO3', 'ORVR3', 'ORVR3'],
   'utilidade':['ELET3', 'EQTL3', 'CPFE3', 'SBSP3', 'CMIG4', 'ENGI11', 'TAEE11', 'TRPL4', 'AURE3', 'EGIE3'],
-  'consumo_ciclico':['RENT3', 'LREN3', 'MGLU3', 'CYRE3', 'MRVE3', 'AZUL4', 'GOLL4', 'AZZA3', 'VIVA3', 'SBFG3'],
+  'consumo_ciclico':['RENT3', 'LREN3', 'MGLU3', 'CYRE3', 'MRVE3', 'AZUL4', 'CVCB3', 'AZZA3', 'VIVA3', 'SBFG3'],
   'consumo_nao':['ABEV3', 'JBSS3', 'BRFS3', 'NATU3', 'MDIA3', 'BEEF3', 'SLCE3', 'MTRE3', 'CAML3', 'PCAR3'],
   'saude':['RDOR3', 'HAPV3', 'FLRY3', 'DASA3', 'QUAL3', 'ONCO3', 'PNVL3', 'ODPV3', 'MATD3', 'AALR3'],
   'industriais':['WEGE3', 'EMBR3', 'RAIL3', 'TGMA3', 'ROMI3', 'FRAS3', 'TUPY3', 'VLID3', 'IRBR3', 'LPSB3'],
