@@ -779,12 +779,65 @@ def get_fear_greed():
     return jsonify({'value':50,'value_classification':'Neutro','timestamp':''}),200
 
 # Add AXIA3 to SETORES
+# ── US STOCKS VIA YAHOO ──────────────────────────────
+@app.route('/us/quotes', methods=['GET'])
+def get_us_quotes():
+    tickers = request.args.get('tickers','').split(',')
+    tickers = [t.strip() for t in tickers if t.strip()][:25]
+    result = {}
+    for t in tickers:
+        q = yquote(t)
+        if q: result[t] = q
+    return jsonify(result)
+
+# ── ECONOMIC CALENDAR ─────────────────────────────────
+@app.route('/calendar', methods=['GET'])
+def get_calendar():
+    try:
+        countries = ['US','BR','EU','GB','CN','JP','DE']
+        # Forex Factory free calendar
+        r = requests.get(
+            'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
+            headers={'User-Agent':'Mozilla/5.0'}, timeout=10)
+        if r.ok:
+            events = r.json()
+            # Filter by country and importance >= 2
+            filtered = [e for e in events 
+                       if e.get('country','') in countries 
+                       and int(e.get('impact_level',0) or e.get('importance',0) or 0) >= 2]
+            # Normalize fields
+            normalized = []
+            for e in filtered:
+                normalized.append({
+                    'date': e.get('date',''),
+                    'time': e.get('time',''),
+                    'country': e.get('country',''),
+                    'event': e.get('title',e.get('name','')),
+                    'importance': int(e.get('impact_level',0) or e.get('importance',1)),
+                    'actual': e.get('actual'),
+                    'forecast': e.get('forecast'),
+                    'previous': e.get('previous'),
+                })
+            return jsonify(normalized)
+    except Exception as e:
+        pass
+    # Fallback: TradingEconomics
+    try:
+        r2 = requests.get(
+            'https://tradingeconomics.com/calendar',
+            headers={'User-Agent':'Mozilla/5.0','Accept':'application/json'},
+            timeout=10)
+        if r2.ok:
+            return jsonify(r2.json() if r2.headers.get('content-type','').startswith('application/json') else [])
+    except: pass
+    return jsonify([])
+
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-06-04 21:20
+# HTML EMBUTIDO — atualizado em 2026-06-05 12:18
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v9.2 - 2026-06-04 21:20 -->
+<!-- Trader Desk v9.3 - 2026-06-05 12:18 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -964,6 +1017,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
   <div class="tab active" onclick="switchTab('cotacoes')">📊 Cotações</div>
   <div class="tab" onclick="switchTab('indicadores')">📈 Indicadores & Sinais</div>
   <div class="tab" onclick="switchTab('posicoes')">💼 Minhas Posições</div>
+  <div class="tab" onclick="switchTab('calendario')">📅 Calendário</div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -999,7 +1053,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
   </div>
 
 
-  <div class="sec" style="margin-top:16px"><span>📂</span> B3 por Segmento <span class="src">· clique para expandir · top 10 por market cap</span></div>
+  <div class="sec" style="margin-top:16px"><span>📂</span> B3 por Segmento <span class="src">· clique para expandir</span></div>
 
   <div class="sector-header" onclick="toggleSeg('financeiro')"><span>🏦 Financeiro</span><span id="sarr-financeiro">▼</span></div>
   <div class="sector-body" id="sbody-financeiro" style="display:none">
@@ -1041,7 +1095,7 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">FESA4</div><div class="c-price loading" id="sg-fesa4-p">—</div><div class="c-change" id="sg-fesa4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CMIN3</div><div class="c-price loading" id="sg-cmin3-p">—</div><div class="c-change" id="sg-cmin3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CBAV3</div><div class="c-price loading" id="sg-cbav3-p">—</div><div class="c-change" id="sg-cbav3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">TOKY3</div><div class="c-price loading" id="sg-toky3-p">—</div><div class="c-change" id="sg-toky3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">GOAU4</div><div class="c-price loading" id="sg-goau4-p">—</div><div class="c-change" id="sg-goau4-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">PGMN3</div><div class="c-price loading" id="sg-pgmn3-p">—</div><div class="c-change" id="sg-pgmn3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
@@ -1053,11 +1107,11 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">DXCO3</div><div class="c-price loading" id="sg-dxco3-p">—</div><div class="c-change" id="sg-dxco3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">UNIP6</div><div class="c-price loading" id="sg-unip6-p">—</div><div class="c-change" id="sg-unip6-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">RANI3</div><div class="c-price loading" id="sg-rani3-p">—</div><div class="c-change" id="sg-rani3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">DTEX3</div><div class="c-price loading" id="sg-dtex3-p">—</div><div class="c-change" id="sg-dtex3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">RANI3</div><div class="c-price loading" id="sg-rani3-p">—</div><div class="c-change" id="sg-rani3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">ORVR3</div><div class="c-price loading" id="sg-orvr3-p">—</div><div class="c-change" id="sg-orvr3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">SMTO3</div><div class="c-price loading" id="sg-smto3-p">—</div><div class="c-change" id="sg-smto3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">ORVR3</div><div class="c-price loading" id="sg-orvr3-p">—</div><div class="c-change" id="sg-orvr3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">ORVR3</div><div class="c-price loading" id="sg-orvr3-p">—</div><div class="c-change" id="sg-orvr3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">DTEX3</div><div class="c-price loading" id="sg-dtex3-p">—</div><div class="c-change" id="sg-dtex3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">FRAS3</div><div class="c-price loading" id="sg-fras3-p">—</div><div class="c-change" id="sg-fras3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">KEPL3</div><div class="c-price loading" id="sg-kepl3-p">—</div><div class="c-change" id="sg-kepl3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -1084,10 +1138,10 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">CYRE3</div><div class="c-price loading" id="sg-cyre3-p">—</div><div class="c-change" id="sg-cyre3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">MRVE3</div><div class="c-price loading" id="sg-mrve3-p">—</div><div class="c-change" id="sg-mrve3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">AZUL4</div><div class="c-price loading" id="sg-azul4-p">—</div><div class="c-change" id="sg-azul4-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">CVCB3</div><div class="c-price loading" id="sg-cvcb3-p">—</div><div class="c-change" id="sg-cvcb3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">AZZA3</div><div class="c-price loading" id="sg-azza3-p">—</div><div class="c-change" id="sg-azza3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">VIVA3</div><div class="c-price loading" id="sg-viva3-p">—</div><div class="c-change" id="sg-viva3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">SBFG3</div><div class="c-price loading" id="sg-sbfg3-p">—</div><div class="c-change" id="sg-sbfg3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">CVCB3</div><div class="c-price loading" id="sg-cvcb3-p">—</div><div class="c-change" id="sg-cvcb3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -1128,11 +1182,11 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       <div class="card green"><div class="c-label">B3</div><div class="c-name">RAIL3</div><div class="c-price loading" id="sg-rail3-p">—</div><div class="c-change" id="sg-rail3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">TGMA3</div><div class="c-price loading" id="sg-tgma3-p">—</div><div class="c-change" id="sg-tgma3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">ROMI3</div><div class="c-price loading" id="sg-romi3-p">—</div><div class="c-change" id="sg-romi3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">FRAS3</div><div class="c-price loading" id="sg-fras3-p">—</div><div class="c-change" id="sg-fras3-c">—</div><div class="c-src">TV</div></div>
-      <div class="card green"><div class="c-label">B3</div><div class="c-name">TUPY3</div><div class="c-price loading" id="sg-tupy3-p">—</div><div class="c-change" id="sg-tupy3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">VLID3</div><div class="c-price loading" id="sg-vlid3-p">—</div><div class="c-change" id="sg-vlid3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">TUPY3</div><div class="c-price loading" id="sg-tupy3-p">—</div><div class="c-change" id="sg-tupy3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">IRBR3</div><div class="c-price loading" id="sg-irbr3-p">—</div><div class="c-change" id="sg-irbr3-c">—</div><div class="c-src">TV</div></div>
       <div class="card green"><div class="c-label">B3</div><div class="c-name">LPSB3</div><div class="c-price loading" id="sg-lpsb3-p">—</div><div class="c-change" id="sg-lpsb3-c">—</div><div class="c-src">TV</div></div>
+      <div class="card green"><div class="c-label">B3</div><div class="c-name">KEPL3</div><div class="c-price loading" id="sg-kepl3-p">—</div><div class="c-change" id="sg-kepl3-c">—</div><div class="c-src">TV</div></div>
       </div>
   </div>
 
@@ -1151,6 +1205,91 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
       </div>
   </div>
 
+
+
+  <div class="sec" style="margin-top:20px"><span>🇺🇸</span> Estados Unidos <span class="src">· Yahoo Finance via proxy</span></div>
+
+  <div class="sector-header" onclick="toggleSeg('mag7')"><span>⭐ As 7 Magníficas</span><span id="sarr-mag7">▼</span></div>
+  <div class="sector-body" id="sbody-mag7" style="display:none">
+    <div class="grid"><div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AAPL</div><div class="c-price loading" id="us-aapl-p">—</div><div class="c-change" id="us-aapl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">MSFT</div><div class="c-price loading" id="us-msft-p">—</div><div class="c-change" id="us-msft-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">NVDA</div><div class="c-price loading" id="us-nvda-p">—</div><div class="c-change" id="us-nvda-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AMZN</div><div class="c-price loading" id="us-amzn-p">—</div><div class="c-change" id="us-amzn-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">GOOGL</div><div class="c-price loading" id="us-googl-p">—</div><div class="c-change" id="us-googl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">META</div><div class="c-price loading" id="us-meta-p">—</div><div class="c-change" id="us-meta-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">TSLA</div><div class="c-price loading" id="us-tsla-p">—</div><div class="c-change" id="us-tsla-c">—</div><div class="c-src">Yahoo</div></div>
+      </div>
+  </div>
+
+  <div class="sector-header" onclick="toggleSeg('nasdaq15')"><span>💻 Nasdaq Top 15</span><span id="sarr-nasdaq15">▼</span></div>
+  <div class="sector-body" id="sbody-nasdaq15" style="display:none">
+    <div class="grid"><div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AAPL</div><div class="c-price loading" id="nq-aapl-p">—</div><div class="c-change" id="nq-aapl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">MSFT</div><div class="c-price loading" id="nq-msft-p">—</div><div class="c-change" id="nq-msft-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">NVDA</div><div class="c-price loading" id="nq-nvda-p">—</div><div class="c-change" id="nq-nvda-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AMZN</div><div class="c-price loading" id="nq-amzn-p">—</div><div class="c-change" id="nq-amzn-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">META</div><div class="c-price loading" id="nq-meta-p">—</div><div class="c-change" id="nq-meta-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">GOOGL</div><div class="c-price loading" id="nq-googl-p">—</div><div class="c-change" id="nq-googl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">TSLA</div><div class="c-price loading" id="nq-tsla-p">—</div><div class="c-change" id="nq-tsla-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AVGO</div><div class="c-price loading" id="nq-avgo-p">—</div><div class="c-change" id="nq-avgo-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">COST</div><div class="c-price loading" id="nq-cost-p">—</div><div class="c-change" id="nq-cost-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">NFLX</div><div class="c-price loading" id="nq-nflx-p">—</div><div class="c-change" id="nq-nflx-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">QCOM</div><div class="c-price loading" id="nq-qcom-p">—</div><div class="c-change" id="nq-qcom-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AMD</div><div class="c-price loading" id="nq-amd-p">—</div><div class="c-change" id="nq-amd-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">ADBE</div><div class="c-price loading" id="nq-adbe-p">—</div><div class="c-change" id="nq-adbe-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">INTC</div><div class="c-price loading" id="nq-intc-p">—</div><div class="c-change" id="nq-intc-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">CSCO</div><div class="c-price loading" id="nq-csco-p">—</div><div class="c-change" id="nq-csco-c">—</div><div class="c-src">Yahoo</div></div>
+      </div>
+  </div>
+
+  <div class="sector-header" onclick="toggleSeg('sp20')"><span>📊 S&P 500 Top 20</span><span id="sarr-sp20">▼</span></div>
+  <div class="sector-body" id="sbody-sp20" style="display:none">
+    <div class="grid"><div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AAPL</div><div class="c-price loading" id="sp-aapl-p">—</div><div class="c-change" id="sp-aapl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">MSFT</div><div class="c-price loading" id="sp-msft-p">—</div><div class="c-change" id="sp-msft-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">NVDA</div><div class="c-price loading" id="sp-nvda-p">—</div><div class="c-change" id="sp-nvda-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AMZN</div><div class="c-price loading" id="sp-amzn-p">—</div><div class="c-change" id="sp-amzn-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">META</div><div class="c-price loading" id="sp-meta-p">—</div><div class="c-change" id="sp-meta-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">GOOGL</div><div class="c-price loading" id="sp-googl-p">—</div><div class="c-change" id="sp-googl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">TSLA</div><div class="c-price loading" id="sp-tsla-p">—</div><div class="c-change" id="sp-tsla-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AVGO</div><div class="c-price loading" id="sp-avgo-p">—</div><div class="c-change" id="sp-avgo-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">BRK-B</div><div class="c-price loading" id="sp-brk_b-p">—</div><div class="c-change" id="sp-brk_b-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">JPM</div><div class="c-price loading" id="sp-jpm-p">—</div><div class="c-change" id="sp-jpm-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">LLY</div><div class="c-price loading" id="sp-lly-p">—</div><div class="c-change" id="sp-lly-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">V</div><div class="c-price loading" id="sp-v-p">—</div><div class="c-change" id="sp-v-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">UNH</div><div class="c-price loading" id="sp-unh-p">—</div><div class="c-change" id="sp-unh-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">XOM</div><div class="c-price loading" id="sp-xom-p">—</div><div class="c-change" id="sp-xom-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">MA</div><div class="c-price loading" id="sp-ma-p">—</div><div class="c-change" id="sp-ma-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">NFLX</div><div class="c-price loading" id="sp-nflx-p">—</div><div class="c-change" id="sp-nflx-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">PG</div><div class="c-price loading" id="sp-pg-p">—</div><div class="c-change" id="sp-pg-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">JNJ</div><div class="c-price loading" id="sp-jnj-p">—</div><div class="c-change" id="sp-jnj-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">HD</div><div class="c-price loading" id="sp-hd-p">—</div><div class="c-change" id="sp-hd-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">BAC</div><div class="c-price loading" id="sp-bac-p">—</div><div class="c-change" id="sp-bac-c">—</div><div class="c-src">Yahoo</div></div>
+      </div>
+  </div>
+
+  <div class="sector-header" onclick="toggleSeg('dji20')"><span>🏛 Dow Jones Top 20</span><span id="sarr-dji20">▼</span></div>
+  <div class="sector-body" id="sbody-dji20" style="display:none">
+    <div class="grid"><div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">UNH</div><div class="c-price loading" id="dj-unh-p">—</div><div class="c-change" id="dj-unh-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">GS</div><div class="c-price loading" id="dj-gs-p">—</div><div class="c-change" id="dj-gs-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">HD</div><div class="c-price loading" id="dj-hd-p">—</div><div class="c-change" id="dj-hd-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">SHW</div><div class="c-price loading" id="dj-shw-p">—</div><div class="c-change" id="dj-shw-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">CAT</div><div class="c-price loading" id="dj-cat-p">—</div><div class="c-change" id="dj-cat-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AXP</div><div class="c-price loading" id="dj-axp-p">—</div><div class="c-change" id="dj-axp-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">MCD</div><div class="c-price loading" id="dj-mcd-p">—</div><div class="c-change" id="dj-mcd-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AMGN</div><div class="c-price loading" id="dj-amgn-p">—</div><div class="c-change" id="dj-amgn-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">V</div><div class="c-price loading" id="dj-v-p">—</div><div class="c-change" id="dj-v-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">TRV</div><div class="c-price loading" id="dj-trv-p">—</div><div class="c-change" id="dj-trv-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">IBM</div><div class="c-price loading" id="dj-ibm-p">—</div><div class="c-change" id="dj-ibm-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">JPM</div><div class="c-price loading" id="dj-jpm-p">—</div><div class="c-change" id="dj-jpm-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">HON</div><div class="c-price loading" id="dj-hon-p">—</div><div class="c-change" id="dj-hon-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">CRM</div><div class="c-price loading" id="dj-crm-p">—</div><div class="c-change" id="dj-crm-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">CVX</div><div class="c-price loading" id="dj-cvx-p">—</div><div class="c-change" id="dj-cvx-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">AAPL</div><div class="c-price loading" id="dj-aapl-p">—</div><div class="c-change" id="dj-aapl-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">MSFT</div><div class="c-price loading" id="dj-msft-p">—</div><div class="c-change" id="dj-msft-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">DIS</div><div class="c-price loading" id="dj-dis-p">—</div><div class="c-change" id="dj-dis-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">NKE</div><div class="c-price loading" id="dj-nke-p">—</div><div class="c-change" id="dj-nke-c">—</div><div class="c-src">Yahoo</div></div>
+      <div class="card blue"><div class="c-label">NYSE/NASDAQ</div><div class="c-name">BA</div><div class="c-price loading" id="dj-ba-p">—</div><div class="c-change" id="dj-ba-c">—</div><div class="c-src">Yahoo</div></div>
+      </div>
+  </div>
 
   <div class="sec"><span>03</span> Commodities <span class="src">· Hyperliquid 24/7</span></div>
   <div class="grid">
@@ -1534,6 +1673,27 @@ footer{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);displ
 
 </div><!-- /tab-indicadores -->
 
+</div><!-- /tab-posicoes -->
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- TAB: CALENDÁRIO ECONÔMICO -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="tab-calendario" class="tab-content">
+  <div class="sbar" style="margin-bottom:12px">
+    <div class="pill ok">🇺🇸 EUA</div>
+    <div class="pill ok">🇧🇷 Brasil</div>
+    <div class="pill ok">🇪🇺 Zona Euro</div>
+    <div class="pill ok">🇬🇧 UK</div>
+    <div class="pill ok">🇨🇳 China</div>
+    <div class="pill ok">🇯🇵 Japão</div>
+    <div class="pill ok">🇩🇪 Alemanha</div>
+    <button class="refresh-btn" onclick="loadCalendar()">↻ Atualizar</button>
+  </div>
+  <div id="calendar-area">
+    <div style="color:var(--muted);font-size:.65rem;padding:20px;text-align:center">Clique em Atualizar para carregar eventos econômicos</div>
+  </div>
+</div><!-- /tab-calendario -->
+
 <footer>
   <span>Hyperliquid xyz: (índices + commodities + cripto) · TradingView proxy (B3) · Binance Futures (funding)</span>
   <span id="ftr">—</span>
@@ -1607,10 +1767,12 @@ function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   event.target.classList.add('active');
-  // Load indicators when switching to that tab
-  if(tab==='indicadores' && !window._indLoaded){
+  if(tab==='indicadores'&&!window._indLoaded){
     window._indLoaded=true;
     loadIndicators();
+  }
+  if(tab==='calendario'){
+    loadCalendar();
   }
 }
 
@@ -2718,15 +2880,22 @@ async function loadIndicators(){
 const SEG_TICKERS={
   'financeiro':['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'B3SA3', 'BPAC11', 'ITSA4', 'BRSR6', 'ABCB4', 'BMGB4'],
   'petroleo':['PETR4', 'PETR3', 'PRIO3', 'BRAV3', 'VBBR3', 'CSAN3', 'RECV3', 'UGPA3', 'CGAS3', 'SEQL3'],
-  'mineracao':['VALE3', 'GGBR4', 'CSNA3', 'USIM5', 'BRAP4', 'FESA4', 'CMIN3', 'CBAV3', 'TOKY3', 'PGMN3'],
-  'materiais':['SUZB3', 'KLBN11', 'DXCO3', 'UNIP6', 'RANI3', 'DTEX3', 'RANI3', 'SMTO3', 'ORVR3', 'ORVR3'],
+  'mineracao':['VALE3', 'GGBR4', 'CSNA3', 'USIM5', 'BRAP4', 'FESA4', 'CMIN3', 'CBAV3', 'GOAU4', 'PGMN3'],
+  'materiais':['SUZB3', 'KLBN11', 'DXCO3', 'UNIP6', 'RANI3', 'ORVR3', 'SMTO3', 'DTEX3', 'FRAS3', 'KEPL3'],
   'utilidade':['ELET3', 'EQTL3', 'CPFE3', 'SBSP3', 'CMIG4', 'ENGI11', 'TAEE11', 'TRPL4', 'AURE3', 'EGIE3'],
-  'consumo_ciclico':['RENT3', 'LREN3', 'MGLU3', 'CYRE3', 'MRVE3', 'AZUL4', 'CVCB3', 'AZZA3', 'VIVA3', 'SBFG3'],
+  'consumo_ciclico':['RENT3', 'LREN3', 'MGLU3', 'CYRE3', 'MRVE3', 'AZUL4', 'AZZA3', 'VIVA3', 'SBFG3', 'CVCB3'],
   'consumo_nao':['ABEV3', 'JBSS3', 'BRFS3', 'NATU3', 'MDIA3', 'BEEF3', 'SLCE3', 'MTRE3', 'CAML3', 'PCAR3'],
   'saude':['RDOR3', 'HAPV3', 'FLRY3', 'DASA3', 'QUAL3', 'ONCO3', 'PNVL3', 'ODPV3', 'MATD3', 'AALR3'],
-  'industriais':['WEGE3', 'EMBR3', 'RAIL3', 'TGMA3', 'ROMI3', 'FRAS3', 'TUPY3', 'VLID3', 'IRBR3', 'LPSB3'],
+  'industriais':['WEGE3', 'EMBR3', 'RAIL3', 'TGMA3', 'ROMI3', 'VLID3', 'TUPY3', 'IRBR3', 'LPSB3', 'KEPL3'],
   'ti_telecom':['VIVT3', 'TIMS3', 'TOTVS3', 'OIBR3', 'LWSA3', 'INTB3', 'MLAS3', 'ANIM3', 'CASH3', 'POSI3'],
 };
+const US_TICKERS={
+  'mag7':['AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'TSLA'],
+  'nasdaq15':['AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'COST', 'NFLX', 'QCOM', 'AMD', 'ADBE', 'INTC', 'CSCO'],
+  'sp20':['AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'BRK-B', 'JPM', 'LLY', 'V', 'UNH', 'XOM', 'MA', 'NFLX', 'PG', 'JNJ', 'HD', 'BAC'],
+  'dji20':['UNH', 'GS', 'HD', 'SHW', 'CAT', 'AXP', 'MCD', 'AMGN', 'V', 'TRV', 'IBM', 'JPM', 'HON', 'CRM', 'CVX', 'AAPL', 'MSFT', 'DIS', 'NKE', 'BA'],
+};
+
 
 
 function toggleSeg(id){
@@ -2743,6 +2912,25 @@ function toggleSeg(id){
 }
 
 async function loadSegment(id){
+  // US stocks via Yahoo
+  if(US_TICKERS[id]){
+    const prefMap={'mag7':'us','nasdaq15':'nq','sp20':'sp','dji20':'dj'};
+    const prefix=prefMap[id]||'us';
+    const tickers=US_TICKERS[id];
+    try{
+      const r=await fetch('https://trader-desk.onrender.com/us/quotes?tickers='+tickers.join(','));
+      if(!r.ok)throw 0;
+      const d=await r.json();
+      Object.entries(d).forEach(([t,v])=>{
+        const tid=t.toLowerCase().replace('-','_');
+        const el=document.getElementById(prefix+'-'+tid+'-p');
+        if(el&&v.price){el.textContent='US$ '+Number(v.price).toFixed(2);el.classList.remove('loading');}
+        if(v.price&&v.prev)setChg(prefix+'-'+tid+'-c',v.price,v.prev,'usd');
+      });
+    }catch(e){}
+    return;
+  }
+  // Brazil stocks via TradingView
   const tickers=SEG_TICKERS[id];
   if(!tickers)return;
   try{
@@ -2764,6 +2952,62 @@ async function loadSegment(id){
     });
   }catch(e){}
 }
+
+// ── CALENDÁRIO ECONÔMICO ─────────────────────────────
+const CAL_COUNTRIES=['US','BR','EU','GB','CN','JP','DE'];
+const CAL_FLAGS={'US':'🇺🇸','BR':'🇧🇷','EU':'🇪🇺','GB':'🇬🇧','CN':'🇨🇳','JP':'🇯🇵','DE':'🇩🇪'};
+const IMP_COLOR={'1':'var(--muted)','2':'var(--warn)','3':'var(--danger)'};
+
+async function loadCalendar(){
+  const el=document.getElementById('calendar-area');
+  if(el)el.innerHTML='<div style="color:var(--muted);font-size:.65rem;padding:20px;text-align:center;animation:pulse 1.5s infinite">Carregando calendário...</div>';
+  try{
+    const r=await fetch('https://trader-desk.onrender.com/calendar');
+    if(!r.ok)throw 0;
+    const events=await r.json();
+    if(!events||!events.length){el.innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">Sem eventos disponíveis</div>';return;}
+    
+    // Group by date
+    const byDate={};
+    events.forEach(e=>{
+      const dt=e.date?.split('T')[0]||e.date||'';
+      if(!byDate[dt])byDate[dt]=[];
+      byDate[dt].push(e);
+    });
+
+    let html='';
+    Object.keys(byDate).sort().forEach(dt=>{
+      const d=new Date(dt+'T12:00:00');
+      const label=d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+      html+=`<div class="sec"><span>📅</span> ${label}</div>`;
+      html+='<div style="background:var(--bg2);border:1px solid var(--border);margin-bottom:8px">';
+      byDate[dt].forEach(e=>{
+        const flag=CAL_FLAGS[e.country]||'🌐';
+        const imp=e.importance||1;
+        const color=IMP_COLOR[String(imp)]||'var(--muted)';
+        const time=e.time||'';
+        const actual=e.actual!=null?`<span style="color:var(--accent);font-weight:700">${e.actual}</span>`:'<span style="color:var(--muted)">—</span>';
+        const forecast=e.forecast!=null?`<span style="color:var(--muted)">${e.forecast}</span>`:'';
+        const prev=e.previous!=null?`<span style="color:var(--muted)">${e.previous}</span>`:'';
+        html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:.65rem">
+          <span style="min-width:20px">${flag}</span>
+          <span style="min-width:45px;color:var(--muted)">${time}</span>
+          <span style="flex:1;color:var(--text)">${e.event||e.title||''}</span>
+          <span style="min-width:20px;text-align:center;color:${color}">${'●'.repeat(imp)}</span>
+          <span style="min-width:60px;text-align:right">${actual}</span>
+          <span style="min-width:50px;text-align:right;color:var(--muted)">${forecast}</span>
+        </div>`;
+      });
+      html+='</div>';
+    });
+    if(el)el.innerHTML=html||'<div style="color:var(--muted);padding:20px">Sem eventos para os países selecionados</div>';
+  }catch(e){
+    if(el)el.innerHTML='<div style="color:var(--danger);padding:20px">Erro ao carregar calendário</div>';
+  }
+}
+
+// Load calendar when tab is clicked
+const _origSwitch=window.switchTab||function(){};
 
 // ── MAIN ──────────────────────────────────────────────
 async function fetchAll(){
