@@ -793,46 +793,38 @@ def get_us_quotes():
 # ── ECONOMIC CALENDAR ─────────────────────────────────
 @app.route('/calendar', methods=['GET'])
 def get_calendar():
-    countries_filter = ['USD','BRL','EUR','GBP','CNY','JPY','DEM','AUD']
+    import datetime as dt_mod
     all_events = []
-    
-    # Forex Factory — melhor fonte gratuita para calendário econômico
-    for endpoint in [
+    currencies_ok = {'USD','BRL','EUR','GBP','CNY','JPY','DEM'}
+    flag_map = {'USD':'🇺🇸','BRL':'🇧🇷','EUR':'🇪🇺','GBP':'🇬🇧','CNY':'🇨🇳','JPY':'🇯🇵','DEM':'🇩🇪'}
+    imp_map = {'Low':1,'Medium':2,'High':3,'Holiday':0}
+
+    # Forex Factory — fonte principal gratuita
+    for url in [
         'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
         'https://nfs.faireconomy.media/ff_calendar_nextweek.json',
     ]:
         try:
-            r = requests.get(endpoint, headers={'User-Agent':'Mozilla/5.0'}, timeout=10)
-            if r.ok:
-                events = r.json()
-                for e in events:
-                    currency = e.get('currency','')
-                    impact = e.get('impact','')
-                    # Map impact to number
-                    imp_map = {'Low':1,'Medium':2,'High':3,'Holiday':0}
-                    imp_num = imp_map.get(impact, 0)
-                    if imp_num < 2: continue
-                    # Map currency to country
-                    cur_country = {
-                        'USD':'🇺🇸','BRL':'🇧🇷','EUR':'🇪🇺','GBP':'🇬🇧',
-                        'CNY':'🇨🇳','JPY':'🇯🇵','DEM':'🇩🇪'
-                    }
-                    flag = cur_country.get(currency,'🌐')
-                    if currency not in cur_country: continue
-                    all_events.append({
-                        'date': e.get('date',''),
-                        'time': e.get('time','All Day'),
-                        'country': currency,
-                        'flag': flag,
-                        'event': e.get('title',''),
-                        'importance': imp_num,
-                        'actual': e.get('actual'),
-                        'forecast': e.get('forecast'),
-                        'previous': e.get('previous'),
-                    })
+            r = requests.get(url, headers={'User-Agent':'Mozilla/5.0 Trader-Desk/1.0'}, timeout=10)
+            if not r.ok: continue
+            for e in r.json():
+                cur = e.get('currency','')
+                if cur not in currencies_ok: continue
+                imp = imp_map.get(e.get('impact',''), 0)
+                if imp < 2: continue
+                all_events.append({
+                    'date':       e.get('date','')[:10],
+                    'time':       e.get('time',''),
+                    'country':    cur,
+                    'flag':       flag_map.get(cur,'🌐'),
+                    'event':      e.get('title',''),
+                    'importance': imp,
+                    'actual':     e.get('actual','') or None,
+                    'forecast':   e.get('forecast','') or None,
+                    'previous':   e.get('previous','') or None,
+                })
         except: pass
-    
-    # Sort by date then time
+
     all_events.sort(key=lambda x: (x.get('date',''), x.get('time','')))
     return jsonify(all_events)
 
@@ -862,9 +854,9 @@ def get_macro_brazil():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — atualizado em 2026-06-05 23:02
+# HTML EMBUTIDO — 2026-06-06 17:57
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v9.4 - 2026-06-05 23:02 -->
+<!-- Trader Desk v9.5 - 2026-06-06 17:57 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -3000,7 +2992,6 @@ async function fetchAll(){
 
   // Monte Carlo BBAS3, PETR4, VALE3 — t=5s
   setTimeout(()=>{
-    runMonteCarlo();
     runMCForAtivo('PETR4.SA',31.33,210,'mc-pt-loading','mc-pt-result','mc-pt-strike','mc-pt-vol','mc-pt-info');
     runMCForAtivo('VALE3.SA',57.40,270,'mc-vl-loading','mc-vl-result','mc-vl-strike','mc-vl-vol','mc-vl-info');
   }, 5000);
