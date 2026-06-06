@@ -854,7 +854,7 @@ def get_macro_brazil():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO — 2026-06-06 17:57
+# HTML EMBUTIDO
 PANEL_HTML = """<!DOCTYPE html>
 <!-- Trader Desk v9.5 - 2026-06-06 17:57 -->
 <html lang="pt-BR">
