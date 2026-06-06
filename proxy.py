@@ -854,9 +854,9 @@ def get_macro_brazil():
 # ── SERVE HTML ────────────────────────────────────────
 import os
 
-# HTML EMBUTIDO
+# HTML EMBUTIDO — 2026-06-06 18:05
 PANEL_HTML = """<!DOCTYPE html>
-<!-- Trader Desk v9.5 - 2026-06-06 17:57 -->
+<!-- Trader Desk v9.6 - 2026-06-06 18:05 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2413,8 +2413,9 @@ async function runMCForAtivo(ticker, strike, dias, loadingId, resultId, strikeId
     if(el)el.textContent='Erro: '+(e.message||'indisponível');
   }
 }
-
-
+</script>
+</body>
+</html>
 """
 
 @app.route('/')
