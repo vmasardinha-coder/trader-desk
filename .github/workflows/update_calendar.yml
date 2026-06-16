@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: '0 * * * *'
   workflow_dispatch:
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -10,33 +11,31 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Fetch Forex Factory calendars
         run: |
           mkdir -p cache
-          curl -sf -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
-            -H "Accept: application/json" \
+          curl -sf -H "User-Agent: Mozilla/5.0 Chrome/124" \
             "https://nfs.faireconomy.media/ff_calendar_thisweek.json" \
             -o cache/thisweek.json || echo "[]" > cache/thisweek.json
-          curl -sf -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
-            -H "Accept: application/json" \
+          curl -sf -H "User-Agent: Mozilla/5.0 Chrome/124" \
             "https://nfs.faireconomy.media/ff_calendar_nextweek.json" \
             -o cache/nextweek.json || echo "[]" > cache/nextweek.json
-          python3 << 'PYEOF'
+          python3 -c "
 import json
 result = []
 for f in ['cache/thisweek.json', 'cache/nextweek.json']:
     try:
         data = json.load(open(f))
-        if isinstance(data, list):
-            result.extend(data)
-    except Exception as e:
-        print(f"Erro {f}: {e}")
+        if isinstance(data, list): result.extend(data)
+    except: pass
 json.dump(result, open('cache/calendar.json', 'w'))
-print(f"Total: {len(result)} eventos")
-PYEOF
+print(f'Total: {len(result)} eventos')
+"
+
       - name: Commit cache
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add cache/
-          git diff --staged --quiet || (git commit -m "cache: calendar $(date -u +%Y-%m-%dT%H:%MZ)" && git push)
+          git diff --staged --quiet || (git commit -m "cache: calendar update" && git push)
