@@ -796,9 +796,11 @@ def get_calendar():
                 try:
                     from datetime import datetime as _dt, timedelta, timezone
                     dt = _dt.fromisoformat(raw_date)
+                    # Converter para BRT mas preservar data UTC para não perder eventos
                     dt_brt = dt.astimezone(timezone(timedelta(hours=-3)))
                     time_str = dt_brt.strftime('%H:%M')
-                    date_str = dt_brt.strftime('%Y-%m-%d')
+                    # Usar data UTC para não descartar eventos da madrugada BRT
+                    date_str = dt.strftime('%Y-%m-%d')
                 except: time_str = raw_date[11:16]
             actual = e.get('actual') or None
             forecast = e.get('forecast') or None
