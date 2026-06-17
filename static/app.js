@@ -47,6 +47,7 @@ function sw(t,el){
   if(tabEl){tabEl.classList.add('active');tabEl.style.display='block';}
   if(el)el.classList.add('active');
   if(t==='indicadores'&&!window._IL){window._IL=true;loadInd();}
+  if(t==='calendario'&&!window._CL){window._CL=true;loadCal();}
 
 }
 function tg(id){
@@ -308,7 +309,7 @@ async function MCR(tk,en,kd,dias,price){
     const cEl=document.getElementById('rx-mc-c');if(cEl)cEl.textContent=Number(d.prob_call_exercida).toFixed(1)+'%';
     const kEl=document.getElementById('rx-mc-k');if(kEl)kEl.textContent=d.prob_kdo_atingido!=null?Number(d.prob_kdo_atingido).toFixed(1)+'%':'—';
     document.getElementById('rx-mc-v').textContent=d.volatilidade_historica_pct+'%';
-    document.getElementById('rx-mc-i').textContent='R$ '+d.preco_atual+' · KDO R$ '+d.knock_down;
+    document.getElementById('rx-mc-i').textContent='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'');
   }catch(e){const el=document.getElementById('rx-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
 async function fInd(tk){try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),30000);const r=await fetch(B+'/indicators/'+tk,{signal:ctrl.signal});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
@@ -464,7 +465,7 @@ async function main(){
       // TV não retornou BBAS3 — fallback
       fetch(B+'/indicators/BBAS3.SA').then(r2=>r2.json()).then(d2=>{
         if(d2.preco_atual){
-          E('bb-p',fR(d2.preco_atual));Ch('bb-c',d2.preco_atual,d2.preco_anterior||d2.preco_atual*0.99,'r');
+          E('bb-p',fR(d2.preco_atual));if(d2.preco_anterior&&d2.preco_anterior!==d2.preco_atual){Ch('bb-c',d2.preco_atual,d2.preco_anterior,'r');}else{const ec=document.getElementById('bb-c');if(ec)ec.textContent='—';}
           const dist=d2.preco_atual-21.65;
           const itm2=document.getElementById('bb-itm');
           if(itm2){itm2.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(dist>=0?'itm':'ok');}
