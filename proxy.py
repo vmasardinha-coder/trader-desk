@@ -765,23 +765,45 @@ def get_fear_greed():
 # ── CALENDAR — v8.5 multi-source ─────────────────────
 @app.route('/calendar', methods=['GET'])
 def get_calendar():
-    """Lê do cache GitHub (raw.githubusercontent.com está na allowlist do Render)"""
+    """Lê do cache GitHub. Parse manual de timezone para compatibilidade Python 3.9+"""
+    import re as _re
     flag_map = {
         'USD':'🇺🇸','US':'🇺🇸','BRL':'🇧🇷','BR':'🇧🇷',
         'EUR':'🇪🇺','EU':'🇪🇺','GBP':'🇬🇧','CNY':'🇨🇳',
         'JPY':'🇯🇵','CAD':'🇨🇦','AUD':'🇦🇺','DE':'🇩🇪',
         'NZD':'🇳🇿','CHF':'🇨🇭',
     }
-    currencies_ok = set(flag_map.keys()) | {'USD','BRL','EUR','GBP','CNY','JPY','CAD','AUD','DE'}
+    currencies_ok = set(flag_map.keys())
     imp_map = {'Low':1,'Medium':2,'High':3,'Holiday':0}
-    
+
+    def parse_ff_date(raw):
+        """Parse '2026-06-15T03:30:00-04:00' compatível com Python 3.9+"""
+        if not raw or 'T' not in raw:
+            return (raw[:10] if raw else ''), ''
+        try:
+            from datetime import datetime as _dt, timedelta
+            # Extrair componentes manualmente
+            match = _re.match(r'(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):\d{2}([+-])(\d{2}):(\d{2})', raw)
+            if not match:
+                return raw[:10], raw[11:16]
+            date_p, hh, mm, sign, tz_h, tz_m = match.groups()
+            naive = _dt.strptime(f"{date_p} {hh}:{mm}", "%Y-%m-%d %H:%M")
+            tz_offset = int(tz_h) * 60 + int(tz_m)
+            if sign == '-': tz_offset = -tz_offset
+            # Converter para UTC depois para BRT (UTC-3)
+            utc = naive - timedelta(minutes=tz_offset)
+            brt = utc - timedelta(hours=3)
+            return brt.strftime('%Y-%m-%d'), brt.strftime('%H:%M')
+        except:
+            return raw[:10], raw[11:16]
+
     try:
         r = requests.get(
             'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/cache/calendar.json',
             headers={'Cache-Control':'no-cache','User-Agent':'Trader-Desk/1.0'},
             timeout=10)
         if not r.ok or len(r.text) < 10:
-            return jsonify([])
+            return jsonify({'error': f'cache indisponivel: {r.status_code}'}), 500
         raw = r.json()
         all_events = []
         for e in raw:
@@ -789,19 +811,8 @@ def get_calendar():
             if not cur or cur not in currencies_ok: continue
             imp = imp_map.get(e.get('impact',''), 0)
             if imp < 2: continue
-            raw_date = e.get('date','')
-            date_str = raw_date[:10] if raw_date else ''
-            time_str = ''
-            if 'T' in raw_date:
-                try:
-                    from datetime import datetime as _dt, timedelta, timezone
-                    dt = _dt.fromisoformat(raw_date)
-                    # Converter para BRT mas preservar data UTC para não perder eventos
-                    dt_brt = dt.astimezone(timezone(timedelta(hours=-3)))
-                    time_str = dt_brt.strftime('%H:%M')
-                    # Usar data UTC para não descartar eventos da madrugada BRT
-                    date_str = dt.strftime('%Y-%m-%d')
-                except: time_str = raw_date[11:16]
+            date_str, time_str = parse_ff_date(e.get('date',''))
+            if not date_str: continue
             actual = e.get('actual') or None
             forecast = e.get('forecast') or None
             signal = None
