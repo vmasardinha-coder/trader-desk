@@ -62,7 +62,8 @@ async function loadSeg(id){
   const pfx=id+'_';
   if(USSEG[id]){
     const tks=USSEG[id];
-    g.innerHTML=tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');return '<div class="card b"><div class="cl">US</div><div class="cn">'+t+'</div><div class="cp loading" id="'+pfx+tid+'_p">—</div><div class="cc" id="'+pfx+tid+'_c">—</div></div>';}).join('');
+    g.innerHTML='<table class="tbl-mkt tbl-seg"><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
+      tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');return '<tr><td><div class="sym">'+t+'</div></td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+'</tbody></table>';
     try{
       const r=await fetch(B+'/us/quotes?tickers='+tks.join(','));
       if(!r.ok)return;
@@ -71,7 +72,7 @@ async function loadSeg(id){
         const tid=t.replace(/[^a-zA-Z0-9]/g,'_');
         const ep=document.getElementById(pfx+tid+'_p');
         if(ep&&v.price){ep.textContent='$'+Number(v.price).toFixed(2);ep.classList.remove('loading');}
-        if(v.price&&v.prev)Ch(pfx+tid+'_c',v.price,v.prev,'u');
+        if(v.price&&v.prev)ChTbl(pfx+tid+'_v',pfx+tid+'_c',v.price,v.prev,'u');
       });
     }catch(e){}
     return;
@@ -197,10 +198,10 @@ async function fHL(){
     try{
       const r2=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids',dex:'xyz'})});
       if(r2.ok){const d2=await r2.json();
-        if(d2['xyz:CL']){const v=parseFloat(d2['xyz:CL']);E('cl-p','$'+v.toFixed(2));if(window._prevCL){ChTbl('cl-v','cl-c',v,window._prevCL,'u');}window._prevCL=v;}
-        if(d2['xyz:GOLD']){const v=parseFloat(d2['xyz:GOLD']);E('gold-p','$'+Number(v).toLocaleString('en-US',{maximumFractionDigits:0}));if(window._prevGOLD){ChTbl('gold-v','gold-c',v,window._prevGOLD,'u');}window._prevGOLD=v;}
-        if(d2['xyz:SILVER']){const v=parseFloat(d2['xyz:SILVER']);E('silver-p','$'+v.toFixed(2));if(window._prevSILVER){ChTbl('silver-v','silver-c',v,window._prevSILVER,'u');}window._prevSILVER=v;}
-        if(d2['xyz:COPPER']){const v=parseFloat(d2['xyz:COPPER']);E('copper-p','$'+v.toFixed(3));if(window._prevCOPPER){ChTbl('copper-v','copper-c',v,window._prevCOPPER,'u');}window._prevCOPPER=v;}}
+        if(d2['xyz:CL'])E('cl-p','$'+parseFloat(d2['xyz:CL']).toFixed(2));
+        if(d2['xyz:GOLD'])E('gold-p','$'+Number(d2['xyz:GOLD']).toLocaleString('en-US',{maximumFractionDigits:0}));
+        if(d2['xyz:SILVER'])E('silver-p','$'+parseFloat(d2['xyz:SILVER']).toFixed(2));
+        if(d2['xyz:COPPER'])E('copper-p','$'+parseFloat(d2['xyz:COPPER']).toFixed(3));}
     }catch(e){}
   }catch(e){}
 }
@@ -294,10 +295,13 @@ async function MCB(tk,en,kd,ku,dias,pfx){
     document.getElementById(pfx+'-mc-i').textContent='R$ '+d.preco_atual+' · KDO R$ '+d.kdo+' · KUO R$ '+d.kuo;
   }catch(e){const el=document.getElementById(pfx+'-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
-async function MCR(tk,en,kd,dias){
+async function MCR(tk,en,kd,dias,price){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),40000);
-    const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:en,k_put:en,t_days:dias,knock_down:kd,n:5000})});
+    const payload={ticker:tk,k_call:en,k_put:en,t_days:dias,n:5000};
+    if(kd)payload.knock_down=kd;
+    if(price)payload.price=price;
+    const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify(payload)});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById('rx-mc-l').style.display='none';document.getElementById('rx-mc-r').style.display='block';
     const sEl=document.getElementById('rx-mc-s');sEl.textContent=Number(d.prob_sucesso).toFixed(1)+'%';sEl.className='iv '+(d.prob_sucesso>70?'ok':d.prob_sucesso>50?'warn':'down');
@@ -439,7 +443,14 @@ async function main(){
     setTimeout(()=>MC('VALE3.SA',57.40,dV,'vl-mc-l','vl-mc-r','vl-mc-s','vl-mc-v','vl-mc-i','vl-mc-rt'),12000);
     setTimeout(()=>MCB('AXIA3.SA',54.31,43.51,68.76,dA,'a3'),18000);
     setTimeout(()=>MCB('AXIA3.SA',50.65,40.52,62.81,dAb,'a3b'),24000);
-    setTimeout(()=>MCR('ROXO34.SA',12.88,10.50,dR),30000);
+    setTimeout(async()=>{
+    try{
+      const rRX=await fetch(B+'/indicators/ROXO34.SA');
+      const dRX=rRX.ok?await rRX.json():{};
+      const priceRX=dRX.preco_atual||null;
+      await MCR('ROXO34.SA',10.50,null,dR,priceRX);
+    }catch(e){MCR('ROXO34.SA',10.50,null,dR,null);}
+  },30000);
     const dBB=Math.max(1,Math.ceil((new Date('2026-08-20')-hoje)/864e5));
     setTimeout(()=>MC('BBAS3.SA',21.65,dBB,'bb-mc-l','bb-mc-r','bb-mc-s','bb-mc-v','bb-mc-i','bb-mc-rt'),36000);
     // BBAS3 cotação — via TV ou fallback /indicators
