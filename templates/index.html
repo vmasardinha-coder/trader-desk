@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Trader Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">TRADER <span>DESK</span></div>
+  <div class="hdr-right">
+    <div class="badge">● AO VIVO</div>
+    <div class="hdr-time" id="last-update">—</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="sw('cotacoes',this)">📊 Cotações</div>
+  <div class="tab" onclick="sw('indicadores',this)">📈 Indicadores</div>
+  <div class="tab" onclick="sw('posicoes',this)">💼 Posições</div>
+  <div class="tab" onclick="sw('calendario',this)">📅 Calendário</div>
+</div>
+
+<!-- ══ COTAÇÕES ══ -->
+<div id="tab-cotacoes" class="tab-content active">
+  <div class="tbl-wrap">
+    <div class="tbl-hdr"><span class="tbl-hdr-title">EUA — Mercados</span><span class="tbl-hdr-time" id="last-update-tbl">—</span></div>
+    <table class="tbl-mkt">
+      <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead>
+      <tbody>
+        <tr><td><div class="sym">S&amp;P ES1*</div><div class="desc">Futuro S&P 500</div></td><td class="r"><span class="val loading" id="esf-p">—</span></td><td class="r"><span class="chg" id="esf-v">—</span></td><td class="r"><span class="chg" id="esf-c">—</span></td></tr>
+        <tr><td><div class="sym">Nasdaq NQ</div><div class="desc">Futuro Nasdaq 100</div></td><td class="r"><span class="val loading" id="nqf-p">—</span></td><td class="r"><span class="chg" id="nqf-v">—</span></td><td class="r"><span class="chg" id="nqf-c">—</span></td></tr>
+        <tr><td><div class="sym">Dow Jones</div><div class="desc">Índice DJIA</div></td><td class="r"><span class="val loading" id="dji-p">—</span></td><td class="r"><span class="chg" id="dji-v">—</span></td><td class="r"><span class="chg" id="dji-c">—</span></td></tr>
+        <tr><td><div class="sym">VIX</div><div class="desc">Volatilidade</div></td><td class="r"><span class="val loading" id="vix-p">—</span></td><td class="r"><span class="chg" id="vix-v">—</span></td><td class="r"><span class="chg" id="vix-c">—</span></td></tr>
+        <tr><td><div class="sym">DXY</div><div class="desc">Dólar Index</div></td><td class="r"><span class="val loading" id="dxy-p">—</span></td><td class="r"><span class="chg" id="dxy-v">—</span></td><td class="r"><span class="chg" id="dxy-c">—</span></td></tr>
+        <tr><td><div class="sym">USD/BRL</div><div class="desc">Câmbio Dólar</div></td><td class="r"><span class="val loading" id="usd-p">—</span></td><td class="r"><span class="chg" id="usd-v">—</span></td><td class="r"><span class="chg" id="usd-c">—</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tbl-wrap">
+    <div class="tbl-hdr"><span class="tbl-hdr-title">B3 — Top 10</span></div>
+    <table class="tbl-mkt">
+      <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead>
+      <tbody>
+        <tr><td><div class="sym">IBOV</div><div class="desc">Índice Bovespa</div></td><td class="r"><span class="val loading" id="ibov-p">—</span></td><td class="r"><span class="chg" id="ibov-v">—</span></td><td class="r"><span class="chg" id="ibov-c">—</span></td></tr>
+        <tr><td><div class="sym">WIN1!</div><div class="desc">Futuro IBOV</div></td><td class="r"><span class="val loading" id="win-p">—</span></td><td class="r"><span class="chg" id="win-v">—</span></td><td class="r"><span class="chg" id="win-c">—</span></td></tr>
+        <tr><td><div class="sym">PETR4</div><div class="desc">Petrobras PN</div></td><td class="r"><span class="val loading" id="petr4q-p">—</span></td><td class="r"><span class="chg" id="petr4q-v">—</span></td><td class="r"><span class="chg" id="petr4q-c">—</span></td></tr>
+        <tr><td><div class="sym">ITUB4</div><div class="desc">Itaú Unibanco PN</div></td><td class="r"><span class="val loading" id="itub4q-p">—</span></td><td class="r"><span class="chg" id="itub4q-v">—</span></td><td class="r"><span class="chg" id="itub4q-c">—</span></td></tr>
+        <tr><td><div class="sym">VALE3</div><div class="desc">Vale ON</div></td><td class="r"><span class="val loading" id="vale3q-p">—</span></td><td class="r"><span class="chg" id="vale3q-v">—</span></td><td class="r"><span class="chg" id="vale3q-c">—</span></td></tr>
+        <tr><td><div class="sym">BBDC4</div><div class="desc">Bradesco PN</div></td><td class="r"><span class="val loading" id="bbdc4q-p">—</span></td><td class="r"><span class="chg" id="bbdc4q-v">—</span></td><td class="r"><span class="chg" id="bbdc4q-c">—</span></td></tr>
+        <tr><td><div class="sym">ABEV3</div><div class="desc">Ambev ON</div></td><td class="r"><span class="val loading" id="abev3q-p">—</span></td><td class="r"><span class="chg" id="abev3q-v">—</span></td><td class="r"><span class="chg" id="abev3q-c">—</span></td></tr>
+        <tr><td><div class="sym">BBAS3</div><div class="desc">Banco do Brasil ON</div></td><td class="r"><span class="val loading" id="bbas3q-p">—</span></td><td class="r"><span class="chg" id="bbas3q-v">—</span></td><td class="r"><span class="chg" id="bbas3q-c">—</span></td></tr>
+        <tr><td><div class="sym">WEGE3</div><div class="desc">WEG ON</div></td><td class="r"><span class="val loading" id="wege3q-p">—</span></td><td class="r"><span class="chg" id="wege3q-v">—</span></td><td class="r"><span class="chg" id="wege3q-c">—</span></td></tr>
+        <tr><td><div class="sym">ROXO34</div><div class="desc">Nubank BDR</div></td><td class="r"><span class="val loading" id="roxo34q-p">—</span></td><td class="r"><span class="chg" id="roxo34q-v">—</span></td><td class="r"><span class="chg" id="roxo34q-c">—</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>B3 por Segmento</span><button onclick="expandAll()" id="btn-expand" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.5px">+ Expandir Todos</button></div>
+  <div class="sh" onclick="tg('fin')"><span>🏦 Financeiro</span><span id="ar-fin">▼</span></div>
+  <div class="sb2" id="sb-fin"><div class="grid" id="g-fin"></div></div>
+  <div class="sh" onclick="tg('pet')"><span>🛢 Petróleo &amp; Gás</span><span id="ar-pet">▼</span></div>
+  <div class="sb2" id="sb-pet"><div class="grid" id="g-pet"></div></div>
+  <div class="sh" onclick="tg('min')"><span>⛏ Mineração</span><span id="ar-min">▼</span></div>
+  <div class="sb2" id="sb-min"><div class="grid" id="g-min"></div></div>
+  <div class="sh" onclick="tg('mat')"><span>🌲 Papel &amp; Celulose</span><span id="ar-mat">▼</span></div>
+  <div class="sb2" id="sb-mat"><div class="grid" id="g-mat"></div></div>
+  <div class="sh" onclick="tg('uti')"><span>⚡ Utilidade Pública</span><span id="ar-uti">▼</span></div>
+  <div class="sb2" id="sb-uti"><div class="grid" id="g-uti"></div></div>
+  <div class="sh" onclick="tg('cc')"><span>🛍 Consumo Cíclico</span><span id="ar-cc">▼</span></div>
+  <div class="sb2" id="sb-cc"><div class="grid" id="g-cc"></div></div>
+  <div class="sh" onclick="tg('cn')"><span>🛒 Consumo Não Cíclico</span><span id="ar-cn">▼</span></div>
+  <div class="sb2" id="sb-cn"><div class="grid" id="g-cn"></div></div>
+  <div class="sh" onclick="tg('sau')"><span>🏥 Saúde</span><span id="ar-sau">▼</span></div>
+  <div class="sb2" id="sb-sau"><div class="grid" id="g-sau"></div></div>
+  <div class="sh" onclick="tg('ind')"><span>🏗 Bens Industriais</span><span id="ar-ind">▼</span></div>
+  <div class="sb2" id="sb-ind"><div class="grid" id="g-ind"></div></div>
+  <div class="sh" onclick="tg('tit')"><span>💻 TI &amp; Comunicações</span><span id="ar-tit">▼</span></div>
+  <div class="sb2" id="sb-tit"><div class="grid" id="g-tit"></div></div>
+
+  <div class="sec" style="margin-top:16px"><span class="dot"></span>EUA por Segmento</div>
+  <div class="sh" onclick="tg('m7')"><span>⭐ 7 Magníficas</span><span id="ar-m7">▼</span></div>
+  <div class="sb2" id="sb-m7"><div class="grid" id="g-m7"></div></div>
+  <div class="sh" onclick="tg('nq')"><span>💻 Nasdaq Top 15</span><span id="ar-nq">▼</span></div>
+  <div class="sb2" id="sb-nq"><div class="grid" id="g-nq"></div></div>
+  <div class="sh" onclick="tg('sp')"><span>📊 S&amp;P 500 Top 20</span><span id="ar-sp">▼</span></div>
+  <div class="sb2" id="sb-sp"><div class="grid" id="g-sp"></div></div>
+  <div class="sh" onclick="tg('dj')"><span>🏛 Dow Jones Top 20</span><span id="ar-dj">▼</span></div>
+  <div class="sb2" id="sb-dj"><div class="grid" id="g-dj"></div></div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <div class="tbl-hdr"><span class="tbl-hdr-title">Commodities</span></div>
+    <table class="tbl-mkt">
+      <thead><tr><th>Ativo</th><th class="r">Último</th></tr></thead>
+      <tbody>
+        <tr><td><div class="sym">WTI/CL</div><div class="desc">Petróleo WTI</div></td><td class="r"><span class="val loading" id="cl-p">—</span></td></tr>
+        <tr><td><div class="sym">GOLD</div><div class="desc">Ouro</div></td><td class="r"><span class="val loading" id="gold-p">—</span></td></tr>
+        <tr><td><div class="sym">SILVER</div><div class="desc">Prata</div></td><td class="r"><span class="val loading" id="silver-p">—</span></td></tr>
+        <tr><td><div class="sym">COPPER</div><div class="desc">Cobre</div></td><td class="r"><span class="val loading" id="copper-p">—</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tbl-wrap">
+    <div class="tbl-hdr"><span class="tbl-hdr-title">Bitcoin</span></div>
+    <table class="tbl-mkt">
+      <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Info</th></tr></thead>
+      <tbody>
+        <tr><td><div class="sym">BTC/USD</div><div class="desc">Bitcoin Spot</div></td><td class="r"><span class="val loading" id="btc-p">—</span></td><td class="r"><span class="chg" id="btc-c">—</span></td><td class="r"></td></tr>
+        <tr><td><div class="sym">BTC RSI</div><div class="desc">RSI Semanal</div></td><td class="r"><span class="val loading" id="btc-rsi">—</span></td><td class="r"></td><td class="r"></td></tr>
+        <tr><td><div class="sym">Funding</div><div class="desc">Taxa 8h BTC</div></td><td class="r"><span class="val loading" id="btc-fund">—</span></td><td class="r"></td><td class="r"></td></tr>
+        <tr><td><div class="sym">Fear &amp; Greed</div><div class="desc">Índice sentimento</div></td><td class="r"><span class="val loading" id="fg-val">—</span></td><td class="r"></td><td class="r"><span id="fg-lbl" style="font-size:12px;color:var(--muted)">—</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <footer><span id="footer-time">—</span><span>Trader Desk v11.3</span></footer>
+</div>
+
+<!-- ══ INDICADORES ══ -->
+<div id="tab-indicadores" class="tab-content">
+  <div class="sec"><span class="dot"></span>Ciclo Bitcoin</div>
+  <div id="btc-cycle-area"><div style="color:var(--muted);padding:14px;animation:pulse 1.5s infinite">Carregando...</div></div>
+  <div style="display:grid;grid-template-columns:1fr 150px;gap:10px;margin:14px 0">
+    <div id="fg-area"><div style="color:var(--muted);padding:12px">Carregando Fear &amp; Greed...</div></div>
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:16px;text-align:center">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">BTC/USD</div>
+      <div class="cp loading" id="btc-ind-p">—</div>
+    </div>
+  </div>
+  <div class="sec"><span class="dot"></span>BTC Semanal</div>
+  <div id="btc-ind-area"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button onclick="toggleAllInd()" id="btn-all-ind" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.5px">− Recolher Todos</button>
+  </div>
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('petr4')">
+      <div><div class="ind-acc-title">PETR4 — Petrobras PN</div><div class="ind-acc-sub">Petróleo &amp; Gás · clique para expandir/recolher</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('petr4')">↻</span><span id="ar-ind-petr4">▼</span></div>
+    </div>
+    <div class="ind-acc-body open" id="petr4-ind-wrap"><div id="petr4-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+  </div>
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('vale3')">
+      <div><div class="ind-acc-title">VALE3 — Vale ON</div><div class="ind-acc-sub">Mineração · clique para expandir/recolher</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('vale3')">↻</span><span id="ar-ind-vale3">▼</span></div>
+    </div>
+    <div class="ind-acc-body open" id="vale3-ind-wrap"><div id="vale3-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+  </div>
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('bbas3')">
+      <div><div class="ind-acc-title">BBAS3 — Banco do Brasil ON</div><div class="ind-acc-sub">Bancos · clique para expandir/recolher</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('bbas3')">↻</span><span id="ar-ind-bbas3">▼</span></div>
+    </div>
+    <div class="ind-acc-body open" id="bbas3-ind-wrap"><div id="bbas3-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+  </div>
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('axia3')">
+      <div><div class="ind-acc-title">AXIA3 — Auren Energia ON</div><div class="ind-acc-sub">Energia Elétrica · clique para expandir/recolher</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('axia3')">↻</span><span id="ar-ind-axia3">▼</span></div>
+    </div>
+    <div class="ind-acc-body open" id="axia3-ind-wrap"><div id="axia3-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+  </div>
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('roxo34')">
+      <div><div class="ind-acc-title">ROXO34 — Nubank BDR</div><div class="ind-acc-sub">Fintech · clique para expandir/recolher</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('roxo34')">↻</span><span id="ar-ind-roxo34">▼</span></div>
+    </div>
+    <div class="ind-acc-body open" id="roxo34-ind-wrap"><div id="roxo34-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+  </div>
+</div>
+
+<!-- ══ POSIÇÕES ══ -->
+<div id="tab-posicoes" class="tab-content">
+  <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Operações Ativas</span><button onclick="toggleAllPos()" id="btn-all-pos" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">− Recolher Todas</button></div>
+  <div class="pos-acc">
+    <div class="pos-acc-hdr" onclick="togPos('pos-pt')">
+      <div><div class="pos-acc-tk">PETR4</div><div class="pos-acc-sub">Petrobras PN · Call Vendida · PETRL319 · Venc 17/12/2026</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="pt-p">—</div><div class="pc2" id="pt-c">—</div></div>
+        <span id="ar-pos-pt" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-pt">
+    <div class="sb">
+      <div class="sr"><span class="sl">Strike (PETRL319)</span><span class="sv warn">R$ 30,85</span></div>
+      <div class="sr"><span class="sl">Preço vs strike</span><span class="sv itm" id="pt-itm">—</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">17/12/2026 · <span id="pt-dias">—</span> dias</span></div>
+      <div class="sr"><span class="sl">Vol. Impl.</span><span class="sv warn">43,4%</span></div>
+      <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv warn">9,4%</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer</span><span class="sv ok" id="pt-mc-rt">calc...</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
+      <div id="pt-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
+      <div id="pt-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="pt-mc-s">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="pt-mc-v">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="pt-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="pos-acc">
+    <div class="pos-acc-hdr" onclick="togPos('pos-vl')">
+      <div><div class="pos-acc-tk">VALE3</div><div class="pos-acc-sub">Vale ON · Call Vendida · VALEB574 · Venc 18/02/2027</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="vl-p">—</div><div class="pc2" id="vl-c">—</div></div>
+        <span id="ar-pos-vl" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-vl">
+    <div class="sb">
+      <div class="sr"><span class="sl">Strike (VALEB574)</span><span class="sv warn">R$ 57,40</span></div>
+      <div class="sr"><span class="sl">Preço vs strike</span><span class="sv itm" id="vl-itm">—</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">18/02/2027 · <span id="vl-dias">—</span> dias</span></div>
+      <div class="sr"><span class="sl">Vol. Impl.</span><span class="sv warn">71,2%</span></div>
+      <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv warn">14,2%</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer</span><span class="sv ok" id="vl-mc-rt">calc...</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
+      <div id="vl-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
+      <div id="vl-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="vl-mc-s">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="vl-mc-v">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="vl-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="pos-acc">
+    <div class="pos-acc-hdr" onclick="togPos('pos-a3')">
+      <div><div class="pos-acc-tk">AXIA3</div><div class="pos-acc-sub">AXIA3 (A) · Bidirecional · Venc 14/09/2026</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="a3-p">—</div><div class="pc2" id="a3-c">—</div></div>
+        <span id="ar-pos-a3" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-a3">
+    <div class="sb">
+      <div class="sr"><span class="sl">KDO (-20%)</span><span class="sv warn">R$ 43,51</span></div>
+      <div class="sr"><span class="sl">KUO (+26,6%)</span><span class="sv warn">R$ 68,76</span></div>
+      <div class="sr"><span class="sl">Ganho s/ barreira</span><span class="sv ok">até +31,2% / +20%</span></div>
+      <div class="sr"><span class="sl">Ganho c/ bar. alta</span><span class="sv warn">+4% fixo</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">14/09/2026 · <span id="a3-dias">—</span> dias</span></div>
+      <div class="sr"><span class="sl">Dist. KDO</span><span class="sv" id="a3-kdo">—</span></div>
+      <div class="sr"><span class="sl">Dist. KUO</span><span class="sv" id="a3-kuo">—</span></div>
+      <div class="sr"><span class="sl">Situação</span><span class="sv" id="a3-st">—</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Cenários barreira</div>
+      <div id="a3-mc-l" style="color:var(--muted);font-size:12px">Calculando...</div>
+      <div id="a3-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Sem Barreira ✅</div><div class="iv ok" id="a3-mc-nb">—</div></div>
+          <div class="ib"><div class="il">Bar. Alta KUO</div><div class="iv warn" id="a3-mc-ku">—</div></div>
+          <div class="ib"><div class="il">Bar. Baixa KDO</div><div class="iv down" id="a3-mc-kd">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="a3-mc-vo">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="a3-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="pos-acc">
+    <div class="pos-acc-hdr" onclick="togPos('pos-a3b')">
+      <div><div class="pos-acc-tk">AXIA3</div><div class="pos-acc-sub">AXIA3 (B) · Bidirecional ION Itaú · Venc 02/10/2026</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="a3b-p">—</div><div class="pc2" id="a3b-c">—</div></div>
+        <span id="ar-pos-a3b" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-a3b">
+    <div class="sb">
+      <div class="sr"><span class="sl">KDO (-20%)</span><span class="sv warn">R$ 40,52</span></div>
+      <div class="sr"><span class="sl">KUO (+24%)</span><span class="sv warn">R$ 62,81</span></div>
+      <div class="sr"><span class="sl">Ganho s/ barreira</span><span class="sv ok">até +31,2% / +20%</span></div>
+      <div class="sr"><span class="sl">Ganho c/ bar. alta</span><span class="sv warn">+4% fixo (12,33% a.a.)</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">02/10/2026 · <span id="a3b-dias">—</span> dias</span></div>
+      <div class="sr"><span class="sl">Dist. KDO</span><span class="sv" id="a3b-kdo">—</span></div>
+      <div class="sr"><span class="sl">Dist. KUO</span><span class="sv" id="a3b-kuo">—</span></div>
+      <div class="sr"><span class="sl">Situação</span><span class="sv" id="a3b-st">—</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Cenários barreira</div>
+      <div id="a3b-mc-l" style="color:var(--muted);font-size:12px">Calculando...</div>
+      <div id="a3b-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Sem Barreira ✅</div><div class="iv ok" id="a3b-mc-nb">—</div></div>
+          <div class="ib"><div class="il">Bar. Alta KUO</div><div class="iv warn" id="a3b-mc-ku">—</div></div>
+          <div class="ib"><div class="il">Bar. Baixa KDO</div><div class="iv down" id="a3b-mc-kd">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="a3b-mc-vo">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="a3b-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="pos-acc">
+    <div class="pos-acc-hdr" onclick="togPos('pos-rx')">
+      <div><div class="pos-acc-tk">ROXO34</div><div class="pos-acc-sub">ROXO34 · BDR Nubank · Lançamento Coberto · ROXOG105 · Venc 16/07/2026</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="rx-p">—</div><div class="pc2" id="rx-c">—</div></div>
+        <span id="ar-pos-rx" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-rx">
+    <div class="sb">
+      <div class="sr"><span class="sl">Strike (ROXOG105)</span><span class="sv warn">R$ 10,50 · ITM ⚠</span></div>
+      <div class="sr"><span class="sl">Preço vs strike</span><span class="sv itm" id="rx-itm">—</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">16/07/2026 · <span id="rx-dias">—</span> dias</span></div>
+      <div class="sr"><span class="sl">Vol. Impl.</span><span class="sv warn">33,2%</span></div>
+      <div class="sr"><span class="sl">Delta</span><span class="sv warn">0,643</span></div>
+      <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv itm">60,4% ⚠</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer</span><span class="sv" id="rx-mc-rt">calc...</span></div>
+      <div class="sr"><span class="sl">Objetivo</span><span class="sv ok">Fechar abaixo de R$ 10,50</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Prob. sucesso</div>
+      <div id="rx-mc-l" style="color:var(--muted);font-size:12px">Calculando...</div>
+      <div id="rx-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Prob. Sucesso</div><div class="iv ok" id="rx-mc-s">—</div></div>
+          <div class="ib"><div class="il">Call Exercida</div><div class="iv warn" id="rx-mc-c">—</div></div>
+          <div class="ib"><div class="il">KDO Atingido</div><div class="iv down" id="rx-mc-k">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="rx-mc-v">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="rx-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="sec" style="margin-top:20px"><span class="dot"></span>Encerradas</div>
+  <div class="pos-acc">
+    <div class="pos-acc-hdr" onclick="togPos('pos-bb')">
+      <div><div class="pos-acc-tk">BBAS3</div><div class="pos-acc-sub">Banco do Brasil ON · Lançamento Coberto · BBASH21 · Venc 20/08/2026</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="bb-p">—</div><div class="pc2" id="bb-c">—</div></div>
+        <span id="ar-pos-bb" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-bb">
+    <div class="sb">
+      <div class="sr"><span class="sl">Strike (BBASH21)</span><span class="sv warn">R$ 21,65 · ITM</span></div>
+      <div class="sr"><span class="sl">Preço vs strike</span><span class="sv itm" id="bb-itm">—</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">20/08/2026 · <span id="bb-dias">—</span> dias</span></div>
+      <div class="sr"><span class="sl">Vol. Impl.</span><span class="sv warn">27,1%</span></div>
+      <div class="sr"><span class="sl">Delta</span><span class="sv">0,249</span></div>
+      <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv warn">21,3%</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer</span><span class="sv ok" id="bb-mc-rt">calc...</span></div>
+      <div class="sr"><span class="sl">Objetivo</span><span class="sv ok">Fechar abaixo de R$ 21,65</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
+      <div id="bb-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
+      <div id="bb-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="bb-mc-s">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="bb-mc-v">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="bb-mc-i">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="pc" style="opacity:.5;border-color:var(--border);border-left-color:var(--muted)">
+    <div class="pt" style="color:var(--muted);font-size:16px">AXIA3 Short Strangle</div>
+    <div class="sb"><div class="sr"><span class="sl">Call V. AXIAI505</span><span class="sv">R$ 50,50</span></div><div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ Ações liberadas</span></div></div>
+  </div>
+  <div class="pc" style="opacity:.5;border-color:var(--border);border-left-color:var(--muted)">
+    <div class="pt" style="color:var(--muted);font-size:16px">ROXO34 Prefixado 7,1%</div>
+    <div class="sb"><div class="sr"><span class="sl">Encerrada</span><span class="sv">04/06/2026</span></div><div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ ~5,17% (72% do alvo)</span></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ══ CALENDÁRIO ══ -->
+<div id="tab-calendario" class="tab-content">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:12px;color:var(--muted);font-weight:500">🇺🇸 🇧🇷 🇪🇺 🇬🇧 🇨🇳 🇯🇵 🇩🇪 · Impacto Médio+</div>
+    <button onclick="window.location.reload()" style="background:var(--accent);border:none;color:#fff;padding:8px 18px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;letter-spacing:.5px">↻ Atualizar</button>
+  </div>
+  <div id="cal-st" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+  <div id="cal-area"><div style="font-family:Inter,sans-serif"><div style="margin-bottom:20px"><div style="background:#1a1a24;padding:8px 14px;font-size:11px;font-weight:700;color:#7c6af7;text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7;margin-bottom:2px">Monday 15/06</div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇪🇺</span><span style="color:#555;font-size:11px">04:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ECB President Lagarde Speaks</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div></div><div style="margin-bottom:20px"><div style="background:#1a1a24;padding:8px 14px;font-size:11px;font-weight:700;color:#7c6af7;text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7;margin-bottom:2px">Tuesday 16/06</div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇯🇵</span><span style="color:#555;font-size:11px">00:19</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">BOJ Policy Rate</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px"><1.00%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇯🇵</span><span style="color:#555;font-size:11px">00:19</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Monetary Policy Statement</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇦🇺</span><span style="color:#555;font-size:11px">01:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Cash Rate</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">4.35%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇦🇺</span><span style="color:#555;font-size:11px">01:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">RBA Rate Statement</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇦🇺</span><span style="color:#555;font-size:11px">02:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">RBA Press Conference</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇯🇵</span><span style="color:#555;font-size:11px">03:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">BOJ Press Conference</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div></div><div style="margin-bottom:20px"><div style="background:#1a1a24;padding:8px 14px;font-size:11px;font-weight:700;color:#7c6af7;text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7;margin-bottom:2px">Wednesday 17/06</div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">03:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">CPI y/y</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">3.0%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇪🇺</span><span style="color:#555;font-size:11px">07:50</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ECB President Lagarde Speaks</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">09:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Core Retail Sales m/m</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">0.6%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">09:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Retail Sales m/m</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">0.5%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">11:45</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">President Trump Speaks</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">15:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Federal Funds Rate</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">3.75%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">15:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">FOMC Economic Projections</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">15:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">FOMC Statement</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">15:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">FOMC Press Conference</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇳🇿</span><span style="color:#555;font-size:11px">19:45</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">GDP q/q</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">0.8%</span></div></div><div style="margin-bottom:20px"><div style="background:#1a1a24;padding:8px 14px;font-size:11px;font-weight:700;color:#7c6af7;text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7;margin-bottom:2px">Thursday 18/06</div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">03:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Claimant Count Change</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">25.8K</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">03:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Average Earnings Index 3m/y</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">4.0%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇨🇭</span><span style="color:#555;font-size:11px">04:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">SNB Monetary Policy Assessment</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇨🇭</span><span style="color:#555;font-size:11px">04:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">SNB Policy Rate</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">0.00%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇨🇭</span><span style="color:#555;font-size:11px">05:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">SNB Press Conference</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">08:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Monetary Policy Summary</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">—</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">08:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">MPC Official Bank Rate Votes</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">1-0-8</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">08:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Official Bank Rate</span><span style="color:#ff4444;text-align:center;font-size:11px">●●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">3.75%</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">09:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Philly Fed Manufacturing Index</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">9.8</span></div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇺🇸</span><span style="color:#555;font-size:11px">09:30</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Unemployment Claims</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">225K</span></div></div><div style="margin-bottom:20px"><div style="background:#1a1a24;padding:8px 14px;font-size:11px;font-weight:700;color:#7c6af7;text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7;margin-bottom:2px">Friday 19/06</div><div style="display:grid;grid-template-columns:28px 52px 1fr 36px 70px 70px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a"><span style="font-size:15px">🇬🇧</span><span style="color:#555;font-size:11px">03:00</span><span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Retail Sales m/m</span><span style="color:#ff9800;text-align:center;font-size:11px">●●</span><span style="color:#ccc;text-align:right;font-weight:700;font-size:12px">—</span><span style="color:#555;text-align:right;font-size:11px">0.5%</span></div></div></div></div>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
