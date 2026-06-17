@@ -13,9 +13,25 @@ jobs:
       - name: Fetch calendar
         run: |
           mkdir -p cache
-          curl -sf -H "User-Agent: Mozilla/5.0 Chrome/124" "https://nfs.faireconomy.media/ff_calendar_thisweek.json" -o cache/thisweek.json || echo "[]" > cache/thisweek.json
-          curl -sf -H "User-Agent: Mozilla/5.0 Chrome/124" "https://nfs.faireconomy.media/ff_calendar_nextweek.json" -o cache/nextweek.json || echo "[]" > cache/nextweek.json
-          python3 -c "import json; r=[]; [r.extend(json.load(open(f))) for f in ['cache/thisweek.json','cache/nextweek.json'] if __import__('os').path.exists(f)]; json.dump(r,open('cache/calendar.json','w')); print(len(r))"
+          curl -sf -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124" \
+            "https://nfs.faireconomy.media/ff_calendar_thisweek.json" -o cache/thisweek.json || echo "[]" > cache/thisweek.json
+          curl -sf -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124" \
+            "https://nfs.faireconomy.media/ff_calendar_nextweek.json" -o cache/nextweek.json || echo "[]" > cache/nextweek.json
+          python3 << 'EOF'
+import json, os
+events = []
+for f in ['cache/thisweek.json','cache/nextweek.json']:
+    if os.path.exists(f):
+        try:
+            data = json.load(open(f))
+            events.extend(data)
+        except: pass
+# Filtra apenas moedas relevantes e impact Medium+High
+keep = {'USD','EUR','GBP','JPY','AUD','CHF','NZD','CAD'}
+filtered = [e for e in events if e.get('country') in keep and e.get('impact') in ['Medium','High']]
+json.dump(filtered, open('cache/calendar.json','w'))
+print(f'Total: {len(events)} → filtrado: {len(filtered)}')
+EOF
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
