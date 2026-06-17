@@ -20,8 +20,10 @@
 <div class="tabs">
   <div class="tab active" onclick="sw('cotacoes',this)">📊 Cotações</div>
   <div class="tab" onclick="sw('indicadores',this)">📈 Indicadores</div>
-  <div class="tab" onclick="sw('posicoes',this)">💼 Posições</div>
-  <div class="tab" onclick="sw('calendario',this)">📅 Calendário</div>
+  <div class="tab" onclick="sw('posicoes',this)">💼 Posições Ativas</div>
+  <div class="tab" onclick="sw('encerradas',this)">🗂 Encerradas</div>
+  <div class="tab" onclick="sw('calendario',this)">📅 FF Calendar</div>
+  <div class="tab" onclick="sw('tvcal',this)">📺 TV Calendar</div>
 </div>
 
 <!-- ══ COTAÇÕES ══ -->
@@ -29,7 +31,8 @@
   <div class="tbl-wrap">
     <div class="tbl-hdr"><span class="tbl-hdr-title">EUA — Mercados</span><span class="tbl-hdr-time" id="last-update-tbl">—</span></div>
     <table class="tbl-mkt">
-      <thead><tr><th>Ativo</th><th class="r">Último</th></tr></thead>
+      <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>
+      <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead>
       <tbody>
         <tr><td><div class="sym">S&amp;P ES1*</div><div class="desc">Futuro S&P 500</div></td><td class="r"><span class="val loading" id="esf-p">—</span></td><td class="r"><span class="chg" id="esf-v">—</span></td><td class="r"><span class="chg" id="esf-c">—</span></td></tr>
         <tr><td><div class="sym">Nasdaq NQ</div><div class="desc">Futuro Nasdaq 100</div></td><td class="r"><span class="val loading" id="nqf-p">—</span></td><td class="r"><span class="chg" id="nqf-v">—</span></td><td class="r"><span class="chg" id="nqf-c">—</span></td></tr>
@@ -44,7 +47,8 @@
   <div class="tbl-wrap">
     <div class="tbl-hdr"><span class="tbl-hdr-title">B3 — Top 10</span></div>
     <table class="tbl-mkt">
-      <thead><tr><th>Ativo</th><th class="r">Último</th></tr></thead>
+      <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>
+      <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead>
       <tbody>
         <tr><td><div class="sym">IBOV</div><div class="desc">Índice Bovespa</div></td><td class="r"><span class="val loading" id="ibov-p">—</span></td><td class="r"><span class="chg" id="ibov-v">—</span></td><td class="r"><span class="chg" id="ibov-c">—</span></td></tr>
         <tr><td><div class="sym">WIN1!</div><div class="desc">Futuro IBOV</div></td><td class="r"><span class="val loading" id="win-p">—</span></td><td class="r"><span class="chg" id="win-v">—</span></td><td class="r"><span class="chg" id="win-c">—</span></td></tr>
@@ -95,7 +99,7 @@
   <div class="tbl-wrap" style="margin-top:16px">
     <div class="tbl-hdr"><span class="tbl-hdr-title">Commodities</span></div>
     <table class="tbl-mkt">
-      <thead><tr><th>Ativo</th><th class="r">Último</th></tr></thead>
+      <colgroup><col style="width:60%"><col style="width:40%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th></tr></thead>
       <tbody>
         <tr><td><div class="sym">WTI/CL</div><div class="desc">Petróleo WTI</div></td><td class="r"><span class="val loading" id="cl-p">—</span></td></tr>
         <tr><td><div class="sym">GOLD</div><div class="desc">Ouro</div></td><td class="r"><span class="val loading" id="gold-p">—</span></td></tr>
@@ -108,7 +112,7 @@
   <div class="tbl-wrap">
     <div class="tbl-hdr"><span class="tbl-hdr-title">Bitcoin</span></div>
     <table class="tbl-mkt">
-      <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Info</th></tr></thead>
+      <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Info</th></tr></thead>
       <tbody>
         <tr><td><div class="sym">BTC/USD</div><div class="desc">Bitcoin Spot</div></td><td class="r"><span class="val loading" id="btc-p">—</span></td><td class="r"><span class="chg" id="btc-c">—</span></td><td class="r"></td></tr>
         <tr><td><div class="sym">BTC RSI</div><div class="desc">RSI Semanal</div></td><td class="r"><span class="val loading" id="btc-rsi">—</span></td><td class="r"></td><td class="r"></td></tr>
@@ -339,7 +343,13 @@
     </div>
     </div>
   </div>
-  <div class="sec" style="margin-top:20px"><span class="dot"></span>Encerradas</div>
+</div>
+</div>
+
+<!-- ══ CALENDÁRIO ══ -->
+<div id="tab-encerradas" class="tab-content">
+  <div class="sec"><span class="dot"></span>Posições Encerradas</div>
+
   <div class="pos-acc">
     <div class="pos-acc-hdr" onclick="togPos('pos-bb')">
       <div><div class="pos-acc-tk">BBAS3</div><div class="pos-acc-sub">Banco do Brasil ON · Lançamento Coberto · BBASH21 · Venc 20/08/2026</div></div>
@@ -370,19 +380,63 @@
         <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="bb-mc-i">—</div>
       </div>
     </div>
+    </div>
   </div>
-  <div class="pc" style="opacity:.5;border-color:var(--border);border-left-color:var(--muted)">
-    <div class="pt" style="color:var(--muted);font-size:16px">AXIA3 Short Strangle</div>
-    <div class="sb"><div class="sr"><span class="sl">Call V. AXIAI505</span><span class="sv">R$ 50,50</span></div><div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ Ações liberadas</span></div></div>
+
+  <div class="pos-acc" style="margin-top:8px">
+    <div class="pos-acc-hdr" onclick="togPos('pos-cl-strangle')" style="opacity:.65">
+      <div><div class="pos-acc-tk" style="color:var(--muted)">AXIA3</div><div class="pos-acc-sub">Short Strangle · AXIAI505 · Encerrada</div></div>
+      <div class="pos-acc-right"><span id="ar-pos-cl-strangle" style="color:var(--muted)">▼</span></div>
+    </div>
+    <div class="pos-acc-body" id="body-pos-cl-strangle">
+      <div class="sb">
+        <div class="sr"><span class="sl">Call Vendida AXIAI505</span><span class="sv">R$ 50,50</span></div>
+        <div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ Ações liberadas</span></div>
+      </div>
+    </div>
   </div>
-  <div class="pc" style="opacity:.5;border-color:var(--border);border-left-color:var(--muted)">
-    <div class="pt" style="color:var(--muted);font-size:16px">ROXO34 Prefixado 7,1%</div>
-    <div class="sb"><div class="sr"><span class="sl">Encerrada</span><span class="sv">04/06/2026</span></div><div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ ~5,17% (72% do alvo)</span></div></div>
+
+  <div class="pos-acc" style="margin-top:8px">
+    <div class="pos-acc-hdr" onclick="togPos('pos-cl-prefixado')" style="opacity:.65">
+      <div><div class="pos-acc-tk" style="color:var(--muted)">ROXO34</div><div class="pos-acc-sub">Prefixado 7,1% · Encerrada 04/06/2026</div></div>
+      <div class="pos-acc-right"><span id="ar-pos-cl-prefixado" style="color:var(--muted)">▼</span></div>
+    </div>
+    <div class="pos-acc-body" id="body-pos-cl-prefixado">
+      <div class="sb">
+        <div class="sr"><span class="sl">Encerrada</span><span class="sv">04/06/2026</span></div>
+        <div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ ~5,17% (72% do alvo)</span></div>
+      </div>
+    </div>
   </div>
-</div>
+
+  <div class="pos-acc" style="margin-top:8px">
+    <div class="pos-acc-hdr" onclick="togPos('pos-cl-bbas-ant')" style="opacity:.65">
+      <div><div class="pos-acc-tk" style="color:var(--muted)">BBAS3</div><div class="pos-acc-sub">Lançamento Coberto anterior · 80% do alvo em 70% do prazo</div></div>
+      <div class="pos-acc-right"><span id="ar-pos-cl-bbas-ant" style="color:var(--muted)">▼</span></div>
+    </div>
+    <div class="pos-acc-body" id="body-pos-cl-bbas-ant">
+      <div class="sb">
+        <div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ 80% do alvo em 70% do prazo</span></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- ══ CALENDÁRIO ══ -->
+<div id="tab-tvcal" class="tab-content">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:12px;color:var(--muted);font-weight:500">📺 TradingView Economic Calendar</div>
+  </div>
+  <div style="border:1px solid var(--border);overflow:hidden;min-height:500px">
+    <iframe
+      src="https://www.tradingview.com/embed-widget/events/?locale=pt_BR#%7B%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22600%22%2C%22importanceFilter%22%3A%220%2C1%22%2C%22currencyFilter%22%3A%22USD%2CEUR%2CGBP%2CJPY%2CAUD%2CCHF%2CNZD%2CCAD%22%7D"
+      style="width:100%;height:600px;border:none;"
+      allowtransparency="true"
+      scrolling="no"
+      frameborder="0">
+    </iframe>
+  </div>
+</div>
+
 <div id="tab-calendario" class="tab-content">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <div style="font-size:12px;color:var(--muted);font-weight:500">🇺🇸 🇧🇷 🇪🇺 🇬🇧 🇨🇳 🇯🇵 🇩🇪 · Impacto Médio+</div>
