@@ -411,18 +411,24 @@ def get_indicators(ticker):
                 }
         except: pass
 
-        if not hist_closes:
-            try:
-                ry = requests.get(
-                    f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=3mo',
-                    headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
-                if ry.ok:
-                    dy = ry.json()
-                    meta = dy['chart']['result'][0]['meta']
-                    preco_atual = preco_atual or meta.get('regularMarketPrice')
-                    raw = dy['chart']['result'][0]['indicators']['quote'][0]['close']
-                    hist_closes = [c for c in raw if c]
-            except: pass
+        if not hist_closes or len(hist_closes) < 200:
+            for yrange in ['2y','1y']:
+                try:
+                    ry = requests.get(
+                        f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range={yrange}',
+                        headers={'User-Agent':'Mozilla/5.0'}, timeout=10)
+                    if ry.ok:
+                        dy = ry.json()
+                        meta = dy['chart']['result'][0]['meta']
+                        preco_atual = preco_atual or meta.get('regularMarketPrice')
+                        raw = dy['chart']['result'][0]['indicators']['quote'][0]['close']
+                        cl2 = [c for c in raw if c]
+                        if cl2:
+                            if len(cl2) > len(hist_closes):
+                                hist_closes = cl2
+                            if len(hist_closes) >= 200:
+                                break
+                except: pass
 
         if not hist_closes or not preco_atual:
             return jsonify({'error': f'Sem dados para {symbol}'}), 404
