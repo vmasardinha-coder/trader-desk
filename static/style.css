@@ -55,7 +55,7 @@ body{
 /* ── ACCORDION SEGMENTOS ── */
 .sh{background:var(--bg2);border:1px solid var(--border);padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-top:6px;transition:all .15s}
 .sh:hover{border-color:var(--accent);color:var(--text)}
-.sb2{display:none;padding-top:6px}
+.sb2{display:none;padding-top:6px;overflow-x:auto}
 
 /* ── POSIÇÕES ── */
 .pc{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:18px;margin-bottom:12px}
@@ -140,3 +140,13 @@ body{
 .tbl-hdr-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
 .tbl-hdr-time{font-size:11px;color:var(--muted)}
 footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:500}
+/* ── SEGMENTOS B3 FULL WIDTH ── */
+.tbl-seg{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.tbl-seg thead tr{border-bottom:1px solid var(--border)}
+.tbl-seg th{text-align:left;padding:7px 12px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Inter',sans-serif}
+.tbl-seg th.r{text-align:right}
+.tbl-seg td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.tbl-seg td.r{text-align:right}
+.tbl-seg tr:last-child td{border-bottom:none}
+.tbl-seg tr:hover td{background:var(--bg3)}
+.tbl-seg .sym{font-weight:700;font-size:13px;color:var(--text)}
