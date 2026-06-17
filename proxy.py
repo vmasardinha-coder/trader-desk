@@ -393,7 +393,7 @@ def get_indicators(ticker):
 
         try:
             rb = requests.get(
-                f'https://brapi.dev/api/quote/{symbol}?range=3mo&interval=1d&fundamental=true',
+                f'https://brapi.dev/api/quote/{symbol}?range=1y&interval=1d&fundamental=true',
                 headers={'User-Agent':'Mozilla/5.0'}, timeout=12)
             if rb.ok:
                 rd = rb.json().get('results',[{}])[0]
