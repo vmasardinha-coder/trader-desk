@@ -121,9 +121,13 @@ body{
 .ind-acc-sub{font-size:12px;color:var(--muted);margin-top:2px}
 .ind-acc-body{display:none;padding:0 16px 16px}
 .ind-acc-body.open{display:block}
-.tbl-mkt{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace}
+.tbl-mkt{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;table-layout:fixed}
 .tbl-mkt thead tr{border-bottom:1px solid var(--border)}
 .tbl-mkt th{text-align:left;padding:7px 14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Inter',sans-serif}
+.tbl-mkt th:first-child{width:40%}
+.tbl-mkt th:nth-child(2){width:20%;text-align:right}
+.tbl-mkt th:nth-child(3){width:20%;text-align:right}
+.tbl-mkt th:nth-child(4){width:20%;text-align:right}
 .tbl-mkt th.r{text-align:right}
 .tbl-mkt td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle}
 .tbl-mkt td.r{text-align:right}
@@ -141,11 +145,15 @@ body{
 .tbl-hdr-time{font-size:11px;color:var(--muted)}
 footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:500}
 /* ── SEGMENTOS B3 FULL WIDTH ── */
-.tbl-seg{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;min-width:500px}
+.tbl-seg{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;table-layout:fixed}
 .tbl-seg thead tr{border-bottom:1px solid var(--border)}
-.tbl-seg th{text-align:left;padding:7px 12px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Inter',sans-serif}
+.tbl-seg th{text-align:left;padding:7px 12px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Inter',sans-serif;overflow:hidden;white-space:nowrap}
+.tbl-seg th:first-child{width:35%}
+.tbl-seg th:nth-child(2){width:22%;text-align:right}
+.tbl-seg th:nth-child(3){width:22%;text-align:right}
+.tbl-seg th:nth-child(4){width:21%;text-align:right}
 .tbl-seg th.r{text-align:right}
-.tbl-seg td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.tbl-seg td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .tbl-seg td.r{text-align:right}
 .tbl-seg tr:last-child td{border-bottom:none}
 .tbl-seg tr:hover td{background:var(--bg3)}
