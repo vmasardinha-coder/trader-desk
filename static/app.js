@@ -6,7 +6,7 @@ const SEG={
   mat:['SUZB3','KLBN11','DXCO3','UNIP6','RANI3','ORVR3','SMTO3','FRAS3','LPSB3','CSUD3'],
   uti:['AXIA3','EQTL3','CPFE3','SBSP3','CMIG4','ENGI11','TAEE11','AURE3','EGIE3','CPLE3'],
   cc: ['RENT3','LREN3','MGLU3','CYRE3','MRVE3','AZZA3','VIVA3','SBFG3','YDUQ3','MOVI3'],
-  cn: ['ABEV3','SMTO3','NATU3','MDIA3','BEEF3','SLCE3','MTRE3','CAML3','PCAR3','MRFG3'],
+  cn: ['ABEV3','SMTO3','NATU3','MDIA3','BEEF3','SLCE3','MTRE3','CAML3','PCAR3','MRVE3'],
   sau:['RDOR3','HAPV3','FLRY3','DASA3','QUAL3','ONCO3','PNVL3','ODPV3','MATD3','AALR3'],
   ind:['WEGE3','RAIL3','TGMA3','ROMI3','VLID3','TUPY3','IRBR3','POMO4','LAVV3','FRAS3'],
   tit:['VIVT3','TIMS3','POSI3','MLAS3','ANIM3','INTB3','LWSA3','CASH3','OIBR3','IFCM3'],
@@ -60,6 +60,7 @@ function tg(id){
 
 async function loadSeg(id){
   const g=document.getElementById('g-'+id);if(!g)return;
+  g.classList.remove('grid');g.style.display='block';
   const pfx=id+'_';
   if(USSEG[id]){
     const tks=USSEG[id];
