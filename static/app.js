@@ -77,9 +77,9 @@ async function loadSeg(id){
     return;
   }
   const tks=SEG[id];if(!tks)return;
-  g.innerHTML='<div class="tbl-wrap"><table class="tbl-mkt"><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
+  g.innerHTML='<table class="tbl-mkt tbl-seg"><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
     tks.map(t=>{const tid=t.toLowerCase();return '<tr><td><div class="sym">'+t+'</div></td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+
-    '</tbody></table></div>';
+    '</tbody></table>';
   try{
     const r=await fetch(B+'/tv/brazil',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({symbols:{tickers:tks.map(t=>'BMFBOVESPA:'+t)},columns:['close','change_abs']})});
@@ -197,10 +197,10 @@ async function fHL(){
     try{
       const r2=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids',dex:'xyz'})});
       if(r2.ok){const d2=await r2.json();
-        if(d2['xyz:CL'])E('cl-p','$'+parseFloat(d2['xyz:CL']).toFixed(2));
-        if(d2['xyz:GOLD'])E('gold-p','$'+Number(d2['xyz:GOLD']).toLocaleString('en-US',{maximumFractionDigits:0}));
-        if(d2['xyz:SILVER'])E('silver-p','$'+parseFloat(d2['xyz:SILVER']).toFixed(2));
-        if(d2['xyz:COPPER'])E('copper-p','$'+parseFloat(d2['xyz:COPPER']).toFixed(3));}
+        if(d2['xyz:CL']){const v=parseFloat(d2['xyz:CL']);E('cl-p','$'+v.toFixed(2));if(window._prevCL){ChTbl('cl-v','cl-c',v,window._prevCL,'u');}window._prevCL=v;}
+        if(d2['xyz:GOLD']){const v=parseFloat(d2['xyz:GOLD']);E('gold-p','$'+Number(v).toLocaleString('en-US',{maximumFractionDigits:0}));if(window._prevGOLD){ChTbl('gold-v','gold-c',v,window._prevGOLD,'u');}window._prevGOLD=v;}
+        if(d2['xyz:SILVER']){const v=parseFloat(d2['xyz:SILVER']);E('silver-p','$'+v.toFixed(2));if(window._prevSILVER){ChTbl('silver-v','silver-c',v,window._prevSILVER,'u');}window._prevSILVER=v;}
+        if(d2['xyz:COPPER']){const v=parseFloat(d2['xyz:COPPER']);E('copper-p','$'+v.toFixed(3));if(window._prevCOPPER){ChTbl('copper-v','copper-c',v,window._prevCOPPER,'u');}window._prevCOPPER=v;}}
     }catch(e){}
   }catch(e){}
 }
@@ -211,7 +211,7 @@ async function fTV(){
       body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:ITUB4','BMFBOVESPA:VALE3','BMFBOVESPA:BBDC4','BMFBOVESPA:ABEV3','BMFBOVESPA:BBAS3','BMFBOVESPA:WEGE3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})});
     if(r.ok){const d=await r.json();(d.data||[]).forEach(x=>{const[c,ca]=x.d||[];if(c!=null)out[x.s]={p:c,v:c-(ca||0)};});}
   }catch(e){}
-  try{const rr=await fetch(B+'/indicators/ROXO34.SA');if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));Ch('roxo34q-c',dd.preco_atual,(dd.preco_anterior||dd.preco_atual*0.99),'r');}}}catch(e){}
+  try{const rr=await fetch(B+'/indicators/ROXO34.SA');if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));const prev=dd.preco_anterior||null;if(prev&&prev!==dd.preco_atual){ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');}else{const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');if(ep)ep.textContent='—';if(ec)ec.textContent='—';}}}}catch(e){}
   return out;
 }
 async function fFut(){try{const r=await fetch(B+'/futures');if(!r.ok)return null;return await r.json();}catch(e){return null;}}
@@ -246,7 +246,7 @@ function doPos(tv){
   cd('2026-12-17','pt-dias');cd('2027-02-18','vl-dias');cd('2026-09-14','a3-dias');cd('2026-10-02','a3b-dias');cd('2026-07-16','rx-dias');
   setTimeout(async()=>{
     try{const r=await fetch(B+'/indicators/AXIA3.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
-      const p=d.preco_atual;E('a3-p',fR(p));E('a3b-p',fR(p));
+      const p=d.preco_atual,pant=d.preco_anterior||p;E('a3-p',fR(p));E('a3b-p',fR(p));Ch('a3-c',p,pant,'r');Ch('a3b-c',p,pant,'r');
       const kA=43.51,kuA=68.76,kB=40.52,kuB=62.81;
       const dA=document.getElementById('a3-kdo');if(dA)dA.textContent=((p-kA)/p*100).toFixed(1)+'% acima do KDO';
       const uA=document.getElementById('a3-kuo');if(uA)uA.textContent=((kuA-p)/p*100).toFixed(1)+'% para o KUO';
@@ -258,7 +258,7 @@ function doPos(tv){
   },2000);
   setTimeout(async()=>{
     try{const r=await fetch(B+'/indicators/ROXO34.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
-      const p=d.preco_atual;E('rx-p',fR(p));
+      const p=d.preco_atual,pant2=d.preco_anterior||p;E('rx-p',fR(p));Ch('rx-c',p,pant2,'r');
       const itm=document.getElementById('rx-itm');
       const dist=p-10.50;
       if(itm)itm.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';
@@ -296,7 +296,7 @@ async function MCB(tk,en,kd,ku,dias,pfx){
 }
 async function MCR(tk,en,kd,dias){
   try{
-    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),40000);
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:en,k_put:en,t_days:dias,knock_down:kd,n:5000})});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById('rx-mc-l').style.display='none';document.getElementById('rx-mc-r').style.display='block';
