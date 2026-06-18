@@ -140,7 +140,12 @@ body{
 .tbl-hdr-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
 .tbl-hdr-time{font-size:11px;color:var(--muted)}
 footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:500}
-/* ── SEGMENTOS B3 FULL WIDTH ── */
+/* ── CALENDÁRIO FILTROS ── */
+.cal-fb{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;transition:all .15s}
+.cal-fb:hover{border-color:var(--accent);color:var(--text)}
+.cal-fb-on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cal-hoje{background:rgba(124,106,247,.08);border-left:3px solid var(--accent)!important}
+.cal-beat{color:var(--green)!important}.cal-miss{color:var(--red)!important}
 .tbl-seg{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;margin-bottom:6px;table-layout:fixed}
 .tbl-seg thead tr{border-bottom:1px solid var(--border)}
 .tbl-seg th{text-align:left;padding:7px 12px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'Inter',sans-serif}
