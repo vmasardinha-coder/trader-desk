@@ -438,9 +438,21 @@
 </div>
 
 <div id="tab-calendario" class="tab-content">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div style="font-size:12px;color:var(--muted);font-weight:500">🇺🇸 🇧🇷 🇪🇺 🇬🇧 🇨🇳 🇯🇵 🇩🇪 · Impacto Médio+</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-size:12px;color:var(--muted);font-weight:500">🇺🇸 🇧🇷 🇪🇺 🇬🇧 🇨🇳 🇯🇵 · Impacto Médio+</div>
     <button onclick="window.location.reload()" style="background:var(--accent);border:none;color:#fff;padding:8px 18px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;letter-spacing:.5px">↻ Atualizar</button>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+    <button onclick="calFiltroSemana('todas')" id="cal-f-todas" class="cal-fb cal-fb-on">Todas</button>
+    <button onclick="calFiltroSemana('esta')"  id="cal-f-esta"  class="cal-fb">Esta semana</button>
+    <button onclick="calFiltroSemana('proxima')" id="cal-f-proxima" class="cal-fb">Próxima semana</button>
+    <span style="color:var(--border);margin:0 4px">|</span>
+    <button onclick="calFiltroMoeda('TODAS')" id="cal-m-TODAS" class="cal-fb cal-fb-on">Todas</button>
+    <button onclick="calFiltroMoeda('USD')"   id="cal-m-USD"   class="cal-fb">🇺🇸 USD</button>
+    <button onclick="calFiltroMoeda('EUR')"   id="cal-m-EUR"   class="cal-fb">🇪🇺 EUR</button>
+    <button onclick="calFiltroMoeda('GBP')"   id="cal-m-GBP"   class="cal-fb">🇬🇧 GBP</button>
+    <button onclick="calFiltroMoeda('JPY')"   id="cal-m-JPY"   class="cal-fb">🇯🇵 JPY</button>
+    <button onclick="calFiltroMoeda('CNY')"   id="cal-m-CNY"   class="cal-fb">🇨🇳 CNY</button>
   </div>
   <div id="cal-st" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
   <div id="cal-area"><p style="color:var(--muted);padding:20px;text-align:center">Carregando...</p></div>
