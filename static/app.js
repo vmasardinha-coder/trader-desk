@@ -475,7 +475,56 @@ async function main(){
       }).catch(()=>{});
     }
     const cdBB=()=>{const v=new Date('2026-08-20'),d=Math.max(0,Math.ceil((v-new Date())/864e5)),e=document.getElementById('bb-dias');if(e)e.textContent=d;};cdBB();
+    // Black-Scholes dinâmico — roda uma vez por ciclo, delay para não disputar com MC
+    setTimeout(loadBS, 4000);
     window._IL=false;
   }catch(e){console.error(e);}
 }
+// ── BLACK-SCHOLES DINÂMICO ───────────────────────────
+// Vol implícita atual (atualizar manualmente quando mudar)
+const BS_PARAMS = {
+  pt: {ticker:'PETR4.SA', strike:30.85,  vol:0.434, tipo:'call', pfx:'pt'},
+  vl: {ticker:'VALE3.SA', strike:57.40,  vol:0.712, tipo:'call', pfx:'vl'},
+  rx: {ticker:'ROXO34.SA',strike:10.50,  vol:0.315, tipo:'call', pfx:'rx'},
+  bb: {ticker:'BBAS3.SA', strike:21.65,  vol:0.262, tipo:'call', pfx:'bb'},
+};
+
+async function loadBS(){
+  const hoje=new Date();
+  const datas={
+    pt:new Date('2026-12-17'), vl:new Date('2027-02-18'),
+    rx:new Date('2026-07-16'), bb:new Date('2026-08-20'),
+  };
+  for(const [key,cfg] of Object.entries(BS_PARAMS)){
+    try{
+      const dias=Math.max(1,Math.ceil((datas[key]-hoje)/864e5));
+      const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch(B+'/bs',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        signal:ctrl.signal,
+        body:JSON.stringify({ticker:cfg.ticker,strike:cfg.strike,t_days:dias,vol_impl:cfg.vol,tipo:cfg.tipo})
+      });
+      if(!r.ok)continue;
+      const d=await r.json();
+      if(d.error)continue;
+      const pfx=cfg.pfx;
+      // Vol Impl
+      const evol=document.getElementById(pfx+'-bs-vol');
+      if(evol){evol.textContent=d.vol_impl_pct.toFixed(1)+'%';}
+      // Delta
+      const edel=document.getElementById(pfx+'-bs-delta');
+      if(edel){edel.textContent=Math.abs(d.delta).toFixed(3);}
+      // Prob B&S
+      const eprob=document.getElementById(pfx+'-bs-prob');
+      if(eprob){
+        const prob=d.prob_exercicio_bs;
+        const itm=d.itm;
+        eprob.textContent=prob.toFixed(2)+'%'+(itm?' ⚠':'');
+        eprob.className='sv '+(itm?'itm':prob>30?'warn':'ok');
+      }
+    }catch(e){}
+  }
+}
+
 main();setInterval(main,120000);
