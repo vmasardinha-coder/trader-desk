@@ -98,40 +98,63 @@ async function loadSeg(id){
         ChTbl(pfx+t+'_v',pfx+t+'_c',c,c-(ca||0),'r');
       }
     });
-    // Fallback via brapi para tickers que TV não retornou
+    // Fallback para tickers que TV não retornou: /brapi → /indicators
     const missing=tks.filter(t=>!loaded.has(t.toLowerCase()));
-    if(missing.length>0){
+    for(const t of missing){
+      const tid=t.toLowerCase();
+      const ep=document.getElementById(pfx+tid+'_p');
+      if(!ep)continue;
+      // 1) /brapi — rápido, só cotação
       try{
-        const rb=await fetch(B+'/tv/brazil',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({symbols:{tickers:missing.map(t=>'BMFBOVESPA:'+t)},columns:['close','change_abs']})});
-        // Segunda tentativa imediata
-      }catch(e2){}
-      // Fallback individual via /indicators
-      for(const t of missing){
-        try{
-          const r2=await fetch(B+'/indicators/'+t+'.SA');
-          if(!r2.ok)continue;
-          const d2=await r2.json();
-          if(d2.preco_atual){
-            const tid=t.toLowerCase();
-            const ep=document.getElementById(pfx+tid+'_p');
-            if(ep){ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');}
-            if(d2.preco_anterior)ChTbl(pfx+tid+'_v',pfx+tid+'_c',d2.preco_atual,d2.preco_anterior,'r');
+        const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),8000);
+        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:ctrl.signal});
+        if(rb.ok){
+          const db=await rb.json();
+          if(db.price){
+            ep.textContent=fR(db.price);ep.classList.remove('loading');
+            ChTbl(pfx+tid+'_v',pfx+tid+'_c',db.price,db.prev||db.price,'r');
+            continue;
           }
-        }catch(e2){}
-      }
-    }
-  }catch(e){
-    // TV falhou completamente — fallback para todos via /indicators
-    for(const t of tks.slice(0,6)){
+        }
+      }catch(e2){}
+      // 2) /indicators — fallback completo
       try{
-        const r2=await fetch(B+'/indicators/'+t+'.SA');
+        const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),15000);
+        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:ctrl2.signal});
         if(!r2.ok)continue;
         const d2=await r2.json();
         if(d2.preco_atual){
-          const tid=t.toLowerCase();
-          const ep=document.getElementById(pfx+tid+'_p');
-          if(ep){ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');}
+          ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');
+          if(d2.preco_anterior)ChTbl(pfx+tid+'_v',pfx+tid+'_c',d2.preco_atual,d2.preco_anterior,'r');
+        }
+      }catch(e2){}
+    }
+  }catch(e){
+    // TV falhou completamente — fallback /brapi → /indicators
+    for(const t of tks){
+      const tid=t.toLowerCase();
+      const ep=document.getElementById(pfx+tid+'_p');
+      if(!ep)continue;
+      try{
+        const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),8000);
+        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:ctrl.signal});
+        if(rb.ok){
+          const db=await rb.json();
+          if(db.price){
+            ep.textContent=fR(db.price);ep.classList.remove('loading');
+            ChTbl(pfx+tid+'_v',pfx+tid+'_c',db.price,db.prev||db.price,'r');
+            continue;
+          }
+        }
+      }catch(e2){}
+      try{
+        const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),15000);
+        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:ctrl2.signal});
+        if(!r2.ok)continue;
+        const d2=await r2.json();
+        if(d2.preco_atual){
+          ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');
+          if(d2.preco_anterior)ChTbl(pfx+tid+'_v',pfx+tid+'_c',d2.preco_atual,d2.preco_anterior,'r');
         }
       }catch(e2){}
     }
