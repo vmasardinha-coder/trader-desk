@@ -140,6 +140,14 @@ body{
 .tbl-hdr-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
 .tbl-hdr-time{font-size:11px;color:var(--muted)}
 footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:500}
+/* ── ENCERRADAS SPRINT 5 ── */
+.pos-enc{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--muted);margin-bottom:10px;opacity:.85}
+.pos-enc-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;transition:background .15s}
+.pos-enc-hdr:hover{background:var(--bg3)}
+.enc-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:2px;letter-spacing:.5px}
+.enc-ok{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.enc-warn{background:rgba(255,183,77,.15);color:var(--warn);border:1px solid rgba(255,183,77,.3)}
+
 /* ── ALERTAS SPRINT 4 ── */
 @keyframes pulse-border{0%,100%{border-color:var(--red)}50%{border-color:transparent}}
 .pos-alerta{border-left-color:var(--red)!important;animation:pulse-border 1.2s infinite}
