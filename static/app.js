@@ -100,64 +100,62 @@ async function loadSeg(id){
     });
     // Fallback para tickers que TV não retornou: /brapi → /indicators
     const missing=tks.filter(t=>!loaded.has(t.toLowerCase()));
-    for(const t of missing){
-      const tid=t.toLowerCase();
-      const ep=document.getElementById(pfx+tid+'_p');
-      if(!ep)continue;
-      // 1) /brapi — rápido, só cotação
-      try{
-        const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),8000);
-        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:ctrl.signal});
-        if(rb.ok){
-          const db=await rb.json();
-          if(db.price){
-            ep.textContent=fR(db.price);ep.classList.remove('loading');
-            ChTbl(pfx+tid+'_v',pfx+tid+'_c',db.price,db.prev||db.price,'r');
-            continue;
+    if(missing.length>0){
+      await Promise.all(missing.map(async t=>{
+        const tid=t.toLowerCase();
+        const ep=document.getElementById(pfx+tid+'_p');
+        if(!ep)return;
+        // 1) tenta /brapi (rápido, só cotação)
+        try{
+          const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:AbortSignal.timeout(8000)});
+          if(rb.ok){
+            const db=await rb.json();
+            if(db.price){
+              ep.textContent=fR(db.price);ep.classList.remove('loading');
+              ChTbl(pfx+tid+'_v',pfx+tid+'_c',db.price,db.prev||db.price,'r');
+              return;
+            }
           }
-        }
-      }catch(e2){}
-      // 2) /indicators — fallback completo
-      try{
-        const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),15000);
-        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:ctrl2.signal});
-        if(!r2.ok)continue;
-        const d2=await r2.json();
-        if(d2.preco_atual){
-          ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');
-          if(d2.preco_anterior)ChTbl(pfx+tid+'_v',pfx+tid+'_c',d2.preco_atual,d2.preco_anterior,'r');
-        }
-      }catch(e2){}
+        }catch(e2){}
+        // 2) fallback /indicators (mais pesado mas completo)
+        try{
+          const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:AbortSignal.timeout(15000)});
+          if(!r2.ok)return;
+          const d2=await r2.json();
+          if(d2.preco_atual){
+            ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');
+            if(d2.preco_anterior)ChTbl(pfx+tid+'_v',pfx+tid+'_c',d2.preco_atual,d2.preco_anterior,'r');
+          }
+        }catch(e2){}
+      }));
     }
   }catch(e){
-    // TV falhou completamente — fallback /brapi → /indicators
-    for(const t of tks){
+    // TV falhou completamente — fallback paralelo via /brapi → /indicators
+    await Promise.all(tks.map(async t=>{
       const tid=t.toLowerCase();
       const ep=document.getElementById(pfx+tid+'_p');
-      if(!ep)continue;
+      if(!ep)return;
       try{
-        const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),8000);
-        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:ctrl.signal});
+        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:AbortSignal.timeout(8000)});
         if(rb.ok){
           const db=await rb.json();
           if(db.price){
             ep.textContent=fR(db.price);ep.classList.remove('loading');
             ChTbl(pfx+tid+'_v',pfx+tid+'_c',db.price,db.prev||db.price,'r');
-            continue;
+            return;
           }
         }
       }catch(e2){}
       try{
-        const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),15000);
-        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:ctrl2.signal});
-        if(!r2.ok)continue;
+        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:AbortSignal.timeout(15000)});
+        if(!r2.ok)return;
         const d2=await r2.json();
         if(d2.preco_atual){
           ep.textContent=fR(d2.preco_atual);ep.classList.remove('loading');
           if(d2.preco_anterior)ChTbl(pfx+tid+'_v',pfx+tid+'_c',d2.preco_atual,d2.preco_anterior,'r');
         }
       }catch(e2){}
-    }
+    }));
   }
 }
 
@@ -406,6 +404,90 @@ async function rl(tk){
   rndInd(tk,await fInd(m[tk]));
 }
 const FLAGS={'USD':'🇺🇸','US':'🇺🇸','BRL':'🇧🇷','BR':'🇧🇷','EUR':'🇪🇺','EU':'🇪🇺','GBP':'🇬🇧','CNY':'🇨🇳','JPY':'🇯🇵','CAD':'🇨🇦','AUD':'🇦🇺','DE':'🇩🇪','NZD':'🇳🇿','CHF':'🇨🇭'};
+// ── CALENDÁRIO ────────────────────────────────────────
+let _calEvs = [];
+let _calSemana = 'todas';
+let _calMoeda  = 'TODAS';
+
+function calFiltroSemana(v){
+  _calSemana = v;
+  ['todas','esta','proxima'].forEach(x=>{
+    const b=document.getElementById('cal-f-'+x);
+    if(b)b.className='cal-fb'+(x===v?' cal-fb-on':'');
+  });
+  renderCal();
+}
+function calFiltroMoeda(v){
+  _calMoeda = v;
+  ['TODAS','USD','EUR','GBP','JPY','CNY'].forEach(x=>{
+    const b=document.getElementById('cal-m-'+x);
+    if(b)b.className='cal-fb'+(x===v?' cal-fb-on':'');
+  });
+  renderCal();
+}
+
+function getWeekRange(offset){
+  const hoje=new Date();
+  const dow=hoje.getDay()||7; // 1=seg 7=dom
+  const seg=new Date(hoje); seg.setDate(hoje.getDate()-dow+1+offset*7);
+  const dom=new Date(seg); dom.setDate(seg.getDate()+6);
+  const fmt=d=>d.toISOString().slice(0,10);
+  return {ini:fmt(seg),fim:fmt(dom)};
+}
+
+function renderCal(){
+  const el=document.getElementById('cal-area');
+  const st=document.getElementById('cal-st');
+  if(!el||!_calEvs.length)return;
+
+  const hoje=new Date().toISOString().slice(0,10);
+  const semEsta=getWeekRange(0);
+  const semProx=getWeekRange(1);
+
+  let evs=_calEvs.filter(e=>{
+    if(_calMoeda!=='TODAS'&&e.country!==_calMoeda)return false;
+    if(_calSemana==='esta')return e.date>=semEsta.ini&&e.date<=semEsta.fim;
+    if(_calSemana==='proxima')return e.date>=semProx.ini&&e.date<=semProx.fim;
+    return true;
+  });
+
+  if(st)st.textContent=evs.length+' eventos';
+  if(!evs.length){el.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Sem eventos para este filtro</p>';return;}
+
+  const byD={};
+  evs.forEach(e=>{
+    if(!byD[e.date])byD[e.date]=[];
+    byD[e.date].push(e);
+  });
+
+  let h='';
+  Object.keys(byD).sort().forEach(dt=>{
+    const isHoje=dt===hoje;
+    const d=new Date(dt+'T12:00:00');
+    const lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
+    h+='<div style="margin-bottom:16px">';
+    h+='<div style="background:'+(isHoje?'rgba(124,106,247,.2)':'#1a1a24')+';padding:8px 14px;font-size:11px;font-weight:700;color:'+(isHoje?'#fff':'#7c6af7')+';text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7'+(isHoje?';border-right:3px solid #7c6af7':'')+'">'+(isHoje?'● HOJE — ':'')+lbl+'</div>';
+    byD[dt].forEach(e=>{
+      const imp_color=e.importance>=3?'#ff4444':'#ff9800';
+      const beat=e.signal==='beat', miss=e.signal==='miss';
+      const act_color=beat?'#00e676':miss?'#f06292':'#aaa';
+      const act_icon=beat?' ▲':miss?' ▼':'';
+      const prev_color=e.previous?'#666':'#444';
+      h+='<div style="display:grid;grid-template-columns:26px 50px 1fr 36px 75px 75px 75px;gap:5px;align-items:center;padding:7px 14px;border-bottom:1px solid #1a1a1a;font-size:12px'+(isHoje?';background:rgba(124,106,247,.04)':'')+'">';
+      h+='<span style="font-size:15px">'+(e.flag||'🌐')+'</span>';
+      h+='<span style="color:#555;font-size:11px;font-family:\'IBM Plex Mono\',monospace">'+(e.time||'—')+'</span>';
+      h+='<span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e.event+'">'+e.event+'</span>';
+      h+='<span style="color:'+imp_color+';text-align:center;font-size:10px">'+'●'.repeat(Math.min(e.importance,3))+'</span>';
+      h+='<span style="color:'+act_color+';text-align:right;font-weight:700;font-family:\'IBM Plex Mono\',monospace">'+(e.actual?e.actual+act_icon:'—')+'</span>';
+      h+='<span style="color:#555;text-align:right;font-size:11px;font-family:\'IBM Plex Mono\',monospace">'+(e.forecast||'—')+'</span>';
+      h+='<span style="color:'+prev_color+';text-align:right;font-size:11px;font-family:\'IBM Plex Mono\',monospace">'+(e.previous||'—')+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
 async function loadCal(){
   const el=document.getElementById('cal-area');
   const st=document.getElementById('cal-st');
@@ -416,36 +498,8 @@ async function loadCal(){
     if(!r.ok)throw new Error('HTTP '+r.status);
     const evs=await r.json();
     if(evs.error)throw new Error(evs.error);
-    if(st)st.textContent=evs.length+' eventos';
-    if(!evs.length){el.innerHTML='<p style="color:#888;padding:20px;text-align:center">Sem eventos</p>';return;}
-    const byD={};
-    evs.forEach(e=>{
-      const dt=(e.date||'').slice(0,10);
-      if(!byD[dt])byD[dt]=[];
-      byD[dt].push(e);
-    });
-    let h='<div style="font-family:monospace">';
-    Object.keys(byD).sort().forEach(dt=>{
-      const d=new Date(dt+'T12:00:00');
-      const lbl=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
-      h+='<div style="margin-bottom:20px">';
-      h+='<div style="background:#1a1a24;padding:8px 14px;font-size:11px;font-weight:700;color:#7c6af7;text-transform:uppercase;letter-spacing:1px;border-left:3px solid #7c6af7">'+lbl+'</div>';
-      byD[dt].forEach(e=>{
-        const imp_color=e.importance>=3?'#ff4444':'#ff9800';
-        const act_color=e.signal==='beat'?'#00e676':e.signal==='miss'?'#f06292':'#aaa';
-        h+='<div style="display:grid;grid-template-columns:30px 55px 1fr 40px 80px 80px;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid #1a1a1a;font-size:13px">';
-        h+='<span style="font-size:16px">'+(e.flag||'🌐')+'</span>';
-        h+='<span style="color:#555;font-size:11px">'+(e.time||'—')+'</span>';
-        h+='<span style="color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e.event+'">'+e.event+'</span>';
-        h+='<span style="color:'+imp_color+';text-align:center">'+'●'.repeat(Math.min(e.importance,3))+'</span>';
-        h+='<span style="color:'+act_color+';text-align:right;font-weight:700">'+(e.actual||'—')+'</span>';
-        h+='<span style="color:#555;text-align:right;font-size:11px">'+(e.forecast||'—')+'</span>';
-        h+='</div>';
-      });
-      h+='</div>';
-    });
-    h+='</div>';
-    el.innerHTML=h;
+    _calEvs=evs;
+    renderCal();
   }catch(e){
     el.innerHTML='<p style="color:#f06292;padding:20px">Erro: '+e.message+'</p>';
   }
