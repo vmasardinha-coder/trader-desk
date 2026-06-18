@@ -920,6 +920,115 @@ def get_us_quotes():
         if q: result[t] = q
     return jsonify(result)
 
+# ── BLACK-SCHOLES ─────────────────────────────────────
+@app.route('/bs', methods=['POST'])
+def black_scholes():
+    """
+    Calcula Black-Scholes para uma opcao call.
+    Body JSON: { ticker, strike, t_days, vol_impl, tipo }
+    tipo: 'call' (default) ou 'put'
+    Busca preco atual via brapi -> TV scanner -> Yahoo.
+    Retorna: preco_atual, prob_exercicio_bs, delta, theta_dia, vega, gamma, d1, d2
+    """
+    try:
+        from math import exp, log, sqrt, pi as _pi, erf
+        data = request.get_json() or {}
+        ticker   = data.get('ticker', 'PETR4.SA')
+        K        = float(data.get('strike', 30.85))
+        T_days   = int(data.get('t_days', 180))
+        vol_impl = float(data.get('vol_impl', 0.35))   # ja em decimal (0.35 = 35%)
+        tipo     = data.get('tipo', 'call')
+        r_rate   = 0.0   # taxa risk-free simplificada
+
+        # — Busca preco atual —
+        symbol = ticker.replace('.SA','').upper()
+        S = None
+
+        # 1) brapi (melhor para B3, especialmente ROXO34)
+        try:
+            rb = requests.get(
+                f'https://brapi.dev/api/quote/{symbol}?range=5d&interval=1d',
+                headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
+            if rb.ok:
+                rd = rb.json().get('results',[{}])[0]
+                p_brapi = rd.get('regularMarketPrice')
+                if p_brapi: S = float(p_brapi)
+        except: pass
+
+        # 2) TV scanner (B3)
+        if not S:
+            try:
+                rtv = requests.post('https://scanner.tradingview.com/brazil/scan',
+                    json={'symbols':{'tickers':[f'BMFBOVESPA:{symbol}']},'columns':['close']},
+                    timeout=5)
+                if rtv.ok:
+                    items = rtv.json().get('data',[])
+                    if items and items[0].get('d') and items[0]['d'][0]:
+                        S = float(items[0]['d'][0])
+            except: pass
+
+        # 3) Yahoo fallback
+        if not S:
+            q = yquote(ticker)
+            if q: S = q['price']
+
+        if not S or S <= 0:
+            return jsonify({'error': f'Preco indisponivel para {ticker}'}), 500
+
+        # — Black-Scholes —
+        sigma = vol_impl
+        T = max(T_days, 1) / 252.0
+
+        # CDF normal aproximada (sem scipy)
+        def _norm_cdf(x):
+            return 0.5 * (1.0 + erf(x / sqrt(2.0)))
+
+        # PDF normal
+        def _norm_pdf(x):
+            return exp(-0.5 * x * x) / sqrt(2.0 * _pi)
+
+        d1 = (log(S / K) + (r_rate + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
+        d2 = d1 - sigma * sqrt(T)
+
+        if tipo == 'put':
+            delta   = _norm_cdf(d1) - 1.0
+            prob_ex = round(_norm_cdf(-d2) * 100, 2)   # prob put ITM no venc
+        else:
+            delta   = _norm_cdf(d1)
+            prob_ex = round(_norm_cdf(d2) * 100, 2)    # prob call ITM no venc
+
+        gamma = _norm_pdf(d1) / (S * sigma * sqrt(T))
+        vega  = S * _norm_pdf(d1) * sqrt(T) / 100      # por 1% de vol
+        theta = (-(S * _norm_pdf(d1) * sigma) / (2 * sqrt(T))) / 252  # por dia
+
+        # Status ITM/OTM
+        if tipo == 'call':
+            itm = S > K
+            status = f'ITM (+{round((S-K)/K*100,1)}%)' if itm else f'OTM ({round((S-K)/K*100,1)}%)'
+        else:
+            itm = S < K
+            status = f'ITM ({round((K-S)/K*100,1)}%)' if itm else f'OTM (-{round((S-K)/K*100,1)}%)'
+
+        return jsonify({
+            'ticker': ticker,
+            'preco_atual': round(S, 2),
+            'strike': K,
+            'tipo': tipo,
+            't_days': T_days,
+            'vol_impl_pct': round(sigma * 100, 2),
+            'prob_exercicio_bs': prob_ex,
+            'delta': round(delta, 4),
+            'gamma': round(gamma, 6),
+            'theta_dia': round(theta, 4),
+            'vega': round(vega, 4),
+            'd1': round(d1, 4),
+            'd2': round(d2, 4),
+            'itm': itm,
+            'status': status,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ── SERVE HTML ────────────────────────────────────
 from flask import render_template
 
