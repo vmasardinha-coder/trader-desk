@@ -920,35 +920,6 @@ def get_us_quotes():
         if q: result[t] = q
     return jsonify(result)
 
-# ── BRAPI COTAÇÃO RÁPIDA ──────────────────────────────
-@app.route('/brapi/<ticker>', methods=['GET'])
-def get_brapi_quote(ticker):
-    """
-    Cotacao rapida via brapi.dev — sem indicadores, sem historico.
-    Usado como fallback rapido quando TV scanner nao retorna o ticker.
-    Retorna: price, prev, change_abs, change_pct
-    """
-    try:
-        symbol = ticker.replace('.SA','').upper()
-        r = requests.get(
-            f'https://brapi.dev/api/quote/{symbol}?range=5d&interval=1d',
-            headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
-        if not r.ok:
-            return jsonify({'error': f'brapi {r.status_code}'}), 502
-        rd = r.json().get('results', [{}])[0]
-        price = rd.get('regularMarketPrice')
-        prev  = rd.get('regularMarketPreviousClose')
-        if not price:
-            return jsonify({'error': 'sem preco'}), 404
-        price = round(float(price), 2)
-        prev  = round(float(prev), 2) if prev else price
-        chg   = round(price - prev, 2)
-        pct   = round((chg / prev * 100), 2) if prev else 0.0
-        return jsonify({'ticker': symbol, 'price': price, 'prev': prev,
-                        'change_abs': chg, 'change_pct': pct})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 # ── BLACK-SCHOLES ─────────────────────────────────────
 @app.route('/bs', methods=['POST'])
 def black_scholes():
