@@ -274,7 +274,7 @@ function doPos(tv){
     const diffDias=Math.ceil(diffMs/864e5);
     const el=document.getElementById(eid);
     if(!el)return;
-    if(diffDias<=0){el.textContent='Vencido';el.className='pos-venc-urgente';return;}
+    if(diffDias<=0){el.innerHTML='<span class="pos-venc-urgente">Vencido</span>';return;}
     if(diffDias<=7){
       const diffH=Math.ceil(diffMs/3600000);
       el.innerHTML=`<span class="pos-venc-urgente">⚠ ${diffDias}d ${diffH%24}h restantes</span>`;
@@ -287,6 +287,7 @@ function doPos(tv){
   cdHoras('2026-12-17','pt-dias');cdHoras('2027-02-18','vl-dias');
   cdHoras('2026-09-14','a3-dias');cdHoras('2026-10-02','a3b-dias');
   cdHoras('2026-07-16','rx-dias');cdHoras('2026-08-20','bb-dias');
+  checkBadgeRisco();
 
   setTimeout(async()=>{
     try{const r=await fetch(B+'/indicators/AXIA3.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
@@ -330,12 +331,14 @@ function checkAlertaBarreira(cardId, preco, kdo, kuo){
 function checkBadgeRisco(){
   const badge=document.getElementById('pos-badge');
   if(!badge)return;
-  // Verifica se algum card tem classe pos-alerta
-  const temRisco=document.querySelector('.pos-alerta')!==null;
-  // Verifica ROXO34 ITM
+  // 1) AXIA3 com alerta de barreira
+  const temBarreira=document.querySelector('.pos-alerta')!==null;
+  // 2) ROXO34 ITM
   const rxSt=document.getElementById('rx-st');
   const rxItm=rxSt&&rxSt.classList.contains('itm');
-  badge.style.display=(temRisco||rxItm)?'inline':'none';
+  // 3) Qualquer posição com vencimento <= 7 dias
+  const temUrgente=document.querySelector('.pos-venc-urgente')!==null;
+  badge.style.display=(temBarreira||rxItm||temUrgente)?'inline':'none';
 }
 async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
   try{
