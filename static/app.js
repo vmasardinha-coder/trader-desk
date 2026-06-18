@@ -603,6 +603,8 @@ async function main(){
     }
     // Black-Scholes dinâmico — roda uma vez por ciclo, delay para não disputar com MC
     setTimeout(loadBS, 4000);
+    // Badge risco — roda após todos os dados async carregarem
+    setTimeout(checkBadgeRisco, 6000);
     window._IL=false;
   }catch(e){console.error(e);}
 }
