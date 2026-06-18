@@ -1,4 +1,4 @@
-"""  # v9.0
+"""  # v9.1
 Trader Desk — Proxy Server v9.0
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
 Mudancas v8.5:
