@@ -266,8 +266,28 @@ function doPos(tv){
   const vl=tv['BMFBOVESPA:VALE3'];const vp=vl?.p||78,vv=vl?.v||78;
   E('vl-p',fR(vp));Ch('vl-c',vp,vv,'r');
   const vd=vp-57.40;E('vl-itm',(vd>=0?'+ R$ ':'- R$ ')+Math.abs(vd).toFixed(2)+' '+(vd>=0?'acima':'abaixo')+' do strike');
-  const cd=(ds,eid)=>{const v=new Date(ds),d=Math.max(0,Math.ceil((v-new Date())/864e5)),e=document.getElementById(eid);if(e)e.textContent=d;};
-  cd('2026-12-17','pt-dias');cd('2027-02-18','vl-dias');cd('2026-09-14','a3-dias');cd('2026-10-02','a3b-dias');cd('2026-07-16','rx-dias');
+
+  // Contador de dias/horas dinâmico
+  const cdHoras=(ds,eid)=>{
+    const v=new Date(ds),agora=new Date();
+    const diffMs=v-agora;
+    const diffDias=Math.ceil(diffMs/864e5);
+    const el=document.getElementById(eid);
+    if(!el)return;
+    if(diffDias<=0){el.textContent='Vencido';el.className='pos-venc-urgente';return;}
+    if(diffDias<=7){
+      const diffH=Math.ceil(diffMs/3600000);
+      el.innerHTML=`<span class="pos-venc-urgente">⚠ ${diffDias}d ${diffH%24}h restantes</span>`;
+    }else if(diffDias<=30){
+      el.innerHTML=`<span class="pos-venc-atencao">${diffDias} dias</span>`;
+    }else{
+      el.textContent=diffDias+' dias';
+    }
+  };
+  cdHoras('2026-12-17','pt-dias');cdHoras('2027-02-18','vl-dias');
+  cdHoras('2026-09-14','a3-dias');cdHoras('2026-10-02','a3b-dias');
+  cdHoras('2026-07-16','rx-dias');cdHoras('2026-08-20','bb-dias');
+
   setTimeout(async()=>{
     try{const r=await fetch(B+'/indicators/AXIA3.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
       const p=d.preco_atual,pant=d.preco_anterior||p;E('a3-p',fR(p));E('a3b-p',fR(p));Ch('a3-c',p,pant,'r');Ch('a3b-c',p,pant,'r');
@@ -278,6 +298,11 @@ function doPos(tv){
       const dB=document.getElementById('a3b-kdo');if(dB)dB.textContent=((p-kB)/p*100).toFixed(1)+'% acima do KDO';
       const uB=document.getElementById('a3b-kuo');if(uB)uB.textContent=((kuB-p)/p*100).toFixed(1)+'% para o KUO';
       const sB=document.getElementById('a3b-st');if(sB){sB.textContent=p<=kB?'🔴 KDO ATINGIDO':p>=kuB?'⚠ KUO ATINGIDO':'✅ No range';sB.className='sv '+(p<=kB||p>=kuB?'warn':'ok');}
+      // Alerta de barreira AXIA3 — vermelho pulsando se < 5% do KDO ou > 5% do KUO
+      checkAlertaBarreira('card-a3', p, kA, kuA);
+      checkAlertaBarreira('card-a3b', p, kB, kuB);
+      // Badge de risco no tab
+      checkBadgeRisco();
     }catch(e){}
   },2000);
   setTimeout(async()=>{
@@ -288,8 +313,29 @@ function doPos(tv){
       if(itm)itm.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';
       const de=document.getElementById('rx-kdo');if(de)de.textContent=((p-10.50)/p*100).toFixed(1)+'% do strike';
       const se=document.getElementById('rx-st');if(se){se.textContent=p<=10.50?'✅ OTM — abaixo do strike':'⚠ ITM — acima do strike';se.className='sv '+(p<=10.50?'ok':'itm');}
+      checkBadgeRisco();
     }catch(e){}
   },3000);
+}
+
+function checkAlertaBarreira(cardId, preco, kdo, kuo){
+  const card=document.getElementById(cardId);
+  if(!card)return;
+  const distKdo=(preco-kdo)/preco*100;
+  const distKuo=(kuo-preco)/preco*100;
+  const emRisco=distKdo<=5||distKuo<=5||preco<=kdo||preco>=kuo;
+  card.classList.toggle('pos-alerta', emRisco);
+}
+
+function checkBadgeRisco(){
+  const badge=document.getElementById('pos-badge');
+  if(!badge)return;
+  // Verifica se algum card tem classe pos-alerta
+  const temRisco=document.querySelector('.pos-alerta')!==null;
+  // Verifica ROXO34 ITM
+  const rxSt=document.getElementById('rx-st');
+  const rxItm=rxSt&&rxSt.classList.contains('itm');
+  badge.style.display=(temRisco||rxItm)?'inline':'none';
 }
 async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
   try{
@@ -551,7 +597,6 @@ async function main(){
         }
       }).catch(()=>{});
     }
-    const cdBB=()=>{const v=new Date('2026-08-20'),d=Math.max(0,Math.ceil((v-new Date())/864e5)),e=document.getElementById('bb-dias');if(e)e.textContent=d;};cdBB();
     // Black-Scholes dinâmico — roda uma vez por ciclo, delay para não disputar com MC
     setTimeout(loadBS, 4000);
     window._IL=false;
