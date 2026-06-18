@@ -274,10 +274,11 @@ function doPos(tv){
     const diffDias=Math.ceil(diffMs/864e5);
     const el=document.getElementById(eid);
     if(!el)return;
-    if(diffDias<=0){el.innerHTML='<span class="pos-venc-urgente">Vencido</span>';return;}
+    if(diffDias<=0){el.innerHTML='<span class="pos-venc-urgente">Vencido</span>';_risco.vencUrgente=true;return;}
     if(diffDias<=7){
       const diffH=Math.ceil(diffMs/3600000);
       el.innerHTML=`<span class="pos-venc-urgente">⚠ ${diffDias}d ${diffH%24}h restantes</span>`;
+      _risco.vencUrgente=true;
     }else if(diffDias<=30){
       el.innerHTML=`<span class="pos-venc-atencao">${diffDias} dias</span>`;
     }else{
@@ -313,7 +314,12 @@ function doPos(tv){
       const dist=p-10.50;
       if(itm)itm.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';
       const de=document.getElementById('rx-kdo');if(de)de.textContent=((p-10.50)/p*100).toFixed(1)+'% do strike';
-      const se=document.getElementById('rx-st');if(se){se.textContent=p<=10.50?'✅ OTM — abaixo do strike':'⚠ ITM — acima do strike';se.className='sv '+(p<=10.50?'ok':'itm');}
+      const se=document.getElementById('rx-st');if(se){
+        const itm2=p>10.50;
+        se.textContent=itm2?'⚠ ITM — acima do strike':'✅ OTM — abaixo do strike';
+        se.className='sv '+(itm2?'itm':'ok');
+        _risco.roxoItm=itm2;
+      }
       checkBadgeRisco();
     }catch(e){}
   },3000);
@@ -326,19 +332,17 @@ function checkAlertaBarreira(cardId, preco, kdo, kuo){
   const distKuo=(kuo-preco)/preco*100;
   const emRisco=distKdo<=5||distKuo<=5||preco<=kdo||preco>=kuo;
   card.classList.toggle('pos-alerta', emRisco);
+  if(emRisco)_risco.barreira=true;
 }
+
+// Estado de risco das posições
+const _risco = {barreira:false, roxoItm:false, vencUrgente:false};
 
 function checkBadgeRisco(){
   const badge=document.getElementById('pos-badge');
   if(!badge)return;
-  // 1) AXIA3 com alerta de barreira
-  const temBarreira=document.querySelector('.pos-alerta')!==null;
-  // 2) ROXO34 ITM
-  const rxSt=document.getElementById('rx-st');
-  const rxItm=rxSt&&rxSt.classList.contains('itm');
-  // 3) Qualquer posição com vencimento <= 7 dias
-  const temUrgente=document.querySelector('.pos-venc-urgente')!==null;
-  badge.style.display=(temBarreira||rxItm||temUrgente)?'inline':'none';
+  const temRisco=_risco.barreira||_risco.roxoItm||_risco.vencUrgente;
+  badge.style.display=temRisco?'inline':'none';
 }
 async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
   try{
