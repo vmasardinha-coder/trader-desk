@@ -314,12 +314,9 @@ function doPos(tv){
       const dist=p-10.50;
       if(itm)itm.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';
       const de=document.getElementById('rx-kdo');if(de)de.textContent=((p-10.50)/p*100).toFixed(1)+'% do strike';
-      const se=document.getElementById('rx-st');if(se){
-        const itm2=p>10.50;
-        se.textContent=itm2?'⚠ ITM — acima do strike':'✅ OTM — abaixo do strike';
-        se.className='sv '+(itm2?'itm':'ok');
-        _risco.roxoItm=itm2;
-      }
+      const itm2=p>10.50;
+      const se=document.getElementById('rx-itm');
+      _risco.roxoItm=itm2;
       checkBadgeRisco();
     }catch(e){}
   },3000);
