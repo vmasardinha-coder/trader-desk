@@ -99,12 +99,12 @@
   <div class="tbl-wrap" style="margin-top:16px">
     <div class="tbl-hdr"><span class="tbl-hdr-title">Commodities</span></div>
     <table class="tbl-mkt">
-      <colgroup><col style="width:60%"><col style="width:40%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th></tr></thead>
+      <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th></tr></thead>
       <tbody>
-        <tr><td><div class="sym">WTI/CL</div><div class="desc">Petróleo WTI</div></td><td class="r"><span class="val loading" id="cl-p">—</span></td></tr>
-        <tr><td><div class="sym">GOLD</div><div class="desc">Ouro</div></td><td class="r"><span class="val loading" id="gold-p">—</span></td></tr>
-        <tr><td><div class="sym">SILVER</div><div class="desc">Prata</div></td><td class="r"><span class="val loading" id="silver-p">—</span></td></tr>
-        <tr><td><div class="sym">COPPER</div><div class="desc">Cobre</div></td><td class="r"><span class="val loading" id="copper-p">—</span></td></tr>
+        <tr><td><div class="sym">WTI/CL</div><div class="desc">Petróleo WTI</div></td><td class="r"><span class="val loading" id="cl-p">—</span></td><td class="r"><span class="chg" id="cl-c">—</span></td></tr>
+        <tr><td><div class="sym">GOLD</div><div class="desc">Ouro</div></td><td class="r"><span class="val loading" id="gold-p">—</span></td><td class="r"><span class="chg" id="gold-c">—</span></td></tr>
+        <tr><td><div class="sym">SILVER</div><div class="desc">Prata</div></td><td class="r"><span class="val loading" id="silver-p">—</span></td><td class="r"><span class="chg" id="silver-c">—</span></td></tr>
+        <tr><td><div class="sym">COPPER</div><div class="desc">Cobre</div></td><td class="r"><span class="val loading" id="copper-p">—</span></td><td class="r"><span class="chg" id="copper-c">—</span></td></tr>
       </tbody>
     </table>
   </div>
@@ -126,17 +126,25 @@
 
 <!-- ══ INDICADORES ══ -->
 <div id="tab-indicadores" class="tab-content">
-  <div class="sec"><span class="dot"></span>Ciclo Bitcoin</div>
-  <div id="btc-cycle-area"><div style="color:var(--muted);padding:14px;animation:pulse 1.5s infinite">Carregando...</div></div>
-  <div style="display:grid;grid-template-columns:1fr 150px;gap:10px;margin:14px 0">
-    <div id="fg-area"><div style="color:var(--muted);padding:12px">Carregando Fear &amp; Greed...</div></div>
-    <div style="background:var(--bg2);border:1px solid var(--border);padding:16px;text-align:center">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">BTC/USD</div>
-      <div class="cp loading" id="btc-ind-p">—</div>
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('btc')">
+      <div><div class="ind-acc-title">₿ Bitcoin — Ciclo &amp; Indicadores</div><div class="ind-acc-sub">Ciclo, Fear &amp; Greed, RSI semanal · clique para expandir/recolher</div></div>
+      <span id="ar-ind-btc">▼</span>
+    </div>
+    <div class="ind-acc-body open" id="btc-ind-wrap">
+      <div class="sec"><span class="dot"></span>Ciclo Bitcoin</div>
+      <div id="btc-cycle-area"><div style="color:var(--muted);padding:14px;animation:pulse 1.5s infinite">Carregando...</div></div>
+      <div style="display:grid;grid-template-columns:1fr 150px;gap:10px;margin:14px 0">
+        <div id="fg-area"><div style="color:var(--muted);padding:12px">Carregando Fear &amp; Greed...</div></div>
+        <div style="background:var(--bg2);border:1px solid var(--border);padding:16px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">BTC/USD</div>
+          <div class="cp loading" id="btc-ind-p">—</div>
+        </div>
+      </div>
+      <div class="sec"><span class="dot"></span>BTC Semanal</div>
+      <div id="btc-ind-area"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div>
     </div>
   </div>
-  <div class="sec"><span class="dot"></span>BTC Semanal</div>
-  <div id="btc-ind-area"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div>
 
   <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
     <button onclick="toggleAllInd()" id="btn-all-ind" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.5px">− Recolher Todos</button>
