@@ -161,7 +161,7 @@ async function loadSeg(id){
 
 function expandAll(){
   const btn=document.getElementById('btn-expand');
-  const segs=['fin','pet','min','mat','uti','cc','cn','sau','ind','tit'];
+  const segs=['fin','pet','min','mat','uti','cc','cn','sau','ind','tit','m7','nq','sp','dj'];
   const anyOpen=segs.some(id=>document.getElementById('sb-'+id)?.style.display==='block');
   segs.forEach(id=>{
     const b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);
@@ -214,12 +214,14 @@ function toggleAllInd(){
 }
 async function fHL(){
   try{
-    const r=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids'})});
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
+    const r=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids'}),signal:ctrl.signal});
     if(!r.ok)return;const d=await r.json();
     const bp=parseFloat(d.BTC||0);
     if(bp>0){E('btc-p',fU(bp));Ch('btc-c',bp,bp*0.99,'u');}
     try{
-      const r2=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids',dex:'xyz'})});
+      const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),8000);
+      const r2=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids',dex:'xyz'}),signal:ctrl2.signal});
       if(r2.ok){const d2=await r2.json();
         if(d2['xyz:CL'])E('cl-p','$'+parseFloat(d2['xyz:CL']).toFixed(2));
         if(d2['xyz:GOLD'])E('gold-p','$'+Number(d2['xyz:GOLD']).toLocaleString('en-US',{maximumFractionDigits:0}));
@@ -231,14 +233,19 @@ async function fHL(){
 async function fTV(){
   const out={};
   try{
-    const r=await fetch(B+'/tv/brazil',{method:'POST',headers:{'Content-Type':'application/json'},
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),12000);
+    const r=await fetch(B+'/tv/brazil',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify({symbols:{tickers:['BMFBOVESPA:PETR4','BMFBOVESPA:ITUB4','BMFBOVESPA:VALE3','BMFBOVESPA:BBDC4','BMFBOVESPA:ABEV3','BMFBOVESPA:BBAS3','BMFBOVESPA:WEGE3','BMFBOVESPA:IBOV']},columns:['close','change_abs']})});
     if(r.ok){const d=await r.json();(d.data||[]).forEach(x=>{const[c,ca]=x.d||[];if(c!=null)out[x.s]={p:c,v:c-(ca||0)};});}
   }catch(e){}
-  try{const rr=await fetch(B+'/indicators/ROXO34.SA');if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));const prev=dd.preco_anterior||null;if(prev&&prev!==dd.preco_atual){ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');}else{const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');if(ep)ep.textContent='—';if(ec)ec.textContent='—';}}}}catch(e){}
+  try{
+    const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),10000);
+    const rr=await fetch(B+'/indicators/ROXO34.SA',{signal:ctrl2.signal});
+    if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));const prev=dd.preco_anterior||null;if(prev&&prev!==dd.preco_atual){ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');}else{const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');if(ep)ep.textContent='—';if(ec)ec.textContent='—';}}}
+  }catch(e){}
   return out;
 }
-async function fFut(){try{const r=await fetch(B+'/futures');if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function fFut(){try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),12000);const r=await fetch(B+'/futures',{signal:ctrl.signal});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function fFund(){
   try{const r=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');if(r.ok){const d=await r.json();E('btc-fund',(parseFloat(d.lastFundingRate||0)*100).toFixed(4)+'%');return;}}catch(e){}
   try{const r2=await fetch(B+'/binance/funding');if(!r2.ok)return;const d=await r2.json();if(d.lastFundingRate)E('btc-fund',(parseFloat(d.lastFundingRate)*100).toFixed(4)+'%');}catch(e){}
@@ -557,7 +564,8 @@ async function loadCal(){
 
 async function main(){
   try{
-    const[,tv,ft]=await Promise.all([fHL(),fTV(),fFut()]);
+    const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
+    const[,tv,ft]=await Promise.all([wt(fHL(),12000,null),wt(fTV(),14000,{}),wt(fFut(),14000,null)]);
     const now=new Date().toLocaleTimeString('pt-BR');
     E('last-update','↻ '+now);E('last-update-tbl',now);E('footer-time',now);
     window._lastTV=tv;doMacro(tv,ft);doPos(tv);
