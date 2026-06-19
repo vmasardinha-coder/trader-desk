@@ -380,7 +380,7 @@ def get_indicators(ticker):
     try:
         if ticker in _IND_CACHE:
             cd, ct = _IND_CACHE[ticker]
-            if _t.time() - ct < 300:
+            if _t.time() - ct < 900:  # 15 min — brapi com range=1y demora mais
                 return jsonify(cd)
     except: pass
     try:
