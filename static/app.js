@@ -241,7 +241,7 @@ async function fTV(){
   try{
     const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),10000);
     const rr=await fetch(B+'/indicators/ROXO34.SA',{signal:ctrl2.signal});
-    if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));const prev=dd.preco_anterior||null;if(prev&&prev!==dd.preco_atual){ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');}else{const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');if(ep)ep.textContent='—';if(ec)ec.textContent='—';}}}
+    if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));const prev=dd.preco_anterior;if(prev!=null){ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');}else{const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');if(ep)ep.textContent='—';if(ec)ec.textContent='—';}}}
   }catch(e){}
   return out;
 }
@@ -602,7 +602,7 @@ async function main(){
       // TV não retornou BBAS3 — fallback
       fetch(B+'/indicators/BBAS3.SA').then(r2=>r2.json()).then(d2=>{
         if(d2.preco_atual){
-          E('bb-p',fR(d2.preco_atual));if(d2.preco_anterior&&d2.preco_anterior!==d2.preco_atual){Ch('bb-c',d2.preco_atual,d2.preco_anterior,'r');}else{const ec=document.getElementById('bb-c');if(ec)ec.textContent='—';}
+          E('bb-p',fR(d2.preco_atual));if(d2.preco_anterior!=null){Ch('bb-c',d2.preco_atual,d2.preco_anterior,'r');}else{const ec=document.getElementById('bb-c');if(ec)ec.textContent='—';}
           const dist=d2.preco_atual-21.65;
           const itm2=document.getElementById('bb-itm');
           if(itm2){itm2.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(dist>=0?'itm':'ok');}
