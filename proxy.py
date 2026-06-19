@@ -451,6 +451,17 @@ def get_indicators(ticker):
             'BBAS3': {'nome':'Bancos','pl_medio':8.0,'pvp_medio':1.2,'roe_min':18},
             'AXIA3': {'nome':'Energia Eletrica','pl_medio':12.0,'pvp_medio':1.2,'roe_min':10},
             'ROXO34':{'nome':'Fintech/BDR','pl_medio':40.0,'pvp_medio':5.0,'roe_min':10},
+            'ITUB4': {'nome':'Bancos','pl_medio':8.0,'pvp_medio':1.5,'roe_min':18},
+            'CYRE3': {'nome':'Construcao & Incorporacao','pl_medio':10.0,'pvp_medio':1.3,'roe_min':12},
+            'DIRR3': {'nome':'Construcao & Incorporacao','pl_medio':10.0,'pvp_medio':1.5,'roe_min':15},
+            'MULT3': {'nome':'Shoppings & Locacao','pl_medio':14.0,'pvp_medio':1.5,'roe_min':10},
+            'PSSA3': {'nome':'Seguros','pl_medio':9.0,'pvp_medio':2.0,'roe_min':18},
+            'BBSE3': {'nome':'Seguros','pl_medio':9.0,'pvp_medio':4.0,'roe_min':40},
+            'CXSE3': {'nome':'Seguros','pl_medio':9.0,'pvp_medio':3.0,'roe_min':30},
+            'CMIN3': {'nome':'Mineracao','pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
+            'EUCA4': {'nome':'Papel & Celulose','pl_medio':10.0,'pvp_medio':1.0,'roe_min':10},
+            'SAPR11':{'nome':'Saneamento','pl_medio':9.0,'pvp_medio':1.3,'roe_min':12},
+            'GGBR4': {'nome':'Siderurgia','pl_medio':8.0,'pvp_medio':1.0,'roe_min':10},
         }
         setor = SETOR_MAP.get(symbol, {'nome':'Geral','pl_medio':12.0,'pvp_medio':2.0,'roe_min':12})
 
