@@ -174,6 +174,125 @@ function expandAll(){
   });
   if(btn)btn.textContent=anyOpen?'+ Expandir Todos':'− Recolher Todos';
 }
+// ── RENDERIZAÇÃO DINÂMICA DE POSIÇÕES (Sprint 6 — modular) ──
+let _posData = null;
+
+function fmtData(iso){
+  if(!iso)return '—';
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function tplSimples(p){
+  const id=p.id;
+  const stLabel = p.codigo_opcao ? `Strike (${p.codigo_opcao})` : 'Strike';
+  return `
+  <div class="pos-acc" id="card-${id}">
+    <div class="pos-acc-hdr" onclick="togPos('pos-${id}')">
+      <div><div class="pos-acc-tk">${p.ticker.replace('.SA','')}</div><div class="pos-acc-sub">${p.nome} · ${p.estrategia}${p.codigo_opcao?' · '+p.codigo_opcao:''} · Venc ${fmtData(p.vencimento)}</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="${id}-p">—</div><div class="pc2" id="${id}-c">—</div></div>
+        <span id="ar-pos-${id}" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-${id}">
+    <div class="sb">
+      <div class="sr"><span class="sl">${stLabel}</span><span class="sv warn">R$ ${p.strike.toFixed(2).replace('.',',')}</span></div>
+      <div class="sr"><span class="sl">Preço vs strike</span><span class="sv itm" id="${id}-itm">—</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">${fmtData(p.vencimento)} · <span id="${id}-dias">—</span></span></div>
+      <div class="sr"><span class="sl">Vol. Impl.</span><span class="sv warn" id="${id}-bs-vol">${(p.vol_impl*100).toFixed(1)}%</span></div>
+      <div class="sr"><span class="sl">Delta</span><span class="sv warn" id="${id}-bs-delta">—</span></div>
+      <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv warn" id="${id}-bs-prob">—</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer</span><span class="sv ok" id="${id}-mc-rt">calc...</span></div>
+      ${p.objetivo?`<div class="sr"><span class="sl">Objetivo</span><span class="sv ok">${p.objetivo}</span></div>`:''}
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
+      <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
+      <div id="${id}-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="${id}-mc-s">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="${id}-mc-v">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="${id}-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>`;
+}
+
+function tplBarreira(p){
+  const id=p.id;
+  return `
+  <div class="pos-acc" id="card-${id}">
+    <div class="pos-acc-hdr" onclick="togPos('pos-${id}')">
+      <div><div class="pos-acc-tk">${p.ticker.replace('.SA','')}</div><div class="pos-acc-sub">${p.nome} · ${p.estrategia} · Venc ${fmtData(p.vencimento)}</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="${id}-p">—</div><div class="pc2" id="${id}-c">—</div></div>
+        <span id="ar-pos-${id}" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-${id}">
+    <div class="sb">
+      <div class="sr"><span class="sl">KDO (${p.kdo_pct})</span><span class="sv warn">R$ ${p.kdo.toFixed(2).replace('.',',')}</span></div>
+      <div class="sr"><span class="sl">KUO (${p.kuo_pct})</span><span class="sv warn">R$ ${p.kuo.toFixed(2).replace('.',',')}</span></div>
+      <div class="sr"><span class="sl">Ganho s/ barreira</span><span class="sv ok">${p.ganho_sem_barreira}</span></div>
+      <div class="sr"><span class="sl">Ganho c/ bar. alta</span><span class="sv warn">${p.ganho_barreira_alta}</span></div>
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">${fmtData(p.vencimento)} · <span id="${id}-dias">—</span></span></div>
+      <div class="sr"><span class="sl">Dist. KDO</span><span class="sv" id="${id}-kdo">—</span></div>
+      <div class="sr"><span class="sl">Dist. KUO</span><span class="sv" id="${id}-kuo">—</span></div>
+      <div class="sr"><span class="sl">Situação</span><span class="sv" id="${id}-st">—</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Cenários barreira</div>
+      <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando...</div>
+      <div id="${id}-mc-r" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Sem Barreira ✅</div><div class="iv ok" id="${id}-mc-nb">—</div></div>
+          <div class="ib"><div class="il">Bar. Alta KUO</div><div class="iv warn" id="${id}-mc-ku">—</div></div>
+          <div class="ib"><div class="il">Bar. Baixa KDO</div><div class="iv down" id="${id}-mc-kd">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="${id}-mc-vo">—</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="${id}-mc-i">—</div>
+      </div>
+    </div>
+    </div>
+  </div>`;
+}
+
+async function loadPositions(){
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
+    const r=await fetch(B+'/positions',{signal:ctrl.signal,cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(data.error)throw new Error(data.error);
+    _posData=data;
+    renderPositions(data);
+  }catch(e){
+    console.error('Erro ao carregar positions.json:',e);
+    const cont=document.getElementById('pos-container');
+    if(cont)cont.innerHTML='<p style="color:var(--red);padding:20px">Erro ao carregar posições: '+e.message+'</p>';
+  }
+}
+
+function renderPositions(data){
+  const cont=document.getElementById('pos-container');
+  if(!cont)return;
+  const ativas=data.ativas||[];
+  let html='';
+  ativas.forEach(p=>{
+    if(p.tipo_posicao==='barreira') html+=tplBarreira(p);
+    else html+=tplSimples(p);
+  });
+  cont.innerHTML=html;
+}
+
+function getAtivaIds(){
+  if(!_posData||!_posData.ativas)return [];
+  return _posData.ativas.map(p=>'pos-'+p.id);
+}
+
 function togPos(id){
   const body=document.getElementById('body-'+id);
   const arr=document.getElementById('ar-'+id);
@@ -183,7 +302,7 @@ function togPos(id){
   if(arr)arr.textContent=open?'▶':'▼';
 }
 function toggleAllPos(){
-  const ids=['pos-pt','pos-vl','pos-a3','pos-a3b','pos-rx','pos-bb'];
+  const ids=getAtivaIds();
   const btn=document.getElementById('btn-all-pos');
   const anyOpen=ids.some(id=>document.getElementById('body-'+id)?.classList.contains('open'));
   ids.forEach(id=>{
@@ -267,14 +386,22 @@ function doMacro(tv,ft){
   }
 }
 function doPos(tv){
-  const pt=tv['BMFBOVESPA:PETR4'];const pp=pt?.p||40,pv=pt?.v||40;
-  E('pt-p',fR(pp));Ch('pt-c',pp,pv,'r');
-  const pd=pp-30.85;E('pt-itm',(pd>=0?'+ R$ ':'- R$ ')+Math.abs(pd).toFixed(2)+' '+(pd>=0?'acima':'abaixo')+' do strike');
-  const vl=tv['BMFBOVESPA:VALE3'];const vp=vl?.p||78,vv=vl?.v||78;
-  E('vl-p',fR(vp));Ch('vl-c',vp,vv,'r');
-  const vd=vp-57.40;E('vl-itm',(vd>=0?'+ R$ ':'- R$ ')+Math.abs(vd).toFixed(2)+' '+(vd>=0?'acima':'abaixo')+' do strike');
+  if(!_posData||!_posData.ativas)return; // aguarda positions.json carregar
+  const byId={}; _posData.ativas.forEach(p=>byId[p.id]=p);
 
-  // Contador de dias/horas dinâmico
+  // PETR4 e VALE3 — cotação via TV scanner
+  if(byId.pt){
+    const pt=tv['BMFBOVESPA:PETR4'];const pp=pt?.p||40,pv=pt?.v||40;
+    E('pt-p',fR(pp));Ch('pt-c',pp,pv,'r');
+    const pd=pp-byId.pt.strike;E('pt-itm',(pd>=0?'+ R$ ':'- R$ ')+Math.abs(pd).toFixed(2)+' '+(pd>=0?'acima':'abaixo')+' do strike');
+  }
+  if(byId.vl){
+    const vl=tv['BMFBOVESPA:VALE3'];const vp=vl?.p||78,vv=vl?.v||78;
+    E('vl-p',fR(vp));Ch('vl-c',vp,vv,'r');
+    const vd=vp-byId.vl.strike;E('vl-itm',(vd>=0?'+ R$ ':'- R$ ')+Math.abs(vd).toFixed(2)+' '+(vd>=0?'acima':'abaixo')+' do strike');
+  }
+
+  // Contador de dias/horas dinâmico — itera todas as posições do JSON
   const cdHoras=(ds,eid)=>{
     const v=new Date(ds),agora=new Date();
     const diffMs=v-agora;
@@ -292,41 +419,50 @@ function doPos(tv){
       el.textContent=diffDias+' dias';
     }
   };
-  cdHoras('2026-12-17','pt-dias');cdHoras('2027-02-18','vl-dias');
-  cdHoras('2026-09-14','a3-dias');cdHoras('2026-10-02','a3b-dias');
-  cdHoras('2026-07-16','rx-dias');cdHoras('2026-08-20','bb-dias');
+  _posData.ativas.forEach(p=>cdHoras(p.vencimento, p.id+'-dias'));
   checkBadgeRisco();
 
-  setTimeout(async()=>{
-    try{const r=await fetch(B+'/indicators/AXIA3.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
-      const p=d.preco_atual,pant=d.preco_anterior||p;E('a3-p',fR(p));E('a3b-p',fR(p));Ch('a3-c',p,pant,'r');Ch('a3b-c',p,pant,'r');
-      const kA=43.51,kuA=68.76,kB=40.52,kuB=62.81;
-      const dA=document.getElementById('a3-kdo');if(dA)dA.textContent=((p-kA)/p*100).toFixed(1)+'% acima do KDO';
-      const uA=document.getElementById('a3-kuo');if(uA)uA.textContent=((kuA-p)/p*100).toFixed(1)+'% para o KUO';
-      const sA=document.getElementById('a3-st');if(sA){sA.textContent=p<=kA?'🔴 KDO ATINGIDO':p>=kuA?'⚠ KUO ATINGIDO':'✅ No range';sA.className='sv '+(p<=kA||p>=kuA?'warn':'ok');}
-      const dB=document.getElementById('a3b-kdo');if(dB)dB.textContent=((p-kB)/p*100).toFixed(1)+'% acima do KDO';
-      const uB=document.getElementById('a3b-kuo');if(uB)uB.textContent=((kuB-p)/p*100).toFixed(1)+'% para o KUO';
-      const sB=document.getElementById('a3b-st');if(sB){sB.textContent=p<=kB?'🔴 KDO ATINGIDO':p>=kuB?'⚠ KUO ATINGIDO':'✅ No range';sB.className='sv '+(p<=kB||p>=kuB?'warn':'ok');}
-      // Alerta de barreira AXIA3 — vermelho pulsando se < 5% do KDO ou > 5% do KUO
-      checkAlertaBarreira('card-a3', p, kA, kuA);
-      checkAlertaBarreira('card-a3b', p, kB, kuB);
-      // Badge de risco no tab
-      checkBadgeRisco();
-    }catch(e){}
-  },2000);
-  setTimeout(async()=>{
-    try{const r=await fetch(B+'/indicators/ROXO34.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
-      const p=d.preco_atual,pant2=d.preco_anterior||p;E('rx-p',fR(p));Ch('rx-c',p,pant2,'r');
-      const itm=document.getElementById('rx-itm');
-      const dist=p-10.50;
-      if(itm)itm.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';
-      const de=document.getElementById('rx-kdo');if(de)de.textContent=((p-10.50)/p*100).toFixed(1)+'% do strike';
-      const itm2=p>10.50;
-      const se=document.getElementById('rx-itm');
-      _risco.roxoItm=itm2;
-      checkBadgeRisco();
-    }catch(e){}
-  },3000);
+  // AXIA3 A e B — preço via /indicators, distância KDO/KUO
+  const a3=byId.a3, a3b=byId.a3b;
+  if(a3||a3b){
+    setTimeout(async()=>{
+      try{const r=await fetch(B+'/indicators/AXIA3.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
+        const p=d.preco_atual,pant=d.preco_anterior||p;
+        if(a3){E('a3-p',fR(p));Ch('a3-c',p,pant,'r');}
+        if(a3b){E('a3b-p',fR(p));Ch('a3b-c',p,pant,'r');}
+        if(a3){
+          const kA=a3.kdo,kuA=a3.kuo;
+          const dA=document.getElementById('a3-kdo');if(dA)dA.textContent=((p-kA)/p*100).toFixed(1)+'% acima do KDO';
+          const uA=document.getElementById('a3-kuo');if(uA)uA.textContent=((kuA-p)/p*100).toFixed(1)+'% para o KUO';
+          const sA=document.getElementById('a3-st');if(sA){sA.textContent=p<=kA?'🔴 KDO ATINGIDO':p>=kuA?'⚠ KUO ATINGIDO':'✅ No range';sA.className='sv '+(p<=kA||p>=kuA?'warn':'ok');}
+          checkAlertaBarreira('card-a3', p, kA, kuA);
+        }
+        if(a3b){
+          const kB=a3b.kdo,kuB=a3b.kuo;
+          const dB=document.getElementById('a3b-kdo');if(dB)dB.textContent=((p-kB)/p*100).toFixed(1)+'% acima do KDO';
+          const uB=document.getElementById('a3b-kuo');if(uB)uB.textContent=((kuB-p)/p*100).toFixed(1)+'% para o KUO';
+          const sB=document.getElementById('a3b-st');if(sB){sB.textContent=p<=kB?'🔴 KDO ATINGIDO':p>=kuB?'⚠ KUO ATINGIDO':'✅ No range';sB.className='sv '+(p<=kB||p>=kuB?'warn':'ok');}
+          checkAlertaBarreira('card-a3b', p, kB, kuB);
+        }
+        checkBadgeRisco();
+      }catch(e){}
+    },2000);
+  }
+
+  // ROXO34 — preço via /indicators (Yahoo bloqueia), ITM/OTM
+  if(byId.rx){
+    setTimeout(async()=>{
+      try{const r=await fetch(B+'/indicators/ROXO34.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
+        const p=d.preco_atual,pant2=d.preco_anterior||p;E('rx-p',fR(p));Ch('rx-c',p,pant2,'r');
+        const strike=byId.rx.strike;
+        const itm=document.getElementById('rx-itm');
+        const dist=p-strike;
+        if(itm)itm.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';
+        _risco.roxoItm=p>strike;
+        checkBadgeRisco();
+      }catch(e){}
+    },3000);
+  }
 }
 
 function checkAlertaBarreira(cardId, preco, kdo, kuo){
@@ -564,6 +700,7 @@ async function loadCal(){
 
 async function main(){
   try{
+    if(!_posData)await loadPositions();
     const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
     const[,tv,ft]=await Promise.all([wt(fHL(),12000,null),wt(fTV(),14000,{}),wt(fFut(),14000,null)]);
     const now=new Date().toLocaleTimeString('pt-BR');
@@ -571,44 +708,61 @@ async function main(){
     window._lastTV=tv;doMacro(tv,ft);doPos(tv);
     setTimeout(fFund,3000);
     setTimeout(async()=>{try{const[bi,bc]=await Promise.all([fBTCI(),fBTCC()]);if(bi)rndBTCI(bi);if(bc)rndBTCC(bc);fFG();}catch(e){}},5000);
-    const hoje=new Date();
-    const dP=Math.max(1,Math.ceil((new Date('2026-12-17')-hoje)/864e5));
-    const dV=Math.max(1,Math.ceil((new Date('2027-02-18')-hoje)/864e5));
-    const dA=Math.max(1,Math.ceil((new Date('2026-09-14')-hoje)/864e5));
-    const dAb=Math.max(1,Math.ceil((new Date('2026-10-02')-hoje)/864e5));
-    const dR=Math.max(1,Math.ceil((new Date('2026-07-16')-hoje)/864e5));
-    setTimeout(()=>MC('PETR4.SA',30.85,dP,'pt-mc-l','pt-mc-r','pt-mc-s','pt-mc-v','pt-mc-i','pt-mc-rt'),6000);
-    setTimeout(()=>MC('VALE3.SA',57.40,dV,'vl-mc-l','vl-mc-r','vl-mc-s','vl-mc-v','vl-mc-i','vl-mc-rt'),12000);
-    setTimeout(()=>MCB('AXIA3.SA',54.31,43.51,68.76,dA,'a3'),18000);
-    setTimeout(()=>MCB('AXIA3.SA',50.65,40.52,62.81,dAb,'a3b'),24000);
-    setTimeout(async()=>{
-    try{
-      const rRX=await fetch(B+'/indicators/ROXO34.SA');
-      const dRX=rRX.ok?await rRX.json():{};
-      const priceRX=dRX.preco_atual||null;
-      await MCR('ROXO34.SA',10.50,null,dR,priceRX);
-    }catch(e){MCR('ROXO34.SA',10.50,null,dR,null);}
-  },30000);
-    const dBB=Math.max(1,Math.ceil((new Date('2026-08-20')-hoje)/864e5));
-    setTimeout(()=>MC('BBAS3.SA',21.65,dBB,'bb-mc-l','bb-mc-r','bb-mc-s','bb-mc-v','bb-mc-i','bb-mc-rt'),36000);
-    // BBAS3 cotação — via TV ou fallback /indicators
-    const bbTV=tv['BMFBOVESPA:BBAS3'];
-    if(bbTV?.p){
-      E('bb-p',fR(bbTV.p));Ch('bb-c',bbTV.p,bbTV.v||bbTV.p,'r');
-      const d2=bbTV.p-21.65;
-      const itm2=document.getElementById('bb-itm');
-      if(itm2){itm2.textContent=(d2>=0?'+ R$ ':'- R$ ')+Math.abs(d2).toFixed(2)+' '+(d2>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(d2>=0?'itm':'ok');}
-    } else {
-      // TV não retornou BBAS3 — fallback
-      fetch(B+'/indicators/BBAS3.SA').then(r2=>r2.json()).then(d2=>{
-        if(d2.preco_atual){
-          E('bb-p',fR(d2.preco_atual));if(d2.preco_anterior!=null){Ch('bb-c',d2.preco_atual,d2.preco_anterior,'r');}else{const ec=document.getElementById('bb-c');if(ec)ec.textContent='—';}
-          const dist=d2.preco_atual-21.65;
+
+    if(_posData&&_posData.ativas){
+      const hoje=new Date();
+      const byId={}; _posData.ativas.forEach(p=>byId[p.id]=p);
+      const diasAte=iso=>Math.max(1,Math.ceil((new Date(iso)-hoje)/864e5));
+
+      // MC simples — PETR4, VALE3, BBAS3 (qualquer 'simples' exceto ROXO34 que usa MCR)
+      let delay=6000;
+      _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
+        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-s',p.id+'-mc-v',p.id+'-mc-i',p.id+'-mc-rt'),delay);
+        delay+=6000;
+      });
+
+      // MCB barreira — AXIA3 A e B (ou quaisquer outras tipo 'barreira')
+      _posData.ativas.filter(p=>p.tipo_posicao==='barreira').forEach(p=>{
+        setTimeout(()=>MCB(p.ticker,p.entry,p.kdo,p.kuo,diasAte(p.vencimento),p.id),delay);
+        delay+=6000;
+      });
+
+      // MCR — ROXO34 (caso especial: busca preço via /indicators antes)
+      if(byId.rx){
+        const dR=diasAte(byId.rx.vencimento);
+        setTimeout(async()=>{
+          try{
+            const rRX=await fetch(B+'/indicators/ROXO34.SA');
+            const dRX=rRX.ok?await rRX.json():{};
+            const priceRX=dRX.preco_atual||null;
+            await MCR('ROXO34.SA',byId.rx.strike,null,dR,priceRX);
+          }catch(e){MCR('ROXO34.SA',byId.rx.strike,null,dR,null);}
+        },delay);
+        delay+=6000;
+      }
+
+      // BBAS3 cotação — via TV ou fallback /indicators
+      if(byId.bb){
+        const strikeBB=byId.bb.strike;
+        const bbTV=tv['BMFBOVESPA:BBAS3'];
+        if(bbTV?.p){
+          E('bb-p',fR(bbTV.p));Ch('bb-c',bbTV.p,bbTV.v||bbTV.p,'r');
+          const d2=bbTV.p-strikeBB;
           const itm2=document.getElementById('bb-itm');
-          if(itm2){itm2.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(dist>=0?'itm':'ok');}
+          if(itm2){itm2.textContent=(d2>=0?'+ R$ ':'- R$ ')+Math.abs(d2).toFixed(2)+' '+(d2>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(d2>=0?'itm':'ok');}
+        } else {
+          fetch(B+'/indicators/BBAS3.SA').then(r2=>r2.json()).then(d2=>{
+            if(d2.preco_atual){
+              E('bb-p',fR(d2.preco_atual));if(d2.preco_anterior!=null){Ch('bb-c',d2.preco_atual,d2.preco_anterior,'r');}else{const ec=document.getElementById('bb-c');if(ec)ec.textContent='—';}
+              const dist=d2.preco_atual-strikeBB;
+              const itm2=document.getElementById('bb-itm');
+              if(itm2){itm2.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(dist>=0?'itm':'ok');}
+            }
+          }).catch(()=>{});
         }
-      }).catch(()=>{});
+      }
     }
+
     // Black-Scholes dinâmico — roda uma vez por ciclo, delay para não disputar com MC
     setTimeout(loadBS, 4000);
     // Badge risco — roda após todos os dados async carregarem
@@ -618,40 +772,29 @@ async function main(){
 }
 // ── BLACK-SCHOLES DINÂMICO ───────────────────────────
 // Vol implícita atual (atualizar manualmente quando mudar)
-const BS_PARAMS = {
-  pt: {ticker:'PETR4.SA', strike:30.85,  vol:0.434, tipo:'call', pfx:'pt'},
-  vl: {ticker:'VALE3.SA', strike:57.40,  vol:0.712, tipo:'call', pfx:'vl'},
-  rx: {ticker:'ROXO34.SA',strike:10.50,  vol:0.315, tipo:'call', pfx:'rx'},
-  bb: {ticker:'BBAS3.SA', strike:21.65,  vol:0.262, tipo:'call', pfx:'bb'},
-};
-
 async function loadBS(){
+  if(!_posData||!_posData.ativas)return;
   const hoje=new Date();
-  const datas={
-    pt:new Date('2026-12-17'), vl:new Date('2027-02-18'),
-    rx:new Date('2026-07-16'), bb:new Date('2026-08-20'),
-  };
-  for(const [key,cfg] of Object.entries(BS_PARAMS)){
+  // Apenas posicoes tipo 'simples' tem B&S (barreira usa MCB)
+  const simples=_posData.ativas.filter(p=>p.tipo_posicao==='simples');
+  for(const p of simples){
     try{
-      const dias=Math.max(1,Math.ceil((datas[key]-hoje)/864e5));
+      const dias=Math.max(1,Math.ceil((new Date(p.vencimento)-hoje)/864e5));
       const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),12000);
       const r=await fetch(B+'/bs',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         signal:ctrl.signal,
-        body:JSON.stringify({ticker:cfg.ticker,strike:cfg.strike,t_days:dias,vol_impl:cfg.vol,tipo:cfg.tipo})
+        body:JSON.stringify({ticker:p.ticker,strike:p.strike,t_days:dias,vol_impl:p.vol_impl,tipo:p.tipo||'call'})
       });
       if(!r.ok)continue;
       const d=await r.json();
       if(d.error)continue;
-      const pfx=cfg.pfx;
-      // Vol Impl
+      const pfx=p.id;
       const evol=document.getElementById(pfx+'-bs-vol');
       if(evol){evol.textContent=d.vol_impl_pct.toFixed(1)+'%';}
-      // Delta
       const edel=document.getElementById(pfx+'-bs-delta');
       if(edel){edel.textContent=Math.abs(d.delta).toFixed(3);}
-      // Prob B&S
       const eprob=document.getElementById(pfx+'-bs-prob');
       if(eprob){
         const prob=d.prob_exercicio_bs;
@@ -661,6 +804,7 @@ async function loadBS(){
       }
     }catch(e){}
   }
+
 }
 
 main();setInterval(main,120000);
