@@ -264,16 +264,22 @@ async function loadPositions(){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
     const r=await fetch(B+'/positions',{signal:ctrl.signal,cache:'no-store'});
-    if(!r.ok)throw new Error('HTTP '+r.status);
     const data=await r.json();
-    if(data.error)throw new Error(data.error);
+    if(data.error){
+      const detalhes=data.detalhes?('<ul style="margin-top:8px;padding-left:18px">'+data.detalhes.map(d=>'<li>'+d+'</li>').join('')+'</ul>'):'';
+      throw new Error(data.error+detalhes);
+    }
+    if(!r.ok)throw new Error('HTTP '+r.status);
     _posData=data;
     renderPositions(data);
     renderEncerradas(data);
   }catch(e){
     console.error('Erro ao carregar positions.json:',e);
+    const msg='<p style="color:var(--red);padding:20px">⚠ Erro em positions.json: '+e.message+'<br><span style="color:var(--muted);font-size:11px">Verifique a sintaxe do arquivo no GitHub. As outras abas continuam funcionando normalmente.</span></p>';
     const cont=document.getElementById('pos-container');
-    if(cont)cont.innerHTML='<p style="color:var(--red);padding:20px">Erro ao carregar posições: '+e.message+'</p>';
+    if(cont)cont.innerHTML=msg;
+    const cont2=document.getElementById('enc-container');
+    if(cont2)cont2.innerHTML=msg;
   }
 }
 
