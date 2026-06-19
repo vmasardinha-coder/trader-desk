@@ -149,41 +149,7 @@
   <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
     <button onclick="toggleAllInd()" id="btn-all-ind" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.5px">− Recolher Todos</button>
   </div>
-  <div class="ind-acc">
-    <div class="ind-acc-hdr" onclick="togInd('petr4')">
-      <div><div class="ind-acc-title">PETR4 — Petrobras PN</div><div class="ind-acc-sub">Petróleo &amp; Gás · clique para expandir/recolher</div></div>
-      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('petr4')">↻</span><span id="ar-ind-petr4">▼</span></div>
-    </div>
-    <div class="ind-acc-body open" id="petr4-ind-wrap"><div id="petr4-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
-  </div>
-  <div class="ind-acc">
-    <div class="ind-acc-hdr" onclick="togInd('vale3')">
-      <div><div class="ind-acc-title">VALE3 — Vale ON</div><div class="ind-acc-sub">Mineração · clique para expandir/recolher</div></div>
-      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('vale3')">↻</span><span id="ar-ind-vale3">▼</span></div>
-    </div>
-    <div class="ind-acc-body open" id="vale3-ind-wrap"><div id="vale3-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
-  </div>
-  <div class="ind-acc">
-    <div class="ind-acc-hdr" onclick="togInd('bbas3')">
-      <div><div class="ind-acc-title">BBAS3 — Banco do Brasil ON</div><div class="ind-acc-sub">Bancos · clique para expandir/recolher</div></div>
-      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('bbas3')">↻</span><span id="ar-ind-bbas3">▼</span></div>
-    </div>
-    <div class="ind-acc-body open" id="bbas3-ind-wrap"><div id="bbas3-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
-  </div>
-  <div class="ind-acc">
-    <div class="ind-acc-hdr" onclick="togInd('axia3')">
-      <div><div class="ind-acc-title">AXIA3 — Auren Energia ON</div><div class="ind-acc-sub">Energia Elétrica · clique para expandir/recolher</div></div>
-      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('axia3')">↻</span><span id="ar-ind-axia3">▼</span></div>
-    </div>
-    <div class="ind-acc-body open" id="axia3-ind-wrap"><div id="axia3-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
-  </div>
-  <div class="ind-acc">
-    <div class="ind-acc-hdr" onclick="togInd('roxo34')">
-      <div><div class="ind-acc-title">ROXO34 — Nubank BDR</div><div class="ind-acc-sub">Fintech · clique para expandir/recolher</div></div>
-      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('roxo34')">↻</span><span id="ar-ind-roxo34">▼</span></div>
-    </div>
-    <div class="ind-acc-body open" id="roxo34-ind-wrap"><div id="roxo34-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
-  </div>
+  <div id="watchlist-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando ativos...</p></div>
 </div>
 
 <!-- ══ POSIÇÕES ══ -->
