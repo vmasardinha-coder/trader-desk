@@ -720,13 +720,12 @@ function rndBTCC(d){
   const el=document.getElementById('btc-cycle-area');if(!el||!d||d.error)return;
   const fU2=v=>v?'$'+Number(v).toLocaleString('en-US',{maximumFractionDigits:0}):'—';
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
-    '<div class="ib"><div class="il">MVRV Z-Score</div><div class="iv '+(d.mvrv_zscore?.value<1?'ok':d.mvrv_zscore?.value<3?'warn':'down')+'">'+d.mvrv_zscore?.value+'</div><div style="font-size:11px;color:var(--muted);margin-top:3px">'+d.mvrv_zscore?.label+'</div></div>'+
-    '<div class="ib"><div class="il">NUPL</div><div class="iv warn">'+((d.nupl?.value||0)*100).toFixed(0)+'%</div><div style="font-size:11px;color:var(--muted);margin-top:3px">'+d.nupl?.label+'</div></div>'+
     '<div class="ib"><div class="il">Puell Multiple</div><div class="iv warn">'+d.puell?.value+'</div><div style="font-size:11px;color:var(--muted);margin-top:3px">'+d.puell?.label+'</div></div>'+
     '<div class="ib"><div class="il">200W MA</div><div class="iv warn">'+fU2(d.ma200w)+'</div><div style="font-size:11px;color:var(--muted);margin-top:3px">'+(d.ma200w_pct?'+'+d.ma200w_pct+'%':'')+'</div></div>'+
     '<div class="ib"><div class="il">Rainbow Band</div><div class="iv warn">'+(d.rainbow?.band||'—')+'</div></div>'+
     '<div class="ib"><div class="il">Pi Cycle Dist.</div><div class="iv ok">'+fU2(d.pi_cycle?.distance)+'</div></div>'+
-    '</div><div style="background:var(--bg2);border:1px solid var(--border);padding:10px;font-size:13px;color:var(--accent);font-weight:600">'+(d.pi_cycle?.signal||'')+'</div>';
+    '</div><div style="background:var(--bg2);border:1px solid var(--border);padding:10px;font-size:13px;color:var(--accent);font-weight:600">'+(d.pi_cycle?.signal||'')+'</div>'+
+    '<div style="font-size:10px;color:var(--muted);margin-top:8px;text-align:center">MVRV/NUPL removidos — sem fonte gratuita confiável sem cadastro/API key (verificado 19/06/2026)</div>';
 }
 async function loadInd(){
   const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
