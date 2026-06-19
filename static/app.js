@@ -440,21 +440,35 @@ function toggleAllInd(){
   });
   if(btn)btn.textContent=anyOpen?'+ Expandir Todos':'− Recolher Todos';
 }
+// Guarda preços do ciclo anterior para calcular variação real entre atualizações
+const _prevPrices = {};
+
 async function fHL(){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
     const r=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids'}),signal:ctrl.signal});
     if(!r.ok)return;const d=await r.json();
     const bp=parseFloat(d.BTC||0);
-    if(bp>0){E('btc-p',fU(bp));Ch('btc-c',bp,bp*0.99,'u');}
+    if(bp>0){
+      E('btc-p',fU(bp));
+      if(_prevPrices.BTC)Ch('btc-c',bp,_prevPrices.BTC,'u');
+      _prevPrices.BTC=bp;
+    }
     try{
       const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),8000);
       const r2=await fetch('https://api.hyperliquid.xyz/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'allMids',dex:'xyz'}),signal:ctrl2.signal});
       if(r2.ok){const d2=await r2.json();
-        if(d2['xyz:CL'])E('cl-p','$'+parseFloat(d2['xyz:CL']).toFixed(2));
-        if(d2['xyz:GOLD'])E('gold-p','$'+Number(d2['xyz:GOLD']).toLocaleString('en-US',{maximumFractionDigits:0}));
-        if(d2['xyz:SILVER'])E('silver-p','$'+parseFloat(d2['xyz:SILVER']).toFixed(2));
-        if(d2['xyz:COPPER'])E('copper-p','$'+parseFloat(d2['xyz:COPPER']).toFixed(3));}
+        const commods=[['CL','cl',2],['GOLD','gold',0],['SILVER','silver',2],['COPPER','copper',3]];
+        commods.forEach(([key,id,dec])=>{
+          const v=d2['xyz:'+key];
+          if(v){
+            const p=parseFloat(v);
+            E(id+'-p','$'+(dec===0?Number(p).toLocaleString('en-US',{maximumFractionDigits:0}):p.toFixed(dec)));
+            if(_prevPrices[key])Ch(id+'-c',p,_prevPrices[key],'u');
+            _prevPrices[key]=p;
+          }
+        });
+      }
     }catch(e){}
   }catch(e){}
 }
@@ -469,7 +483,20 @@ async function fTV(){
   try{
     const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),10000);
     const rr=await fetch(B+'/indicators/ROXO34.SA',{signal:ctrl2.signal});
-    if(rr.ok){const dd=await rr.json();if(dd.preco_atual){E('roxo34q-p',fR(dd.preco_atual));const prev=dd.preco_anterior;if(prev!=null){ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');}else{const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');if(ep)ep.textContent='—';if(ec)ec.textContent='—';}}}
+    if(rr.ok){const dd=await rr.json();if(dd.preco_atual){
+      E('roxo34q-p',fR(dd.preco_atual));
+      // Usa preco_anterior da brapi se vier consistente; senão usa ciclo anterior do app
+      const prevApi=dd.preco_anterior;
+      const prevCiclo=_prevPrices.ROXO34;
+      const prev = (prevApi!=null && prevApi!==dd.preco_atual) ? prevApi : prevCiclo;
+      if(prev!=null){
+        ChTbl('roxo34q-v','roxo34q-c',dd.preco_atual,prev,'r');
+      }else{
+        const ep=document.getElementById('roxo34q-v');const ec=document.getElementById('roxo34q-c');
+        if(ep)ep.textContent='—';if(ec)ec.textContent='—';
+      }
+      _prevPrices.ROXO34=dd.preco_atual;
+    }}
   }catch(e){}
   return out;
 }
