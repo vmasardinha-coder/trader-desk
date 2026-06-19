@@ -107,7 +107,8 @@ async function loadSeg(id){
         if(!ep)return;
         // 1) tenta /brapi (rápido, só cotação)
         try{
-          const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:AbortSignal.timeout(8000)});
+          const ctrlB=new AbortController();setTimeout(()=>ctrlB.abort(),8000);
+          const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:ctrlB.signal});
           if(rb.ok){
             const db=await rb.json();
             if(db.price){
@@ -119,7 +120,8 @@ async function loadSeg(id){
         }catch(e2){}
         // 2) fallback /indicators (mais pesado mas completo)
         try{
-          const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:AbortSignal.timeout(15000)});
+          const ctrlI=new AbortController();setTimeout(()=>ctrlI.abort(),15000);
+          const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:ctrlI.signal});
           if(!r2.ok)return;
           const d2=await r2.json();
           if(d2.preco_atual){
@@ -136,7 +138,8 @@ async function loadSeg(id){
       const ep=document.getElementById(pfx+tid+'_p');
       if(!ep)return;
       try{
-        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:AbortSignal.timeout(8000)});
+        const ctrlB=new AbortController();setTimeout(()=>ctrlB.abort(),8000);
+        const rb=await fetch(B+'/brapi/'+t+'.SA',{signal:ctrlB.signal});
         if(rb.ok){
           const db=await rb.json();
           if(db.price){
@@ -147,7 +150,8 @@ async function loadSeg(id){
         }
       }catch(e2){}
       try{
-        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:AbortSignal.timeout(15000)});
+        const ctrlI=new AbortController();setTimeout(()=>ctrlI.abort(),15000);
+        const r2=await fetch(B+'/indicators/'+t+'.SA',{signal:ctrlI.signal});
         if(!r2.ok)return;
         const d2=await r2.json();
         if(d2.preco_atual){
