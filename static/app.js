@@ -439,8 +439,74 @@ function togInd(id){
   body.classList.toggle('open',!open);
   if(arr)arr.textContent=open?'▶':'▼';
 }
+// ── WATCHLIST — ativos de análise fundamentalista por segmento ──
+const WATCHLIST = [
+  {segmento:'🏦 Bancos', ativos:[
+    {id:'itub4', ticker:'ITUB4.SA', nome:'ITUB4 — Itaú Unibanco PN'},
+    {id:'bbas3', ticker:'BBAS3.SA', nome:'BBAS3 — Banco do Brasil ON'},
+  ]},
+  {segmento:'🏗️ Construção & Incorporação', ativos:[
+    {id:'cyre3', ticker:'CYRE3.SA', nome:'CYRE3 — Cyrela ON'},
+    {id:'dirr3', ticker:'DIRR3.SA', nome:'DIRR3 — Direcional ON'},
+    {id:'mult3', ticker:'MULT3.SA', nome:'MULT3 — Multiplan ON'},
+  ]},
+  {segmento:'🛡️ Seguros', ativos:[
+    {id:'pssa3', ticker:'PSSA3.SA', nome:'PSSA3 — Porto Seguro ON'},
+    {id:'bbse3', ticker:'BBSE3.SA', nome:'BBSE3 — BB Seguridade ON'},
+    {id:'cxse3', ticker:'CXSE3.SA', nome:'CXSE3 — Caixa Seguridade ON'},
+  ]},
+  {segmento:'⚡ Energia Elétrica', ativos:[
+    {id:'axia3', ticker:'AXIA3.SA', nome:'AXIA3 — Axia Energia ON'},
+  ]},
+  {segmento:'🛢️ Petróleo & Gás', ativos:[
+    {id:'petr4', ticker:'PETR4.SA', nome:'PETR4 — Petrobras PN'},
+  ]},
+  {segmento:'⛏️ Mineração', ativos:[
+    {id:'vale3', ticker:'VALE3.SA', nome:'VALE3 — Vale ON'},
+    {id:'cmin3', ticker:'CMIN3.SA', nome:'CMIN3 — CSN Mineração ON'},
+  ]},
+  {segmento:'🌲 Papel & Celulose', ativos:[
+    {id:'euca4', ticker:'EUCA4.SA', nome:'EUCA4 — Eucatex PN'},
+  ]},
+  {segmento:'💧 Saneamento', ativos:[
+    {id:'sapr11', ticker:'SAPR11.SA', nome:'SAPR11 — Sanepar UNT'},
+  ]},
+  {segmento:'🏭 Siderurgia', ativos:[
+    {id:'ggbr4', ticker:'GGBR4.SA', nome:'GGBR4 — Gerdau PN'},
+  ]},
+  {segmento:'💳 Fintech / BDR', ativos:[
+    {id:'roxo34', ticker:'ROXO34.SA', nome:'ROXO34 — Nubank BDR'},
+  ]},
+];
+
+function getWatchlistFlat(){
+  return WATCHLIST.flatMap(seg=>seg.ativos);
+}
+
+function tplWatchAtivo(a, segNome){
+  return `
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togInd('${a.id}')">
+      <div><div class="ind-acc-title">${a.nome}</div><div class="ind-acc-sub">${segNome} · clique para expandir/recolher</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('${a.id}')">↻</span><span id="ar-ind-${a.id}">▼</span></div>
+    </div>
+    <div class="ind-acc-body open" id="${a.id}-ind-wrap"><div id="${a.id}-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+  </div>`;
+}
+
+function renderWatchlist(){
+  const cont=document.getElementById('watchlist-container');
+  if(!cont)return;
+  let html='';
+  WATCHLIST.forEach(seg=>{
+    html+=`<div class="sec" style="margin-top:18px"><span class="dot"></span>${seg.segmento}</div>`;
+    seg.ativos.forEach(a=>{ html+=tplWatchAtivo(a, seg.segmento); });
+  });
+  cont.innerHTML=html;
+}
+
 function toggleAllInd(){
-  const ids=['petr4','vale3','bbas3','axia3','roxo34'];
+  const ids=getWatchlistFlat().map(a=>a.id);
   const btn=document.getElementById('btn-all-ind');
   const anyOpen=ids.some(id=>document.getElementById(id+'-ind-wrap')?.classList.contains('open'));
   ids.forEach(id=>{
@@ -728,18 +794,25 @@ function rndBTCC(d){
     '<div style="font-size:10px;color:var(--muted);margin-top:8px;text-align:center">MVRV/NUPL removidos — sem fonte gratuita confiável sem cadastro/API key (verificado 19/06/2026)</div>';
 }
 async function loadInd(){
+  renderWatchlist();
   const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
   const[bi,bc]=await Promise.all([wt(fBTCI(),15000,{error:'Timeout — clique ↻'}),wt(fBTCC(),15000,null)]);
   rndBTCI(bi);rndBTCC(bc);fFG();
-  const stocks=[['PETR4.SA','petr4'],['VALE3.SA','vale3'],['BBAS3.SA','bbas3'],['AXIA3.SA','axia3'],['ROXO34.SA','roxo34']];
-  const res=await Promise.all(stocks.map(([t])=>wt(fInd(t),30000,{error:'Timeout 30s'})));
-  stocks.forEach(([,id],i)=>rndInd(id,res[i]));
+  const ativos=getWatchlistFlat();
+  // Carrega em lotes de 4 para não sobrecarregar o brapi/Yahoo simultaneamente
+  const tamLote=4;
+  for(let i=0;i<ativos.length;i+=tamLote){
+    const lote=ativos.slice(i,i+tamLote);
+    const res=await Promise.all(lote.map(a=>wt(fInd(a.ticker),30000,{error:'Timeout 30s'})));
+    lote.forEach((a,j)=>rndInd(a.id,res[j]));
+  }
 }
 async function rl(tk){
   const el=document.getElementById(tk+'-ind');
   if(el)el.innerHTML='<div style="color:var(--muted);padding:12px;animation:pulse 1s infinite">Carregando...</div>';
-  const m={petr4:'PETR4.SA',vale3:'VALE3.SA',bbas3:'BBAS3.SA',axia3:'AXIA3.SA',roxo34:'ROXO34.SA'};
-  rndInd(tk,await fInd(m[tk]));
+  const ativo=getWatchlistFlat().find(a=>a.id===tk);
+  if(!ativo)return;
+  rndInd(tk,await fInd(ativo.ticker));
 }
 const FLAGS={'USD':'🇺🇸','US':'🇺🇸','BRL':'🇧🇷','BR':'🇧🇷','EUR':'🇪🇺','EU':'🇪🇺','GBP':'🇬🇧','CNY':'🇨🇳','JPY':'🇯🇵','CAD':'🇨🇦','AUD':'🇦🇺','DE':'🇩🇪','NZD':'🇳🇿','CHF':'🇨🇭'};
 // ── CALENDÁRIO ────────────────────────────────────────
