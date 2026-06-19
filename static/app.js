@@ -269,6 +269,7 @@ async function loadPositions(){
     if(data.error)throw new Error(data.error);
     _posData=data;
     renderPositions(data);
+    renderEncerradas(data);
   }catch(e){
     console.error('Erro ao carregar positions.json:',e);
     const cont=document.getElementById('pos-container');
@@ -291,6 +292,114 @@ function renderPositions(data){
 function getAtivaIds(){
   if(!_posData||!_posData.ativas)return [];
   return _posData.ativas.map(p=>'pos-'+p.id);
+}
+
+// ── ENCERRADAS — renderização dinâmica ───────────────
+function fmtDataOrNull(iso){
+  if(!iso)return null;
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function tplEncerrada(p){
+  const id=p.id;
+  const dataEnc=fmtDataOrNull(p.data_encerramento);
+  const subParts=[p.estrategia];
+  if(p.codigo_opcao)subParts.push(p.codigo_opcao);
+  subParts.push(dataEnc?`Encerrada ${dataEnc}`:'Encerrada');
+  const sub=subParts.join(' · ');
+  const badgeCls=p.status==='sucesso'?'enc-ok':'enc-warn';
+  const badgeTxt=p.status==='sucesso'?'✅ SUCESSO':'⚠ PARCIAL';
+
+  let rows='';
+  rows+=`<div class="sr"><span class="sl">Estratégia</span><span class="sv">${p.estrategia}</span></div>`;
+  if(p.codigo_opcao&&p.strike)rows+=`<div class="sr"><span class="sl">Opção</span><span class="sv">${p.codigo_opcao} · R$ ${p.strike.toFixed(2).replace('.',',')}</span></div>`;
+  if(p.alvo_pct!=null)rows+=`<div class="sr"><span class="sl">Alvo</span><span class="sv warn">${p.alvo_pct}%</span></div>`;
+  if(p.realizado_pct!=null)rows+=`<div class="sr"><span class="sl">Realizado</span><span class="sv ok">~${p.realizado_pct}%</span></div>`;
+  if(dataEnc)rows+=`<div class="sr"><span class="sl">Encerrada em</span><span class="sv">${dataEnc}</span></div>`;
+  if(p.pct_do_alvo!=null)rows+=`<div class="sr"><span class="sl">% do alvo atingido</span><span class="sv ok">${p.pct_do_alvo}%</span></div>`;
+  if(p.pct_do_prazo!=null)rows+=`<div class="sr"><span class="sl">% do prazo utilizado</span><span class="sv ok">${p.pct_do_prazo}%</span></div>`;
+  if(p.resultado_texto)rows+=`<div class="sr"><span class="sl">Resultado</span><span class="sv ok">✅ ${p.resultado_texto}</span></div>`;
+  if(p.observacao)rows+=`<div class="sr"><span class="sl">Observação</span><span class="sv" style="color:var(--muted)">${p.observacao}</span></div>`;
+
+  let barra='';
+  if(p.pct_do_alvo!=null){
+    barra=`
+      <div style="margin-top:12px">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:6px">PROGRESSO DO ALVO</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);height:8px;border-radius:2px;overflow:hidden">
+          <div style="width:${p.pct_do_alvo}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green))"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
+          <span>0%</span><span style="color:var(--green);font-weight:700">${p.pct_do_alvo}% atingido</span><span>100%</span>
+        </div>
+      </div>`;
+  }
+
+  return `
+  <div class="pos-enc" style="margin-top:10px">
+    <div class="pos-enc-hdr" onclick="togPos('pos-${id}')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div class="pos-acc-tk" style="color:var(--muted);font-size:18px">${p.ticker}</div>
+          <div class="pos-acc-sub">${sub}</div>
+        </div>
+        <span class="enc-badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+      <span id="ar-pos-${id}" style="color:var(--muted)">▼</span>
+    </div>
+    <div class="pos-acc-body" id="body-pos-${id}">
+      <div class="sb">${rows}</div>
+      ${barra}
+    </div>
+  </div>`;
+}
+
+function calcDashboardEncerradas(encerradas){
+  const total=encerradas.length;
+  const sucessos=encerradas.filter(p=>p.status==='sucesso').length;
+  const taxaSucesso=total?Math.round(sucessos/total*100):0;
+  const comAlvo=encerradas.filter(p=>p.pct_do_alvo!=null);
+  const mediaAlvo=comAlvo.length?Math.round(comAlvo.reduce((s,p)=>s+p.pct_do_alvo,0)/comAlvo.length):null;
+  const comPrazo=encerradas.filter(p=>p.pct_do_prazo!=null);
+  const mediaPrazo=comPrazo.length?Math.round(comPrazo.reduce((s,p)=>s+p.pct_do_prazo,0)/comPrazo.length):null;
+  return {total,sucessos,taxaSucesso,mediaAlvo,mediaPrazo};
+}
+
+function renderEncerradas(data){
+  const cont=document.getElementById('enc-container');
+  if(!cont)return;
+  const encerradas=data.encerradas||[];
+  const stats=calcDashboardEncerradas(encerradas);
+
+  let dashboard=`
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+    <div class="card g">
+      <div class="cl">Operações</div>
+      <div class="cp">${stats.total}</div>
+      <div class="cc" style="color:var(--muted)">encerradas</div>
+    </div>
+    <div class="card g">
+      <div class="cl">Taxa de Sucesso</div>
+      <div class="cp">${stats.taxaSucesso}%</div>
+      <div class="cc" style="color:var(--green)">${stats.sucessos} de ${stats.total} ✅</div>
+    </div>
+    <div class="card b">
+      <div class="cl">Resultado Médio</div>
+      <div class="cp" style="font-size:18px">${stats.mediaAlvo!=null?'~'+stats.mediaAlvo+'%':'—'}</div>
+      <div class="cc" style="color:var(--accent)">do alvo atingido</div>
+    </div>
+    <div class="card b">
+      <div class="cl">Tempo Médio</div>
+      <div class="cp" style="font-size:18px">${stats.mediaPrazo!=null?'~'+stats.mediaPrazo+'%':'—'}</div>
+      <div class="cc" style="color:var(--accent)">do prazo utilizado</div>
+    </div>
+  </div>`;
+
+  let cards='';
+  encerradas.forEach(p=>cards+=tplEncerrada(p));
+
+  cont.innerHTML=dashboard+cards;
 }
 
 function togPos(id){
