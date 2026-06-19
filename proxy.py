@@ -921,10 +921,53 @@ def get_us_quotes():
     return jsonify(result)
 
 # ── POSIÇÕES (JSON modular) ───────────────────────────
+def _validar_positions(data):
+    """Valida estrutura do positions.json. Retorna lista de erros (vazia se OK)."""
+    erros = []
+    if not isinstance(data, dict):
+        return ['positions.json deve ser um objeto JSON']
+
+    campos_base_simples = ['id','ticker','nome','tipo_posicao','estrategia','strike','vol_impl','tipo','vencimento']
+    campos_base_barreira = ['id','ticker','nome','tipo_posicao','estrategia','vencimento','entry','kdo','kuo']
+    campos_encerrada = ['id','ticker','estrategia','status']
+
+    for i, p in enumerate(data.get('ativas', [])):
+        pid = p.get('id', f'#{i}')
+        if 'tipo_posicao' not in p:
+            erros.append(f"ativas[{pid}]: falta campo 'tipo_posicao'")
+            continue
+        campos = campos_base_simples if p['tipo_posicao']=='simples' else campos_base_barreira if p['tipo_posicao']=='barreira' else None
+        if campos is None:
+            erros.append(f"ativas[{pid}]: tipo_posicao '{p['tipo_posicao']}' invalido (use 'simples' ou 'barreira')")
+            continue
+        for campo in campos:
+            if campo not in p or p[campo] is None:
+                erros.append(f"ativas[{pid}]: falta campo obrigatorio '{campo}'")
+        try:
+            from datetime import datetime as _dt
+            _dt.strptime(p.get('vencimento',''), '%Y-%m-%d')
+        except (ValueError, TypeError):
+            erros.append(f"ativas[{pid}]: 'vencimento' deve ser formato YYYY-MM-DD")
+
+    ids_vistos = set()
+    for i, p in enumerate(data.get('ativas', [])):
+        pid = p.get('id')
+        if pid in ids_vistos:
+            erros.append(f"ativas: id '{pid}' duplicado")
+        if pid: ids_vistos.add(pid)
+
+    for i, p in enumerate(data.get('encerradas', [])):
+        pid = p.get('id', f'#{i}')
+        for campo in campos_encerrada:
+            if campo not in p or p[campo] is None:
+                erros.append(f"encerradas[{pid}]: falta campo obrigatorio '{campo}'")
+
+    return erros
+
 @app.route('/positions', methods=['GET'])
 def get_positions():
     """
-    Le positions.json do repo (GitHub raw) e devolve pronto.
+    Le positions.json do repo (GitHub raw) e devolve pronto, com validacao de schema.
     Para editar/abrir/encerrar posicoes: editar positions.json direto, sem tocar em codigo.
     """
     try:
@@ -934,7 +977,12 @@ def get_positions():
         if not r.ok:
             return jsonify({'error': 'positions.json indisponivel'}), 500
         data = r.json()
+        erros = _validar_positions(data)
+        if erros:
+            return jsonify({'error': 'positions.json invalido', 'detalhes': erros}), 422
         return jsonify(data)
+    except ValueError as e:
+        return jsonify({'error': f'positions.json com JSON malformado: {str(e)}'}), 422
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
