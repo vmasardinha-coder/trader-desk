@@ -839,8 +839,16 @@ async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
     const sEl=document.getElementById(sId);sEl.textContent=prob.toFixed(1)+'%';
     sEl.className='iv '+(prob<15?'ok':prob<30?'warn':'down');
     document.getElementById(vId).textContent=d.volatilidade_historica_pct+'%';
-    const garchTxt=d.garch?` · GARCH proj. ${d.garch.vol_garch_projetada_pct}% (persist. ${d.garch.persistencia})`:'';
-    document.getElementById(iId).textContent='Vol.hist. '+d.volatilidade_historica_pct+'%'+garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
+    let garchTxt='';
+    if(d.garch&&d.comparativo_vol_historica){
+      const probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
+      const diff=prob-probHist;
+      const diffTxt=diff>0?`+${diff.toFixed(1)}pp maior`:diff<0?`${diff.toFixed(1)}pp menor`:'igual';
+      garchTxt=` · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${prob.toFixed(1)}% exercer | Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHist.toFixed(1)}% exercer (${diffTxt})`;
+    } else if(d.garch){
+      garchTxt=` · GARCH proj. ${d.garch.vol_garch_projetada_pct}% (persist. ${d.garch.persistencia})`;
+    }
+    document.getElementById(iId).innerHTML='Vol.hist. '+d.volatilidade_historica_pct+'%'+garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
     if(rtId)E(rtId,prob.toFixed(1)+'%');
   }catch(e){const el=document.getElementById(lId);if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
