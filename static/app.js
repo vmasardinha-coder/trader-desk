@@ -788,7 +788,7 @@ function rndInd(id,data){
     if(data.garch){
       const g=data.garch;
       const tendVol=g.vol_garch_projetada_pct>g.vol_garch_atual_pct?'↑ subindo':g.vol_garch_projetada_pct<g.vol_garch_atual_pct?'↓ descendo':'→ estável';
-      garchLinha='<div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">GARCH(1,1) — Vol. atual '+g.vol_garch_atual_pct+'% · projetada 21d '+g.vol_garch_projetada_pct+'% ('+tendVol+') · persistência '+g.persistencia+'</div>';
+      garchLinha='<div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">GARCH(1,1) — Vol. atual '+g.vol_garch_atual_pct+'% · projetada '+g.horizon_days+'d '+g.vol_garch_projetada_pct+'% ('+tendVol+') · persistência '+g.persistencia+'</div>';
     }
     h+='<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;margin-bottom:14px">'+
       '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">CONVERGÊNCIA DE PREÇOS-ALVO ('+metodos.length+' métodos)</div>'+
