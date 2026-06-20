@@ -216,7 +216,7 @@ function tplSimples(p){
       <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
       <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
       <div id="${id}-mc-r" style="display:none">
-        <div style="font-size:11px;color:var(--muted);line-height:1.5" id="${id}-mc-i">—</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6" id="${id}-mc-i">—</div>
       </div>
     </div>
     </div>
@@ -255,7 +255,7 @@ function tplBarreira(p){
           <div class="ib"><div class="il">Bar. Baixa KDO</div><div class="iv down" id="${id}-mc-kd">—</div></div>
           <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="${id}-mc-vo">—</div></div>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="${id}-mc-i">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6" id="${id}-mc-i">—</div>
       </div>
     </div>
     </div>
@@ -1046,7 +1046,7 @@ async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId,volsId){
         }
       }
     }
-    document.getElementById(iId).innerHTML=garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
+    document.getElementById(iId).innerHTML=garchTxt+' · '+(prob<15?'<span style="color:var(--green)">✅ Risco baixo de exercício</span>':'<span style="color:var(--warn)">⚠ Monitorar posição</span>');
   }catch(e){const el=document.getElementById(lId);if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
 async function MCB(tk,en,kd,ku,dias,pfx){
@@ -1108,7 +1108,7 @@ async function MCR(tk,en,kd,dias,price){
       }
     }
     const iEl=document.getElementById('rx-mc-i');
-    if(iEl)iEl.innerHTML='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'')+' · '+cmpTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
+    if(iEl)iEl.innerHTML='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'')+' · '+cmpTxt+' · '+(prob<15?'<span style="color:var(--green)">✅ Risco baixo de exercício</span>':'<span style="color:var(--warn)">⚠ Monitorar posição</span>');
   }catch(e){const el=document.getElementById('rx-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
 async function fInd(tk){try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),30000);const r=await fetch(B+'/indicators/'+tk,{signal:ctrl.signal});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
