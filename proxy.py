@@ -731,6 +731,7 @@ def run_montecarlo():
                 except: continue
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
+        debug_brapi = None
         if not cl:
             # Preco ja veio do cliente (ex: ROXO34, bloqueado no Yahoo via Render),
             # mas ainda precisamos do HISTORICO para GARCH/vol — tenta brapi como
@@ -738,16 +739,24 @@ def run_montecarlo():
             try:
                 symbol_bp = ticker.replace('.SA','').upper()
                 rb = requests.get(
-                    f'https://brapi.dev/api/quote/{symbol_bp}?range=1y&interval=1d',
+                    f'https://brapi.dev/api/quote/{symbol_bp}?range=1y&interval=1d&fundamental=true',
                     headers=BRAPI_HEADERS, timeout=10)
+                debug_brapi = {'status': rb.status_code, 'symbol': symbol_bp}
                 if rb.ok:
-                    rd = rb.json().get('results',[{}])[0]
+                    rb_json = rb.json()
+                    debug_brapi['has_results'] = bool(rb_json.get('results'))
+                    rd = rb_json.get('results',[{}])[0]
                     hist = rd.get('historicalDataPrice',[])
+                    debug_brapi['hist_len'] = len(hist)
                     cl_bp = [x['close'] for x in hist if x.get('close')]
+                    debug_brapi['cl_bp_len'] = len(cl_bp)
                     if cl_bp:
                         cl = cl_bp
                         sigma = vol_hist(cl)
-            except: pass
+                else:
+                    debug_brapi['body'] = rb.text[:200]
+            except Exception as e_brapi:
+                debug_brapi = {'exception': str(e_brapi)}
         if not sigma or sigma==0.35:
             vol_defaults={'AXIA3':0.35,'ROXO34':0.45,'PETR4':0.30,'VALE3':0.32}
             sigma=vol_defaults.get(ticker.replace('.SA','').upper(),0.35)
@@ -802,6 +811,7 @@ def run_montecarlo():
             'preco_atual':round(S,2),
             'volatilidade_historica_pct':round(sigma*100,2),
             'garch':garch_info,
+            'debug_brapi':debug_brapi,
             'k_call':K_call,'k_put':K_put,
             'knock_down':kd,'t_days':T_days,'ticker':ticker
         }
