@@ -469,6 +469,99 @@ def run_montecarlo_barrier():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/montecarlo/trajetorias', methods=['POST'])
+def run_montecarlo_trajetorias():
+    """
+    Gera trajetorias completas de Monte Carlo (nao so o resultado final) para
+    visualizacao em fan chart na watchlist. Usa vol. GARCH(1,1) quando disponivel.
+
+    Retorna:
+    - trajetorias: lista de ~20 series de preco, uma por dia, para exibir como
+      linhas individuais no grafico (efeito visual do "leque" de cenarios)
+    - percentis: p10/p25/p50/p75/p90 por dia, para desenhar a banda de
+      confianca central (mais robusto que olhar so as linhas individuais)
+    - dias: array de indices de dia (eixo X)
+
+    Nota tecnica: o modelo geometrico (GBM) usado aqui NAO tem reversao de
+    preco — a incerteza cresce com sqrt(tempo), entao o "cone" sempre se abre,
+    nunca converge de volta. Isso e esperado e correto matematicamente; nao
+    confundir com convergencia de preco-alvo (que e outro calculo, estatico).
+    """
+    try:
+        import numpy as np
+        data = request.get_json() or {}
+        ticker = data.get('ticker', 'PETR4.SA')
+        T_days = int(data.get('t_days', 21))
+        n_linhas = 20  # trajetorias individuais exibidas (nao confundir com n_sim)
+        n_sim = 2000    # simulacoes usadas para os percentis (mais preciso)
+
+        S = float(data.get('price', 0)) or None
+        sigma = float(data.get('sigma', 0)) or None
+        cl = []
+
+        if not S or not sigma:
+            for host in ['query1', 'query2']:
+                try:
+                    r = requests.get(
+                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                        headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                    if r.ok:
+                        d = r.json()
+                        meta = d['chart']['result'][0]['meta']
+                        raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                        cl = [c for c in raw_cl if c is not None]
+                        if not S:
+                            S = float(meta.get('regularMarketPrice', cl[-1] if cl else 0))
+                        break
+                except: continue
+
+        if not S or S <= 0:
+            return jsonify({'error': f'Nao foi possivel obter preco de {ticker}'}), 500
+
+        garch_info = None
+        if not sigma:
+            if cl and len(cl) >= 60:
+                try:
+                    garch_info = garch_11(cl, horizon_days=min(T_days, 60))
+                    if garch_info:
+                        sigma = garch_info['vol_garch_projetada_pct'] / 100
+                except: pass
+            if not sigma:
+                sigma = vol_hist(cl) if cl else 0.35
+
+        dt = 1 / 252.0
+        drift = -0.5 * sigma**2 * dt
+        vol_step = sigma * math.sqrt(dt)
+
+        # Simulacao para percentis (mais cenarios, mais precisao estatistica)
+        z_full = np.random.standard_normal((n_sim, T_days))
+        log_ret_full = drift + vol_step * z_full
+        paths_full = S * np.exp(np.cumsum(log_ret_full, axis=1))
+        paths_full = np.hstack([np.full((n_sim, 1), S), paths_full])  # dia 0 = preco atual
+
+        percentis = {}
+        for p in [10, 25, 50, 75, 90]:
+            percentis[f'p{p}'] = np.percentile(paths_full, p, axis=0).round(2).tolist()
+
+        # Subconjunto de trajetorias individuais para exibir como linhas (efeito visual)
+        idx_amostra = np.random.choice(n_sim, size=min(n_linhas, n_sim), replace=False)
+        trajetorias = paths_full[idx_amostra].round(2).tolist()
+
+        return jsonify({
+            'ticker': ticker,
+            'preco_atual': round(S, 2),
+            'sigma_usado_pct': round(sigma * 100, 2),
+            'garch': garch_info,
+            't_days': T_days,
+            'dias': list(range(T_days + 1)),
+            'trajetorias': trajetorias,
+            'percentis': percentis,
+            'cenarios_percentis': n_sim,
+            'cenarios_exibidos': len(trajetorias),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/montecarlo', methods=['POST'])
 def run_montecarlo():
     try:
