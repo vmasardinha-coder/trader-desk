@@ -587,6 +587,101 @@ def run_montecarlo_trajetorias():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/btc/historico', methods=['POST'])
+def run_btc_historico():
+    """
+    Fan chart RETROATIVO para BTC: simula Monte Carlo a partir do preco de
+    N dias atras (usando a vol. GARCH/historica conhecida naquele ponto) e
+    compara com o preco REAL observado desde entao.
+
+    Diferente de /montecarlo/trajetorias (que projeta o FUTURO a partir de
+    hoje), aqui o ponto de partida e no passado e o "resultado real" ja
+    aconteceu — serve para visualizar como o leque de cenarios passados se
+    comparou com o caminho que o preco de fato seguiu.
+
+    Retorna:
+    - precos_reais: serie de preco de fechamento real, dia a dia, da janela
+    - trajetorias: ~20 simulacoes Monte Carlo partindo do preco no dia 0
+      da janela, com a vol. conhecida naquele momento
+    - percentis: p10/p25/p50/p75/p90 das simulacoes (mais robusto)
+    - dias: indices de dia (eixo X)
+    """
+    try:
+        import numpy as np
+        data = request.get_json() or {}
+        T_days = int(data.get('t_days', 365))
+        T_days = min(T_days, 365)  # limite de seguranca (janela maxima disponivel)
+        n_linhas = 20
+        n_sim = 2000
+
+        cl_full = []
+        for host in ['query1', 'query2']:
+            try:
+                r = requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&range=2y',
+                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+                if r.ok:
+                    d = r.json()
+                    raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                    cl_full = [c for c in raw_cl if c is not None]
+                    break
+            except: continue
+
+        if not cl_full or len(cl_full) < T_days + 60:
+            return jsonify({'error': 'Historico insuficiente de BTC-USD para essa janela'}), 500
+
+        # Janela de interesse: os ultimos T_days+1 precos (dia 0 = inicio da janela)
+        janela = cl_full[-(T_days + 1):]
+        S0 = float(janela[0])
+        precos_reais = [round(float(p), 2) for p in janela]
+
+        # Vol. conhecida NO PONTO DE PARTIDA (usa apenas dados disponiveis até ali,
+        # sem "olhar para o futuro" — senao a simulacao retroativa seria injusta)
+        cl_ate_inicio = cl_full[:-(T_days)] if T_days < len(cl_full) else cl_full[:1]
+        garch_info = None
+        sigma = None
+        if len(cl_ate_inicio) >= 60:
+            try:
+                garch_info = garch_11(cl_ate_inicio, horizon_days=min(T_days, 60))
+                if garch_info:
+                    sigma = garch_info['vol_garch_projetada_pct'] / 100
+            except: pass
+        if not sigma:
+            sigma = vol_hist(cl_ate_inicio) if len(cl_ate_inicio) >= 22 else 0.45
+
+        dt = 1 / 252.0
+        drift = -0.5 * sigma**2 * dt
+        vol_step = sigma * math.sqrt(dt)
+
+        z_full = np.random.standard_normal((n_sim, T_days))
+        log_ret_full = drift + vol_step * z_full
+        paths_full = S0 * np.exp(np.cumsum(log_ret_full, axis=1))
+        paths_full = np.hstack([np.full((n_sim, 1), S0), paths_full])
+
+        percentis = {}
+        for p in [10, 25, 50, 75, 90]:
+            percentis[f'p{p}'] = np.percentile(paths_full, p, axis=0).round(2).tolist()
+
+        idx_amostra = np.random.choice(n_sim, size=min(n_linhas, n_sim), replace=False)
+        trajetorias = paths_full[idx_amostra].round(2).tolist()
+
+        return jsonify({
+            'ticker': 'BTC-USD',
+            'preco_inicial': round(S0, 2),
+            'preco_atual': round(float(janela[-1]), 2),
+            'sigma_usado_pct': round(sigma * 100, 2),
+            'garch': garch_info,
+            't_days': T_days,
+            'dias': list(range(T_days + 1)),
+            'precos_reais': precos_reais,
+            'trajetorias': trajetorias,
+            'percentis': percentis,
+            'cenarios_percentis': n_sim,
+            'cenarios_exibidos': len(trajetorias),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/montecarlo', methods=['POST'])
 def run_montecarlo():
     try:
