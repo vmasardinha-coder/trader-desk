@@ -646,6 +646,180 @@ function renderFanChart(id,d){
   }
 }
 
+// ── FAN CHART BTC — Futuro (projeção) e Histórico (retroativo) ──
+const _btcCharts={futuro:null,historico:null};
+
+function toggleBtcFanFuturo(){
+  const wrap=document.getElementById('btc-fc-fut-wrap');
+  const btn=document.getElementById('btc-fc-fut-btn');
+  if(!wrap)return;
+  const abrir=wrap.style.display==='none';
+  wrap.style.display=abrir?'block':'none';
+  if(btn)btn.textContent=abrir?'📊 Ocultar projeção futura':'📊 Ver projeção futura (Monte Carlo)';
+  if(abrir&&!wrap.dataset.loaded){wrap.dataset.loaded='1';loadBtcFuturo(30);}
+}
+function toggleBtcFanHistorico(){
+  const wrap=document.getElementById('btc-fc-hist-wrap');
+  const btn=document.getElementById('btc-fc-hist-btn');
+  if(!wrap)return;
+  const abrir=wrap.style.display==='none';
+  wrap.style.display=abrir?'block':'none';
+  if(btn)btn.textContent=abrir?'📈 Ocultar histórico':'📈 Ver histórico vs cenários passados';
+  if(abrir&&!wrap.dataset.loaded){wrap.dataset.loaded='1';loadBtcHistorico(90);}
+}
+
+async function loadBtcFuturo(dias){
+  [30,90,180].forEach(d=>{
+    const b=document.getElementById('btc-fc-fut-'+d);
+    if(b)b.className='cal-fb fc-period-btn'+(d===dias?' cal-fb-on':'');
+  });
+  const info=document.getElementById('btc-fc-fut-info');
+  if(info)info.textContent='Calculando '+dias+' dias de simulação...';
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const r=await fetch(B+'/montecarlo/trajetorias',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify({ticker:'BTC-USD',t_days:dias})
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    renderBtcFanFuturo(d);
+  }catch(e){
+    if(info)info.textContent='Erro ao simular: '+e.message;
+  }
+}
+
+async function loadBtcHistorico(dias){
+  [90,180,365].forEach(d=>{
+    const b=document.getElementById('btc-fc-hist-'+d);
+    if(b)b.className='cal-fb fc-period-btn'+(d===dias?' cal-fb-on':'');
+  });
+  const info=document.getElementById('btc-fc-hist-info');
+  if(info)info.textContent='Calculando '+dias+' dias de histórico...';
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const r=await fetch(B+'/btc/historico',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify({t_days:dias})
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    renderBtcFanHistorico(d);
+  }catch(e){
+    if(info)info.textContent='Erro ao simular: '+e.message;
+  }
+}
+
+function renderBtcFanFuturo(d){
+  const canvas=document.getElementById('btc-fc-fut-canvas');
+  const info=document.getElementById('btc-fc-fut-info');
+  if(!canvas||typeof Chart==='undefined'){
+    if(info)info.textContent='Gráfico indisponível (Chart.js não carregado)';
+    return;
+  }
+  if(_btcCharts.futuro){ _btcCharts.futuro.destroy(); }
+  const dias=d.dias;
+  const datasets=[];
+  d.trajetorias.forEach(traj=>{
+    datasets.push({data:traj,borderColor:'rgba(124,106,247,.18)',borderWidth:1,pointRadius:0,fill:false,tension:0.15,order:2});
+  });
+  datasets.push({label:'P75',data:d.percentis.p75,borderColor:'transparent',backgroundColor:'rgba(124,106,247,.12)',pointRadius:0,fill:'+1',order:1,tension:0.15});
+  datasets.push({label:'P25',data:d.percentis.p25,borderColor:'transparent',pointRadius:0,fill:false,order:1,tension:0.15});
+  datasets.push({label:'Mediana',data:d.percentis.p50,borderColor:'#7c6af7',borderWidth:2.5,pointRadius:0,fill:false,order:0,tension:0.15});
+  datasets.push({label:'P90',data:d.percentis.p90,borderColor:'rgba(0,230,118,.6)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,order:0,tension:0.15});
+  datasets.push({label:'P10',data:d.percentis.p10,borderColor:'rgba(240,98,146,.6)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false,order:0,tension:0.15});
+
+  _btcCharts.futuro=new Chart(canvas,{
+    type:'line',
+    data:{labels:dias,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:300},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{filter:(item)=>['Mediana','P90','P10'].includes(item.dataset.label),
+          callbacks:{label:(ctx)=>ctx.dataset.label+': US$ '+ctx.parsed.y.toLocaleString('en-US',{maximumFractionDigits:0})}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Dias',color:'#505068',font:{size:10}},ticks:{color:'#505068',font:{size:9}},grid:{color:'#1e1e2e'}},
+        y:{title:{display:true,text:'Preço (US$)',color:'#505068',font:{size:10}},ticks:{color:'#505068',font:{size:9}},grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
+
+  if(info){
+    const g=d.garch;
+    const garchTxt=g?(' · GARCH '+g.vol_garch_projetada_pct+'%'):(' · Vol.hist '+d.sigma_usado_pct+'%');
+    const p10f=d.percentis.p10[d.percentis.p10.length-1];
+    const p90f=d.percentis.p90[d.percentis.p90.length-1];
+    const p50f=d.percentis.p50[d.percentis.p50.length-1];
+    info.innerHTML='Preço atual: <b style="color:var(--text)">'+fU(d.preco_atual)+'</b>'+garchTxt+
+      ' · Faixa P10-P90 em '+d.t_days+'d: <span style="color:var(--red)">'+fU(p10f)+'</span> a <span style="color:var(--green)">'+fU(p90f)+'</span>'+
+      ' · Mediana: <b style="color:var(--accent)">'+fU(p50f)+'</b>'+
+      '<div style="margin-top:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);font-size:11px;color:var(--text);line-height:1.5;text-align:left">'+
+      '📍 Com <b>80% de confiança</b>, o preço do BTC em <b>'+d.t_days+' dias</b> deve estar entre <b style="color:var(--red)">'+fU(p10f)+'</b> e <b style="color:var(--green)">'+fU(p90f)+'</b>. '+
+      'O cenário mais provável (mediana) é <b style="color:var(--accent)">'+fU(p50f)+'</b>.'+
+      '</div>';
+  }
+}
+
+function renderBtcFanHistorico(d){
+  const canvas=document.getElementById('btc-fc-hist-canvas');
+  const info=document.getElementById('btc-fc-hist-info');
+  if(!canvas||typeof Chart==='undefined'){
+    if(info)info.textContent='Gráfico indisponível (Chart.js não carregado)';
+    return;
+  }
+  if(_btcCharts.historico){ _btcCharts.historico.destroy(); }
+  const dias=d.dias;
+  const datasets=[];
+  // Leque retroativo — cenários simulados a partir do preço de N dias atrás
+  d.trajetorias.forEach(traj=>{
+    datasets.push({data:traj,borderColor:'rgba(124,106,247,.15)',borderWidth:1,pointRadius:0,fill:false,tension:0.1,order:3});
+  });
+  datasets.push({label:'P75',data:d.percentis.p75,borderColor:'transparent',backgroundColor:'rgba(124,106,247,.10)',pointRadius:0,fill:'+1',order:2,tension:0.1});
+  datasets.push({label:'P25',data:d.percentis.p25,borderColor:'transparent',pointRadius:0,fill:false,order:2,tension:0.1});
+  datasets.push({label:'Mediana simulada',data:d.percentis.p50,borderColor:'rgba(124,106,247,.7)',borderWidth:1.5,borderDash:[3,3],pointRadius:0,fill:false,order:1,tension:0.1});
+  // Preço REAL — linha de destaque por cima de tudo
+  datasets.push({label:'Preço real',data:d.precos_reais,borderColor:'#00e676',borderWidth:2.5,pointRadius:0,fill:false,order:0,tension:0.1});
+
+  _btcCharts.historico=new Chart(canvas,{
+    type:'line',
+    data:{labels:dias,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:300},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{filter:(item)=>['Preço real','Mediana simulada'].includes(item.dataset.label),
+          callbacks:{label:(ctx)=>ctx.dataset.label+': US$ '+ctx.parsed.y.toLocaleString('en-US',{maximumFractionDigits:0})}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Dias atrás → hoje',color:'#505068',font:{size:10}},ticks:{color:'#505068',font:{size:9}},grid:{color:'#1e1e2e'}},
+        y:{title:{display:true,text:'Preço (US$)',color:'#505068',font:{size:10}},ticks:{color:'#505068',font:{size:9}},grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
+
+  if(info){
+    const g=d.garch;
+    const garchTxt=g?(' · GARCH (na época) '+g.vol_garch_projetada_pct+'%'):(' · Vol.hist (na época) '+d.sigma_usado_pct+'%');
+    const real=d.precos_reais[d.precos_reais.length-1];
+    const p50f=d.percentis.p50[d.percentis.p50.length-1];
+    const dentroFaixa=real>=d.percentis.p10[d.percentis.p10.length-1]&&real<=d.percentis.p90[d.percentis.p90.length-1];
+    info.innerHTML='Preço há '+d.t_days+'d: <b style="color:var(--text)">'+fU(d.preco_inicial)+'</b>'+garchTxt+
+      ' · Preço real hoje: <b style="color:var(--green)">'+fU(real)+'</b>'+
+      ' · Mediana que o modelo previa: <b style="color:var(--accent)">'+fU(p50f)+'</b>'+
+      '<div style="margin-top:8px;padding:8px 10px;background:rgba(0,230,118,.08);border-left:2px solid var(--green);font-size:11px;color:var(--text);line-height:1.5;text-align:left">'+
+      '📍 Há <b>'+d.t_days+' dias</b> o modelo projetava uma mediana de <b style="color:var(--accent)">'+fU(p50f)+'</b>. '+
+      'O preço real percorreu o caminho até <b style="color:var(--green)">'+fU(real)+'</b>, '+
+      (dentroFaixa?'dentro da faixa P10-P90 esperada na época ✅':'fora da faixa P10-P90 esperada na época ⚠ (movimento atípico)')+'.'+
+      '</div>';
+  }
+}
+
 function toggleAllInd(){
   const ids=getWatchlistFlat().map(a=>a.id);
   const btn=document.getElementById('btn-all-ind');
