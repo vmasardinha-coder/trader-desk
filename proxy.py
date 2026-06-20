@@ -1,6 +1,12 @@
-"""  # v10.3
-Trader Desk — Proxy Server v10.3
+"""  # v10.4
+Trader Desk — Proxy Server v10.4
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.4:
+- /montecarlo: corrige bug onde ROXO34 (e qualquer ticker que envie 'price' no
+  payload por estar bloqueado no Yahoo via Render) nunca calculava GARCH nem
+  comparativo_vol_historica, pois a busca de histórico (cl) era pulada quando
+  o preco ja vinha do cliente. Agora busca historico via brapi como fallback
+  nesse caso, igual ja era feito em /indicators.
 Mudancas v10.3:
 - EUCA4 (Eucatex PN) completo: LPA, VPA, ROE e P/L preenchidos via Fundamentus
   (ref. 19/06/2026); P/VP e DY tambem atualizados nessa mesma data (estavam
