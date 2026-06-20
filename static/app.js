@@ -214,9 +214,10 @@ function tplSimples(p){
       <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
       <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
       <div id="${id}-mc-r" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="${id}-mc-s">—</div></div>
-          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="${id}-mc-v">—</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">MC Vol.Simples</div><div class="iv" id="${id}-mc-vs">—</div></div>
+          <div class="ib"><div class="il">MC GARCH</div><div class="iv" id="${id}-mc-s">—</div></div>
+          <div class="ib"><div class="il">Vol. GARCH</div><div class="iv warn" id="${id}-mc-v">—</div></div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="${id}-mc-i">—</div>
       </div>
@@ -836,26 +837,37 @@ function checkBadgeRisco(){
   const temRisco=_risco.barreira||_risco.roxoItm||_risco.vencUrgente;
   badge.style.display=temRisco?'inline':'none';
 }
-async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
+async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId,vsId){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:sk,k_put:sk,t_days:dias,n:5000})});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById(lId).style.display='none';document.getElementById(rId).style.display='block';
+    const riscoCls=p=>p<15?'ok':p<30?'warn':'down';
     const prob=Number(d.prob_call_exercida||0);
     const sEl=document.getElementById(sId);sEl.textContent=prob.toFixed(1)+'%';
-    sEl.className='iv '+(prob<15?'ok':prob<30?'warn':'down');
+    sEl.className='iv '+riscoCls(prob);
     document.getElementById(vId).textContent=d.volatilidade_historica_pct+'%';
     let garchTxt='';
+    let probHist=null;
     if(d.garch&&d.comparativo_vol_historica){
-      const probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
+      probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
       const diff=prob-probHist;
       const diffTxt=diff>0?`+${diff.toFixed(1)}pp maior`:diff<0?`${diff.toFixed(1)}pp menor`:'igual';
-      garchTxt=` · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${prob.toFixed(1)}% exercer | Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHist.toFixed(1)}% exercer (${diffTxt})`;
+      garchTxt=`Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHist.toFixed(1)}% exercer · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${prob.toFixed(1)}% exercer (${diffTxt})`;
     } else if(d.garch){
-      garchTxt=` · GARCH proj. ${d.garch.vol_garch_projetada_pct}% (persist. ${d.garch.persistencia})`;
+      garchTxt=`GARCH proj. ${d.garch.vol_garch_projetada_pct}% (persist. ${d.garch.persistencia})`;
+    } else {
+      garchTxt=`Vol.hist. ${d.volatilidade_historica_pct}%`;
     }
-    document.getElementById(iId).innerHTML='Vol.hist. '+d.volatilidade_historica_pct+'%'+garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
+    if(vsId){
+      const vsEl=document.getElementById(vsId);
+      if(vsEl){
+        if(probHist!=null){vsEl.textContent=probHist.toFixed(1)+'%';vsEl.className='iv '+riscoCls(probHist);}
+        else{vsEl.textContent='—';vsEl.className='iv';}
+      }
+    }
+    document.getElementById(iId).innerHTML=garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
     if(rtId)E(rtId,prob.toFixed(1)+'%');
   }catch(e){const el=document.getElementById(lId);if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
@@ -869,8 +881,14 @@ async function MCB(tk,en,kd,ku,dias,pfx){
     document.getElementById(pfx+'-mc-ku').textContent=d.prob_barreira_alta.toFixed(1)+'%';
     document.getElementById(pfx+'-mc-kd').textContent=d.prob_barreira_baixa.toFixed(1)+'%';
     document.getElementById(pfx+'-mc-vo').textContent=d.volatilidade_historica_pct+'%';
-    const garchTxt=d.garch?` · GARCH proj. ${d.garch.vol_garch_projetada_pct}% (LP ${d.garch.vol_garch_longo_prazo_pct}%)`:'';
-    document.getElementById(pfx+'-mc-i').textContent='R$ '+d.preco_atual+' · KDO R$ '+d.kdo+' · KUO R$ '+d.kuo+garchTxt;
+    let cmpTxt='';
+    if(d.garch&&d.comparativo_vol_historica){
+      const c=d.comparativo_vol_historica;
+      cmpTxt=` · Vol.Simples ${d.volatilidade_historica_simples_pct}% → Sem barreira ${c.prob_sem_barreira.toFixed(1)}% / KUO ${c.prob_barreira_alta.toFixed(1)}% / KDO ${c.prob_barreira_baixa.toFixed(1)}% · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → Sem barreira ${d.prob_sem_barreira.toFixed(1)}% / KUO ${d.prob_barreira_alta.toFixed(1)}% / KDO ${d.prob_barreira_baixa.toFixed(1)}%`;
+    } else if(d.garch){
+      cmpTxt=` · GARCH proj. ${d.garch.vol_garch_projetada_pct}% (LP ${d.garch.vol_garch_longo_prazo_pct}%)`;
+    }
+    document.getElementById(pfx+'-mc-i').innerHTML='R$ '+d.preco_atual+' · KDO R$ '+d.kdo+' · KUO R$ '+d.kuo+cmpTxt;
   }catch(e){const el=document.getElementById(pfx+'-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
 async function MCR(tk,en,kd,dias,price){
@@ -886,8 +904,18 @@ async function MCR(tk,en,kd,dias,price){
     const cEl=document.getElementById('rx-mc-c');if(cEl)cEl.textContent=Number(d.prob_call_exercida).toFixed(1)+'%';
     const kEl=document.getElementById('rx-mc-k');if(kEl)kEl.textContent=d.prob_kdo_atingido!=null?Number(d.prob_kdo_atingido).toFixed(1)+'%':'—';
     document.getElementById('rx-mc-v').textContent=d.volatilidade_historica_pct+'%';
-    const garchTxt=d.garch?` · GARCH proj. ${d.garch.vol_garch_projetada_pct}%`:'';
-    document.getElementById('rx-mc-i').textContent='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'')+garchTxt;
+    let cmpTxt='';
+    if(d.garch&&d.comparativo_vol_historica){
+      const c=d.comparativo_vol_historica;
+      const probHistC=Number(c.prob_call_exercida||0);
+      const probC=Number(d.prob_call_exercida||0);
+      const diff=probC-probHistC;
+      const diffTxt=diff>0?`+${diff.toFixed(1)}pp maior`:diff<0?`${diff.toFixed(1)}pp menor`:'igual';
+      cmpTxt=` · Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHistC.toFixed(1)}% exercer · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${probC.toFixed(1)}% exercer (${diffTxt})`;
+    } else if(d.garch){
+      cmpTxt=` · GARCH proj. ${d.garch.vol_garch_projetada_pct}%`;
+    }
+    document.getElementById('rx-mc-i').innerHTML='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'')+cmpTxt;
     E('rx-mc-rt',Number(d.prob_call_exercida).toFixed(1)+'%');
   }catch(e){const el=document.getElementById('rx-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
@@ -1118,7 +1146,7 @@ async function main(){
       // MC simples — PETR4, VALE3, BBAS3 (qualquer 'simples' exceto ROXO34 que usa MCR)
       let delay=6000;
       _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
-        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-s',p.id+'-mc-v',p.id+'-mc-i',p.id+'-mc-rt'),delay);
+        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-s',p.id+'-mc-v',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs'),delay);
         delay+=6000;
       });
 
