@@ -126,6 +126,96 @@ def vol_hist(closes):
     m=sum(rets)/len(rets)
     return round(math.sqrt(sum((r-m)**2 for r in rets)/len(rets)*252),4)
 
+# ── GARCH(1,1) ────────────────────────────────────────
+def garch_11(closes, horizon_days=21):
+    """
+    Estima GARCH(1,1) via grid search (sem scipy) e projeta a volatilidade
+    media esperada para os proximos `horizon_days`.
+
+    GARCH(1,1): sigma2_t = omega + alpha*ret_{t-1}^2 + beta*sigma2_{t-1}
+
+    Por que GARCH em vez de vol historica fixa (vol_hist):
+    - vol_hist usa uma janela fixa de 21 dias com peso igual para cada dia
+    - GARCH modela "clusters de volatilidade": dias turbulentos tendem a ser
+      seguidos por dias turbulentos, e dias calmos por dias calmos (memoria)
+    - O resultado e uma vol. que reflete melhor o regime atual do mercado,
+      em vez de uma media simples do passado recente
+
+    Retorna dict com vol_garch_atual (anualizada), vol_garch_projetada
+    (media projetada para o horizonte) e os parametros estimados.
+    """
+    if not _NUMPY or len(closes) < 60:
+        return None
+    try:
+        cl = _np.array(closes, dtype=float)
+        rets = _np.diff(_np.log(cl)) * 100  # retornos em % para estabilidade numerica
+        rets = rets[-252:]  # usa até 1 ano de retornos
+        n = len(rets)
+        if n < 50:
+            return None
+
+        var_uncond = _np.var(rets)
+        if var_uncond <= 0:
+            return None
+
+        best = None
+        # Grid search em alpha e beta (omega derivado da variancia incondicional)
+        # alpha: peso do choque recente | beta: peso da variancia anterior (persistencia)
+        for alpha in _np.arange(0.02, 0.20, 0.02):
+            for beta in _np.arange(0.70, 0.97, 0.02):
+                if alpha + beta >= 0.999:
+                    continue
+                omega = var_uncond * (1 - alpha - beta)
+                if omega <= 0:
+                    continue
+                sigma2 = _np.empty(n)
+                sigma2[0] = var_uncond
+                loglik = 0.0
+                valid = True
+                for t in range(1, n):
+                    sigma2[t] = omega + alpha * rets[t-1]**2 + beta * sigma2[t-1]
+                    if sigma2[t] <= 0:
+                        valid = False
+                        break
+                if not valid:
+                    continue
+                # Log-likelihood gaussiana (a menos de constante)
+                ll = -0.5 * _np.sum(_np.log(sigma2[1:]) + (rets[1:]**2) / sigma2[1:])
+                if best is None or ll > best[0]:
+                    best = (ll, alpha, beta, omega, sigma2)
+
+        if best is None:
+            return None
+
+        _, alpha, beta, omega, sigma2 = best
+        sigma2_atual = sigma2[-1]
+
+        # Projeta a variancia media para o horizonte (GARCH reverte a media de longo prazo)
+        var_lp = omega / (1 - alpha - beta)  # variancia incondicional de longo prazo
+        sigma2_h = sigma2_atual
+        soma_var = 0.0
+        for _h in range(horizon_days):
+            soma_var += sigma2_h
+            sigma2_h = omega + (alpha + beta) * sigma2_h
+        var_media_horizonte = soma_var / horizon_days
+
+        # Anualiza (retornos estavam em %, então divide por 100^2 antes de anualizar)
+        vol_atual_anual = math.sqrt(sigma2_atual / 10000 * 252)
+        vol_projetada_anual = math.sqrt(var_media_horizonte / 10000 * 252)
+        vol_lp_anual = math.sqrt(var_lp / 10000 * 252)
+
+        return {
+            'vol_garch_atual_pct': round(vol_atual_anual * 100, 2),
+            'vol_garch_projetada_pct': round(vol_projetada_anual * 100, 2),
+            'vol_garch_longo_prazo_pct': round(vol_lp_anual * 100, 2),
+            'alpha': round(float(alpha), 3),
+            'beta': round(float(beta), 3),
+            'persistencia': round(float(alpha + beta), 3),
+            'horizon_days': horizon_days,
+        }
+    except Exception:
+        return None
+
 # ── ONCHAIN (estimativas) ────────────────────────────
 def get_btc_onchain():
     try:
@@ -329,12 +419,15 @@ def run_montecarlo_barrier():
         steps    = max(T_days // 5, 10)
         S = float(data.get('price',0)) or None
         sigma = float(data.get('sigma', 0.35))
+        usar_garch = data.get('usar_garch', True)
+        garch_info = None
+        cl = []
         if not S:
             for host in ['query1','query2']:
                 try:
                     r2=requests.get(
-                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
-                        headers={'User-Agent':'Mozilla/5.0'},timeout=6)
+                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                        headers={'User-Agent':'Mozilla/5.0'},timeout=8)
                     if r2.ok:
                         d2=r2.json()
                         meta=d2['chart']['result'][0]['meta']
@@ -346,6 +439,12 @@ def run_montecarlo_barrier():
                 except: continue
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
+        if usar_garch and cl and len(cl) >= 60:
+            try:
+                garch_info = garch_11(cl, horizon_days=min(T_days, 60))
+                if garch_info:
+                    sigma = garch_info['vol_garch_projetada_pct'] / 100
+            except: pass
         dt = 1/252.0
         drift = (0 - 0.5 * sigma**2) * dt
         vol_step = sigma * (dt**0.5)
@@ -361,6 +460,7 @@ def run_montecarlo_barrier():
             'ticker': ticker, 'preco_atual': round(S, 2),
             'entry': entry, 'kdo': kdo, 'kuo': kuo, 't_days': T_days,
             'volatilidade_historica_pct': round(sigma * 100, 2),
+            'garch': garch_info,
             'prob_sem_barreira': round(float(no_barrier.mean() * 100), 2),
             'prob_barreira_alta': round(float(kuo_hit.mean() * 100), 2),
             'prob_barreira_baixa': round(float(kdo_hit.mean() * 100), 2),
@@ -382,13 +482,15 @@ def run_montecarlo():
         kd=float(data['knock_down']) if data.get('knock_down') else None
         S = float(data['price']) if data.get('price') else None
         sigma = float(data['sigma']) if data.get('sigma') else 0.35
+        usar_garch = data.get('usar_garch', True)  # GARCH ligado por padrao, pode desligar
+        garch_info = None
         cl = []
         if not S:
             for host in ['query1','query2']:
                 try:
                     r=requests.get(
-                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=60d',
-                        headers={'User-Agent':'Mozilla/5.0'},timeout=6)
+                        f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                        headers={'User-Agent':'Mozilla/5.0'},timeout=8)
                     if r.ok:
                         d=r.json()
                         meta=d['chart']['result'][0]['meta']
@@ -405,6 +507,14 @@ def run_montecarlo():
             sigma=vol_defaults.get(ticker.replace('.SA','').upper(),0.35)
         if cl and not data.get('sigma'):
             sigma=vol_hist(cl)
+        # GARCH(1,1) — refina a vol usada na simulacao com base no regime atual
+        # (clusters de volatilidade) em vez da media fixa de 21 dias do vol_hist
+        if usar_garch and cl and len(cl) >= 60:
+            try:
+                garch_info = garch_11(cl, horizon_days=min(T_days, 60))
+                if garch_info:
+                    sigma = garch_info['vol_garch_projetada_pct'] / 100
+            except: pass
         T=max(T_days,1)/252.0
         sqT=math.sqrt(T)
         drift=-0.5*sigma**2*T
@@ -418,8 +528,10 @@ def run_montecarlo():
             'prob_put_exercida':round(float(call_ex.mean()*100),2),
             'prob_kdo_atingido':round(float(kdo_hit.mean()*100),2) if kd else None,
             'cenarios':n,'engine':'numpy',
+
             'preco_atual':round(S,2),
             'volatilidade_historica_pct':round(sigma*100,2),
+            'garch':garch_info,
             'k_call':K_call,'k_put':K_put,
             'knock_down':kd,'t_days':T_days,'ticker':ticker
         }
