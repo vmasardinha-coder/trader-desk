@@ -1128,24 +1128,26 @@ function rndInd(id,data){
   const el=document.getElementById(id+'-ind');if(!el)return;
   if(!data){el.innerHTML='<div style="color:var(--warn);padding:12px;font-size:13px">⏳ Sem resposta — clique ↻</div>';return;}
   if(data.error){el.innerHTML='<div style="color:var(--red);padding:12px;font-size:13px">⚠ '+data.error+'</div>';return;}
-  const inds=data.indicadores||[],sc=Number(data.score_total||0),preco=data.preco_atual,graham=data.graham_value,up=data.upside_graham,setor=data.setor||'';
+  const inds=data.indicadores||[],sc=Number(data.score_total||0),preco=data.preco_atual,setor=data.setor||'';
   const sc2=sc>=65?'var(--green)':sc>=40?'var(--warn)':'var(--red)',sl=sc>=65?'Compra ▲':sc>=40?'Neutro →':'Venda ▼';
   let h='';
   if(data.fund_desatualizado){
     h+='<div style="background:rgba(255,183,77,.1);border:1px solid var(--warn);padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--warn);font-weight:600">⚠ Fundamentais (P/L, P/VP, ROE, Graham) com '+data.fund_idade_dias+' dias — solicitar revisão trimestral</div>';
   }
-  h+='<div class="scb">'+
-    '<div class="scc"><div class="scm">Score</div><div class="scn" style="color:'+sc2+'">'+sc+'</div><div class="scl" style="color:'+sc2+'">'+sl+'</div></div>'+
-    '<div class="scc"><div class="scm">Cotação</div><div class="scv">'+(preco?'R$ '+Number(preco).toFixed(2):'—')+'</div><div class="scs">'+setor+'</div></div>'+
-    '<div class="scc"><div class="scm">Graham VJ</div><div class="scv" style="color:'+(up&&up>0?'var(--green)':'var(--red)')+'">'+(graham?'R$ '+Number(graham).toFixed(2):'—')+'</div><div class="scs" style="color:'+(up&&up>0?'var(--green)':'var(--red)')+'">'+(up!=null?(up>0?'+':'')+up+'% upside':'—')+'</div></div>'+
-    '</div>';
-  // Convergência de preços-alvo — 4 métodos lado a lado
+  // Convergência de preços-alvo — 4 métodos lado a lado (calculado antes para usar a média no destaque principal)
   const metodos=[
     {nome:'Graham',valor:data.graham_value,up:data.upside_graham},
     {nome:'Bazin',valor:data.preco_alvo_bazin,up:data.upside_bazin},
     {nome:'P/L Setor',valor:data.preco_alvo_pl_setorial,up:data.upside_pl_setorial},
     {nome:'P/VP Setor',valor:data.preco_alvo_vpa,up:data.upside_vpa},
   ].filter(m=>m.valor!=null);
+  const mediaDestaque = metodos.length>0 ? metodos.reduce((s,m)=>s+m.valor,0)/metodos.length : null;
+  const upMedia = (mediaDestaque && preco) ? Math.round((mediaDestaque/preco-1)*1000)/10 : null;
+  h+='<div class="scb">'+
+    '<div class="scc"><div class="scm">Score</div><div class="scn" style="color:'+sc2+'">'+sc+'</div><div class="scl" style="color:'+sc2+'">'+sl+'</div></div>'+
+    '<div class="scc"><div class="scm">Cotação</div><div class="scv">'+(preco?'R$ '+Number(preco).toFixed(2):'—')+'</div><div class="scs">'+setor+'</div></div>'+
+    '<div class="scc"><div class="scm">Méd. 4 Métodos</div><div class="scv" style="color:'+(upMedia&&upMedia>0?'var(--green)':'var(--red)')+'">'+(mediaDestaque?'R$ '+mediaDestaque.toFixed(2):'—')+'</div><div class="scs" style="color:'+(upMedia&&upMedia>0?'var(--green)':'var(--red)')+'">'+(upMedia!=null?(upMedia>0?'+':'')+upMedia+'% upside':'—')+'</div></div>'+
+    '</div>';
   if(metodos.length>0){
     const media=metodos.reduce((s,m)=>s+m.valor,0)/metodos.length;
     const desvios=metodos.map(m=>Math.abs(m.valor-media)/media*100);
