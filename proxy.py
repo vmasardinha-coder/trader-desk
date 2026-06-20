@@ -739,7 +739,7 @@ def run_montecarlo():
             try:
                 symbol_bp = ticker.replace('.SA','').upper()
                 rb = requests.get(
-                    f'https://brapi.dev/api/quote/{symbol_bp}?range=1y&interval=1d&fundamental=true',
+                    f'https://brapi.dev/api/quote/{symbol_bp}?range=3mo&interval=1d&fundamental=true',
                     headers=BRAPI_HEADERS, timeout=10)
                 debug_brapi = {'status': rb.status_code, 'symbol': symbol_bp}
                 if rb.ok:
@@ -766,7 +766,11 @@ def run_montecarlo():
 
         # GARCH(1,1) — refina a vol usada na simulacao com base no regime atual
         # (clusters de volatilidade) em vez da media fixa de 21 dias do vol_hist
-        if usar_garch and cl and len(cl) >= 60:
+        # Limiar reduzido (50) quando o historico veio do brapi com poucos dados
+        # disponiveis (plano gratuito so permite range=3mo, ~60-65 pontos) — nos
+        # demais casos (Yahoo, 1y completo) mantem o limiar padrao de 60.
+        min_pontos_garch = 50 if debug_brapi else 60
+        if usar_garch and cl and len(cl) >= min_pontos_garch:
             try:
                 garch_info = garch_11(cl, horizon_days=min(T_days, 60))
                 if garch_info:
@@ -811,7 +815,6 @@ def run_montecarlo():
             'preco_atual':round(S,2),
             'volatilidade_historica_pct':round(sigma*100,2),
             'garch':garch_info,
-            'debug_brapi':debug_brapi,
             'k_call':K_call,'k_put':K_put,
             'knock_down':kd,'t_days':T_days,'ticker':ticker
         }
