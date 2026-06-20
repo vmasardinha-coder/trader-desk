@@ -722,7 +722,6 @@ def get_indicators(ticker):
             'score_total': score,
             'indicadores': indicadores,
             'graham_value': gval,
-            '_debug_yahoo': _debug_yahoo,
             'upside_graham': round((gval/p-1)*100,1) if gval else None,
         }
         try:
