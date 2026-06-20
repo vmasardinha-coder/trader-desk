@@ -1,6 +1,12 @@
-"""  # v9.0
-Trader Desk — Proxy Server v9.0
+"""  # v10.1
+Trader Desk — Proxy Server v10.1
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.1:
+- /montecarlo/barrier agora retorna comparativo_vol_historica (GARCH vs Vol.Simples),
+  no mesmo padrao que ja existia em /montecarlo
+- Frontend (app.js): card "MC GARCH" separado do "MC Vol.Simples" nas posicoes
+  simples (PETR4/VALE3/BBAS3/ROXO34); AXIA3 (barreira) mostra o comparativo no
+  texto da legenda, mantendo os 4 cards existentes
 Mudancas v8.5:
 - Cache BTC indicators/cycle (10-15 min)
 - Range Yahoo BTC reduzido de 4y para 1y/2y (mais rapido no Render)
