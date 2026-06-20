@@ -698,6 +698,162 @@ def run_btc_historico():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/montecarlo/condicional', methods=['POST'])
+def run_montecarlo_condicional():
+    """
+    Probabilidade CONDICIONAL para uma "foto" congelada de cenario (Fase 2 —
+    motor de decisao pre-trade). Diferente de /montecarlo (que sempre projeta
+    a partir de HOJE com o prazo TOTAL), esta rota recebe um cenario que foi
+    fixado no passado e calcula a continuacao a partir de onde a trajetoria
+    real ESTA AGORA, usando apenas o tempo que RESTA do prazo original.
+
+    Parametros esperados (JSON):
+    - ticker: ex. 'ITUB4.SA'
+    - preco_foto: preco do ativo no momento em que a foto foi tirada
+    - data_foto: data ISO (YYYY-MM-DD) em que a foto foi tirada
+    - prazo_dias: prazo ORIGINAL total escolhido na foto (ex. 21/30/60/90)
+    - k_call / k_put / kdo / kuo: limites do cenario (opcionais, dependendo
+      do tipo de estrutura — call simples, bidirecional/barreira, etc.)
+
+    Retorna:
+    - preco_foto, preco_atual, dias_passados, dias_restantes
+    - prob_* : probabilidades calculadas com o tempo que RESTA, partindo do
+      preco ATUAL (nao do preco da foto) — isso e o que torna "condicional"
+    - garch: info do GARCH usado (vol. atual, nao a vol. da epoca da foto)
+    - fora_do_prazo: true se dias_passados >= prazo_dias (foto vencida)
+    """
+    try:
+        import numpy as np
+        from datetime import datetime as _dt
+        data = request.get_json() or {}
+        ticker = data.get('ticker', 'BBAS3.SA')
+        preco_foto = float(data.get('preco_foto', 0))
+        data_foto_str = data.get('data_foto')
+        prazo_dias = int(data.get('prazo_dias', 21))
+        K_call = float(data['k_call']) if data.get('k_call') else None
+        K_put = float(data['k_put']) if data.get('k_put') else None
+        kdo = float(data['kdo']) if data.get('kdo') else None
+        kuo = float(data['kuo']) if data.get('kuo') else None
+        n = 5000
+
+        if not data_foto_str:
+            return jsonify({'error': 'data_foto e obrigatoria (formato YYYY-MM-DD)'}), 400
+        try:
+            data_foto = _dt.strptime(data_foto_str[:10], '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'data_foto invalida, use YYYY-MM-DD'}), 400
+
+        hoje = _dt.now().date()
+        dias_passados = (hoje - data_foto).days
+        dias_restantes = max(prazo_dias - dias_passados, 0)
+        fora_do_prazo = dias_passados >= prazo_dias
+
+        # Busca preco ATUAL + historico (mesmo padrao de fallback ja usado em /montecarlo:
+        # Yahoo primeiro, brapi com range=3mo se Yahoo falhar/bloquear o ticker)
+        S = None
+        cl = []
+        sigma = 0.35
+        for host in ['query1', 'query2']:
+            try:
+                r = requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                if r.ok:
+                    d = r.json()
+                    meta = d['chart']['result'][0]['meta']
+                    raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                    cl = [c for c in raw_cl if c is not None]
+                    S = float(meta.get('regularMarketPrice', cl[-1] if cl else 0))
+                    if cl: sigma = vol_hist(cl)
+                    break
+            except: continue
+        if not S:
+            try:
+                symbol_bp = ticker.replace('.SA', '').upper()
+                rb = requests.get(
+                    f'https://brapi.dev/api/quote/{symbol_bp}?range=3mo&interval=1d&fundamental=true',
+                    headers=BRAPI_HEADERS, timeout=10)
+                if rb.ok:
+                    rd = rb.json().get('results', [{}])[0]
+                    S = rd.get('regularMarketPrice')
+                    hist = rd.get('historicalDataPrice', [])
+                    cl_bp = [x['close'] for x in hist if x.get('close')]
+                    if cl_bp:
+                        cl = cl_bp
+                        sigma = vol_hist(cl)
+            except: pass
+        if not S or S <= 0:
+            return jsonify({'error': f'Nao foi possivel obter preco atual de {ticker}'}), 500
+
+        sigma_hist = sigma
+        garch_info = None
+        min_pontos = 50 if (len(cl) < 60) else 60
+        if cl and len(cl) >= min_pontos:
+            try:
+                garch_info = garch_11(cl, horizon_days=min(max(dias_restantes, 1), 60))
+                if garch_info:
+                    sigma = garch_info['vol_garch_projetada_pct'] / 100
+            except: pass
+
+        if fora_do_prazo or dias_restantes == 0:
+            # Prazo original ja esgotado — nao ha "tempo restante" para simular.
+            # Retorna so o estado factual (preco atual vs faixas), sem nova simulacao.
+            return jsonify({
+                'ticker': ticker, 'preco_foto': preco_foto, 'preco_atual': round(S, 2),
+                'data_foto': data_foto_str, 'dias_passados': dias_passados,
+                'dias_restantes': 0, 'prazo_dias': prazo_dias, 'fora_do_prazo': True,
+                'volatilidade_historica_pct': round(sigma * 100, 2),
+                'garch': garch_info,
+                'mensagem': 'Prazo original ja esgotado — sem tempo restante para nova simulacao condicional.'
+            })
+
+        T = dias_restantes / 252.0
+        sqT = math.sqrt(T)
+        drift = -0.5 * sigma**2 * T
+        z = np.random.standard_normal(n)
+        ST = S * np.exp(drift + sigma * sqT * z)
+
+        res = {
+            'ticker': ticker, 'preco_foto': preco_foto, 'preco_atual': round(S, 2),
+            'data_foto': data_foto_str, 'dias_passados': dias_passados,
+            'dias_restantes': dias_restantes, 'prazo_dias': prazo_dias, 'fora_do_prazo': False,
+            'volatilidade_historica_pct': round(sigma * 100, 2),
+            'volatilidade_historica_simples_pct': round(sigma_hist * 100, 2),
+            'garch': garch_info,
+            'cenarios': n, 'engine': 'numpy',
+        }
+
+        if K_call is not None:
+            call_ex = ST > K_call
+            res['prob_call_exercida'] = round(float(call_ex.mean() * 100), 2)
+            res['prob_sucesso'] = round(float((~call_ex).mean() * 100), 2)
+        if K_put is not None:
+            put_ex = ST < K_put
+            res['prob_put_exercida'] = round(float(put_ex.mean() * 100), 2)
+        if kdo is not None and kuo is not None:
+            # Para barreira, precisamos do caminho completo, nao so do ponto final —
+            # roda uma simulacao de trajetoria (steps diarios) so para esse caso
+            steps = max(dias_restantes, 1)
+            dt2 = 1 / 252.0
+            drift2 = -0.5 * sigma**2 * dt2
+            vol_step2 = sigma * math.sqrt(dt2)
+            z2 = np.random.standard_normal((n, steps))
+            paths = S * np.exp(np.cumsum(drift2 + vol_step2 * z2, axis=1))
+            max_p = np.max(paths, axis=1)
+            min_p = np.min(paths, axis=1)
+            kuo_hit = max_p >= kuo
+            kdo_hit = min_p <= kdo
+            no_barrier = ~kuo_hit & ~kdo_hit
+            res['prob_sem_barreira'] = round(float(no_barrier.mean() * 100), 2)
+            res['prob_barreira_alta'] = round(float(kuo_hit.mean() * 100), 2)
+            res['prob_barreira_baixa'] = round(float(kdo_hit.mean() * 100), 2)
+            res['kdo'] = kdo
+            res['kuo'] = kuo
+
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/montecarlo', methods=['POST'])
 def run_montecarlo():
     try:
