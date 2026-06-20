@@ -1,6 +1,11 @@
-"""  # v10.2
-Trader Desk — Proxy Server v10.2
+"""  # v10.3
+Trader Desk — Proxy Server v10.3
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.3:
+- EUCA4 (Eucatex PN) completo: LPA, VPA, ROE e P/L preenchidos via Fundamentus
+  (ref. 19/06/2026); P/VP e DY tambem atualizados nessa mesma data (estavam
+  desatualizados). Watchlist passa a ter 13 indicadores completos para todos
+  os 16 ativos (antes EUCA4 tinha so 8, por falta desses 4 campos).
 Mudancas v10.2:
 - Novo endpoint /btc/historico: fan chart RETROATIVO de BTC — simula Monte
   Carlo (GARCH quando disponivel) a partir do preco de N dias atras (90/180/365)
