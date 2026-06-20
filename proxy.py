@@ -725,6 +725,23 @@ def run_montecarlo():
                 except: continue
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
+        if not cl:
+            # Preco ja veio do cliente (ex: ROXO34, bloqueado no Yahoo via Render),
+            # mas ainda precisamos do HISTORICO para GARCH/vol — tenta brapi como
+            # fonte alternativa (mesma usada em /indicators, que ja funciona p/ esses casos)
+            try:
+                symbol_bp = ticker.replace('.SA','').upper()
+                rb = requests.get(
+                    f'https://brapi.dev/api/quote/{symbol_bp}?range=1y&interval=1d',
+                    headers=BRAPI_HEADERS, timeout=10)
+                if rb.ok:
+                    rd = rb.json().get('results',[{}])[0]
+                    hist = rd.get('historicalDataPrice',[])
+                    cl_bp = [x['close'] for x in hist if x.get('close')]
+                    if cl_bp:
+                        cl = cl_bp
+                        sigma = vol_hist(cl)
+            except: pass
         if not sigma or sigma==0.35:
             vol_defaults={'AXIA3':0.35,'ROXO34':0.45,'PETR4':0.30,'VALE3':0.32}
             sigma=vol_defaults.get(ticker.replace('.SA','').upper(),0.35)
