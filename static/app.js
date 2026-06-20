@@ -784,12 +784,19 @@ function rndInd(id,data){
     const maxDesvio=Math.max(...desvios);
     const convergencia=maxDesvio<15?'✅ Convergem':maxDesvio<35?'⚠ Divergência moderada':'🔴 Divergência alta';
     const convCor=maxDesvio<15?'var(--green)':maxDesvio<35?'var(--warn)':'var(--red)';
+    let garchLinha='';
+    if(data.garch){
+      const g=data.garch;
+      const tendVol=g.vol_garch_projetada_pct>g.vol_garch_atual_pct?'↑ subindo':g.vol_garch_projetada_pct<g.vol_garch_atual_pct?'↓ descendo':'→ estável';
+      garchLinha='<div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">GARCH(1,1) — Vol. atual '+g.vol_garch_atual_pct+'% · projetada 21d '+g.vol_garch_projetada_pct+'% ('+tendVol+') · persistência '+g.persistencia+'</div>';
+    }
     h+='<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;margin-bottom:14px">'+
       '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">CONVERGÊNCIA DE PREÇOS-ALVO ('+metodos.length+' métodos)</div>'+
       '<div style="display:grid;grid-template-columns:repeat('+metodos.length+',1fr);gap:6px;margin-bottom:8px">'+
       metodos.map(m=>'<div style="text-align:center"><div style="font-size:9px;color:var(--muted)">'+m.nome+'</div><div style="font-size:13px;font-weight:700;color:'+(m.up>0?'var(--green)':'var(--red)')+'">R$ '+m.valor.toFixed(2)+'</div></div>').join('')+
       '</div>'+
       '<div style="font-size:11px;color:'+convCor+';font-weight:600">'+convergencia+' (desvio máx '+maxDesvio.toFixed(0)+'%) · Média: R$ '+media.toFixed(2)+'</div>'+
+      garchLinha+
       '</div>';
   }
   inds.forEach(i=>{
