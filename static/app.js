@@ -209,6 +209,7 @@ function tplSimples(p){
       <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv warn" id="${id}-bs-prob">—</span></div>
       <div class="sr"><span class="sl">Prob. MC exercer (Vol.Simples)</span><span class="sv" id="${id}-mc-vs">calc...</span></div>
       <div class="sr"><span class="sl">Prob. MC exercer (GARCH)</span><span class="sv ok" id="${id}-mc-rt">calc...</span></div>
+      <div class="sr"><span class="sl">Vol. Simples / GARCH</span><span class="sv" id="${id}-mc-vols">—</span></div>
       ${p.objetivo?`<div class="sr"><span class="sl">Objetivo</span><span class="sv ok">${p.objetivo}</span></div>`:''}
     </div>
     <div class="sig">
@@ -1007,7 +1008,7 @@ function checkBadgeRisco(){
   const temRisco=_risco.barreira||_risco.roxoItm||_risco.vencUrgente;
   badge.style.display=temRisco?'inline':'none';
 }
-async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId){
+async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId,volsId){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:sk,k_put:sk,t_days:dias,n:5000})});
@@ -1033,6 +1034,16 @@ async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId){
       if(vsEl){
         if(probHist!=null){vsEl.textContent=probHist.toFixed(1)+'%';vsEl.className='sv '+riscoCls(probHist);}
         else{vsEl.textContent='—';vsEl.className='sv';}
+      }
+    }
+    if(volsId){
+      const volsEl=document.getElementById(volsId);
+      if(volsEl){
+        if(d.volatilidade_historica_simples_pct!=null&&d.garch){
+          volsEl.textContent=d.volatilidade_historica_simples_pct+'% / '+d.garch.vol_garch_projetada_pct+'%';
+        } else {
+          volsEl.textContent=d.volatilidade_historica_pct+'%';
+        }
       }
     }
     document.getElementById(iId).innerHTML=garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
@@ -1067,23 +1078,37 @@ async function MCR(tk,en,kd,dias,price){
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify(payload)});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById('rx-mc-l').style.display='none';document.getElementById('rx-mc-r').style.display='block';
-    const sEl=document.getElementById('rx-mc-s');sEl.textContent=Number(d.prob_sucesso).toFixed(1)+'%';sEl.className='iv '+(d.prob_sucesso>70?'ok':d.prob_sucesso>50?'warn':'down');
-    const cEl=document.getElementById('rx-mc-c');if(cEl)cEl.textContent=Number(d.prob_call_exercida).toFixed(1)+'%';
-    const kEl=document.getElementById('rx-mc-k');if(kEl)kEl.textContent=d.prob_kdo_atingido!=null?Number(d.prob_kdo_atingido).toFixed(1)+'%':'—';
-    document.getElementById('rx-mc-v').textContent=d.volatilidade_historica_pct+'%';
+    const riscoCls=p=>p<15?'ok':p<30?'warn':'itm';
+    const prob=Number(d.prob_call_exercida||0);
+    const rtEl=document.getElementById('rx-mc-rt');
+    if(rtEl){rtEl.textContent=prob.toFixed(1)+'%';rtEl.className='sv '+riscoCls(prob);}
+    let probHist=null;
     let cmpTxt='';
     if(d.garch&&d.comparativo_vol_historica){
-      const c=d.comparativo_vol_historica;
-      const probHistC=Number(c.prob_call_exercida||0);
-      const probC=Number(d.prob_call_exercida||0);
-      const diff=probC-probHistC;
+      probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
+      const diff=prob-probHist;
       const diffTxt=diff>0?`+${diff.toFixed(1)}pp maior`:diff<0?`${diff.toFixed(1)}pp menor`:'igual';
-      cmpTxt=` · Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHistC.toFixed(1)}% exercer · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${probC.toFixed(1)}% exercer (${diffTxt})`;
+      cmpTxt=`Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHist.toFixed(1)}% exercer · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${prob.toFixed(1)}% exercer (${diffTxt})`;
     } else if(d.garch){
-      cmpTxt=` · GARCH proj. ${d.garch.vol_garch_projetada_pct}%`;
+      cmpTxt=`GARCH proj. ${d.garch.vol_garch_projetada_pct}%`;
+    } else {
+      cmpTxt=`Vol.hist. ${d.volatilidade_historica_pct}%`;
     }
-    document.getElementById('rx-mc-i').innerHTML='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'')+cmpTxt;
-    E('rx-mc-rt',Number(d.prob_call_exercida).toFixed(1)+'%');
+    const vsEl=document.getElementById('rx-mc-vs');
+    if(vsEl){
+      if(probHist!=null){vsEl.textContent=probHist.toFixed(1)+'%';vsEl.className='sv '+riscoCls(probHist);}
+      else{vsEl.textContent='—';vsEl.className='sv';}
+    }
+    const volsEl=document.getElementById('rx-mc-vols');
+    if(volsEl){
+      if(d.volatilidade_historica_simples_pct!=null&&d.garch){
+        volsEl.textContent=d.volatilidade_historica_simples_pct+'% / '+d.garch.vol_garch_projetada_pct+'%';
+      } else {
+        volsEl.textContent=d.volatilidade_historica_pct+'%';
+      }
+    }
+    const iEl=document.getElementById('rx-mc-i');
+    if(iEl)iEl.innerHTML='R$ '+d.preco_atual+(d.knock_down?' · KDO R$ '+d.knock_down:'')+' · '+cmpTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
   }catch(e){const el=document.getElementById('rx-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
 async function fInd(tk){try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),30000);const r=await fetch(B+'/indicators/'+tk,{signal:ctrl.signal});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
@@ -1313,7 +1338,7 @@ async function main(){
       // MC simples — PETR4, VALE3, BBAS3 (qualquer 'simples' exceto ROXO34 que usa MCR)
       let delay=6000;
       _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
-        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs'),delay);
+        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs',p.id+'-mc-vols'),delay);
         delay+=6000;
       });
 
