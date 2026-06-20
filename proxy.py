@@ -1,4 +1,4 @@
-"""  # v9.2 — brapi token fix
+"""  # v9.0
 Trader Desk — Proxy Server v9.0
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
 Mudancas v8.5:
@@ -162,7 +162,47 @@ def tv_forex():
         return jsonify(r.json())
     except Exception as e: return jsonify({'error':str(e)}),500
 
-# ── YAHOO HELPER ──────────────────────────────────────
+# ── YAHOO FUNDAMENTAIS (fallback gratuito p/ VPA/PVP/DY/ROE) ─
+def yahoo_fundamentals(ticker):
+    """
+    Busca VPA, P/VP, DY, ROE via Yahoo quoteSummary — gratuito, sem token.
+    Usado como fallback quando a brapi (plano free) nao traz esses campos
+    (ela so libera priceEarnings/earningsPerShare no plano gratuito).
+    """
+    modules = 'defaultKeyStatistics,financialData,summaryDetail'
+    for host in ['query1', 'query2']:
+        try:
+            r = requests.get(
+                f'https://{host}.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?modules={modules}',
+                headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
+            if not r.ok:
+                continue
+            res = r.json().get('quoteSummary', {}).get('result')
+            if not res:
+                continue
+            d = res[0]
+            dks = d.get('defaultKeyStatistics', {})
+            fd  = d.get('financialData', {})
+            sd  = d.get('summaryDetail', {})
+            def _raw(field_dict, key):
+                v = field_dict.get(key)
+                if isinstance(v, dict):
+                    return v.get('raw')
+                return v
+            vpa = _raw(dks, 'bookValue')
+            pvp = _raw(dks, 'priceToBook')
+            roe = _raw(fd, 'returnOnEquity')
+            dy  = _raw(sd, 'dividendYield')
+            out = {}
+            if vpa: out['vpa'] = vpa
+            if pvp: out['pvp'] = pvp
+            if roe: out['roe'] = roe
+            if dy:  out['dy']  = dy
+            return out if out else None
+        except: continue
+    return None
+
+
 def yquote(ticker):
     try:
         r=requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=5d',
@@ -418,6 +458,16 @@ def get_indicators(ticker):
                     'vpa':  rd.get('bookValuePerShare'),
                 }
         except: pass
+
+        # Fallback Yahoo — completa vpa/pvp/dy/roe quando brapi (plano free) nao traz
+        if not fund.get('vpa') or not fund.get('pvp'):
+            try:
+                yf = yahoo_fundamentals(ticker)
+                if yf:
+                    for k, v in yf.items():
+                        if not fund.get(k) and v:
+                            fund[k] = v
+            except: pass
 
         if not hist_closes or len(hist_closes) < 200:
             for yrange in ['2y','1y']:
