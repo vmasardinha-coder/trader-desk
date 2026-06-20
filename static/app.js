@@ -207,18 +207,15 @@ function tplSimples(p){
       <div class="sr"><span class="sl">Vol. Impl.</span><span class="sv warn" id="${id}-bs-vol">${(p.vol_impl*100).toFixed(1)}%</span></div>
       <div class="sr"><span class="sl">Delta</span><span class="sv warn" id="${id}-bs-delta">—</span></div>
       <div class="sr"><span class="sl">Prob. B&amp;S exercer</span><span class="sv warn" id="${id}-bs-prob">—</span></div>
-      <div class="sr"><span class="sl">Prob. MC exercer</span><span class="sv ok" id="${id}-mc-rt">calc...</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer (Vol.Simples)</span><span class="sv" id="${id}-mc-vs">calc...</span></div>
+      <div class="sr"><span class="sl">Prob. MC exercer (GARCH)</span><span class="sv ok" id="${id}-mc-rt">calc...</span></div>
       ${p.objetivo?`<div class="sr"><span class="sl">Objetivo</span><span class="sv ok">${p.objetivo}</span></div>`:''}
     </div>
     <div class="sig">
       <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
       <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
       <div id="${id}-mc-r" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="${id}-mc-s">—</div></div>
-          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="${id}-mc-v">—</div></div>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="${id}-mc-i">—</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5" id="${id}-mc-i">—</div>
       </div>
     </div>
     </div>
@@ -1010,19 +1007,19 @@ function checkBadgeRisco(){
   const temRisco=_risco.barreira||_risco.roxoItm||_risco.vencUrgente;
   badge.style.display=temRisco?'inline':'none';
 }
-async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
+async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:sk,k_put:sk,t_days:dias,n:5000})});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById(lId).style.display='none';document.getElementById(rId).style.display='block';
+    const riscoCls=p=>p<15?'ok':p<30?'warn':'itm';
     const prob=Number(d.prob_call_exercida||0);
-    const sEl=document.getElementById(sId);sEl.textContent=prob.toFixed(1)+'%';
-    sEl.className='iv '+(prob<15?'ok':prob<30?'warn':'down');
-    document.getElementById(vId).textContent=d.volatilidade_historica_pct+'%';
+    if(rtId){const rtEl=document.getElementById(rtId);if(rtEl){rtEl.textContent=prob.toFixed(1)+'%';rtEl.className='sv '+riscoCls(prob);}}
     let garchTxt='';
+    let probHist=null;
     if(d.garch&&d.comparativo_vol_historica){
-      const probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
+      probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
       const diff=prob-probHist;
       const diffTxt=diff>0?`+${diff.toFixed(1)}pp maior`:diff<0?`${diff.toFixed(1)}pp menor`:'igual';
       garchTxt=`Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHist.toFixed(1)}% exercer · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${prob.toFixed(1)}% exercer (${diffTxt})`;
@@ -1031,8 +1028,14 @@ async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
     } else {
       garchTxt=`Vol.hist. ${d.volatilidade_historica_pct}%`;
     }
+    if(vsId){
+      const vsEl=document.getElementById(vsId);
+      if(vsEl){
+        if(probHist!=null){vsEl.textContent=probHist.toFixed(1)+'%';vsEl.className='sv '+riscoCls(probHist);}
+        else{vsEl.textContent='—';vsEl.className='sv';}
+      }
+    }
     document.getElementById(iId).innerHTML=garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
-    if(rtId)E(rtId,prob.toFixed(1)+'%');
   }catch(e){const el=document.getElementById(lId);if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
 async function MCB(tk,en,kd,ku,dias,pfx){
@@ -1310,7 +1313,7 @@ async function main(){
       // MC simples — PETR4, VALE3, BBAS3 (qualquer 'simples' exceto ROXO34 que usa MCR)
       let delay=6000;
       _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
-        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-s',p.id+'-mc-v',p.id+'-mc-i',p.id+'-mc-rt'),delay);
+        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs'),delay);
         delay+=6000;
       });
 
