@@ -490,7 +490,23 @@ function tplWatchAtivo(a, segNome){
       <div><div class="ind-acc-title">${a.nome}</div><div class="ind-acc-sub">${segNome} · clique para expandir/recolher</div></div>
       <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('${a.id}')">↻</span><span id="ar-ind-${a.id}">▼</span></div>
     </div>
-    <div class="ind-acc-body open" id="${a.id}-ind-wrap"><div id="${a.id}-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div></div>
+    <div class="ind-acc-body open" id="${a.id}-ind-wrap">
+      <div id="${a.id}-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div>
+      <div style="margin-top:10px">
+        <button onclick="toggleFanChart('${a.id}')" id="${a.id}-fc-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📊 Ver cenários futuros (Monte Carlo)</button>
+        <div id="${a.id}-fc-wrap" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <button onclick="loadFanChart('${a.id}',21)" class="cal-fb fc-period-btn" id="${a.id}-fc-21">21 dias</button>
+            <button onclick="loadFanChart('${a.id}',60)" class="cal-fb fc-period-btn" id="${a.id}-fc-60">60 dias</button>
+            <button onclick="loadFanChart('${a.id}',90)" class="cal-fb fc-period-btn" id="${a.id}-fc-90">90 dias</button>
+          </div>
+          <div style="position:relative;height:260px;background:var(--bg2);border:1px solid var(--border);padding:8px">
+            <canvas id="${a.id}-fc-canvas"></canvas>
+          </div>
+          <div id="${a.id}-fc-info" style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Selecione um período para simular</div>
+        </div>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -503,6 +519,123 @@ function renderWatchlist(){
     seg.ativos.forEach(a=>{ html+=tplWatchAtivo(a, seg.segmento); });
   });
   cont.innerHTML=html;
+}
+
+// ── FAN CHART — cenários futuros Monte Carlo (watchlist) ──
+const _fanCharts={}; // guarda instancias Chart.js por ativo, para destruir/recriar
+
+function toggleFanChart(id){
+  const wrap=document.getElementById(id+'-fc-wrap');
+  const btn=document.getElementById(id+'-fc-btn');
+  if(!wrap)return;
+  const abrir=wrap.style.display==='none';
+  wrap.style.display=abrir?'block':'none';
+  if(btn)btn.textContent=abrir?'📊 Ocultar cenários futuros':'📊 Ver cenários futuros (Monte Carlo)';
+  if(abrir&&!wrap.dataset.loaded){
+    wrap.dataset.loaded='1';
+    loadFanChart(id,21);
+  }
+}
+
+async function loadFanChart(id,dias){
+  // Marca botão de período ativo
+  [21,60,90].forEach(d=>{
+    const b=document.getElementById(id+'-fc-'+d);
+    if(b)b.className='cal-fb fc-period-btn'+(d===dias?' cal-fb-on':'');
+  });
+  const info=document.getElementById(id+'-fc-info');
+  if(info)info.textContent='Calculando '+dias+' dias de simulação...';
+  const ativo=getWatchlistFlat().find(a=>a.id===id);
+  if(!ativo)return;
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const r=await fetch(B+'/montecarlo/trajetorias',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify({ticker:ativo.ticker,t_days:dias})
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    renderFanChart(id,d);
+  }catch(e){
+    if(info)info.textContent='Erro ao simular: '+e.message;
+  }
+}
+
+function renderFanChart(id,d){
+  const canvas=document.getElementById(id+'-fc-canvas');
+  const info=document.getElementById(id+'-fc-info');
+  if(!canvas||typeof Chart==='undefined'){
+    if(info)info.textContent='Gráfico indisponível (Chart.js não carregado)';
+    return;
+  }
+  // Destroi grafico anterior do mesmo ativo, se existir
+  if(_fanCharts[id]){ _fanCharts[id].destroy(); }
+
+  const dias=d.dias;
+  const datasets=[];
+
+  // Trajetorias individuais — linhas finas, cinza translúcido (efeito "leque")
+  d.trajetorias.forEach(traj=>{
+    datasets.push({
+      data:traj, borderColor:'rgba(124,106,247,.18)', borderWidth:1,
+      pointRadius:0, fill:false, tension:0.15, order:2,
+    });
+  });
+
+  // Banda p25-p75 (preenchida) — faixa central mais provável
+  datasets.push({
+    label:'P75', data:d.percentis.p75, borderColor:'transparent',
+    backgroundColor:'rgba(124,106,247,.12)', pointRadius:0, fill:'+1', order:1, tension:0.15,
+  });
+  datasets.push({
+    label:'P25', data:d.percentis.p25, borderColor:'transparent',
+    pointRadius:0, fill:false, order:1, tension:0.15,
+  });
+
+  // Mediana (P50) — linha de destaque
+  datasets.push({
+    label:'Mediana', data:d.percentis.p50, borderColor:'#7c6af7', borderWidth:2.5,
+    pointRadius:0, fill:false, order:0, tension:0.15,
+  });
+  // P10 e P90 — linhas pontilhadas de extremos
+  datasets.push({
+    label:'P90', data:d.percentis.p90, borderColor:'rgba(0,230,118,.6)', borderWidth:1.5,
+    borderDash:[4,3], pointRadius:0, fill:false, order:0, tension:0.15,
+  });
+  datasets.push({
+    label:'P10', data:d.percentis.p10, borderColor:'rgba(240,98,146,.6)', borderWidth:1.5,
+    borderDash:[4,3], pointRadius:0, fill:false, order:0, tension:0.15,
+  });
+
+  _fanCharts[id]=new Chart(canvas,{
+    type:'line',
+    data:{ labels:dias, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:300},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          filter:(item)=>['Mediana','P90','P10'].includes(item.dataset.label),
+          callbacks:{label:(ctx)=>ctx.dataset.label+': R$ '+ctx.parsed.y.toFixed(2)}
+        }
+      },
+      scales:{
+        x:{ title:{display:true,text:'Dias',color:'#505068',font:{size:10}}, ticks:{color:'#505068',font:{size:9}}, grid:{color:'#1e1e2e'} },
+        y:{ title:{display:true,text:'Preço (R$)',color:'#505068',font:{size:10}}, ticks:{color:'#505068',font:{size:9}}, grid:{color:'#1e1e2e'} },
+      }
+    }
+  });
+
+  if(info){
+    const g=d.garch;
+    const garchTxt=g?(' · GARCH '+g.vol_garch_projetada_pct+'%'):(' · Vol.hist '+d.sigma_usado_pct+'%');
+    info.innerHTML='Preço atual: <b style="color:var(--text)">R$ '+d.preco_atual.toFixed(2)+'</b>'+garchTxt+
+      ' · Faixa P10-P90 em '+d.t_days+'d: <span style="color:var(--red)">R$ '+d.percentis.p10[d.percentis.p10.length-1].toFixed(2)+'</span> a <span style="color:var(--green)">R$ '+d.percentis.p90[d.percentis.p90.length-1].toFixed(2)+'</span>'+
+      ' · Mediana: <b style="color:var(--accent)">R$ '+d.percentis.p50[d.percentis.p50.length-1].toFixed(2)+'</b>';
+  }
 }
 
 function toggleAllInd(){
