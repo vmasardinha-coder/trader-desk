@@ -163,22 +163,25 @@ def tv_forex():
     except Exception as e: return jsonify({'error':str(e)}),500
 
 # ── YAHOO FUNDAMENTAIS (fallback gratuito p/ VPA/PVP/DY/ROE) ─
-def yahoo_fundamentals(ticker):
+def yahoo_fundamentals(ticker, _debug=None):
     """
     Busca VPA, P/VP, DY, ROE via Yahoo quoteSummary — gratuito, sem token.
     Usado como fallback quando a brapi (plano free) nao traz esses campos
     (ela so libera priceEarnings/earningsPerShare no plano gratuito).
     """
     modules = 'defaultKeyStatistics,financialData,summaryDetail'
+    erros = []
     for host in ['query1', 'query2']:
         try:
             r = requests.get(
                 f'https://{host}.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?modules={modules}',
                 headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
             if not r.ok:
+                erros.append(f'{host}: HTTP {r.status_code}')
                 continue
             res = r.json().get('quoteSummary', {}).get('result')
             if not res:
+                erros.append(f'{host}: sem result no JSON — {str(r.json())[:200]}')
                 continue
             d = res[0]
             dks = d.get('defaultKeyStatistics', {})
@@ -198,8 +201,12 @@ def yahoo_fundamentals(ticker):
             if pvp: out['pvp'] = pvp
             if roe: out['roe'] = roe
             if dy:  out['dy']  = dy
+            if _debug is not None: _debug['erros'] = erros
             return out if out else None
-        except: continue
+        except Exception as _e:
+            erros.append(f'{host}: exception {str(_e)}')
+            continue
+    if _debug is not None: _debug['erros'] = erros
     return None
 
 
@@ -460,14 +467,18 @@ def get_indicators(ticker):
         except: pass
 
         # Fallback Yahoo — completa vpa/pvp/dy/roe quando brapi (plano free) nao traz
+        _debug_yahoo = {'tentou': False, 'erro': None, 'resultado': None}
         if not fund.get('vpa') or not fund.get('pvp'):
+            _debug_yahoo['tentou'] = True
             try:
-                yf = yahoo_fundamentals(ticker)
+                yf = yahoo_fundamentals(ticker, _debug_yahoo)
+                _debug_yahoo['resultado'] = yf
                 if yf:
                     for k, v in yf.items():
                         if not fund.get(k) and v:
                             fund[k] = v
-            except: pass
+            except Exception as _e_dbg:
+                _debug_yahoo['erro'] = str(_e_dbg)
 
         if not hist_closes or len(hist_closes) < 200:
             for yrange in ['2y','1y']:
@@ -711,6 +722,7 @@ def get_indicators(ticker):
             'score_total': score,
             'indicadores': indicadores,
             'graham_value': gval,
+            '_debug_yahoo': _debug_yahoo,
             'upside_graham': round((gval/p-1)*100,1) if gval else None,
         }
         try:
