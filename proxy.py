@@ -1,4 +1,4 @@
-"""  # v9.0
+"""  # v9.2 — brapi token fix
 Trader Desk — Proxy Server v9.0
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
 Mudancas v8.5:
