@@ -146,6 +146,36 @@
       </div>
       <div class="sec"><span class="dot"></span>BTC Semanal</div>
       <div id="btc-ind-area"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div>
+
+      <div style="margin-top:14px">
+        <button onclick="toggleBtcFanHistorico()" id="btc-fc-hist-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📈 Ver histórico vs cenários passados</button>
+        <div id="btc-fc-hist-wrap" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <button onclick="loadBtcHistorico(90)" class="cal-fb fc-period-btn" id="btc-fc-hist-90">90 dias</button>
+            <button onclick="loadBtcHistorico(180)" class="cal-fb fc-period-btn" id="btc-fc-hist-180">180 dias</button>
+            <button onclick="loadBtcHistorico(365)" class="cal-fb fc-period-btn" id="btc-fc-hist-365">365 dias</button>
+          </div>
+          <div style="position:relative;height:260px;background:var(--bg2);border:1px solid var(--border);padding:8px">
+            <canvas id="btc-fc-hist-canvas"></canvas>
+          </div>
+          <div id="btc-fc-hist-info" style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Selecione um período para simular</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <button onclick="toggleBtcFanFuturo()" id="btc-fc-fut-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📊 Ver projeção futura (Monte Carlo)</button>
+        <div id="btc-fc-fut-wrap" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <button onclick="loadBtcFuturo(30)" class="cal-fb fc-period-btn" id="btc-fc-fut-30">30 dias</button>
+            <button onclick="loadBtcFuturo(90)" class="cal-fb fc-period-btn" id="btc-fc-fut-90">90 dias</button>
+            <button onclick="loadBtcFuturo(180)" class="cal-fb fc-period-btn" id="btc-fc-fut-180">180 dias</button>
+          </div>
+          <div style="position:relative;height:260px;background:var(--bg2);border:1px solid var(--border);padding:8px">
+            <canvas id="btc-fc-fut-canvas"></canvas>
+          </div>
+          <div id="btc-fc-fut-info" style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Selecione um período para simular</div>
+        </div>
+      </div>
     </div>
   </div>
 
