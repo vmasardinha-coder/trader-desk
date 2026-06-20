@@ -503,6 +503,10 @@ def get_indicators(ticker):
             return jsonify({'error': f'Sem dados para {symbol}'}), 404
 
         # Hardcoded fundamentais
+        # Data de referencia dos fundamentais hardcoded (FUND_OVERRIDE).
+        # Atualizar manualmente a cada revisao trimestral.
+        FUND_DATA_REF = '2026-05-22'
+
         FUND_OVERRIDE = {
             # Originais (mantidos)
             'PETR4': {'pvp':1.65,'dy':6.42,'lpa':8.54,'vpa':29.76,'roe':22.5,'pl':5.8},
@@ -523,9 +527,12 @@ def get_indicators(ticker):
             'SAPR11':{'pvp':1.45,'dy':5.20,'lpa':3.30,'vpa':26.16,'roe':12.6,'pl':11.49},
             'EUCA4': {'pvp':1.00,'dy':6.80,'lpa':None,'vpa':None,'roe':None,'pl':None},
         }
+        fundamentais_de_override = False
         if symbol in FUND_OVERRIDE:
             for k,v in FUND_OVERRIDE[symbol].items():
-                if v is not None: fund[k] = fund.get(k) or v
+                if v is not None and not fund.get(k):
+                    fund[k] = v
+                    fundamentais_de_override = True
 
         SETOR_MAP = {
             'PETR4': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
@@ -727,6 +734,17 @@ def get_indicators(ticker):
         total  = len(indicadores) or 1
         score  = round((altas/total)*100)
 
+        # Calcula idade dos fundamentais hardcoded (FUND_OVERRIDE) — aviso visual apos 90 dias
+        fund_idade_dias = None
+        fund_desatualizado = False
+        if fundamentais_de_override:
+            try:
+                from datetime import datetime as _dt2
+                ref = _dt2.strptime(FUND_DATA_REF, '%Y-%m-%d')
+                fund_idade_dias = (_dt2.now() - ref).days
+                fund_desatualizado = fund_idade_dias > 90
+            except: pass
+
         result = {
             'ticker': ticker,
             'preco_atual': round(p,2),
@@ -736,6 +754,8 @@ def get_indicators(ticker):
             'indicadores': indicadores,
             'graham_value': gval,
             'upside_graham': round((gval/p-1)*100,1) if gval else None,
+            'fund_idade_dias': fund_idade_dias,
+            'fund_desatualizado': fund_desatualizado,
         }
         try:
             _IND_CACHE[ticker] = (result, _t.time())
