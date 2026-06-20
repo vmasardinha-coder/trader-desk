@@ -879,6 +879,14 @@ def get_indicators(ticker):
                 fund_desatualizado = fund_idade_dias > 90
             except: pass
 
+        # GARCH(1,1) — complementa os 4 metodos de preco-alvo (foto do presente)
+        # com uma leitura de volatilidade projetada (clusters), util para avaliar
+        # se o regime atual de risco esta subindo ou descendo
+        garch_watch = None
+        try:
+            garch_watch = garch_11(closes, horizon_days=21)
+        except: pass
+
         result = {
             'ticker': ticker,
             'preco_atual': round(p,2),
@@ -896,6 +904,7 @@ def get_indicators(ticker):
             'upside_vpa': round((preco_vpa/p-1)*100,1) if preco_vpa else None,
             'fund_idade_dias': fund_idade_dias,
             'fund_desatualizado': fund_desatualizado,
+            'garch': garch_watch,
         }
         try:
             _IND_CACHE[ticker] = (result, _t.time())
