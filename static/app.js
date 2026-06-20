@@ -768,6 +768,27 @@ function rndInd(id,data){
     '<div class="scc"><div class="scm">Cotação</div><div class="scv">'+(preco?'R$ '+Number(preco).toFixed(2):'—')+'</div><div class="scs">'+setor+'</div></div>'+
     '<div class="scc"><div class="scm">Graham VJ</div><div class="scv" style="color:'+(up&&up>0?'var(--green)':'var(--red)')+'">'+(graham?'R$ '+Number(graham).toFixed(2):'—')+'</div><div class="scs" style="color:'+(up&&up>0?'var(--green)':'var(--red)')+'">'+(up!=null?(up>0?'+':'')+up+'% upside':'—')+'</div></div>'+
     '</div>';
+  // Convergência de preços-alvo — 4 métodos lado a lado
+  const metodos=[
+    {nome:'Graham',valor:data.graham_value,up:data.upside_graham},
+    {nome:'Bazin',valor:data.preco_alvo_bazin,up:data.upside_bazin},
+    {nome:'P/L Setor',valor:data.preco_alvo_pl_setorial,up:data.upside_pl_setorial},
+    {nome:'P/VP Setor',valor:data.preco_alvo_vpa,up:data.upside_vpa},
+  ].filter(m=>m.valor!=null);
+  if(metodos.length>0){
+    const media=metodos.reduce((s,m)=>s+m.valor,0)/metodos.length;
+    const desvios=metodos.map(m=>Math.abs(m.valor-media)/media*100);
+    const maxDesvio=Math.max(...desvios);
+    const convergencia=maxDesvio<15?'✅ Convergem':maxDesvio<35?'⚠ Divergência moderada':'🔴 Divergência alta';
+    const convCor=maxDesvio<15?'var(--green)':maxDesvio<35?'var(--warn)':'var(--red)';
+    h+='<div style="background:var(--bg2);border:1px solid var(--border);padding:12px;margin-bottom:14px">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">CONVERGÊNCIA DE PREÇOS-ALVO ('+metodos.length+' métodos)</div>'+
+      '<div style="display:grid;grid-template-columns:repeat('+metodos.length+',1fr);gap:6px;margin-bottom:8px">'+
+      metodos.map(m=>'<div style="text-align:center"><div style="font-size:9px;color:var(--muted)">'+m.nome+'</div><div style="font-size:13px;font-weight:700;color:'+(m.up>0?'var(--green)':'var(--red)')+'">R$ '+m.valor.toFixed(2)+'</div></div>').join('')+
+      '</div>'+
+      '<div style="font-size:11px;color:'+convCor+';font-weight:600">'+convergencia+' (desvio máx '+maxDesvio.toFixed(0)+'%) · Média: R$ '+media.toFixed(2)+'</div>'+
+      '</div>';
+  }
   inds.forEach(i=>{
     const s=i.sinal||'',cls=s==='Alta'||s==='Sobrevenda'?'ok':s==='Baixa'||s==='Sobrecompra'?'down':'warn',ar=cls==='ok'?'▲':cls==='down'?'▼':'→';
     h+='<div class="ir"><div class="irt"><span class="irn">'+(i.nome||'')+'</span><span class="irv '+cls+'">'+(i.valor!=null?i.valor:'—')+' '+ar+'</span></div>'+(i.explicacao?'<div class="ire">'+i.explicacao+'</div>':'')+'</div>';
