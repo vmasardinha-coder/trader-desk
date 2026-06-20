@@ -504,11 +504,24 @@ def get_indicators(ticker):
 
         # Hardcoded fundamentais
         FUND_OVERRIDE = {
+            # Originais (mantidos)
             'PETR4': {'pvp':1.65,'dy':6.42,'lpa':8.54,'vpa':29.76,'roe':22.5,'pl':5.8},
-            'VALE3': {'pvp':1.80,'dy':8.50,'lpa':11.20,'vpa':47.30,'roe':24.1,'pl':7.2},
+            'VALE3': {'pvp':1.93,'dy':6.70,'lpa':3.51,'vpa':43.07,'roe':8.2,'pl':23.64},
             'BBAS3': {'pvp':0.95,'dy':9.80,'lpa':4.20,'vpa':24.80,'roe':19.8,'pl':5.2},
-            'AXIA3': {'pvp':0.85,'dy':4.20,'lpa':1.90,'vpa':12.50,'roe':10.0,'pl':12.0},
+            'AXIA3': {'pvp':1.30,'dy':5.30,'lpa':3.27,'vpa':41.55,'roe':7.9,'pl':16.50},
             'ROXO34':{'pvp':3.50,'dy':0.00,'lpa':0.45,'vpa':3.60,'roe':8.5,'pl':40.0},
+            # Novos — dados Fundamentus, ref. 22/05/2026 (atualizar periodicamente)
+            'ITUB4': {'pvp':2.18,'dy':8.70,'lpa':4.21,'vpa':18.12,'roe':23.2,'pl':9.36},
+            'BBSE3': {'pvp':5.29,'dy':13.60,'lpa':4.73,'vpa':6.51,'roe':72.7,'pl':7.28},
+            'CXSE3': {'pvp':3.81,'dy':7.50,'lpa':1.46,'vpa':4.59,'roe':31.9,'pl':11.94},
+            'MULT3': {'pvp':2.35,'dy':3.70,'lpa':2.38,'vpa':12.62,'roe':18.9,'pl':12.42},
+            'CYRE3': {'pvp':0.91,'dy':10.80,'lpa':4.33,'vpa':23.25,'roe':18.6,'pl':4.91},
+            'DIRR3': {'pvp':3.13,'dy':17.30,'lpa':1.61,'vpa':4.09,'roe':39.41,'pl':7.96},
+            'CMIN3': {'pvp':3.44,'dy':24.30,'lpa':0.41,'vpa':1.30,'roe':31.5,'pl':10.92},
+            'GGBR4': {'pvp':0.90,'dy':2.90,'lpa':0.83,'vpa':26.58,'roe':3.1,'pl':29.07},
+            'PSSA3': {'pvp':2.05,'dy':6.10,'lpa':5.70,'vpa':24.03,'roe':23.7,'pl':8.63},
+            'SAPR11':{'pvp':1.45,'dy':5.20,'lpa':3.30,'vpa':26.16,'roe':12.6,'pl':11.49},
+            'EUCA4': {'pvp':1.00,'dy':6.80,'lpa':None,'vpa':None,'roe':None,'pl':None},
         }
         if symbol in FUND_OVERRIDE:
             for k,v in FUND_OVERRIDE[symbol].items():
