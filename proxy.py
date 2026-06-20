@@ -591,6 +591,28 @@ def get_indicators(ticker):
         roe_s = setor.get('roe_min', 12)
         cdi_ref = cdi or 14.4
 
+        # ── METODOLOGIAS ALTERNATIVAS DE PRECO-ALVO ──────────
+        # Calculadas com as mesmas variaveis ja disponiveis (lpa, vpa, dy, pl_s, pvp_s)
+        # Servem como referencia comparativa ao Graham — convergencia entre metodos
+        # aumenta a confianca; divergencia grande sinaliza ativo atipico (ciclico, em
+        # transicao, etc). Nao sao preditores validados, sao heuristicas classicas.
+        preco_bazin = None
+        preco_pl_setorial = None
+        preco_vpa = None
+        try:
+            if dy and dy > 0 and p:
+                dividendo_acao = float(dy) * float(p)
+                preco_bazin = round(dividendo_acao / 0.06, 2)  # DY minimo desejado 6%
+        except: pass
+        try:
+            if lpa and float(lpa) > 0:
+                preco_pl_setorial = round(float(lpa) * pl_s, 2)
+        except: pass
+        try:
+            if vpa and float(vpa) > 0:
+                preco_vpa = round(float(vpa) * pvp_s, 2)
+        except: pass
+
         indicadores = []
 
         # RSI com explicacao
@@ -754,6 +776,12 @@ def get_indicators(ticker):
             'indicadores': indicadores,
             'graham_value': gval,
             'upside_graham': round((gval/p-1)*100,1) if gval else None,
+            'preco_alvo_bazin': preco_bazin,
+            'upside_bazin': round((preco_bazin/p-1)*100,1) if preco_bazin else None,
+            'preco_alvo_pl_setorial': preco_pl_setorial,
+            'upside_pl_setorial': round((preco_pl_setorial/p-1)*100,1) if preco_pl_setorial else None,
+            'preco_alvo_vpa': preco_vpa,
+            'upside_vpa': round((preco_vpa/p-1)*100,1) if preco_vpa else None,
             'fund_idade_dias': fund_idade_dias,
             'fund_desatualizado': fund_desatualizado,
         }
