@@ -1635,11 +1635,31 @@ def black_scholes():
 
 # ── SERVE HTML ────────────────────────────────────
 from flask import render_template
+import hashlib
+
+def _asset_version(filename):
+    """
+    Calcula um hash curto (8 chars) do conteudo do arquivo estatico, usado
+    como query string de cache-busting (?v=hash). Diferente de timestamp,
+    o hash so muda quando o CONTEUDO de fato muda — um restart do Render
+    sem alteracao real no arquivo nao forca um novo download a toa.
+    """
+    import os as _os
+    try:
+        caminho = _os.path.join(app.static_folder, filename)
+        with open(caminho, 'rb') as f:
+            return hashlib.md5(f.read()).hexdigest()[:8]
+    except Exception:
+        return str(int(time.time()))  # fallback: sempre busca de novo se der erro
 
 @app.route('/')
 @app.route('/painel-trader.html')
 def serve_panel():
-    resp = make_response(render_template('index.html'))
+    resp = make_response(render_template(
+        'index.html',
+        v_js=_asset_version('app.js'),
+        v_css=_asset_version('style.css'),
+    ))
     resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return resp
 
