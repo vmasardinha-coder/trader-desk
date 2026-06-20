@@ -600,6 +600,8 @@ def run_montecarlo():
             sigma=vol_defaults.get(ticker.replace('.SA','').upper(),0.35)
         if cl and not data.get('sigma'):
             sigma=vol_hist(cl)
+        sigma_hist = sigma  # guarda vol. historica simples antes de qualquer ajuste GARCH
+
         # GARCH(1,1) — refina a vol usada na simulacao com base no regime atual
         # (clusters de volatilidade) em vez da media fixa de 21 dias do vol_hist
         if usar_garch and cl and len(cl) >= 60:
@@ -608,6 +610,22 @@ def run_montecarlo():
                 if garch_info:
                     sigma = garch_info['vol_garch_projetada_pct'] / 100
             except: pass
+
+        def _simula(sig):
+            T2=max(T_days,1)/252.0
+            sqT2=math.sqrt(T2)
+            drift2=-0.5*sig**2*T2
+            z2=np.random.standard_normal(n)
+            ST2=S*np.exp(drift2+sig*sqT2*z2)
+            call_ex2=ST2>K_call
+            kdo_hit2=(ST2<=kd) if kd else np.zeros(n,dtype=bool)
+            return {
+                'prob_sucesso':round(float((~call_ex2).mean()*100),2),
+                'prob_call_exercida':round(float(call_ex2.mean()*100),2),
+                'prob_kdo_atingido':round(float(kdo_hit2.mean()*100),2) if kd else None,
+            }
+
+        # Simulacao principal (usa sigma final, que e GARCH se disponivel)
         T=max(T_days,1)/252.0
         sqT=math.sqrt(T)
         drift=-0.5*sigma**2*T
@@ -615,12 +633,18 @@ def run_montecarlo():
         ST=S*np.exp(drift+sigma*sqT*z)
         call_ex=ST>K_call
         kdo_hit=(ST<=kd) if kd else np.zeros(n,dtype=bool)
+
+        # Simulacao comparativa com vol. historica simples (sempre calculada se GARCH foi usado)
+        comparativo_hist = _simula(sigma_hist) if (garch_info and sigma_hist != sigma) else None
+
         res={
             'prob_sucesso':round(float((~call_ex).mean()*100),2),
             'prob_call_exercida':round(float(call_ex.mean()*100),2),
             'prob_put_exercida':round(float(call_ex.mean()*100),2),
             'prob_kdo_atingido':round(float(kdo_hit.mean()*100),2) if kd else None,
             'cenarios':n,'engine':'numpy',
+            'comparativo_vol_historica':comparativo_hist,
+            'volatilidade_historica_simples_pct':round(sigma_hist*100,2),
 
             'preco_atual':round(S,2),
             'volatilidade_historica_pct':round(sigma*100,2),
