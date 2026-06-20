@@ -759,7 +759,11 @@ function rndInd(id,data){
   if(data.error){el.innerHTML='<div style="color:var(--red);padding:12px;font-size:13px">⚠ '+data.error+'</div>';return;}
   const inds=data.indicadores||[],sc=Number(data.score_total||0),preco=data.preco_atual,graham=data.graham_value,up=data.upside_graham,setor=data.setor||'';
   const sc2=sc>=65?'var(--green)':sc>=40?'var(--warn)':'var(--red)',sl=sc>=65?'Compra ▲':sc>=40?'Neutro →':'Venda ▼';
-  let h='<div class="scb">'+
+  let h='';
+  if(data.fund_desatualizado){
+    h+='<div style="background:rgba(255,183,77,.1);border:1px solid var(--warn);padding:8px 12px;margin-bottom:10px;font-size:11px;color:var(--warn);font-weight:600">⚠ Fundamentais (P/L, P/VP, ROE, Graham) com '+data.fund_idade_dias+' dias — solicitar revisão trimestral</div>';
+  }
+  h+='<div class="scb">'+
     '<div class="scc"><div class="scm">Score</div><div class="scn" style="color:'+sc2+'">'+sc+'</div><div class="scl" style="color:'+sc2+'">'+sl+'</div></div>'+
     '<div class="scc"><div class="scm">Cotação</div><div class="scv">'+(preco?'R$ '+Number(preco).toFixed(2):'—')+'</div><div class="scs">'+setor+'</div></div>'+
     '<div class="scc"><div class="scm">Graham VJ</div><div class="scv" style="color:'+(up&&up>0?'var(--green)':'var(--red)')+'">'+(graham?'R$ '+Number(graham).toFixed(2):'—')+'</div><div class="scs" style="color:'+(up&&up>0?'var(--green)':'var(--red)')+'">'+(up!=null?(up>0?'+':'')+up+'% upside':'—')+'</div></div>'+
