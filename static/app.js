@@ -214,10 +214,9 @@ function tplSimples(p){
       <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
       <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
       <div id="${id}-mc-r" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">
-          <div class="ib"><div class="il">MC Vol.Simples</div><div class="iv" id="${id}-mc-vs">—</div></div>
-          <div class="ib"><div class="il">MC GARCH</div><div class="iv" id="${id}-mc-s">—</div></div>
-          <div class="ib"><div class="il">Vol. GARCH</div><div class="iv warn" id="${id}-mc-v">—</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div class="ib"><div class="il">Prob. exercer</div><div class="iv" id="${id}-mc-s">—</div></div>
+          <div class="ib"><div class="il">Vol. Hist.</div><div class="iv warn" id="${id}-mc-v">—</div></div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5" id="${id}-mc-i">—</div>
       </div>
@@ -1011,21 +1010,19 @@ function checkBadgeRisco(){
   const temRisco=_risco.barreira||_risco.roxoItm||_risco.vencUrgente;
   badge.style.display=temRisco?'inline':'none';
 }
-async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId,vsId){
+async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:sk,k_put:sk,t_days:dias,n:5000})});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById(lId).style.display='none';document.getElementById(rId).style.display='block';
-    const riscoCls=p=>p<15?'ok':p<30?'warn':'down';
     const prob=Number(d.prob_call_exercida||0);
     const sEl=document.getElementById(sId);sEl.textContent=prob.toFixed(1)+'%';
-    sEl.className='iv '+riscoCls(prob);
+    sEl.className='iv '+(prob<15?'ok':prob<30?'warn':'down');
     document.getElementById(vId).textContent=d.volatilidade_historica_pct+'%';
     let garchTxt='';
-    let probHist=null;
     if(d.garch&&d.comparativo_vol_historica){
-      probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
+      const probHist=Number(d.comparativo_vol_historica.prob_call_exercida||0);
       const diff=prob-probHist;
       const diffTxt=diff>0?`+${diff.toFixed(1)}pp maior`:diff<0?`${diff.toFixed(1)}pp menor`:'igual';
       garchTxt=`Vol.Simples ${d.volatilidade_historica_simples_pct}% → ${probHist.toFixed(1)}% exercer · <b>GARCH ${d.garch.vol_garch_projetada_pct}%</b> → ${prob.toFixed(1)}% exercer (${diffTxt})`;
@@ -1033,13 +1030,6 @@ async function MC(tk,sk,dias,lId,rId,sId,vId,iId,rtId,vsId){
       garchTxt=`GARCH proj. ${d.garch.vol_garch_projetada_pct}% (persist. ${d.garch.persistencia})`;
     } else {
       garchTxt=`Vol.hist. ${d.volatilidade_historica_pct}%`;
-    }
-    if(vsId){
-      const vsEl=document.getElementById(vsId);
-      if(vsEl){
-        if(probHist!=null){vsEl.textContent=probHist.toFixed(1)+'%';vsEl.className='iv '+riscoCls(probHist);}
-        else{vsEl.textContent='—';vsEl.className='iv';}
-      }
     }
     document.getElementById(iId).innerHTML=garchTxt+' · '+(prob<15?'✅ Risco baixo de exercício':'⚠ Monitorar posição');
     if(rtId)E(rtId,prob.toFixed(1)+'%');
@@ -1320,7 +1310,7 @@ async function main(){
       // MC simples — PETR4, VALE3, BBAS3 (qualquer 'simples' exceto ROXO34 que usa MCR)
       let delay=6000;
       _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
-        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-s',p.id+'-mc-v',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs'),delay);
+        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-s',p.id+'-mc-v',p.id+'-mc-i',p.id+'-mc-rt'),delay);
         delay+=6000;
       });
 
