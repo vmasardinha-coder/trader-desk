@@ -439,31 +439,50 @@ def run_montecarlo_barrier():
                 except: continue
         if not S or S<=0:
             return jsonify({'error':f'Nao foi possivel obter preco de {ticker}'}),500
+        sigma_hist = sigma  # guarda vol. historica simples antes de qualquer ajuste GARCH
         if usar_garch and cl and len(cl) >= 60:
             try:
                 garch_info = garch_11(cl, horizon_days=min(T_days, 60))
                 if garch_info:
                     sigma = garch_info['vol_garch_projetada_pct'] / 100
             except: pass
-        dt = 1/252.0
-        drift = (0 - 0.5 * sigma**2) * dt
-        vol_step = sigma * (dt**0.5)
-        z = _np.random.standard_normal((n, steps))
-        log_returns = drift + vol_step * z
-        paths = S * _np.exp(_np.cumsum(log_returns, axis=1))
-        max_prices = _np.max(paths, axis=1)
-        min_prices = _np.min(paths, axis=1)
-        kuo_hit = max_prices >= kuo
-        kdo_hit = min_prices <= kdo
-        no_barrier = ~kuo_hit & ~kdo_hit
+
+        def _simula_barrier(sig):
+            dt2 = 1/252.0
+            drift2 = (0 - 0.5 * sig**2) * dt2
+            vol_step2 = sig * (dt2**0.5)
+            z2 = _np.random.standard_normal((n, steps))
+            log_returns2 = drift2 + vol_step2 * z2
+            paths2 = S * _np.exp(_np.cumsum(log_returns2, axis=1))
+            max_p2 = _np.max(paths2, axis=1)
+            min_p2 = _np.min(paths2, axis=1)
+            kuo_hit2 = max_p2 >= kuo
+            kdo_hit2 = min_p2 <= kdo
+            no_barrier2 = ~kuo_hit2 & ~kdo_hit2
+            return {
+                'prob_sem_barreira': round(float(no_barrier2.mean() * 100), 2),
+                'prob_barreira_alta': round(float(kuo_hit2.mean() * 100), 2),
+                'prob_barreira_baixa': round(float(kdo_hit2.mean() * 100), 2),
+            }
+
+        # Simulacao principal (usa sigma final, que e GARCH se disponivel)
+        res_principal = _simula_barrier(sigma)
+        max_prices = None  # mantidos por compatibilidade, nao usados fora daqui
+        min_prices = None
+
+        # Simulacao comparativa com vol. historica simples (sempre calculada se GARCH foi usado)
+        comparativo_hist = _simula_barrier(sigma_hist) if (garch_info and sigma_hist != sigma) else None
+
         return jsonify({
             'ticker': ticker, 'preco_atual': round(S, 2),
             'entry': entry, 'kdo': kdo, 'kuo': kuo, 't_days': T_days,
             'volatilidade_historica_pct': round(sigma * 100, 2),
+            'volatilidade_historica_simples_pct': round(sigma_hist * 100, 2),
             'garch': garch_info,
-            'prob_sem_barreira': round(float(no_barrier.mean() * 100), 2),
-            'prob_barreira_alta': round(float(kuo_hit.mean() * 100), 2),
-            'prob_barreira_baixa': round(float(kdo_hit.mean() * 100), 2),
+            'comparativo_vol_historica': comparativo_hist,
+            'prob_sem_barreira': res_principal['prob_sem_barreira'],
+            'prob_barreira_alta': res_principal['prob_barreira_alta'],
+            'prob_barreira_baixa': res_principal['prob_barreira_baixa'],
             'cenarios': n, 'engine': 'numpy-paths'
         })
     except Exception as e:
