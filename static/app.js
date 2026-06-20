@@ -632,9 +632,16 @@ function renderFanChart(id,d){
   if(info){
     const g=d.garch;
     const garchTxt=g?(' · GARCH '+g.vol_garch_projetada_pct+'%'):(' · Vol.hist '+d.sigma_usado_pct+'%');
+    const p10f=d.percentis.p10[d.percentis.p10.length-1];
+    const p90f=d.percentis.p90[d.percentis.p90.length-1];
+    const p50f=d.percentis.p50[d.percentis.p50.length-1];
     info.innerHTML='Preço atual: <b style="color:var(--text)">R$ '+d.preco_atual.toFixed(2)+'</b>'+garchTxt+
-      ' · Faixa P10-P90 em '+d.t_days+'d: <span style="color:var(--red)">R$ '+d.percentis.p10[d.percentis.p10.length-1].toFixed(2)+'</span> a <span style="color:var(--green)">R$ '+d.percentis.p90[d.percentis.p90.length-1].toFixed(2)+'</span>'+
-      ' · Mediana: <b style="color:var(--accent)">R$ '+d.percentis.p50[d.percentis.p50.length-1].toFixed(2)+'</b>';
+      ' · Faixa P10-P90 em '+d.t_days+'d: <span style="color:var(--red)">R$ '+p10f.toFixed(2)+'</span> a <span style="color:var(--green)">R$ '+p90f.toFixed(2)+'</span>'+
+      ' · Mediana: <b style="color:var(--accent)">R$ '+p50f.toFixed(2)+'</b>'+
+      '<div style="margin-top:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);font-size:11px;color:var(--text);line-height:1.5;text-align:left">'+
+      '📍 Com <b>80% de confiança</b>, o preço em <b>'+d.t_days+' dias</b> deve estar entre <b style="color:var(--red)">R$ '+p10f.toFixed(2)+'</b> e <b style="color:var(--green)">R$ '+p90f.toFixed(2)+'</b>. '+
+      'O cenário mais provável (mediana) é <b style="color:var(--accent)">R$ '+p50f.toFixed(2)+'</b>.'+
+      '</div>';
   }
 }
 
