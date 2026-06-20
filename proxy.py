@@ -27,6 +27,14 @@ CORS(app)
 import logging
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
+# ── BRAPI TOKEN ────────────────────────────────────────
+# Token gratuito (15k req/mes) — necessario para fundamentais completos
+# em qualquer ticker alem das 4 liberadas (PETR4/VALE3/ITUB4/MGLU3).
+# Configurado via variavel de ambiente BRAPI_TOKEN no Render.
+import os as _os
+BRAPI_TOKEN = _os.environ.get('BRAPI_TOKEN', '47g4Z3SJELnK2wLwXgn1rw')
+BRAPI_HEADERS = {'User-Agent':'Mozilla/5.0', 'Authorization': f'Bearer {BRAPI_TOKEN}'}
+
 # ── SETORES ───────────────────────────────────────────
 SETORES = {
     'PETR4.SA': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
@@ -394,7 +402,7 @@ def get_indicators(ticker):
         try:
             rb = requests.get(
                 f'https://brapi.dev/api/quote/{symbol}?range=1y&interval=1d&fundamental=true',
-                headers={'User-Agent':'Mozilla/5.0'}, timeout=12)
+                headers=BRAPI_HEADERS, timeout=12)
             if rb.ok:
                 rd = rb.json().get('results',[{}])[0]
                 preco_atual = rd.get('regularMarketPrice')
@@ -1009,7 +1017,7 @@ def get_brapi_quote(ticker):
         symbol = ticker.replace('.SA','').upper()
         r = requests.get(
             f'https://brapi.dev/api/quote/{symbol}?range=5d&interval=1d',
-            headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
+            headers=BRAPI_HEADERS, timeout=8)
         if not r.ok:
             return jsonify({'error': f'brapi {r.status_code}'}), 502
         rd = r.json().get('results', [{}])[0]
@@ -1054,7 +1062,7 @@ def black_scholes():
         try:
             rb = requests.get(
                 f'https://brapi.dev/api/quote/{symbol}?range=5d&interval=1d',
-                headers={'User-Agent':'Mozilla/5.0'}, timeout=8)
+                headers=BRAPI_HEADERS, timeout=8)
             if rb.ok:
                 rd = rb.json().get('results',[{}])[0]
                 p_brapi = rd.get('regularMarketPrice')
