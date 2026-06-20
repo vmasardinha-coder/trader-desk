@@ -879,7 +879,7 @@ def get_indicators(ticker):
             'GGBR4': {'pvp':0.90,'dy':2.90,'lpa':0.83,'vpa':26.58,'roe':3.1,'pl':29.07},
             'PSSA3': {'pvp':2.05,'dy':6.10,'lpa':5.70,'vpa':24.03,'roe':23.7,'pl':8.63},
             'SAPR11':{'pvp':1.45,'dy':5.20,'lpa':3.30,'vpa':26.16,'roe':12.6,'pl':11.49},
-            'EUCA4': {'pvp':1.00,'dy':6.80,'lpa':None,'vpa':None,'roe':None,'pl':None},
+            'EUCA4': {'pvp':0.77,'dy':4.60,'lpa':4.42,'vpa':31.80,'roe':13.9,'pl':5.54},
         }
         fundamentais_de_override = False
         if symbol in FUND_OVERRIDE:
