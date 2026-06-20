@@ -1,6 +1,11 @@
-"""  # v10.1
-Trader Desk — Proxy Server v10.1
+"""  # v10.2
+Trader Desk — Proxy Server v10.2
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.2:
+- Novo endpoint /btc/historico: fan chart RETROATIVO de BTC — simula Monte
+  Carlo (GARCH quando disponivel) a partir do preco de N dias atras (90/180/365)
+  e compara com o preco real observado desde entao. Usado na aba Indicadores,
+  junto com o fan chart futuro (/montecarlo/trajetorias) ja existente para BTC.
 Mudancas v10.1:
 - /montecarlo/barrier agora retorna comparativo_vol_historica (GARCH vs Vol.Simples),
   no mesmo padrao que ja existia em /montecarlo
