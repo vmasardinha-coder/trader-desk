@@ -35,6 +35,7 @@ from flask_cors import CORS
 import requests
 import math
 import time
+import json
 
 try:
     import numpy as _np
@@ -1665,22 +1666,139 @@ def _validar_positions(data):
 
     return erros
 
-@app.route('/debug/github-token-check', methods=['GET'])
-def debug_github_token_check():
-    """
-    Endpoint TEMPORARIO de diagnostico — confirma que GITHUB_WRITE_TOKEN
-    esta configurado corretamente no Render, sem NUNCA expor o valor real.
-    Remover apos a verificacao (nao deve ficar em producao).
-    """
-    import os as _os
-    token = _os.environ.get('GITHUB_WRITE_TOKEN')
+# ── ESCRITA NO GITHUB (analises.json) — Fase 2, motor pre-trade ─────
+import os as _os_module
+
+def _github_write_token():
+    return _os_module.environ.get('GITHUB_WRITE_TOKEN')
+
+def _github_get_file(path):
+    """Le um arquivo do repo via API do GitHub (com auth), retornando (conteudo_decodificado, sha)."""
+    import base64 as _b64
+    token = _github_write_token()
     if not token:
-        return jsonify({'configurado': False, 'mensagem': 'Variavel GITHUB_WRITE_TOKEN nao encontrada'})
-    return jsonify({
-        'configurado': True,
-        'comeca_com_github_pat': token.startswith('github_pat_'),
-        'tamanho_caracteres': len(token),
-    })
+        raise RuntimeError('GITHUB_WRITE_TOKEN nao configurado')
+    r = requests.get(
+        f'https://api.github.com/repos/vmasardinha-coder/trader-desk/contents/{path}',
+        headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'},
+        timeout=10)
+    if not r.ok:
+        raise RuntimeError(f'Falha ao ler {path} via API ({r.status_code}): {r.text[:200]}')
+    d = r.json()
+    conteudo = _b64.b64decode(d['content']).decode('utf-8')
+    return conteudo, d['sha']
+
+def _github_put_file(path, conteudo_str, sha, mensagem):
+    """Escreve um arquivo no repo via API do GitHub (com auth), usando o SHA atual."""
+    import base64 as _b64
+    token = _github_write_token()
+    if not token:
+        raise RuntimeError('GITHUB_WRITE_TOKEN nao configurado')
+    b64 = _b64.b64encode(conteudo_str.encode('utf-8')).decode('utf-8')
+    payload = {'message': mensagem, 'content': b64, 'sha': sha, 'branch': 'main'}
+    r = requests.put(
+        f'https://api.github.com/repos/vmasardinha-coder/trader-desk/contents/{path}',
+        headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'},
+        json=payload, timeout=15)
+    if not r.ok:
+        raise RuntimeError(f'Falha ao escrever {path} via API ({r.status_code}): {r.text[:300]}')
+    return r.json()
+
+_CAMPOS_OBRIGATORIOS_ANALISE = ['id', 'ticker', 'nome', 'data_foto', 'preco_foto', 'prazo_dias', 'tipo_estrutura', 'origem', 'status']
+_STATUS_VALIDOS = ['em_analise', 'ativa', 'encerrada']
+_TIPOS_VALIDOS = ['bidirecional', 'retorno_controlado', 'premio', 'simples']
+_ORIGENS_VALIDAS = ['customizada', 'pronta']
+
+def _validar_analise(item):
+    erros = []
+    for campo in _CAMPOS_OBRIGATORIOS_ANALISE:
+        if campo not in item or item[campo] is None:
+            erros.append(f"falta campo obrigatorio '{campo}'")
+    if item.get('status') not in _STATUS_VALIDOS:
+        erros.append(f"status invalido: {item.get('status')!r} (validos: {_STATUS_VALIDOS})")
+    if item.get('tipo_estrutura') not in _TIPOS_VALIDOS:
+        erros.append(f"tipo_estrutura invalido: {item.get('tipo_estrutura')!r} (validos: {_TIPOS_VALIDOS})")
+    if item.get('origem') not in _ORIGENS_VALIDAS:
+        erros.append(f"origem invalida: {item.get('origem')!r} (validas: {_ORIGENS_VALIDAS})")
+    return erros
+
+@app.route('/analises', methods=['GET'])
+def get_analises():
+    """Le analises.json do repo (publico, via raw — leitura nao precisa de token)."""
+    try:
+        r = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        if not r.ok:
+            return jsonify({'error': 'analises.json indisponivel'}), 500
+        data = r.json()
+        return jsonify(data)
+    except ValueError as e:
+        return jsonify({'error': f'analises.json com JSON malformado: {str(e)}'}), 422
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/analises', methods=['POST'])
+def criar_analise():
+    """
+    Cria uma nova foto em Em Análise. Espera no body o objeto da análise
+    (sem 'id', que é gerado automaticamente; sem 'status', que é forçado
+    para 'em_analise' nesta rota — só pode mudar via /analises/<id>/status).
+    """
+    try:
+        novo = request.get_json() or {}
+        novo['status'] = 'em_analise'
+        if 'id' not in novo or not novo['id']:
+            import time as _time
+            novo['id'] = f"an_{int(_time.time())}"
+
+        erros = _validar_analise(novo)
+        if erros:
+            return jsonify({'error': 'dados invalidos', 'detalhes': erros}), 422
+
+        conteudo_str, sha = _github_get_file('analises.json')
+        lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+        lista.append(novo)
+        novo_conteudo = json.dumps(lista, indent=2, ensure_ascii=False)
+        _github_put_file('analises.json', novo_conteudo, sha,
+            f"feat: nova analise {novo['id']} ({novo.get('ticker','?')}) via app")
+        return jsonify(novo), 201
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/analises/<analise_id>/status', methods=['PUT'])
+def mudar_status_analise(analise_id):
+    """
+    Move uma analise entre estagios (em_analise -> ativa -> encerrada, ou
+    em_analise -> encerrada direto). Espera {'status': 'ativa'} no body.
+    """
+    try:
+        body = request.get_json() or {}
+        novo_status = body.get('status')
+        if novo_status not in _STATUS_VALIDOS:
+            return jsonify({'error': f'status invalido: {novo_status!r}'}), 422
+
+        conteudo_str, sha = _github_get_file('analises.json')
+        lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+        encontrado = False
+        for item in lista:
+            if item.get('id') == analise_id:
+                item['status'] = novo_status
+                encontrado = True
+                break
+        if not encontrado:
+            return jsonify({'error': f'analise {analise_id} nao encontrada'}), 404
+
+        novo_conteudo = json.dumps(lista, indent=2, ensure_ascii=False)
+        _github_put_file('analises.json', novo_conteudo, sha,
+            f"feat: analise {analise_id} -> status={novo_status} via app")
+        return jsonify({'id': analise_id, 'status': novo_status})
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/positions', methods=['GET'])
 def get_positions():
