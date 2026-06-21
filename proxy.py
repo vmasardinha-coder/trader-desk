@@ -1665,6 +1665,23 @@ def _validar_positions(data):
 
     return erros
 
+@app.route('/debug/github-token-check', methods=['GET'])
+def debug_github_token_check():
+    """
+    Endpoint TEMPORARIO de diagnostico — confirma que GITHUB_WRITE_TOKEN
+    esta configurado corretamente no Render, sem NUNCA expor o valor real.
+    Remover apos a verificacao (nao deve ficar em producao).
+    """
+    import os as _os
+    token = _os.environ.get('GITHUB_WRITE_TOKEN')
+    if not token:
+        return jsonify({'configurado': False, 'mensagem': 'Variavel GITHUB_WRITE_TOKEN nao encontrada'})
+    return jsonify({
+        'configurado': True,
+        'comeca_com_github_pat': token.startswith('github_pat_'),
+        'tamanho_caracteres': len(token),
+    })
+
 @app.route('/positions', methods=['GET'])
 def get_positions():
     """
