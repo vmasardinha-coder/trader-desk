@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "ticker": "ITUB4.SA",
+    "nome": "Itau Unibanco PN (teste)",
+    "data_foto": "2026-06-21",
+    "preco_foto": 39.87,
+    "prazo_dias": 21,
+    "tipo_estrutura": "simples",
+    "origem": "customizada",
+    "k_call": 39,
+    "status": "em_analise",
+    "id": "an_1782076714"
+  }
+]
