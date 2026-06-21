@@ -13,6 +13,7 @@ body{
   max-width:clamp(1100px,92vw,1800px);margin:0 auto;min-height:100vh
 }
 @media(max-width:600px){body{padding:12px;font-size:14px}}
+@media(min-width:900px){body{zoom:1.3}}
 
 /* ── HEADER ── */
 .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
