@@ -498,7 +498,7 @@ function tplWatchAtivo(a, segNome){
             <button onclick="loadFanChart('${a.id}',60)" class="cal-fb fc-period-btn" id="${a.id}-fc-60">60 dias</button>
             <button onclick="loadFanChart('${a.id}',90)" class="cal-fb fc-period-btn" id="${a.id}-fc-90">90 dias</button>
           </div>
-          <div style="position:relative;height:260px;background:var(--bg2);border:1px solid var(--border);padding:8px">
+          <div style="position:relative;height:clamp(260px,32vh,420px);background:var(--bg2);border:1px solid var(--border);padding:8px">
             <canvas id="${a.id}-fc-canvas"></canvas>
           </div>
           <div id="${a.id}-fc-info" style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Selecione um período para simular</div>
