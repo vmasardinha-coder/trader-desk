@@ -94,5 +94,20 @@
     "status": "em_analise",
     "observacao": "Proposta REAL do banco (Itau, Material Publicitario 16/12/2025, vencimento 21/12/2026, 182 dias restantes a partir de hoje). Estrutura: Bidirecional, KDO -20% (R$64,60), KUO +51% (R$121,93). Alavancagem 1,50x dentro do range (inferida do quadro de rentabilidade do PDF: 51%->76,5% e 15%->22,5%, ambos = 1,50x). Teto travado em 15,00% (15% a.a.) -- numeros do banco aceitos como premissa fixa, sem reescalar. USUARIO DUVIDA QUE ESSA PROPOSTA ESPECIFICA AINDA ESTEJA DISPONIVEL NO BANCO HOJE -- registrada como ESTUDO/REFERENCIA, nao necessariamente executavel. Prob. (Monte Carlo vol.impl. 30%): fica dentro 51,8%, toca defesa 40,2% (RISCO ALTO, mesmo padrao do caso real VALE3 antiga que deu errado), toca teto 8,0%. Prob. de bater meta proporcional (2%/mes x 6,1 meses = 12,1%): 31,86%. Retorno medio dentro do range: positivo (+R$980,71 em 100 acoes), diferente do PETR4/AXIA3 que tinham retorno medio neutro/negativo.",
     "backtest": true
+  },
+  {
+    "id": "an_1782147275",
+    "ticker": "ROXO34.SA",
+    "nome": "ROXO34 - Nubank BDR (venda de PUT)",
+    "data_foto": "2026-06-22",
+    "preco_foto": 11.02,
+    "prazo_dias": 19,
+    "tipo_estrutura": "premio",
+    "k_put": 10.5,
+    "premio": 375.0,
+    "origem": "customizada",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "Venda de PUT (codigo OpLab ROXOS105), real do book OpLab (sessao 22/06/2026). Operacao INVERSA da call coberta: usuario NAO tem o papel ainda, topa comprar 2500 acoes a R$10,50 se for exercido (capital comprometido R$26.250,00). Premio real recebido: R$375,00 (R$0,15/acao x 2500). 19 dias uteis. Retorno sobre capital comprometido: 1,43% -> equivalente 2,26%/mes, BATE a meta de 2-2,5%/mes do usuario. PONTO DE ATENCAO: baixa liquidez (Vol.Fin.=15,00 na grade OpLab, bem abaixo de outras puts do mesmo lote) -- pode ser dificil executar no tamanho desejado sem mover o preco. Comparada na sessao contra venda de CALL coberta ROXOG117 (mesma grade, prazo, ativo): call rendeu R$650,00/3,73%-mes (quase o dobro), mas usuario ja tem o papel nessa, situacoes diferentes (nao e exatamente comparavel 1:1)."
   }
 ]
