@@ -14,5 +14,31 @@
     "origem": "customizada",
     "status": "em_analise",
     "observacao": "Estrutura teorica calibrada via Monte Carlo (3 pernas com barreira, vol.impl. 30%): defesa -20% (protegida, retorno 0%), teto +19.4% travando em 4.5% (2.25%/mes, dentro da meta 2-2.5%/mes do usuario). Alavancagem dentro do range: 0.232x. Prob. bater meta: 17.9%. Prob. ficar dentro do range: 69.7% (retorno medio quase neutro, -0.39%). Prob. tocar defesa: 12.3%. AINDA NAO comparado com proposta real do banco -- usuario vai trazer mais exemplos para comparar."
+  },
+  {
+    "id": "an_1782100906",
+    "ticker": "ROXO34.SA",
+    "nome": "ROXO34 - Nubank BDR",
+    "data_foto": "2026-06-22",
+    "preco_foto": 11.03,
+    "prazo_dias": 56,
+    "tipo_estrutura": "retorno_controlado",
+    "kdo": 8.82,
+    "origem": "pronta",
+    "status": "em_analise",
+    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 19/02/2026, vencimento original 17/08/2026, mantido). Estrutura: Retorno Controlado, barreira unica Knock-Down-Out a -20% (R$8,82). Ganho PREFIXADO de 16,80% se NAO tocar a barreira em nenhum momento; se tocar, fica com o papel exposto a variacao real, SEM garantia de ganho. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 88,89%. Prob. de tocar barreira: 11,11%. Equivalente mensal SE nao tocar: 9,00%/mes -- muito acima da regua minima de 1%/mes. Sem alavancagem/teto_retorno_pct (estrutura diferente da bidirecional, nao se aplica a tabela de faixas ainda)."
+  },
+  {
+    "id": "an_1782100907",
+    "ticker": "TSLA34.SA",
+    "nome": "TSLA34 - Tesla BDR",
+    "data_foto": "2026-06-22",
+    "preco_foto": 64.08,
+    "prazo_dias": 60,
+    "tipo_estrutura": "retorno_controlado",
+    "kdo": 51.26,
+    "origem": "pronta",
+    "status": "em_analise",
+    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 09/03/2026), REPROJETADA: vencimento original (11/05/2026) ja passou, entao foi simulada com MESMO prazo (2 meses, arredondado para 60 dias) a partir de hoje (22/06/2026), usando preco atual em vez do preco de contratacao original. Estrutura: Retorno Controlado, barreira unica Knock-Down-Out a -20% (R$51,26). Ganho PREFIXADO de 10,90% se NAO tocar a barreira; se tocar, fica com o papel exposto a variacao real, SEM garantia de ganho. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 87,59%. Prob. de tocar barreira: 12,41%. Equivalente mensal SE nao tocar: 5,45%/mes -- acima da regua minima de 1%/mes. Sem alavancagem/teto_retorno_pct (estrutura diferente da bidirecional)."
   }
 ]
