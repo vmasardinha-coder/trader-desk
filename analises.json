@@ -9,6 +9,8 @@
     "tipo_estrutura": "bidirecional",
     "kdo": 31.04,
     "kuo": 46.33,
+    "alavancagem": 0.232,
+    "teto_retorno_pct": 4.5,
     "origem": "customizada",
     "status": "em_analise",
     "observacao": "Estrutura teorica calibrada via Monte Carlo (3 pernas com barreira, vol.impl. 30%): defesa -20% (protegida, retorno 0%), teto +19.4% travando em 4.5% (2.25%/mes, dentro da meta 2-2.5%/mes do usuario). Alavancagem dentro do range: 0.232x. Prob. bater meta: 17.9%. Prob. ficar dentro do range: 69.7% (retorno medio quase neutro, -0.39%). Prob. tocar defesa: 12.3%. AINDA NAO comparado com proposta real do banco -- usuario vai trazer mais exemplos para comparar."
