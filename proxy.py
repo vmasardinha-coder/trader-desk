@@ -722,6 +722,17 @@ def run_montecarlo_condicional():
       preco ATUAL (nao do preco da foto) — isso e o que torna "condicional"
     - garch: info do GARCH usado (vol. atual, nao a vol. da epoca da foto)
     - fora_do_prazo: true se dias_passados >= prazo_dias (foto vencida)
+    - fan_chart: banda de percentis (p10-p90) em PRECO do ativo, do dia 0 ao
+      prazo_dias total (projetada a partir do preco_foto com a vol. atual),
+      junto com a serie de precos REAIS observados desde a data_foto até
+      hoje — para visualizacao tipo "fan chart" com linha real navegando
+      sobre a banda projetada (mesmo padrao usado em /btc/historico)
+    - prob_retorno_faixas: probabilidade do RETORNO FINAL DA ESTRUTURA cair
+      em cada faixa fixa (<0%, 0-1%, 1-2%, 2-2.5%, >2.5%), considerando o
+      payoff real da estrutura (alavancagem dentro do range, teto travado
+      nas barreiras) — só calculado quando o payload incluir os campos
+      'alavancagem' e 'teto_retorno_pct' (opcionais; sem eles, a faixa de
+      retorno nao e calculada, so as probabilidades de barreira normais)
     """
     try:
         import numpy as np
@@ -753,6 +764,7 @@ def run_montecarlo_condicional():
         # Yahoo primeiro, brapi com range=3mo se Yahoo falhar/bloquear o ticker)
         S = None
         cl = []
+        ts = []  # timestamps paralelos a cl, usados para montar a janela real desde a foto
         sigma = 0.35
         for host in ['query1', 'query2']:
             try:
@@ -763,7 +775,10 @@ def run_montecarlo_condicional():
                     d = r.json()
                     meta = d['chart']['result'][0]['meta']
                     raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                    raw_ts = d['chart']['result'][0].get('timestamp', [])
                     cl = [c for c in raw_cl if c is not None]
+                    # mantem ts alinhado: só os indices onde close nao e None
+                    ts = [t for t, c in zip(raw_ts, raw_cl) if c is not None]
                     S = float(meta.get('regularMarketPrice', cl[-1] if cl else 0))
                     if cl: sigma = vol_hist(cl)
                     break
@@ -850,6 +865,89 @@ def run_montecarlo_condicional():
             res['prob_barreira_baixa'] = round(float(kdo_hit.mean() * 100), 2)
             res['kdo'] = kdo
             res['kuo'] = kuo
+
+        # ── FAN CHART: banda de percentis do DIA 0 (preco_foto) ao prazo_dias
+        # TOTAL, projetada com a vol. ATUAL — junto com a serie de precos REAIS
+        # observados desde a data_foto até hoje. Permite visualizar a linha real
+        # "navegando" sobre a banda projetada, no mesmo padrao de /btc/historico.
+        try:
+            n_fan = 2000
+            n_linhas_fan = 20
+            dt_fan = 1 / 252.0
+            drift_fan = -0.5 * sigma**2 * dt_fan
+            vol_step_fan = sigma * math.sqrt(dt_fan)
+            z_fan = np.random.standard_normal((n_fan, prazo_dias))
+            paths_fan = preco_foto * np.exp(np.cumsum(drift_fan + vol_step_fan * z_fan, axis=1))
+            paths_fan = np.hstack([np.full((n_fan, 1), preco_foto), paths_fan])
+
+            percentis_fan = {}
+            for p in [10, 25, 50, 75, 90]:
+                percentis_fan[f'p{p}'] = np.percentile(paths_fan, p, axis=0).round(2).tolist()
+
+            idx_amostra_fan = np.random.choice(n_fan, size=min(n_linhas_fan, n_fan), replace=False)
+            trajetorias_fan = paths_fan[idx_amostra_fan].round(2).tolist()
+
+            # Serie de precos REAIS desde a data_foto até hoje (usa o historico
+            # já buscado acima, alinhado por timestamp; ts esta em segundos epoch)
+            precos_reais_fan = None
+            if ts and cl:
+                from datetime import datetime as _dt2, timezone as _tz2
+                foto_epoch = _dt2.combine(data_foto, _dt2.min.time(), tzinfo=_tz2.utc).timestamp()
+                idx_inicio = None
+                for i, t in enumerate(ts):
+                    if t >= foto_epoch:
+                        idx_inicio = i
+                        break
+                if idx_inicio is not None:
+                    janela_real = cl[idx_inicio:idx_inicio + dias_passados + 1]
+                    precos_reais_fan = [round(float(p), 2) for p in janela_real]
+
+            res['fan_chart'] = {
+                'dias': list(range(prazo_dias + 1)),
+                'percentis': percentis_fan,
+                'trajetorias': trajetorias_fan,
+                'precos_reais': precos_reais_fan,
+                'preco_foto': round(preco_foto, 2),
+            }
+        except Exception:
+            res['fan_chart'] = None
+
+        # ── FAIXAS DE PROBABILIDADE DE RETORNO DA ESTRUTURA (faixas fixas:
+        # <0%, 0-1%, 1-2%, 2-2.5% [meta], >2.5%) — só calculado quando o
+        # payload trouxer 'alavancagem' e 'teto_retorno_pct' (estrutura
+        # bidirecional com payoff conhecido). Usa o tempo TOTAL original
+        # (prazo_dias, projetado do preco_foto), nao o tempo restante —
+        # representa "qual seria o resultado FINAL da estrutura completa".
+        alavancagem = data.get('alavancagem')
+        teto_retorno_pct = data.get('teto_retorno_pct')
+        if alavancagem is not None and teto_retorno_pct is not None and kdo is not None and kuo is not None:
+            try:
+                alavancagem = float(alavancagem)
+                teto_retorno = float(teto_retorno_pct) / 100
+                n_faixas = 20000
+                z_full = np.random.standard_normal((n_faixas, prazo_dias))
+                paths_full = preco_foto * np.exp(np.cumsum(drift_fan + vol_step_fan * z_full, axis=1))
+                max_full = np.max(paths_full, axis=1)
+                min_full = np.min(paths_full, axis=1)
+                ST_full = paths_full[:, -1]
+                tocou_baixa_full = min_full <= kdo
+                tocou_alta_full = max_full >= kuo
+                variacao_full = (ST_full / preco_foto - 1)
+                retorno_full = np.where(tocou_baixa_full, 0.0,
+                                  np.where(tocou_alta_full, teto_retorno,
+                                  variacao_full * alavancagem))
+                faixas = {
+                    'menor_que_0': round(float((retorno_full < 0).mean() * 100), 2),
+                    'entre_0_e_1': round(float(((retorno_full >= 0) & (retorno_full < 0.01)).mean() * 100), 2),
+                    'entre_1_e_2': round(float(((retorno_full >= 0.01) & (retorno_full < 0.02)).mean() * 100), 2),
+                    'entre_2_e_meta': round(float(((retorno_full >= 0.02) & (retorno_full < teto_retorno)).mean() * 100), 2),
+                    'maior_ou_igual_meta': round(float((retorno_full >= teto_retorno).mean() * 100), 2),
+                }
+                res['prob_retorno_faixas'] = faixas
+                res['retorno_medio_pct'] = round(float(retorno_full.mean() * 100), 2)
+                res['teto_retorno_usado_pct'] = round(teto_retorno * 100, 2)
+            except Exception:
+                res['prob_retorno_faixas'] = None
 
         return jsonify(res)
     except Exception as e:
