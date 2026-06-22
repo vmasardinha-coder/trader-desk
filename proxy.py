@@ -1,6 +1,14 @@
-"""  # v10.6
-Trader Desk — Proxy Server v10.6
+"""  # v10.7
+Trader Desk — Proxy Server v10.7
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.7:
+- /montecarlo/condicional agora retorna 'simulacao_100_acoes': traduz os
+  percentuais abstratos da estrutura em R$ concretos sobre um lote fixo de
+  100 acoes no preco_foto, nos cenarios possiveis (defesa/dentro/teto para
+  bidirecional; prefixado/exposto para retorno controlado). Reaproveita os
+  arrays de retorno ja simulados nos blocos de faixas (sem rodar Monte
+  Carlo de novo); funciona para qualquer foto que tenha kdo+kuo+alavancagem
+  +teto_retorno_pct OU kdo+ganho_prefixado_pct.
 Mudancas v10.6:
 - /montecarlo/condicional: prob_retorno_faixas agora tambem funciona para
   estruturas RETORNO CONTROLADO (barreira unica + ganho prefixado, ex
@@ -944,6 +952,10 @@ def run_montecarlo_condicional():
         # representa "qual seria o resultado FINAL da estrutura completa".
         alavancagem = data.get('alavancagem')
         teto_retorno_pct = data.get('teto_retorno_pct')
+        retorno_full = None
+        tocou_baixa_full = None
+        tocou_alta_full = None
+        teto_retorno = None
         if alavancagem is not None and teto_retorno_pct is not None and kdo is not None and kuo is not None:
             try:
                 alavancagem = float(alavancagem)
@@ -980,6 +992,10 @@ def run_montecarlo_condicional():
         # payload trouxer 'ganho_prefixado_pct' E NAO tiver 'alavancagem'/
         # 'teto_retorno_pct' (que seria o caso bidirecional, tratado acima).
         ganho_prefixado_pct = data.get('ganho_prefixado_pct')
+        retorno_full2 = None
+        tocou_barreira2 = None
+        variacao_full2 = None
+        ganho_prefixado = None
         if (ganho_prefixado_pct is not None and alavancagem is None
                 and teto_retorno_pct is None and kdo is not None):
             try:
@@ -1007,6 +1023,70 @@ def run_montecarlo_condicional():
                 res['prob_ganho_prefixado'] = round(float((~tocou_barreira2).mean() * 100), 2)
             except Exception:
                 res['prob_retorno_faixas'] = None
+
+        # ── SIMULAÇÃO DIDÁTICA EM 100 AÇÕES (padrão fixo, qualquer tipo de
+        # estrutura) — traduz os percentuais abstratos em R$ concretos sobre
+        # um lote de 100 ações no preco_foto, nos 3 cenários possíveis:
+        # defesa/barreira tocada, dentro do range (média/mediana), e teto/
+        # ganho prefixado. Reaproveita o array de retorno já simulado acima
+        # (retorno_full para bidirecional, retorno_full2 para retorno
+        # controlado) quando disponível; senão, não calcula (sem dado
+        # suficiente, ex. estrutura simples sem kdo/kuo/ganho_prefixado).
+        try:
+            capital_100 = preco_foto * 100
+            sim_100 = None
+            if retorno_full is not None and kdo is not None and kuo is not None:
+                # caso bidirecional
+                r_full = retorno_full
+                cenario_defesa = {
+                    'probabilidade_pct': round(float(tocou_baixa_full.mean() * 100), 2),
+                    'retorno_pct': 0.0,
+                    'retorno_reais': 0.0,
+                    'descricao': 'Protegido: nem ganha nem perde (defesa em ' + str(round(kdo,2)) + ')',
+                }
+                dentro_mask = (~tocou_baixa_full) & (~tocou_alta_full)
+                ret_dentro = r_full[dentro_mask]
+                cenario_dentro = {
+                    'probabilidade_pct': round(float(dentro_mask.mean() * 100), 2),
+                    'retorno_medio_pct': round(float(ret_dentro.mean() * 100), 2) if len(ret_dentro) else 0.0,
+                    'retorno_medio_reais': round(float(ret_dentro.mean() * capital_100), 2) if len(ret_dentro) else 0.0,
+                    'descricao': 'Fica dentro do range (ganha a variação × alavancagem)',
+                }
+                cenario_teto = {
+                    'probabilidade_pct': round(float(tocou_alta_full.mean() * 100), 2),
+                    'retorno_pct': round(teto_retorno * 100, 2),
+                    'retorno_reais': round(teto_retorno * capital_100, 2),
+                    'descricao': 'Trava no teto (barreira em ' + str(round(kuo,2)) + ')',
+                }
+                sim_100 = {
+                    'acoes': 100, 'preco_foto': round(preco_foto, 2),
+                    'capital': round(capital_100, 2),
+                    'defesa': cenario_defesa, 'dentro': cenario_dentro, 'teto': cenario_teto,
+                }
+            elif retorno_full2 is not None and kdo is not None:
+                # caso retorno controlado (barreira única + ganho prefixado)
+                cenario_prefixado = {
+                    'probabilidade_pct': round(float((~tocou_barreira2).mean() * 100), 2),
+                    'retorno_pct': round(ganho_prefixado * 100, 2),
+                    'retorno_reais': round(ganho_prefixado * capital_100, 2),
+                    'descricao': 'Ganha o prefixado (não tocou a barreira)',
+                }
+                exposto_mask = tocou_barreira2
+                ret_exposto = variacao_full2[exposto_mask]
+                cenario_exposto = {
+                    'probabilidade_pct': round(float(exposto_mask.mean() * 100), 2),
+                    'retorno_medio_pct': round(float(ret_exposto.mean() * 100), 2) if len(ret_exposto) else 0.0,
+                    'retorno_medio_reais': round(float(ret_exposto.mean() * capital_100), 2) if len(ret_exposto) else 0.0,
+                    'descricao': 'Tocou a barreira: fica exposto à variação real (sem garantia)',
+                }
+                sim_100 = {
+                    'acoes': 100, 'preco_foto': round(preco_foto, 2),
+                    'capital': round(capital_100, 2),
+                    'prefixado': cenario_prefixado, 'exposto': cenario_exposto,
+                }
+            res['simulacao_100_acoes'] = sim_100
+        except Exception:
+            res['simulacao_100_acoes'] = None
 
         return jsonify(res)
     except Exception as e:
