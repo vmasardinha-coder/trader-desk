@@ -59,6 +59,18 @@ function tg(id){
   if(op&&!b.dataset.l){b.dataset.l='1';loadSeg(id);}
 }
 
+// Toggle simples para as tabelas de Cotações (EUA/B3/Commodities) — os
+// dados dessas tabelas já são carregados por main()/fMacro() independente
+// do estado expandido, então aqui é só esconder/mostrar visualmente, sem
+// disparar nenhum fetch (diferente de tg(), que carrega dados por setor).
+function togCot(id){
+  const w=document.getElementById('cot-'+id+'-wrap'),a=document.getElementById('ar-cot-'+id);
+  if(!w)return;
+  const op=w.style.display==='none';
+  w.style.display=op?'block':'none';
+  if(a)a.textContent=op?'▼':'▶';
+}
+
 async function loadSeg(id){
   const g=document.getElementById('g-'+id);if(!g)return;
   g.classList.remove('grid');g.style.display='block';
