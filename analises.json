@@ -42,5 +42,19 @@
     "origem": "pronta",
     "status": "em_analise",
     "observacao": "Proposta REAL do banco (Itau, Material Publicitario 09/03/2026), REPROJETADA: vencimento original (11/05/2026) ja passou, entao foi simulada com MESMO prazo (2 meses, arredondado para 60 dias) a partir de hoje (22/06/2026). REGRA: numeros do banco (ganho prefixado 10,90%, barreira -20%) aceitos como premissa fixa, sem reescalar -- so o vencimento e simulado a partir de hoje. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 87,59%. Equivalente mensal SE nao tocar: 5,45%/mes."
+  },
+  {
+    "id": "an_1782123970",
+    "ticker": "ROXO34.SA",
+    "nome": "ROXO34 - Nubank BDR",
+    "data_foto": "2026-06-22",
+    "preco_foto": 11.03,
+    "prazo_dias": 60,
+    "tipo_estrutura": "simples",
+    "k_call": 11.25,
+    "premio": 550.0,
+    "origem": "pronta",
+    "status": "em_analise",
+    "observacao": "Venda de call coberta (lancamento coberto), independente da posicao ja ativa ROXOG105 (strike 10.50, vencimento 16/07). Esta e uma proposta NOVA e separada: strike R$11,25, vencimento 21/08/2026 (60 dias), 2500 acoes, premio total R$550,00 (R$0,22/acao). Retorno sobre capital: 1,99% em 60 dias = 1,00%/mes -- ABAIXO da meta de 2-2,5%/mes mas e a melhor opcao do lote de 9 calls simples avaliadas (BBAS3/ROXO34/AXIA3). Mantida para fins didaticos e de comparacao."
   }
 ]
