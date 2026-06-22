@@ -331,7 +331,8 @@ function renderEvolucaoPosicao(id,d){
     return;
   }
 
-  let html='<div class="sb" style="margin-top:0">';
+  let html='<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">1. PROBABILIDADES — PREÇO DA ENTRADA vs. ATUAL</div>';
+  html+='<div class="sb" style="margin-top:0">';
   html+='<div class="sr"><span class="sl">Preço na entrada</span><span class="sv">'+fR(d.preco_entrada)+'</span></div>';
   html+='<div class="sr"><span class="sl">Preço atual</span><span class="sv">'+fR(d.preco_atual)+'</span></div>';
   html+='<div class="sr"><span class="sl">Dias decorridos / restantes</span><span class="sv">'+d.dias_passados+' / '+d.dias_restantes+'</span></div>';
@@ -342,21 +343,9 @@ function renderEvolucaoPosicao(id,d){
   }
   html+='</div>';
 
-  if(d.prob_retorno_faixas){
-    const f=d.prob_retorno_faixas;
-    html+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">PROBABILIDADE DE RETORNO FINAL (DESDE A ENTRADA)</div>'+
-      '<div class="sb" style="margin-top:0">'+
-      '<div class="sr"><span class="sl">Abaixo de 0%</span><span class="sv itm">'+f.menor_que_0.toFixed(1)+'%</span></div>'+
-      '<div class="sr"><span class="sl">Entre 0% e 1%</span><span class="sv">'+f.entre_0_e_1.toFixed(1)+'%</span></div>'+
-      '<div class="sr"><span class="sl">Entre 1% e 2%</span><span class="sv">'+f.entre_1_e_2.toFixed(1)+'%</span></div>'+
-      '<div class="sr"><span class="sl">Entre 2% e a meta</span><span class="sv warn">'+f.entre_2_e_meta.toFixed(1)+'%</span></div>'+
-      '<div class="sr"><span class="sl">Bate a meta (\u2265'+(d.teto_retorno_usado_pct!=null?d.teto_retorno_usado_pct:'?')+'%)</span><span class="sv ok">'+f.maior_ou_igual_meta.toFixed(1)+'%</span></div>'+
-      '</div></div>';
-  }
-
   if(d.simulacao_100_acoes){
     const s=d.simulacao_100_acoes;
-    html+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">SIMULAÇÃO — 100 AÇÕES A '+fR(s.preco_foto)+'</div><div class="sb" style="margin-top:0">';
+    html+='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">2. SIMULAÇÃO — 100 AÇÕES A '+fR(s.preco_foto)+'</div><div class="sb" style="margin-top:0">';
     if(s.defesa){
       html+='<div class="sr"><span class="sl">'+s.defesa.descricao+'</span><span class="sv">'+fR(s.defesa.retorno_reais)+'</span></div>';
       html+='<div class="sr"><span class="sl">'+s.dentro.descricao+'</span><span class="sv '+(s.dentro.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.dentro.retorno_medio_reais>=0?'+':'')+fR(s.dentro.retorno_medio_reais)+'</span></div>';
@@ -371,8 +360,20 @@ function renderEvolucaoPosicao(id,d){
     html+='</div></div>';
   }
 
+  if(d.prob_retorno_faixas){
+    const f=d.prob_retorno_faixas;
+    html+='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">3. PROBABILIDADE DE RETORNO FINAL (DESDE A ENTRADA)</div>'+
+      '<div class="sb" style="margin-top:0">'+
+      '<div class="sr"><span class="sl">Abaixo de 0%</span><span class="sv itm">'+f.menor_que_0.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 0% e 1%</span><span class="sv">'+f.entre_0_e_1.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 1% e 2%</span><span class="sv">'+f.entre_1_e_2.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 2% e a meta</span><span class="sv warn">'+f.entre_2_e_meta.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Bate a meta (\u2265'+(d.teto_retorno_usado_pct!=null?d.teto_retorno_usado_pct:'?')+'%)</span><span class="sv ok">'+f.maior_ou_igual_meta.toFixed(1)+'%</span></div>'+
+      '</div></div>';
+  }
+
   if(d.fan_chart){
-    html+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">EVOLUÇÃO REAL DESDE A ENTRADA + PROJEÇÃO</div>'+
+    html+='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">4. EVOLUÇÃO REAL DESDE A ENTRADA + PROJEÇÃO</div>'+
       '<div style="position:relative;height:clamp(240px,30vh,380px);background:var(--bg2);border:1px solid var(--border);padding:8px">'+
       '<canvas id="analise-fan-canvas-'+id+'-pos"></canvas></div></div>';
   }
@@ -1732,7 +1733,8 @@ function renderCondicional(id,d){
     return;
   }
 
-  let probsHtml='<div class="sb" style="margin-top:0">';
+  let probsHtml='<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">1. PROBABILIDADES — PREÇO DA FOTO vs. ATUAL</div>';
+  probsHtml+='<div class="sb" style="margin-top:0">';
   probsHtml+='<div class="sr"><span class="sl">Preço atual</span><span class="sv">'+fR(d.preco_atual)+'</span></div>';
   probsHtml+='<div class="sr"><span class="sl">Dias passados / restantes</span><span class="sv">'+d.dias_passados+' / '+d.dias_restantes+'</span></div>';
   if(d.prob_call_exercida!=null)probsHtml+='<div class="sr"><span class="sl">Prob. Call exercida (restante)</span><span class="sv '+(d.prob_call_exercida>50?'itm':d.prob_call_exercida>30?'warn':'ok')+'">'+d.prob_call_exercida.toFixed(2)+'%</span></div>';
@@ -1755,8 +1757,8 @@ function renderCondicional(id,d){
   let sim100Html='';
   if(d.simulacao_100_acoes){
     const s=d.simulacao_100_acoes;
-    sim100Html='<div style="margin-top:14px">'+
-      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">SIMULAÇÃO DIDÁTICA — 100 AÇÕES A '+fR(s.preco_foto)+' (CAPITAL '+fR(s.capital)+')</div>'+
+    sim100Html='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">2. SIMULAÇÃO DIDÁTICA — 100 AÇÕES A '+fR(s.preco_foto)+' (CAPITAL '+fR(s.capital)+')</div>'+
       '<div class="sb" style="margin-top:0">';
     if(s.defesa){
       sim100Html+='<div class="sr"><span class="sl">'+s.defesa.descricao+' ('+s.defesa.probabilidade_pct.toFixed(1)+'%)</span><span class="sv">'+fR(s.defesa.retorno_reais)+'</span></div>';
@@ -1776,8 +1778,8 @@ function renderCondicional(id,d){
   let faixasHtml='';
   if(d.prob_retorno_faixas){
     const f=d.prob_retorno_faixas;
-    faixasHtml='<div style="margin-top:14px">'+
-      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">PROBABILIDADE DE RETORNO FINAL DA ESTRUTURA</div>'+
+    faixasHtml='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">3. PROBABILIDADE DE RETORNO FINAL DA ESTRUTURA</div>'+
       '<div class="sb" style="margin-top:0">'+
       '<div class="sr"><span class="sl">Abaixo de 0% (perda)</span><span class="sv itm">'+f.menor_que_0.toFixed(1)+'%</span></div>'+
       '<div class="sr"><span class="sl">Entre 0% e 1%</span><span class="sv">'+f.entre_0_e_1.toFixed(1)+'%</span></div>'+
@@ -1793,8 +1795,8 @@ function renderCondicional(id,d){
   // Gráfico fan chart (banda completa do dia 0 ao prazo, com linha real sobreposta)
   let graficoHtml='';
   if(d.fan_chart){
-    graficoHtml='<div style="margin-top:14px">'+
-      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">EVOLUÇÃO DA FOTO — PREÇO REAL vs. CENÁRIOS PROJETADOS</div>'+
+    graficoHtml='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">4. EVOLUÇÃO DA FOTO — PREÇO REAL vs. CENÁRIOS PROJETADOS</div>'+
       '<div style="position:relative;height:clamp(240px,30vh,380px);background:var(--bg2);border:1px solid var(--border);padding:8px">'+
       '<canvas id="analise-fan-canvas-'+id+'"></canvas>'+
       '</div></div>';
