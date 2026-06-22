@@ -1,6 +1,14 @@
-"""  # v10.11
-Trader Desk — Proxy Server v10.11
+"""  # v10.12
+Trader Desk — Proxy Server v10.12
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.12:
+- /montecarlo/condicional: corrige prob_call_exercida/prob_put_exercida
+  para tambem respeitar 'exercicio' (americana usa max/min da trajetoria
+  completa; europeia so preco final) — antes sempre usava so preco final
+  (correto para europeia, mas subestimava o risco real para americana,
+  mesmo bug ja corrigido em /montecarlo e /montecarlo/posicao_ativa).
+  Campo 'exercicio' agora obrigatorio quando k_call/k_put presente sem
+  kdo/kuo, mesma regra das outras rotas (sem padrao implicito).
 Mudancas v10.11:
 - /montecarlo (simples) e /montecarlo/posicao_ativa: estende
   prob_retorno_faixas + simulacao_100_acoes para venda de CALL coberta
@@ -907,13 +915,36 @@ def run_montecarlo_condicional():
             'cenarios': n, 'engine': 'numpy',
         }
 
-        if K_call is not None:
-            call_ex = ST > K_call
-            res['prob_call_exercida'] = round(float(call_ex.mean() * 100), 2)
-            res['prob_sucesso'] = round(float((~call_ex).mean() * 100), 2)
-        if K_put is not None:
-            put_ex = ST < K_put
-            res['prob_put_exercida'] = round(float(put_ex.mean() * 100), 2)
+        if K_call is not None or K_put is not None or (kdo is not None and kuo is not None):
+            # Precisa da trajetoria completa quando a opcao for AMERICANA
+            # (exercicio possivel em qualquer momento) ou quando houver
+            # barreira (kdo/kuo, sempre monitorada continuamente). Campo
+            # 'exercicio' e OBRIGATORIO quando k_call/k_put estiver presente
+            # SEM kdo/kuo (mesma regra do /montecarlo principal).
+            exercicio = data.get('exercicio')
+            precisa_exercicio = (K_call is not None or K_put is not None) and kdo is None
+            if precisa_exercicio and exercicio not in ('americana', 'europeia'):
+                return jsonify({'error': "campo 'exercicio' obrigatorio quando k_call/k_put presente (sem kdo/kuo): 'americana' ou 'europeia'"}), 400
+
+            steps = max(dias_restantes, 1)
+            dt2 = 1 / 252.0
+            drift2 = -0.5 * sigma**2 * dt2
+            vol_step2 = sigma * math.sqrt(dt2)
+            z2 = np.random.standard_normal((n, steps))
+            paths = S * np.exp(np.cumsum(drift2 + vol_step2 * z2, axis=1))
+            max_p = np.max(paths, axis=1)
+            min_p = np.min(paths, axis=1)
+            ST_path = paths[:, -1]
+
+            if K_call is not None:
+                call_ex = (max_p > K_call) if exercicio == 'americana' else (ST_path > K_call)
+                res['prob_call_exercida'] = round(float(call_ex.mean() * 100), 2)
+                res['prob_sucesso'] = round(float((~call_ex).mean() * 100), 2)
+                res['exercicio'] = exercicio
+            if K_put is not None:
+                put_ex = (min_p < K_put) if exercicio == 'americana' else (ST_path < K_put)
+                res['prob_put_exercida'] = round(float(put_ex.mean() * 100), 2)
+                res['exercicio'] = exercicio
         if kdo is not None and kuo is not None:
             # Para barreira, precisamos do caminho completo, nao so do ponto final —
             # roda uma simulacao de trajetoria (steps diarios) so para esse caso
