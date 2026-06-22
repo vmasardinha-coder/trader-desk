@@ -23,6 +23,7 @@
 <div class="tabs">
   <div class="tab active" onclick="sw('cotacoes',this)">📊 Cotações</div>
   <div class="tab" onclick="sw('indicadores',this)">📈 Indicadores</div>
+  <div class="tab" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
   <div class="tab" onclick="sw('posicoes',this)">💼 Posições Ativas <span id="pos-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
   <div class="tab" onclick="sw('encerradas',this)">🗂 Encerradas</div>
   <div class="tab" onclick="sw('calendario',this)">📅 FF Calendar</div>
@@ -183,6 +184,13 @@
     <button onclick="toggleAllInd()" id="btn-all-ind" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.5px">− Recolher Todos</button>
   </div>
   <div id="watchlist-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando ativos...</p></div>
+</div>
+
+<!-- ══ EM ANÁLISE ══ -->
+<div id="tab-emanalise" class="tab-content">
+  <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Estudos &amp; Fotos Congeladas</span><button onclick="toggleAllAnalises()" id="btn-all-analise" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">− Recolher Todas</button></div>
+  <div style="font-size:11px;color:var(--muted);padding:0 2px 12px;line-height:1.5">Fotos criadas em sessão de chat (Fase A → Fase B). Esta aba só lista, monitora e muda status — criação de nova foto continua sendo feita em sessão, conforme <span style="color:var(--accent)">FLUXO_FASE_A_FASE_B.md</span>.</div>
+  <div id="analise-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando análises...</p></div>
 </div>
 
 <!-- ══ POSIÇÕES ══ -->
