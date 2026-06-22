@@ -1,6 +1,15 @@
-"""  # v10.9
-Trader Desk — Proxy Server v10.9
+"""  # v10.10
+Trader Desk — Proxy Server v10.10
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.10:
+- /montecarlo (estrutura SIMPLES): adiciona campo OBRIGATORIO 'exercicio'
+  ('americana' ou 'europeia', SEM padrao implicito -- erro 400 se ausente).
+  AMERICANA agora simula a trajetoria diaria completa (max/min) para
+  detectar risco de exercicio em QUALQUER momento, igual ja era feito nas
+  barreiras kdo/kuo das bidirecionais. EUROPEIA mantem o calculo anterior
+  (so preco final, exercicio so no vencimento). Antes, TODAS as posicoes
+  simples usavam a logica europeia mesmo quando a opcao real era americana
+  (ex: ROXO34/ROXOG105), subestimando a probabilidade real de exercicio.
 Mudancas v10.9:
 - /indicators: corrige preco_anterior para BDRs (ex ROXO34) onde a brapi
   (plano free) nao traz regularMarketPreviousClose ou traz igual ao preco
@@ -1367,6 +1376,17 @@ def run_montecarlo():
         S = float(data['price']) if data.get('price') else None
         sigma = float(data['sigma']) if data.get('sigma') else 0.35
         usar_garch = data.get('usar_garch', True)  # GARCH ligado por padrao, pode desligar
+
+        # Tipo de exercicio: AMERICANA (risco de exercicio em QUALQUER momento
+        # ate o vencimento, nao so no fim) vs EUROPEIA (so no vencimento).
+        # OBRIGATORIO e explicito (sem default silencioso) — usuario decidiu
+        # que isso nao deve ser assumido, precisa vir junto do payload em toda
+        # foto nova. Erro 400 se ausente, em vez de assumir um dos dois.
+        exercicio = data.get('exercicio')
+        if exercicio not in ('americana', 'europeia'):
+            return jsonify({'error': "campo 'exercicio' obrigatorio: 'americana' ou 'europeia' (sem padrao implicito)"}), 400
+        is_americana = (exercicio == 'americana')
+
         garch_info = None
         cl = []
         if not S:
@@ -1434,12 +1454,31 @@ def run_montecarlo():
 
         def _simula(sig):
             T2=max(T_days,1)/252.0
-            sqT2=math.sqrt(T2)
-            drift2=-0.5*sig**2*T2
-            z2=np.random.standard_normal(n)
-            ST2=S*np.exp(drift2+sig*sqT2*z2)
-            call_ex2=ST2>K_call
-            kdo_hit2=(ST2<=kd) if kd else np.zeros(n,dtype=bool)
+            if is_americana:
+                # AMERICANA: risco de exercicio em QUALQUER momento ate o
+                # vencimento — simula a trajetoria diaria completa e usa
+                # max/min para detectar se o strike foi tocado em algum dia,
+                # nao so no preco final (mesma logica ja usada nas barreiras
+                # kdo/kuo das estruturas bidirecionais).
+                dias2=max(T_days,1)
+                dt2=1/252.0
+                drift_d2=-0.5*sig**2*dt2
+                vol_step_d2=sig*math.sqrt(dt2)
+                z_path2=np.random.standard_normal((n,dias2))
+                paths2=S*np.exp(np.cumsum(drift_d2+vol_step_d2*z_path2,axis=1))
+                max_p2=np.max(paths2,axis=1)
+                min_p2=np.min(paths2,axis=1)
+                call_ex2=max_p2>K_call
+                kdo_hit2=(min_p2<=kd) if kd else np.zeros(n,dtype=bool)
+            else:
+                # EUROPEIA: exercicio so e possivel no vencimento — so o
+                # preco final importa.
+                sqT2=math.sqrt(T2)
+                drift2=-0.5*sig**2*T2
+                z2=np.random.standard_normal(n)
+                ST2=S*np.exp(drift2+sig*sqT2*z2)
+                call_ex2=ST2>K_call
+                kdo_hit2=(ST2<=kd) if kd else np.zeros(n,dtype=bool)
             return {
                 'prob_sucesso':round(float((~call_ex2).mean()*100),2),
                 'prob_call_exercida':round(float(call_ex2.mean()*100),2),
@@ -1447,13 +1486,26 @@ def run_montecarlo():
             }
 
         # Simulacao principal (usa sigma final, que e GARCH se disponivel)
-        T=max(T_days,1)/252.0
-        sqT=math.sqrt(T)
-        drift=-0.5*sigma**2*T
-        z=np.random.standard_normal(n)
-        ST=S*np.exp(drift+sigma*sqT*z)
-        call_ex=ST>K_call
-        kdo_hit=(ST<=kd) if kd else np.zeros(n,dtype=bool)
+        if is_americana:
+            dias=max(T_days,1)
+            dt=1/252.0
+            drift_d=-0.5*sigma**2*dt
+            vol_step_d=sigma*math.sqrt(dt)
+            z_path=np.random.standard_normal((n,dias))
+            paths=S*np.exp(np.cumsum(drift_d+vol_step_d*z_path,axis=1))
+            max_p=np.max(paths,axis=1)
+            min_p=np.min(paths,axis=1)
+            ST=paths[:,-1]  # preco final tambem guardado, para referencia/exibicao
+            call_ex=max_p>K_call
+            kdo_hit=(min_p<=kd) if kd else np.zeros(n,dtype=bool)
+        else:
+            T=max(T_days,1)/252.0
+            sqT=math.sqrt(T)
+            drift=-0.5*sigma**2*T
+            z=np.random.standard_normal(n)
+            ST=S*np.exp(drift+sigma*sqT*z)
+            call_ex=ST>K_call
+            kdo_hit=(ST<=kd) if kd else np.zeros(n,dtype=bool)
 
         # Simulacao comparativa com vol. historica simples (sempre calculada se GARCH foi usado)
         comparativo_hist = _simula(sigma_hist) if (garch_info and sigma_hist != sigma) else None
@@ -1471,7 +1523,7 @@ def run_montecarlo():
             'volatilidade_historica_pct':round(sigma*100,2),
             'garch':garch_info,
             'k_call':K_call,'k_put':K_put,
-            'knock_down':kd,'t_days':T_days,'ticker':ticker
+            'knock_down':kd,'t_days':T_days,'ticker':ticker,'exercicio':exercicio
         }
         return jsonify(res)
     except Exception as e:
