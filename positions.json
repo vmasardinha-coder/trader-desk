@@ -5,7 +5,10 @@
         "vol_impl": "decimal, ex: 0.434 = 43.4%",
         "vencimento": "formato YYYY-MM-DD",
         "data_entrada": "formato YYYY-MM-DD, ESTIMADA por aproximacao do usuario (nao documento oficial) -- usada para o grafico retroativo real nas Posicoes Ativas",
-        "exercicio": "valores: 'americana' (exercicio possivel em qualquer momento até o vencimento) ou 'europeia' (so no vencimento) -- CAMPO OBRIGATORIO para /montecarlo simples; usuario confirmou (sessao 22/06/2026) que so ROXO34/ROXOG105 e americana entre as posicoes ativas, as demais (PETR4/VALE3/BBAS3) sao europeias -- usuario prioriza europeias, americana e exceção rara/nao intencional"
+        "exercicio": "valores: 'americana' (exercicio possivel em qualquer momento até o vencimento) ou 'europeia' (so no vencimento) -- CAMPO OBRIGATORIO para /montecarlo simples; usuario confirmou (sessao 22/06/2026) que so ROXO34/ROXOG105 e americana entre as posicoes ativas, as demais (PETR4/VALE3/BBAS3) sao europeias -- usuario prioriza europeias, americana e exceção rara/nao intencional",
+        "alavancagem": "fator multiplicador do retorno dentro do range para estruturas bidirecionais (ex 1.3 = retorno = variacao x 1.3)",
+        "teto_retorno_pct": "retorno fixo travado (%) quando a barreira de alta e atingida, estruturas bidirecionais",
+        "meta_pct": "meta de retorno mensal do usuario (%) para posicoes SIMPLES com objetivo de ganho real (nao recompra/rolagem) -- usado para calcular prob_retorno_faixas/simulacao_100_acoes"
     },
     "ativas": [
         {
@@ -51,7 +54,9 @@
             "ganho_sem_barreira": "até +31,2% / +20%",
             "ganho_barreira_alta": "+4% fixo",
             "data_entrada": "2026-05-16",
-            "exercicio": "europeia"
+            "exercicio": "europeia",
+            "teto_retorno_pct": 4.0,
+            "alavancagem": 1.3
         },
         {
             "id": "a3b",
@@ -68,7 +73,9 @@
             "ganho_sem_barreira": "até +31,2% / +20%",
             "ganho_barreira_alta": "+4% fixo (12,33% a.a.)",
             "data_entrada": "2026-06-08",
-            "exercicio": "europeia"
+            "exercicio": "europeia",
+            "teto_retorno_pct": 4.0,
+            "alavancagem": 1.3
         },
         {
             "id": "rx",
@@ -83,7 +90,8 @@
             "vencimento": "2026-07-16",
             "objetivo": "Fechar abaixo de R$ 10,50",
             "data_entrada": "2026-06-03",
-            "exercicio": "americana"
+            "exercicio": "americana",
+            "meta_pct": 2.25
         },
         {
             "id": "bb",
@@ -98,7 +106,8 @@
             "vencimento": "2026-08-20",
             "objetivo": "Fechar abaixo de R$ 21,65",
             "data_entrada": "2026-06-03",
-            "exercicio": "europeia"
+            "exercicio": "europeia",
+            "meta_pct": 2.25
         }
     ],
     "encerradas": [
