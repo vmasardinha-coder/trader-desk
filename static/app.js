@@ -1708,6 +1708,8 @@ async function loadCondicional(id){
     if(a.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=a.ganho_prefixado_pct;
     if(a.exercicio!=null)body.exercicio=a.exercicio;
     if(a.meta_pct!=null)body.meta_pct=a.meta_pct;
+    if(a.premio!=null)body.premio=a.premio;
+    if(a.qtd_acoes!=null)body.qtd_acoes=a.qtd_acoes;
     const r=await fetch(B+'/montecarlo/condicional',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -1752,6 +1754,25 @@ function renderCondicional(id,d){
   const volTxt=g?('GARCH '+g.vol_garch_projetada_pct+'%'):('Vol.hist '+d.volatilidade_historica_pct+'%');
   probsHtml+='<div class="sr"><span class="sl">Volatilidade usada</span><span class="sv">'+volTxt+'</span></div>';
   probsHtml+='</div>';
+
+  // Venda de PUT: resultado fixo (premio/meta) + risco de exercício —
+  // combina os blocos 2 e 3 num só, já que o retorno "se não exercida"
+  // é um fato fixo (não simulado), diferente de call coberta/bidirecional
+  let putFixoHtml='';
+  if(d.put_resultado_fixo){
+    const pf=d.put_resultado_fixo;
+    putFixoHtml='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">2-3. RESULTADO FIXO — PRÊMIO vs. META (venda de PUT)</div>'+
+      '<div class="sb" style="margin-top:0">'+
+      '<div class="sr"><span class="sl">'+pf.descricao_nao_exercida+'</span><span class="sv ok">+'+fR(pf.premio_reais)+'</span></div>'+
+      '<div class="sr"><span class="sl">Retorno sobre capital comprometido</span><span class="sv">'+pf.retorno_pct.toFixed(2)+'% ('+(pf.retorno_mes_pct!=null?pf.retorno_mes_pct.toFixed(2):'?')+'%/mês)</span></div>'+
+      '<div class="sr"><span class="sl">Bate a meta de 2-2,5%/mês?</span><span class="sv '+(pf.bate_meta?'ok':'itm')+'">'+(pf.bate_meta?'SIM ✓':'NÃO')+'</span></div>'+
+      '<div class="sr"><span class="sl">'+pf.descricao_exercida+'</span><span class="sv warn">Capital R$'+fR(pf.capital_comprometido).replace('R$ ','')+'</span></div>'+
+      '</div>'+
+      '<div style="margin-top:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);font-size:11px;color:var(--text);line-height:1.5">'+
+      '📍 Este resultado é fixo (não simulado) — só a probabilidade de exercício acima usa Monte Carlo.'+
+      '</div></div>';
+  }
 
   // Simulação didática em 100 ações (R$ concretos, mesmo padrão para qualquer estrutura)
   let sim100Html='';
@@ -1802,7 +1823,7 @@ function renderCondicional(id,d){
       '</div></div>';
   }
 
-  area.innerHTML=probsHtml+sim100Html+faixasHtml+graficoHtml;
+  area.innerHTML=probsHtml+putFixoHtml+sim100Html+faixasHtml+graficoHtml;
 
   if(d.fan_chart){
     renderFanChartAnalise(id, d.fan_chart);
