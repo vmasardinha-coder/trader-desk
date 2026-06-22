@@ -1581,6 +1581,8 @@ async function loadCondicional(id){
     if(a.k_put!=null)body.k_put=a.k_put;
     if(a.kdo!=null)body.kdo=a.kdo;
     if(a.kuo!=null)body.kuo=a.kuo;
+    if(a.alavancagem!=null)body.alavancagem=a.alavancagem;
+    if(a.teto_retorno_pct!=null)body.teto_retorno_pct=a.teto_retorno_pct;
     const r=await fetch(B+'/montecarlo/condicional',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -1621,7 +1623,77 @@ function renderCondicional(id,d){
   probsHtml+='<div class="sr"><span class="sl">Volatilidade usada</span><span class="sv">'+volTxt+'</span></div>';
   probsHtml+='</div>';
 
-  area.innerHTML=probsHtml;
+  // Tabela de faixas de retorno (só presente quando a análise tem alavancagem + teto_retorno_pct)
+  let faixasHtml='';
+  if(d.prob_retorno_faixas){
+    const f=d.prob_retorno_faixas;
+    faixasHtml='<div style="margin-top:14px">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">PROBABILIDADE DE RETORNO FINAL DA ESTRUTURA</div>'+
+      '<div class="sb" style="margin-top:0">'+
+      '<div class="sr"><span class="sl">Abaixo de 0% (perda)</span><span class="sv itm">'+f.menor_que_0.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 0% e 1%</span><span class="sv">'+f.entre_0_e_1.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 1% e 2%</span><span class="sv">'+f.entre_1_e_2.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 2% e a meta</span><span class="sv warn">'+f.entre_2_e_meta.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Bate a meta (≥'+(d.teto_retorno_usado_pct!=null?d.teto_retorno_usado_pct:'?')+'%)</span><span class="sv ok">'+f.maior_ou_igual_meta.toFixed(1)+'%</span></div>'+
+      '</div>'+
+      '<div style="margin-top:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);font-size:11px;color:var(--text);line-height:1.5">'+
+      '📍 Retorno médio esperado da estrutura: <b style="color:var(--accent)">'+(d.retorno_medio_pct>=0?'+':'')+d.retorno_medio_pct.toFixed(2)+'%</b>'+
+      '</div></div>';
+  }
+
+  // Gráfico fan chart (banda completa do dia 0 ao prazo, com linha real sobreposta)
+  let graficoHtml='';
+  if(d.fan_chart){
+    graficoHtml='<div style="margin-top:14px">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">EVOLUÇÃO DA FOTO — PREÇO REAL vs. CENÁRIOS PROJETADOS</div>'+
+      '<div style="position:relative;height:clamp(240px,30vh,380px);background:var(--bg2);border:1px solid var(--border);padding:8px">'+
+      '<canvas id="analise-fan-canvas-'+id+'"></canvas>'+
+      '</div></div>';
+  }
+
+  area.innerHTML=probsHtml+faixasHtml+graficoHtml;
+
+  if(d.fan_chart){
+    renderFanChartAnalise(id, d.fan_chart);
+  }
+}
+
+function renderFanChartAnalise(id, fc){
+  const canvas=document.getElementById('analise-fan-canvas-'+id);
+  if(!canvas||typeof Chart==='undefined')return;
+  if(_analiseCharts[id]){ _analiseCharts[id].destroy(); }
+
+  const dias=fc.dias;
+  const datasets=[];
+  fc.trajetorias.forEach(traj=>{
+    datasets.push({data:traj,borderColor:'rgba(124,106,247,.15)',borderWidth:1,pointRadius:0,fill:false,tension:0.1,order:3});
+  });
+  datasets.push({label:'P75',data:fc.percentis.p75,borderColor:'transparent',backgroundColor:'rgba(124,106,247,.10)',pointRadius:0,fill:'+1',order:2,tension:0.1});
+  datasets.push({label:'P25',data:fc.percentis.p25,borderColor:'transparent',pointRadius:0,fill:false,order:2,tension:0.1});
+  datasets.push({label:'Mediana projetada',data:fc.percentis.p50,borderColor:'rgba(124,106,247,.7)',borderWidth:1.5,borderDash:[3,3],pointRadius:0,fill:false,order:1,tension:0.1});
+  datasets.push({label:'P90',data:fc.percentis.p90,borderColor:'rgba(0,230,118,.5)',borderWidth:1.2,borderDash:[4,3],pointRadius:0,fill:false,order:1,tension:0.1});
+  datasets.push({label:'P10',data:fc.percentis.p10,borderColor:'rgba(240,98,146,.5)',borderWidth:1.2,borderDash:[4,3],pointRadius:0,fill:false,order:1,tension:0.1});
+  if(fc.precos_reais&&fc.precos_reais.length){
+    datasets.push({label:'Preço real',data:fc.precos_reais,borderColor:'#00e676',borderWidth:2.5,pointRadius:0,fill:false,order:0,tension:0.1});
+  }
+
+  _analiseCharts[id]=new Chart(canvas,{
+    type:'line',
+    data:{labels:dias,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:300},
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{filter:(item)=>['Mediana projetada','P90','P10','Preço real'].includes(item.dataset.label),
+          callbacks:{label:(ctx)=>ctx.dataset.label+': '+fR(ctx.parsed.y)}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Dias desde a foto',color:'#505068',font:{size:10}},ticks:{color:'#505068',font:{size:9}},grid:{color:'#1e1e2e'}},
+        y:{title:{display:true,text:'Preço (R$)',color:'#505068',font:{size:10}},ticks:{color:'#505068',font:{size:9}},grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
 }
 
 function toggleAllAnalises(){
