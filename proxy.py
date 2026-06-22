@@ -1,6 +1,13 @@
-"""  # v10.14
-Trader Desk — Proxy Server v10.14
+"""  # v10.15
+Trader Desk — Proxy Server v10.15
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.15:
+- /montecarlo/condicional: put_resultado_fixo agora padroniza valores em
+  R$ para 100 acoes (mesmo padrao didatico das outras 3 estruturas:
+  bidirecional, retorno_controlado, call simples) — antes usava a
+  quantidade real (qtd_acoes), o que quebrava a comparabilidade visual
+  entre analises diferentes. O percentual de retorno e bate_meta
+  continuam EXATAMENTE iguais aos reais (so o R$ exibido muda de escala).
 Mudancas v10.14:
 - /montecarlo/condicional: adiciona 'put_resultado_fixo' para venda de PUT
   simples (k_put, sem k_call/kdo). Mecanica diferente da call coberta:
@@ -1184,14 +1191,22 @@ def run_montecarlo_condicional():
                 retorno_fixo_pct = round((premio_valor / capital_comprometido) * 100, 2)
                 meses_prazo = prazo_dias / 30.0
                 retorno_fixo_mes_pct = round(retorno_fixo_pct / meses_prazo, 2) if meses_prazo > 0 else None
+                # Padroniza exibicao em 100 acoes (mesmo padrao das outras
+                # estruturas) -- premio e capital escalados proporcionalmente
+                # a partir do valor REAL (premio_valor/qtd_acoes_put), o
+                # percentual/meta continuam exatamente iguais aos reais.
+                premio_por_acao = premio_valor / qtd_acoes_put
+                premio_100 = round(premio_por_acao * 100, 2)
+                capital_100_put = round(K_put * 100, 2)
                 res['put_resultado_fixo'] = {
-                    'premio_reais': round(premio_valor, 2),
-                    'capital_comprometido': round(capital_comprometido, 2),
+                    'premio_reais': premio_100,
+                    'capital_comprometido': capital_100_put,
+                    'acoes': 100,
                     'retorno_pct': retorno_fixo_pct,
                     'retorno_mes_pct': retorno_fixo_mes_pct,
                     'bate_meta': (retorno_fixo_mes_pct >= 2.0) if retorno_fixo_mes_pct is not None else None,
-                    'descricao_nao_exercida': 'Não exercida: fica só com o prêmio de R$' + str(round(premio_valor, 2)),
-                    'descricao_exercida': 'Exercida: compra ' + str(int(qtd_acoes_put)) + ' ações a R$' + str(round(K_put, 2)) + ' (capital R$' + str(round(capital_comprometido, 2)) + ')',
+                    'descricao_nao_exercida': 'Não exercida: fica só com o prêmio de R$' + str(premio_100),
+                    'descricao_exercida': 'Exercida: compra 100 ações a R$' + str(round(K_put, 2)) + ' (capital R$' + str(capital_100_put) + ')',
                 }
             except Exception:
                 res['put_resultado_fixo'] = None
