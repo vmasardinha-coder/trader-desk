@@ -1628,6 +1628,24 @@ function renderCondicional(id,d){
   probsHtml+='<div class="sr"><span class="sl">Volatilidade usada</span><span class="sv">'+volTxt+'</span></div>';
   probsHtml+='</div>';
 
+  // Simulação didática em 100 ações (R$ concretos, mesmo padrão para qualquer estrutura)
+  let sim100Html='';
+  if(d.simulacao_100_acoes){
+    const s=d.simulacao_100_acoes;
+    sim100Html='<div style="margin-top:14px">'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">SIMULAÇÃO DIDÁTICA — 100 AÇÕES A '+fR(s.preco_foto)+' (CAPITAL '+fR(s.capital)+')</div>'+
+      '<div class="sb" style="margin-top:0">';
+    if(s.defesa){
+      sim100Html+='<div class="sr"><span class="sl">'+s.defesa.descricao+' ('+s.defesa.probabilidade_pct.toFixed(1)+'%)</span><span class="sv">'+fR(s.defesa.retorno_reais)+'</span></div>';
+      sim100Html+='<div class="sr"><span class="sl">'+s.dentro.descricao+' ('+s.dentro.probabilidade_pct.toFixed(1)+'%)</span><span class="sv '+(s.dentro.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.dentro.retorno_medio_reais>=0?'+':'')+fR(s.dentro.retorno_medio_reais)+'</span></div>';
+      sim100Html+='<div class="sr"><span class="sl">'+s.teto.descricao+' ('+s.teto.probabilidade_pct.toFixed(1)+'%)</span><span class="sv ok">+'+fR(s.teto.retorno_reais)+'</span></div>';
+    } else if(s.prefixado){
+      sim100Html+='<div class="sr"><span class="sl">'+s.prefixado.descricao+' ('+s.prefixado.probabilidade_pct.toFixed(1)+'%)</span><span class="sv ok">+'+fR(s.prefixado.retorno_reais)+'</span></div>';
+      sim100Html+='<div class="sr"><span class="sl">'+s.exposto.descricao+' ('+s.exposto.probabilidade_pct.toFixed(1)+'%)</span><span class="sv '+(s.exposto.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.exposto.retorno_medio_reais>=0?'+':'')+fR(s.exposto.retorno_medio_reais)+'</span></div>';
+    }
+    sim100Html+='</div></div>';
+  }
+
   // Tabela de faixas de retorno (só presente quando a análise tem alavancagem + teto_retorno_pct)
   let faixasHtml='';
   if(d.prob_retorno_faixas){
@@ -1656,7 +1674,7 @@ function renderCondicional(id,d){
       '</div></div>';
   }
 
-  area.innerHTML=probsHtml+faixasHtml+graficoHtml;
+  area.innerHTML=probsHtml+sim100Html+faixasHtml+graficoHtml;
 
   if(d.fan_chart){
     renderFanChartAnalise(id, d.fan_chart);
