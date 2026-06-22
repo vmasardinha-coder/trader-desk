@@ -1,6 +1,13 @@
-"""  # v10.8
-Trader Desk — Proxy Server v10.8
+"""  # v10.9
+Trader Desk — Proxy Server v10.9
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.9:
+- /indicators: corrige preco_anterior para BDRs (ex ROXO34) onde a brapi
+  (plano free) nao traz regularMarketPreviousClose ou traz igual ao preco
+  atual (mascarando variacao real do dia como zero). Agora usa o penultimo
+  close do historico Yahoo ja buscado como fallback real, evitando que o
+  frontend caia no fallback de "variacao de sessao" (_prevPrices, que so
+  reflete a ultima leitura do app, nao o fechamento real do dia anterior).
 Mudancas v10.8:
 - Novo endpoint /montecarlo/posicao_ativa: para POSICOES REAIS ja ativas
   (positions.json), monta fan chart RETROATIVO REAL (preco historico real
@@ -1496,7 +1503,7 @@ def get_indicators(ticker):
             if rb.ok:
                 rd = rb.json().get('results',[{}])[0]
                 preco_atual = rd.get('regularMarketPrice')
-                preco_prev  = rd.get('regularMarketPreviousClose', preco_atual)
+                preco_prev  = rd.get('regularMarketPreviousClose')
                 hist = rd.get('historicalDataPrice',[])
                 hist_closes = [x['close'] for x in hist if x.get('close')]
                 fund = {
@@ -1544,6 +1551,15 @@ def get_indicators(ticker):
 
         if not hist_closes or not preco_atual:
             return jsonify({'error': f'Sem dados para {symbol}'}), 404
+
+        # Fallback de preco_prev (fechamento anterior real) via historico Yahoo,
+        # quando a brapi nao trouxe regularMarketPreviousClose (comum em BDRs no
+        # plano free) — usa o PENULTIMO close do historico como referencia, desde
+        # que seja diferente do preco_atual (evita variacao zero artificial)
+        if (preco_prev is None or preco_prev == preco_atual) and len(hist_closes) >= 2:
+            candidato = hist_closes[-2]
+            if candidato != preco_atual:
+                preco_prev = candidato
 
         # Hardcoded fundamentais
         # Data de referencia dos fundamentais hardcoded (FUND_OVERRIDE).
