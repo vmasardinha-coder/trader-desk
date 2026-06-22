@@ -110,6 +110,7 @@
     "origem": "customizada",
     "status": "em_analise",
     "backtest": true,
-    "observacao": "Venda de PUT (codigo OpLab ROXOS105), real do book OpLab (sessao 22/06/2026). Operacao INVERSA da call coberta: usuario NAO tem o papel ainda, topa comprar 2500 acoes a R$10,50 se for exercido (capital comprometido R$26.250,00). Premio real recebido: R$375,00 (R$0,15/acao x 2500). 19 dias uteis. Retorno sobre capital comprometido: 1,43% -> equivalente 2,26%/mes, BATE a meta de 2-2,5%/mes do usuario. PONTO DE ATENCAO: baixa liquidez (Vol.Fin.=15,00 na grade OpLab, bem abaixo de outras puts do mesmo lote) -- pode ser dificil executar no tamanho desejado sem mover o preco. Comparada na sessao contra venda de CALL coberta ROXOG117 (mesma grade, prazo, ativo): call rendeu R$650,00/3,73%-mes (quase o dobro), mas usuario ja tem o papel nessa, situacoes diferentes (nao e exatamente comparavel 1:1)."
+    "observacao": "Venda de PUT (codigo OpLab ROXOS105), real do book OpLab (sessao 22/06/2026). Operacao INVERSA da call coberta: usuario NAO tem o papel ainda, topa comprar 2500 acoes a R$10,50 se for exercido (capital comprometido R$26.250,00). Premio real recebido: R$375,00 (R$0,15/acao x 2500). 19 dias uteis. Retorno sobre capital comprometido: 1,43% -> equivalente 2,26%/mes, BATE a meta de 2-2,5%/mes do usuario. PONTO DE ATENCAO: baixa liquidez (Vol.Fin.=15,00 na grade OpLab, bem abaixo de outras puts do mesmo lote) -- pode ser dificil executar no tamanho desejado sem mover o preco. Comparada na sessao contra venda de CALL coberta ROXOG117 (mesma grade, prazo, ativo): call rendeu R$650,00/3,73%-mes (quase o dobro), mas usuario ja tem o papel nessa, situacoes diferentes (nao e exatamente comparavel 1:1).",
+    "exercicio": "europeia"
   }
 ]
