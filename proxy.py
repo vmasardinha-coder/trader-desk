@@ -1,6 +1,13 @@
-"""  # v10.5
-Trader Desk — Proxy Server v10.5
+"""  # v10.6
+Trader Desk — Proxy Server v10.6
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.6:
+- /montecarlo/condicional: prob_retorno_faixas agora tambem funciona para
+  estruturas RETORNO CONTROLADO (barreira unica + ganho prefixado, ex
+  TSLA34/ROXO34) -- antes so funcionava para bidirecional (kdo+kuo+
+  alavancagem+teto_retorno_pct). Aceita 'ganho_prefixado_pct' no payload;
+  payoff = ganho fixo se nao tocar a barreira (kdo), ou a variacao REAL da
+  acao (sem garantia) se tocar. Retorna tambem 'prob_ganho_prefixado'.
 Mudancas v10.5:
 - /montecarlo/condicional agora retorna 'fan_chart' (banda de percentis
   p10-p90 do dia 0/preco_foto ao prazo_dias TOTAL, projetada com a vol
@@ -740,11 +747,16 @@ def run_montecarlo_condicional():
       hoje — para visualizacao tipo "fan chart" com linha real navegando
       sobre a banda projetada (mesmo padrao usado em /btc/historico)
     - prob_retorno_faixas: probabilidade do RETORNO FINAL DA ESTRUTURA cair
-      em cada faixa fixa (<0%, 0-1%, 1-2%, 2-2.5%, >2.5%), considerando o
-      payoff real da estrutura (alavancagem dentro do range, teto travado
-      nas barreiras) — só calculado quando o payload incluir os campos
-      'alavancagem' e 'teto_retorno_pct' (opcionais; sem eles, a faixa de
-      retorno nao e calculada, so as probabilidades de barreira normais)
+      em cada faixa fixa (<0%, 0-1%, 1-2%, 2-2.5% [meta], >2.5%). Calculado
+      em dois modos, dependendo do payload:
+      (a) BIDIRECIONAL: payload com 'alavancagem' + 'teto_retorno_pct' +
+          kdo/kuo — payoff = variacao*alavancagem dentro do range, 0 na
+          defesa, teto_retorno_pct travado na barreira de alta.
+      (b) RETORNO CONTROLADO (barreira unica): payload com
+          'ganho_prefixado_pct' + kdo (sem alavancagem/teto) — payoff =
+          ganho_prefixado_pct fixo SE nao tocar kdo, ou a variacao REAL da
+          acao (sem garantia) SE tocar. Tambem retorna 'prob_ganho_prefixado'
+          (chance de nao tocar a barreira e garantir o prefixado).
     """
     try:
         import numpy as np
@@ -958,6 +970,41 @@ def run_montecarlo_condicional():
                 res['prob_retorno_faixas'] = faixas
                 res['retorno_medio_pct'] = round(float(retorno_full.mean() * 100), 2)
                 res['teto_retorno_usado_pct'] = round(teto_retorno * 100, 2)
+            except Exception:
+                res['prob_retorno_faixas'] = None
+
+        # ── RETORNO CONTROLADO (barreira UNICA + ganho prefixado, ex:
+        # TSLA34/ROXO34): se NAO tocar a barreira (kdo) em nenhum momento,
+        # ganho fixo prefixado; se tocar, fica exposto a variacao REAL da
+        # acao no vencimento (sem garantia, sem teto). So roda quando o
+        # payload trouxer 'ganho_prefixado_pct' E NAO tiver 'alavancagem'/
+        # 'teto_retorno_pct' (que seria o caso bidirecional, tratado acima).
+        ganho_prefixado_pct = data.get('ganho_prefixado_pct')
+        if (ganho_prefixado_pct is not None and alavancagem is None
+                and teto_retorno_pct is None and kdo is not None):
+            try:
+                ganho_prefixado = float(ganho_prefixado_pct) / 100
+                n_faixas2 = 20000
+                z_full2 = np.random.standard_normal((n_faixas2, prazo_dias))
+                paths_full2 = preco_foto * np.exp(np.cumsum(drift_fan + vol_step_fan * z_full2, axis=1))
+                min_full2 = np.min(paths_full2, axis=1)
+                ST_full2 = paths_full2[:, -1]
+                tocou_barreira2 = min_full2 <= kdo
+                variacao_full2 = (ST_full2 / preco_foto - 1)
+                # se nao tocou: ganho fixo prefixado; se tocou: fica com a
+                # variacao real da acao (pode ser negativa, positiva, qualquer valor)
+                retorno_full2 = np.where(~tocou_barreira2, ganho_prefixado, variacao_full2)
+                faixas2 = {
+                    'menor_que_0': round(float((retorno_full2 < 0).mean() * 100), 2),
+                    'entre_0_e_1': round(float(((retorno_full2 >= 0) & (retorno_full2 < 0.01)).mean() * 100), 2),
+                    'entre_1_e_2': round(float(((retorno_full2 >= 0.01) & (retorno_full2 < 0.02)).mean() * 100), 2),
+                    'entre_2_e_meta': round(float(((retorno_full2 >= 0.02) & (retorno_full2 < ganho_prefixado)).mean() * 100), 2),
+                    'maior_ou_igual_meta': round(float((retorno_full2 >= ganho_prefixado).mean() * 100), 2),
+                }
+                res['prob_retorno_faixas'] = faixas2
+                res['retorno_medio_pct'] = round(float(retorno_full2.mean() * 100), 2)
+                res['teto_retorno_usado_pct'] = round(ganho_prefixado * 100, 2)
+                res['prob_ganho_prefixado'] = round(float((~tocou_barreira2).mean() * 100), 2)
             except Exception:
                 res['prob_retorno_faixas'] = None
 
