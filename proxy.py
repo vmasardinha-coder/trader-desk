@@ -1,6 +1,14 @@
-"""  # v10.7
-Trader Desk — Proxy Server v10.7
+"""  # v10.8
+Trader Desk — Proxy Server v10.8
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.8:
+- Novo endpoint /montecarlo/posicao_ativa: para POSICOES REAIS ja ativas
+  (positions.json), monta fan chart RETROATIVO REAL (preco historico real
+  desde data_entrada até hoje, via Yahoo) + PROJECAO (banda de percentis de
+  hoje até o vencimento). Preco de entrada extraido do proprio historico no
+  dia de data_entrada (campo novo em positions.json), nao informado pelo
+  payload. Reaproveita a mesma logica de faixas de retorno/simulacao_100_acoes
+  do /montecarlo/condicional, mas usando o prazo TOTAL desde a entrada real.
 Mudancas v10.7:
 - /montecarlo/condicional agora retorna 'simulacao_100_acoes': traduz os
   percentuais abstratos da estrutura em R$ concretos sobre um lote fixo de
@@ -1083,6 +1091,252 @@ def run_montecarlo_condicional():
                     'acoes': 100, 'preco_foto': round(preco_foto, 2),
                     'capital': round(capital_100, 2),
                     'prefixado': cenario_prefixado, 'exposto': cenario_exposto,
+                }
+            res['simulacao_100_acoes'] = sim_100
+        except Exception:
+            res['simulacao_100_acoes'] = None
+
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/montecarlo/posicao_ativa', methods=['POST'])
+def run_montecarlo_posicao_ativa():
+    """
+    Para POSICOES REAIS ja ativas (positions.json), nao fotos de Em Analise.
+    Monta o fan chart completo: RETROATIVO REAL (preco historico real desde
+    data_entrada até hoje, via Yahoo) + PROJECAO (banda de percentis de hoje
+    até o vencimento real). Preco de entrada (preco_foto equivalente) e
+    extraido do proprio historico no dia de data_entrada (ou o pregao mais
+    proximo disponivel), nao informado pelo payload -- diferente do
+    /montecarlo/condicional, que recebe preco_foto fixo de uma foto ja
+    registrada.
+
+    Payload esperado:
+    - ticker (obrigatorio)
+    - data_entrada (obrigatorio, YYYY-MM-DD)
+    - vencimento (obrigatorio, YYYY-MM-DD)
+    - k_call/k_put (estrutura simples) OU kdo/kuo (bidirecional)
+    - alavancagem/teto_retorno_pct (opcionais, para faixas de retorno em
+      bidirecional) OU ganho_prefixado_pct (para retorno controlado)
+
+    Retorna: preco_entrada (extraido do historico), preco_atual,
+    dias_passados, dias_restantes, fan_chart (com precos_reais cobrindo
+    TODO o periodo desde a entrada, nao so uma janela curta), e as mesmas
+    probabilidades/faixas/simulacao_100_acoes do /montecarlo/condicional
+    quando aplicavel.
+    """
+    try:
+        import numpy as np
+        from datetime import datetime as _dt
+        data = request.get_json() or {}
+        ticker = data.get('ticker', 'BBAS3.SA')
+        data_entrada_str = data.get('data_entrada')
+        vencimento_str = data.get('vencimento')
+        K_call = float(data['k_call']) if data.get('k_call') else None
+        K_put = float(data['k_put']) if data.get('k_put') else None
+        kdo = float(data['kdo']) if data.get('kdo') else None
+        kuo = float(data['kuo']) if data.get('kuo') else None
+
+        if not data_entrada_str or not vencimento_str:
+            return jsonify({'error': 'data_entrada e vencimento sao obrigatorios (YYYY-MM-DD)'}), 400
+        try:
+            data_entrada = _dt.strptime(data_entrada_str[:10], '%Y-%m-%d').date()
+            vencimento = _dt.strptime(vencimento_str[:10], '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'data_entrada/vencimento invalidas, use YYYY-MM-DD'}), 400
+
+        hoje = _dt.now().date()
+        prazo_dias = (vencimento - data_entrada).days
+        dias_passados = (hoje - data_entrada).days
+        dias_restantes = max((vencimento - hoje).days, 0)
+        fora_do_prazo = hoje >= vencimento
+
+        # Busca historico (mesmo padrao de fallback do /montecarlo/condicional)
+        S = None
+        cl = []
+        ts = []
+        sigma = 0.35
+        for host in ['query1', 'query2']:
+            try:
+                r = requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                if r.ok:
+                    d = r.json()
+                    meta = d['chart']['result'][0]['meta']
+                    raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                    raw_ts = d['chart']['result'][0].get('timestamp', [])
+                    cl = [c for c in raw_cl if c is not None]
+                    ts = [t for t, c in zip(raw_ts, raw_cl) if c is not None]
+                    S = float(meta.get('regularMarketPrice', cl[-1] if cl else 0))
+                    if cl: sigma = vol_hist(cl)
+                    break
+            except Exception:
+                continue
+
+        if S is None or not cl:
+            return jsonify({'error': f'nao foi possivel obter historico de {ticker}'}), 502
+
+        # Extrai preco_entrada do historico real no dia de data_entrada
+        # (ou o pregao mais proximo disponivel apos essa data)
+        import math
+        from datetime import timezone as _tz
+        preco_entrada = None
+        idx_entrada = None
+        entrada_epoch = _dt.combine(data_entrada, _dt.min.time(), tzinfo=_tz.utc).timestamp()
+        for i, t in enumerate(ts):
+            if t >= entrada_epoch:
+                idx_entrada = i
+                preco_entrada = cl[i]
+                break
+        if preco_entrada is None:
+            # data_entrada fora do historico disponivel (>1 ano atras) -- usa o primeiro ponto
+            idx_entrada = 0
+            preco_entrada = cl[0] if cl else S
+
+        res = {
+            'ticker': ticker, 'preco_entrada': round(preco_entrada, 2),
+            'preco_atual': round(S, 2), 'dias_passados': dias_passados,
+            'dias_restantes': dias_restantes, 'prazo_dias': prazo_dias,
+            'fora_do_prazo': fora_do_prazo, 'volatilidade_historica_pct': round(sigma*100, 2),
+        }
+
+        if fora_do_prazo:
+            res['mensagem'] = 'Vencimento ja passou.'
+            return jsonify(res)
+
+        # Probabilidades de barreira (mesma logica do /montecarlo/condicional,
+        # mas com tempo RESTANTE a partir do preco ATUAL, nao do preco_entrada)
+        if kdo is not None and kuo is not None and dias_restantes > 0:
+            n = 5000
+            dt2 = 1/252.0
+            drift2 = -0.5*sigma**2*dt2
+            vol_step2 = sigma*math.sqrt(dt2)
+            z2 = np.random.standard_normal((n, dias_restantes))
+            paths = S*np.exp(np.cumsum(drift2+vol_step2*z2, axis=1))
+            max_p = np.max(paths, axis=1); min_p = np.min(paths, axis=1)
+            kuo_hit = max_p >= kuo; kdo_hit = min_p <= kdo
+            no_barrier = ~kuo_hit & ~kdo_hit
+            res['prob_sem_barreira'] = round(float(no_barrier.mean()*100), 2)
+            res['prob_barreira_alta'] = round(float(kuo_hit.mean()*100), 2)
+            res['prob_barreira_baixa'] = round(float(kdo_hit.mean()*100), 2)
+            res['kdo'] = kdo; res['kuo'] = kuo
+
+        # FAN CHART: percentis projetados do dia 0 (preco_entrada) ao
+        # prazo_dias TOTAL + serie de precos REAIS desde data_entrada até hoje
+        try:
+            n_fan = 2000
+            dt_fan = 1/252.0
+            drift_fan = -0.5*sigma**2*dt_fan
+            vol_step_fan = sigma*math.sqrt(dt_fan)
+            z_fan = np.random.standard_normal((n_fan, prazo_dias))
+            paths_fan = preco_entrada*np.exp(np.cumsum(drift_fan+vol_step_fan*z_fan, axis=1))
+            paths_fan = np.hstack([np.full((n_fan,1), preco_entrada), paths_fan])
+            percentis_fan = {}
+            for p in [10,25,50,75,90]:
+                percentis_fan[f'p{p}'] = np.percentile(paths_fan, p, axis=0).round(2).tolist()
+            idx_amostra = np.random.choice(n_fan, size=min(20, n_fan), replace=False)
+            trajetorias_fan = paths_fan[idx_amostra].round(2).tolist()
+            precos_reais_fan = [round(float(p), 2) for p in cl[idx_entrada:idx_entrada+dias_passados+1]]
+            res['fan_chart'] = {
+                'dias': list(range(prazo_dias+1)), 'percentis': percentis_fan,
+                'trajetorias': trajetorias_fan, 'precos_reais': precos_reais_fan,
+                'preco_foto': round(preco_entrada, 2),
+            }
+        except Exception:
+            res['fan_chart'] = None
+
+        # Faixas de retorno + simulacao 100 acoes (reaproveita a mesma logica
+        # do /montecarlo/condicional, usando preco_entrada como base e o
+        # PRAZO TOTAL, ja que representa o resultado da posicao do inicio ao fim)
+        alavancagem = data.get('alavancagem')
+        teto_retorno_pct = data.get('teto_retorno_pct')
+        ganho_prefixado_pct = data.get('ganho_prefixado_pct')
+        retorno_full = None; tocou_baixa_full = None; tocou_alta_full = None; teto_retorno = None
+        retorno_full2 = None; tocou_barreira2 = None; variacao_full2 = None; ganho_prefixado = None
+
+        if alavancagem is not None and teto_retorno_pct is not None and kdo is not None and kuo is not None:
+            try:
+                alavancagem = float(alavancagem)
+                teto_retorno = float(teto_retorno_pct)/100
+                n_faixas = 20000
+                z_full = np.random.standard_normal((n_faixas, prazo_dias))
+                paths_full = preco_entrada*np.exp(np.cumsum(drift_fan+vol_step_fan*z_full, axis=1))
+                max_full = np.max(paths_full, axis=1); min_full = np.min(paths_full, axis=1)
+                ST_full = paths_full[:,-1]
+                tocou_baixa_full = min_full <= kdo; tocou_alta_full = max_full >= kuo
+                variacao_full = (ST_full/preco_entrada - 1)
+                retorno_full = np.where(tocou_baixa_full, 0.0,
+                                  np.where(tocou_alta_full, teto_retorno, variacao_full*alavancagem))
+                faixas = {
+                    'menor_que_0': round(float((retorno_full<0).mean()*100), 2),
+                    'entre_0_e_1': round(float(((retorno_full>=0)&(retorno_full<0.01)).mean()*100), 2),
+                    'entre_1_e_2': round(float(((retorno_full>=0.01)&(retorno_full<0.02)).mean()*100), 2),
+                    'entre_2_e_meta': round(float(((retorno_full>=0.02)&(retorno_full<teto_retorno)).mean()*100), 2),
+                    'maior_ou_igual_meta': round(float((retorno_full>=teto_retorno).mean()*100), 2),
+                }
+                res['prob_retorno_faixas'] = faixas
+                res['retorno_medio_pct'] = round(float(retorno_full.mean()*100), 2)
+                res['teto_retorno_usado_pct'] = round(teto_retorno*100, 2)
+            except Exception:
+                res['prob_retorno_faixas'] = None
+        elif ganho_prefixado_pct is not None and kdo is not None:
+            try:
+                ganho_prefixado = float(ganho_prefixado_pct)/100
+                n_faixas2 = 20000
+                z_full2 = np.random.standard_normal((n_faixas2, prazo_dias))
+                paths_full2 = preco_entrada*np.exp(np.cumsum(drift_fan+vol_step_fan*z_full2, axis=1))
+                min_full2 = np.min(paths_full2, axis=1)
+                ST_full2 = paths_full2[:,-1]
+                tocou_barreira2 = min_full2 <= kdo
+                variacao_full2 = (ST_full2/preco_entrada - 1)
+                retorno_full2 = np.where(~tocou_barreira2, ganho_prefixado, variacao_full2)
+                faixas2 = {
+                    'menor_que_0': round(float((retorno_full2<0).mean()*100), 2),
+                    'entre_0_e_1': round(float(((retorno_full2>=0)&(retorno_full2<0.01)).mean()*100), 2),
+                    'entre_1_e_2': round(float(((retorno_full2>=0.01)&(retorno_full2<0.02)).mean()*100), 2),
+                    'entre_2_e_meta': round(float(((retorno_full2>=0.02)&(retorno_full2<ganho_prefixado)).mean()*100), 2),
+                    'maior_ou_igual_meta': round(float((retorno_full2>=ganho_prefixado).mean()*100), 2),
+                }
+                res['prob_retorno_faixas'] = faixas2
+                res['retorno_medio_pct'] = round(float(retorno_full2.mean()*100), 2)
+                res['teto_retorno_usado_pct'] = round(ganho_prefixado*100, 2)
+                res['prob_ganho_prefixado'] = round(float((~tocou_barreira2).mean()*100), 2)
+            except Exception:
+                res['prob_retorno_faixas'] = None
+
+        try:
+            capital_100 = preco_entrada*100
+            sim_100 = None
+            if retorno_full is not None and kdo is not None and kuo is not None:
+                dentro_mask = (~tocou_baixa_full)&(~tocou_alta_full)
+                ret_dentro = retorno_full[dentro_mask]
+                sim_100 = {
+                    'acoes': 100, 'preco_foto': round(preco_entrada, 2), 'capital': round(capital_100, 2),
+                    'defesa': {'probabilidade_pct': round(float(tocou_baixa_full.mean()*100), 2),
+                               'retorno_pct': 0.0, 'retorno_reais': 0.0,
+                               'descricao': 'Protegido: nem ganha nem perde (defesa em '+str(round(kdo,2))+')'},
+                    'dentro': {'probabilidade_pct': round(float(dentro_mask.mean()*100), 2),
+                               'retorno_medio_pct': round(float(ret_dentro.mean()*100), 2) if len(ret_dentro) else 0.0,
+                               'retorno_medio_reais': round(float(ret_dentro.mean()*capital_100), 2) if len(ret_dentro) else 0.0,
+                               'descricao': 'Fica dentro do range (ganha a variação × alavancagem)'},
+                    'teto': {'probabilidade_pct': round(float(tocou_alta_full.mean()*100), 2),
+                             'retorno_pct': round(teto_retorno*100, 2), 'retorno_reais': round(teto_retorno*capital_100, 2),
+                             'descricao': 'Trava no teto (barreira em '+str(round(kuo,2))+')'},
+                }
+            elif retorno_full2 is not None and kdo is not None:
+                exposto_mask = tocou_barreira2
+                ret_exposto = variacao_full2[exposto_mask]
+                sim_100 = {
+                    'acoes': 100, 'preco_foto': round(preco_entrada, 2), 'capital': round(capital_100, 2),
+                    'prefixado': {'probabilidade_pct': round(float((~tocou_barreira2).mean()*100), 2),
+                                  'retorno_pct': round(ganho_prefixado*100, 2), 'retorno_reais': round(ganho_prefixado*capital_100, 2),
+                                  'descricao': 'Ganha o prefixado (não tocou a barreira)'},
+                    'exposto': {'probabilidade_pct': round(float(exposto_mask.mean()*100), 2),
+                                'retorno_medio_pct': round(float(ret_exposto.mean()*100), 2) if len(ret_exposto) else 0.0,
+                                'retorno_medio_reais': round(float(ret_exposto.mean()*capital_100), 2) if len(ret_exposto) else 0.0,
+                                'descricao': 'Tocou a barreira: fica exposto à variação real (sem garantia)'},
                 }
             res['simulacao_100_acoes'] = sim_100
         except Exception:
