@@ -220,6 +220,11 @@ function tplSimples(p){
         <div style="font-size:12px;color:var(--muted);line-height:1.6" id="${id}-mc-i">—</div>
       </div>
     </div>
+    ${p.data_entrada?`
+    <div style="margin-top:14px">
+      <button onclick="loadEvolucaoPosicao('${id}')" id="${id}-evo-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📈 Ver evolução desde a entrada</button>
+      <div id="${id}-evo-area" style="display:none;margin-top:10px"></div>
+    </div>`:''}
     </div>
   </div>`;
 }
@@ -259,8 +264,104 @@ function tplBarreira(p){
         <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6" id="${id}-mc-i">—</div>
       </div>
     </div>
+    ${p.data_entrada?`
+    <div style="margin-top:14px">
+      <button onclick="loadEvolucaoPosicao('${id}')" id="${id}-evo-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📈 Ver evolução desde a entrada</button>
+      <div id="${id}-evo-area" style="display:none;margin-top:10px"></div>
+    </div>`:''}
     </div>
   </div>`;
+}
+
+// ── EVOLUÇÃO DE POSIÇÃO ATIVA (retroativo real + projeção) ──
+async function loadEvolucaoPosicao(id){
+  const area=document.getElementById(id+'-evo-area');
+  if(!area||!_posData)return;
+  const abrir=area.style.display==='none';
+  area.style.display=abrir?'block':'none';
+  if(!abrir)return;
+  if(area.dataset.loaded){return;}
+
+  const p=(_posData.ativas||[]).find(x=>x.id===id);
+  if(!p){area.innerHTML='<p style="color:var(--red);font-size:11px;padding:10px">Posição não encontrada.</p>';return;}
+
+  area.innerHTML='<p style="color:var(--muted);font-size:11px;padding:10px;text-align:center">Calculando evolução desde '+fmtData(p.data_entrada)+'...</p>';
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const body={ticker:p.ticker,data_entrada:p.data_entrada,vencimento:p.vencimento};
+    if(p.strike!=null)body.k_call=p.strike;
+    if(p.kdo!=null)body.kdo=p.kdo;
+    if(p.kuo!=null)body.kuo=p.kuo;
+    const r=await fetch(B+'/montecarlo/posicao_ativa',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    area.dataset.loaded='1';
+    renderEvolucaoPosicao(id,d);
+  }catch(e){
+    area.innerHTML='<p style="color:var(--red);font-size:11px;padding:10px">Erro: '+e.message+'</p>';
+  }
+}
+
+function renderEvolucaoPosicao(id,d){
+  const area=document.getElementById(id+'-evo-area');
+  if(!area)return;
+
+  if(d.fora_do_prazo){
+    area.innerHTML='<div style="padding:10px;background:rgba(240,98,146,.08);border-left:2px solid var(--red);font-size:11px;color:var(--text);line-height:1.5">⚠ '+(d.mensagem||'Vencimento já passou.')+'</div>';
+    return;
+  }
+
+  let html='<div class="sb" style="margin-top:0">';
+  html+='<div class="sr"><span class="sl">Preço na entrada</span><span class="sv">'+fR(d.preco_entrada)+'</span></div>';
+  html+='<div class="sr"><span class="sl">Preço atual</span><span class="sv">'+fR(d.preco_atual)+'</span></div>';
+  html+='<div class="sr"><span class="sl">Dias decorridos / restantes</span><span class="sv">'+d.dias_passados+' / '+d.dias_restantes+'</span></div>';
+  if(d.prob_sem_barreira!=null){
+    html+='<div class="sr"><span class="sl">Prob. sem tocar barreira (restante)</span><span class="sv ok">'+d.prob_sem_barreira.toFixed(2)+'%</span></div>';
+    html+='<div class="sr"><span class="sl">Prob. barreira alta (restante)</span><span class="sv warn">'+d.prob_barreira_alta.toFixed(2)+'%</span></div>';
+    html+='<div class="sr"><span class="sl">Prob. barreira baixa (restante)</span><span class="sv warn">'+d.prob_barreira_baixa.toFixed(2)+'%</span></div>';
+  }
+  html+='</div>';
+
+  if(d.prob_retorno_faixas){
+    const f=d.prob_retorno_faixas;
+    html+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">PROBABILIDADE DE RETORNO FINAL (DESDE A ENTRADA)</div>'+
+      '<div class="sb" style="margin-top:0">'+
+      '<div class="sr"><span class="sl">Abaixo de 0%</span><span class="sv itm">'+f.menor_que_0.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 0% e 1%</span><span class="sv">'+f.entre_0_e_1.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 1% e 2%</span><span class="sv">'+f.entre_1_e_2.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Entre 2% e a meta</span><span class="sv warn">'+f.entre_2_e_meta.toFixed(1)+'%</span></div>'+
+      '<div class="sr"><span class="sl">Bate a meta (\u2265'+(d.teto_retorno_usado_pct!=null?d.teto_retorno_usado_pct:'?')+'%)</span><span class="sv ok">'+f.maior_ou_igual_meta.toFixed(1)+'%</span></div>'+
+      '</div></div>';
+  }
+
+  if(d.simulacao_100_acoes){
+    const s=d.simulacao_100_acoes;
+    html+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">SIMULAÇÃO — 100 AÇÕES A '+fR(s.preco_foto)+'</div><div class="sb" style="margin-top:0">';
+    if(s.defesa){
+      html+='<div class="sr"><span class="sl">'+s.defesa.descricao+'</span><span class="sv">'+fR(s.defesa.retorno_reais)+'</span></div>';
+      html+='<div class="sr"><span class="sl">'+s.dentro.descricao+'</span><span class="sv '+(s.dentro.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.dentro.retorno_medio_reais>=0?'+':'')+fR(s.dentro.retorno_medio_reais)+'</span></div>';
+      html+='<div class="sr"><span class="sl">'+s.teto.descricao+'</span><span class="sv ok">+'+fR(s.teto.retorno_reais)+'</span></div>';
+    } else if(s.prefixado){
+      html+='<div class="sr"><span class="sl">'+s.prefixado.descricao+'</span><span class="sv ok">+'+fR(s.prefixado.retorno_reais)+'</span></div>';
+      html+='<div class="sr"><span class="sl">'+s.exposto.descricao+'</span><span class="sv '+(s.exposto.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.exposto.retorno_medio_reais>=0?'+':'')+fR(s.exposto.retorno_medio_reais)+'</span></div>';
+    }
+    html+='</div></div>';
+  }
+
+  if(d.fan_chart){
+    html+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">EVOLUÇÃO REAL DESDE A ENTRADA + PROJEÇÃO</div>'+
+      '<div style="position:relative;height:clamp(240px,30vh,380px);background:var(--bg2);border:1px solid var(--border);padding:8px">'+
+      '<canvas id="analise-fan-canvas-'+id+'-pos"></canvas></div></div>';
+  }
+
+  area.innerHTML=html;
+  if(d.fan_chart){
+    renderFanChartAnalise(id+'-pos', d.fan_chart);
+  }
 }
 
 async function loadPositions(){
@@ -1513,6 +1614,7 @@ function tplAnalise(a){
           <div class="pos-acc-sub">${sub}</div>
         </div>
         <span class="enc-badge ${badgeCls}">${badgeTxt}</span>
+        ${a.backtest?'<span class="enc-badge" style="background:rgba(124,106,247,.15);color:var(--accent);border:1px solid rgba(124,106,247,.3)">🧪 BACKTEST</span>':''}
       </div>
       <span id="ar-analise-${id}" style="color:var(--muted)">▼</span>
     </div>
