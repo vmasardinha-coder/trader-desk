@@ -1,6 +1,17 @@
-"""  # v10.13
-Trader Desk — Proxy Server v10.13
+"""  # v10.14
+Trader Desk — Proxy Server v10.14
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.14:
+- /montecarlo/condicional: adiciona 'put_resultado_fixo' para venda de PUT
+  simples (k_put, sem k_call/kdo). Mecanica diferente da call coberta:
+  quando exercida, vira posicao NOVA (compra forcada), nao retorno
+  fechado -- por decisao do usuario, NAO simulado via Monte Carlo. O
+  retorno "se nao exercida" e um FATO FIXO (premio/capital_comprometido),
+  calculado uma unica vez a partir do payload ('premio' + 'qtd_acoes'),
+  ja que o valor do premio e conhecido desde o registro da foto. So a
+  PROBABILIDADE de nao ser exercida usa Monte Carlo (prob_sucesso, ja
+  existia). Tambem adiciona prob_sucesso para PUT (antes so existia para
+  CALL).
 Mudancas v10.13:
 - BUGFIX CRITICO: /montecarlo/condicional estava FALTANDO o bloco de
   prob_retorno_faixas + simulacao_100_acoes para venda de CALL simples
@@ -955,6 +966,7 @@ def run_montecarlo_condicional():
             if K_put is not None:
                 put_ex = (min_p < K_put) if exercicio == 'americana' else (ST_path < K_put)
                 res['prob_put_exercida'] = round(float(put_ex.mean() * 100), 2)
+                res['prob_sucesso'] = round(float((~put_ex).mean() * 100), 2)
                 res['exercicio'] = exercicio
         if kdo is not None and kuo is not None:
             # Para barreira, precisamos do caminho completo, nao so do ponto final —
@@ -1152,7 +1164,37 @@ def run_montecarlo_condicional():
             except Exception:
                 res['prob_retorno_faixas'] = None
 
-        # ── SIMULAÇÃO DIDÁTICA EM 100 AÇÕES (padrão fixo, qualquer tipo de
+        # ── VENDA DE PUT (k_put, sem k_call/kdo): mecanica diferente da
+        # call coberta -- quando EXERCIDA, vira uma posicao NOVA (compra
+        # forcada de acoes), nao um retorno fechado. Por decisao do usuario
+        # (sessao 22/06/2026): NAO simular o pos-exercicio. O "retorno se
+        # nao exercida" e um FATO FIXO (premio/capital), calculado uma
+        # unica vez a partir do payload, NAO via Monte Carlo -- so a
+        # PROBABILIDADE de nao ser exercida usa Monte Carlo (ja calculada
+        # acima em prob_sucesso/prob_put_exercida). Requer 'premio' (R$
+        # total recebido) e 'qtd_acoes' (tamanho do compromisso) no
+        # payload para calcular o capital comprometido.
+        premio_valor = data.get('premio')
+        qtd_acoes_put = data.get('qtd_acoes')
+        if K_put is not None and K_call is None and kdo is None and premio_valor is not None and qtd_acoes_put is not None:
+            try:
+                premio_valor = float(premio_valor)
+                qtd_acoes_put = float(qtd_acoes_put)
+                capital_comprometido = K_put * qtd_acoes_put
+                retorno_fixo_pct = round((premio_valor / capital_comprometido) * 100, 2)
+                meses_prazo = prazo_dias / 30.0
+                retorno_fixo_mes_pct = round(retorno_fixo_pct / meses_prazo, 2) if meses_prazo > 0 else None
+                res['put_resultado_fixo'] = {
+                    'premio_reais': round(premio_valor, 2),
+                    'capital_comprometido': round(capital_comprometido, 2),
+                    'retorno_pct': retorno_fixo_pct,
+                    'retorno_mes_pct': retorno_fixo_mes_pct,
+                    'bate_meta': (retorno_fixo_mes_pct >= 2.0) if retorno_fixo_mes_pct is not None else None,
+                    'descricao_nao_exercida': 'Não exercida: fica só com o prêmio de R$' + str(round(premio_valor, 2)),
+                    'descricao_exercida': 'Exercida: compra ' + str(int(qtd_acoes_put)) + ' ações a R$' + str(round(K_put, 2)) + ' (capital R$' + str(round(capital_comprometido, 2)) + ')',
+                }
+            except Exception:
+                res['put_resultado_fixo'] = None
         # estrutura) — traduz os percentuais abstratos em R$ concretos sobre
         # um lote de 100 ações no preco_foto, nos 3 cenários possíveis:
         # defesa/barreira tocada, dentro do range (média/mediana), e teto/
