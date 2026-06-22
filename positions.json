@@ -1,123 +1,130 @@
 {
-  "_comentario": "Arquivo de posicoes do Trader Desk. Edite aqui para abrir/encerrar posicoes ou ajustar parametros. Nao precisa tocar em HTML/JS.",
-  "_formatos": {
-    "tipo_posicao": "'simples' (call vendida normal) ou 'barreira' (bidirecional com KDO/KUO)",
-    "vol_impl": "decimal, ex: 0.434 = 43.4%",
-    "vencimento": "formato YYYY-MM-DD"
-  },
-  "ativas": [
-    {
-      "id": "pt",
-      "ticker": "PETR4.SA",
-      "nome": "Petrobras PN",
-      "tipo_posicao": "simples",
-      "estrategia": "Call Vendida",
-      "codigo_opcao": "PETRL319",
-      "strike": 30.85,
-      "vol_impl": 0.434,
-      "tipo": "call",
-      "vencimento": "2026-12-17"
+    "_comentario": "Arquivo de posicoes do Trader Desk. Edite aqui para abrir/encerrar posicoes ou ajustar parametros. Nao precisa tocar em HTML/JS.",
+    "_formatos": {
+        "tipo_posicao": "'simples' (call vendida normal) ou 'barreira' (bidirecional com KDO/KUO)",
+        "vol_impl": "decimal, ex: 0.434 = 43.4%",
+        "vencimento": "formato YYYY-MM-DD",
+        "data_entrada": "formato YYYY-MM-DD, ESTIMADA por aproximacao do usuario (nao documento oficial) -- usada para o grafico retroativo real nas Posicoes Ativas"
     },
-    {
-      "id": "vl",
-      "ticker": "VALE3.SA",
-      "nome": "Vale ON",
-      "tipo_posicao": "simples",
-      "estrategia": "Call Vendida",
-      "codigo_opcao": "VALEB574",
-      "strike": 57.40,
-      "vol_impl": 0.712,
-      "tipo": "call",
-      "vencimento": "2027-02-18"
-    },
-    {
-      "id": "a3",
-      "ticker": "AXIA3.SA",
-      "nome": "AXIA3 (A)",
-      "tipo_posicao": "barreira",
-      "estrategia": "Bidirecional",
-      "vencimento": "2026-09-14",
-      "entry": 54.31,
-      "kdo": 43.51,
-      "kuo": 68.76,
-      "kdo_pct": "-20%",
-      "kuo_pct": "+26,6%",
-      "ganho_sem_barreira": "até +31,2% / +20%",
-      "ganho_barreira_alta": "+4% fixo"
-    },
-    {
-      "id": "a3b",
-      "ticker": "AXIA3.SA",
-      "nome": "AXIA3 (B)",
-      "tipo_posicao": "barreira",
-      "estrategia": "Bidirecional ION Itaú",
-      "vencimento": "2026-10-02",
-      "entry": 50.65,
-      "kdo": 40.52,
-      "kuo": 62.81,
-      "kdo_pct": "-20%",
-      "kuo_pct": "+24%",
-      "ganho_sem_barreira": "até +31,2% / +20%",
-      "ganho_barreira_alta": "+4% fixo (12,33% a.a.)"
-    },
-    {
-      "id": "rx",
-      "ticker": "ROXO34.SA",
-      "nome": "ROXO34 · BDR Nubank",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "ROXOG105",
-      "strike": 10.50,
-      "vol_impl": 0.315,
-      "tipo": "call",
-      "vencimento": "2026-07-16",
-      "objetivo": "Fechar abaixo de R$ 10,50"
-    },
-    {
-      "id": "bb",
-      "ticker": "BBAS3.SA",
-      "nome": "Banco do Brasil ON",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "BBASH21",
-      "strike": 21.65,
-      "vol_impl": 0.262,
-      "tipo": "call",
-      "vencimento": "2026-08-20",
-      "objetivo": "Fechar abaixo de R$ 21,65"
-    }
-  ],
-  "encerradas": [
-    {
-      "id": "cl-strangle",
-      "ticker": "AXIA3",
-      "estrategia": "Short Strangle",
-      "codigo_opcao": "AXIAI505",
-      "strike": 50.50,
-      "data_encerramento": null,
-      "resultado_texto": "Ações liberadas — objetivo atingido",
-      "status": "sucesso",
-      "observacao": "Posição encerrada antecipadamente"
-    },
-    {
-      "id": "cl-prefixado",
-      "ticker": "ROXO34",
-      "estrategia": "Prefixado com barreira",
-      "alvo_pct": 7.1,
-      "realizado_pct": 5.17,
-      "pct_do_alvo": 72,
-      "data_encerramento": "2026-06-04",
-      "status": "sucesso"
-    },
-    {
-      "id": "cl-bbas-ant",
-      "ticker": "BBAS3",
-      "estrategia": "Lançamento Coberto",
-      "pct_do_alvo": 80,
-      "pct_do_prazo": 70,
-      "data_encerramento": null,
-      "status": "sucesso",
-      "observacao": "80% do resultado em 70% do tempo"
-    }
-  ]
+    "ativas": [
+        {
+            "id": "pt",
+            "ticker": "PETR4.SA",
+            "nome": "Petrobras PN",
+            "tipo_posicao": "simples",
+            "estrategia": "Call Vendida",
+            "codigo_opcao": "PETRL319",
+            "strike": 30.85,
+            "vol_impl": 0.434,
+            "tipo": "call",
+            "vencimento": "2026-12-17",
+            "data_entrada": "2026-03-15"
+        },
+        {
+            "id": "vl",
+            "ticker": "VALE3.SA",
+            "nome": "Vale ON",
+            "tipo_posicao": "simples",
+            "estrategia": "Call Vendida",
+            "codigo_opcao": "VALEB574",
+            "strike": 57.4,
+            "vol_impl": 0.712,
+            "tipo": "call",
+            "vencimento": "2027-02-18",
+            "data_entrada": "2026-02-04"
+        },
+        {
+            "id": "a3",
+            "ticker": "AXIA3.SA",
+            "nome": "AXIA3 (A)",
+            "tipo_posicao": "barreira",
+            "estrategia": "Bidirecional",
+            "vencimento": "2026-09-14",
+            "entry": 54.31,
+            "kdo": 43.51,
+            "kuo": 68.76,
+            "kdo_pct": "-20%",
+            "kuo_pct": "+26,6%",
+            "ganho_sem_barreira": "até +31,2% / +20%",
+            "ganho_barreira_alta": "+4% fixo",
+            "data_entrada": "2026-05-16"
+        },
+        {
+            "id": "a3b",
+            "ticker": "AXIA3.SA",
+            "nome": "AXIA3 (B)",
+            "tipo_posicao": "barreira",
+            "estrategia": "Bidirecional ION Itaú",
+            "vencimento": "2026-10-02",
+            "entry": 50.65,
+            "kdo": 40.52,
+            "kuo": 62.81,
+            "kdo_pct": "-20%",
+            "kuo_pct": "+24%",
+            "ganho_sem_barreira": "até +31,2% / +20%",
+            "ganho_barreira_alta": "+4% fixo (12,33% a.a.)",
+            "data_entrada": "2026-06-08"
+        },
+        {
+            "id": "rx",
+            "ticker": "ROXO34.SA",
+            "nome": "ROXO34 · BDR Nubank",
+            "tipo_posicao": "simples",
+            "estrategia": "Lançamento Coberto",
+            "codigo_opcao": "ROXOG105",
+            "strike": 10.5,
+            "vol_impl": 0.315,
+            "tipo": "call",
+            "vencimento": "2026-07-16",
+            "objetivo": "Fechar abaixo de R$ 10,50",
+            "data_entrada": "2026-06-03"
+        },
+        {
+            "id": "bb",
+            "ticker": "BBAS3.SA",
+            "nome": "Banco do Brasil ON",
+            "tipo_posicao": "simples",
+            "estrategia": "Lançamento Coberto",
+            "codigo_opcao": "BBASH21",
+            "strike": 21.65,
+            "vol_impl": 0.262,
+            "tipo": "call",
+            "vencimento": "2026-08-20",
+            "objetivo": "Fechar abaixo de R$ 21,65",
+            "data_entrada": "2026-06-03"
+        }
+    ],
+    "encerradas": [
+        {
+            "id": "cl-strangle",
+            "ticker": "AXIA3",
+            "estrategia": "Short Strangle",
+            "codigo_opcao": "AXIAI505",
+            "strike": 50.5,
+            "data_encerramento": null,
+            "resultado_texto": "Ações liberadas — objetivo atingido",
+            "status": "sucesso",
+            "observacao": "Posição encerrada antecipadamente"
+        },
+        {
+            "id": "cl-prefixado",
+            "ticker": "ROXO34",
+            "estrategia": "Prefixado com barreira",
+            "alvo_pct": 7.1,
+            "realizado_pct": 5.17,
+            "pct_do_alvo": 72,
+            "data_encerramento": "2026-06-04",
+            "status": "sucesso"
+        },
+        {
+            "id": "cl-bbas-ant",
+            "ticker": "BBAS3",
+            "estrategia": "Lançamento Coberto",
+            "pct_do_alvo": 80,
+            "pct_do_prazo": 70,
+            "data_encerramento": null,
+            "status": "sucesso",
+            "observacao": "80% do resultado em 70% do tempo"
+        }
+    ]
 }
