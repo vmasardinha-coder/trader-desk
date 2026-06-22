@@ -1,6 +1,18 @@
-"""  # v10.4
-Trader Desk — Proxy Server v10.4
+"""  # v10.5
+Trader Desk — Proxy Server v10.5
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.5:
+- /montecarlo/condicional agora retorna 'fan_chart' (banda de percentis
+  p10-p90 do dia 0/preco_foto ao prazo_dias TOTAL, projetada com a vol
+  atual, + serie de precos reais observados desde a data_foto via Yahoo,
+  alinhados por timestamp) -- usado na aba Em Analise para visualizacao
+  tipo fan chart com linha real navegando sobre a banda projetada, mesmo
+  padrao ja usado em /btc/historico.
+- Mesmo endpoint tambem aceita 'alavancagem' e 'teto_retorno_pct' opcionais
+  no payload (estrutura bidirecional com payoff conhecido) e retorna
+  'prob_retorno_faixas': probabilidade do retorno FINAL da estrutura cair
+  em faixas fixas (<0%, 0-1%, 1-2%, 2-2.5%, >=meta), considerando o payoff
+  real (alavancagem dentro do range, teto travado nas barreiras).
 Mudancas v10.4:
 - /montecarlo: corrige bug onde ROXO34 (e qualquer ticker que envie 'price' no
   payload por estar bloqueado no Yahoo via Render) nunca calculava GARCH nem
