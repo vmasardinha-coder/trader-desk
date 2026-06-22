@@ -33,7 +33,8 @@
 <!-- ══ COTAÇÕES ══ -->
 <div id="tab-cotacoes" class="tab-content active">
   <div class="tbl-wrap">
-    <div class="tbl-hdr"><span class="tbl-hdr-title">EUA — Mercados</span><span class="tbl-hdr-time" id="last-update-tbl">—</span></div>
+    <div class="tbl-hdr" onclick="togCot('eua')" style="cursor:pointer"><span class="tbl-hdr-title">EUA — Mercados</span><span class="tbl-hdr-time" id="last-update-tbl">—</span><span id="ar-cot-eua" style="color:var(--muted);margin-left:8px">▼</span></div>
+    <div id="cot-eua-wrap">
     <table class="tbl-mkt">
       <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>
       <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead>
@@ -46,10 +47,12 @@
         <tr><td><div class="sym">USD/BRL</div><div class="desc">Câmbio Dólar</div></td><td class="r"><span class="val loading" id="usd-p">—</span></td><td class="r"><span class="chg" id="usd-v">—</span></td><td class="r"><span class="chg" id="usd-c">—</span></td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="tbl-wrap">
-    <div class="tbl-hdr"><span class="tbl-hdr-title">B3 — Top 10</span></div>
+    <div class="tbl-hdr" onclick="togCot('b3')" style="cursor:pointer"><span class="tbl-hdr-title">B3 — Top 10</span><span id="ar-cot-b3" style="color:var(--muted)">▼</span></div>
+    <div id="cot-b3-wrap">
     <table class="tbl-mkt">
       <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>
       <thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead>
@@ -66,6 +69,7 @@
         <tr><td><div class="sym">ROXO34</div><div class="desc">Nubank BDR</div></td><td class="r"><span class="val loading" id="roxo34q-p">—</span></td><td class="r"><span class="chg" id="roxo34q-v">—</span></td><td class="r"><span class="chg" id="roxo34q-c">—</span></td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>B3 por Segmento</span><button onclick="expandAll()" id="btn-expand" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.5px">+ Expandir Todos</button></div>
@@ -101,7 +105,8 @@
   <div class="sb2" id="sb-dj"><div class="grid" id="g-dj"></div></div>
 
   <div class="tbl-wrap" style="margin-top:16px">
-    <div class="tbl-hdr"><span class="tbl-hdr-title">Commodities</span></div>
+    <div class="tbl-hdr" onclick="togCot('comm')" style="cursor:pointer"><span class="tbl-hdr-title">Commodities</span><span id="ar-cot-comm" style="color:var(--muted)">▼</span></div>
+    <div id="cot-comm-wrap">
     <table class="tbl-mkt">
       <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th></tr></thead>
       <tbody>
@@ -111,6 +116,7 @@
         <tr><td><div class="sym">COPPER</div><div class="desc">Cobre</div></td><td class="r"><span class="val loading" id="copper-p">—</span></td><td class="r"><span class="chg" id="copper-c">—</span></td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="tbl-wrap">
