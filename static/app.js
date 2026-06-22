@@ -1122,10 +1122,10 @@ function checkBadgeRisco(){
   const temRisco=_risco.barreira||_risco.roxoItm||_risco.vencUrgente;
   badge.style.display=temRisco?'inline':'none';
 }
-async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId,volsId){
+async function MC(tk,sk,dias,lId,rId,iId,rtId,vsId,volsId,exercicio){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
-    const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:sk,k_put:sk,t_days:dias,n:5000})});
+    const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({ticker:tk,k_call:sk,k_put:sk,t_days:dias,n:5000,exercicio:exercicio||'europeia'})});
     if(!r.ok)throw 0;const d=await r.json();if(d.error)throw new Error(d.error);
     document.getElementById(lId).style.display='none';document.getElementById(rId).style.display='block';
     const riscoCls=p=>p<15?'ok':p<30?'warn':'itm';
@@ -1186,7 +1186,7 @@ async function MCB(tk,en,kd,ku,dias,pfx){
 async function MCR(tk,en,kd,dias,price){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),40000);
-    const payload={ticker:tk,k_call:en,k_put:en,t_days:dias,n:5000};
+    const payload={ticker:tk,k_call:en,k_put:en,t_days:dias,n:5000,exercicio:'americana'};
     if(kd)payload.knock_down=kd;
     if(price)payload.price=price;
     const r=await fetch(B+'/montecarlo',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify(payload)});
@@ -1454,7 +1454,7 @@ async function main(){
       // MC simples — PETR4, VALE3, BBAS3 (qualquer 'simples' exceto ROXO34 que usa MCR)
       let delay=6000;
       _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
-        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs',p.id+'-mc-vols'),delay);
+        setTimeout(()=>MC(p.ticker,p.strike,diasAte(p.vencimento),p.id+'-mc-l',p.id+'-mc-r',p.id+'-mc-i',p.id+'-mc-rt',p.id+'-mc-vs',p.id+'-mc-vols',p.exercicio||'europeia'),delay);
         delay+=6000;
       });
 
