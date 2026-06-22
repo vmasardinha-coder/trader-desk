@@ -56,5 +56,21 @@
     "origem": "pronta",
     "status": "em_analise",
     "observacao": "Venda de call coberta (lancamento coberto), independente da posicao ja ativa ROXOG105 (strike 10.50, vencimento 16/07). Esta e uma proposta NOVA e separada: strike R$11,25, vencimento 21/08/2026 (60 dias), 2500 acoes, premio total R$550,00 (R$0,22/acao). Retorno sobre capital: 1,99% em 60 dias = 1,00%/mes -- ABAIXO da meta de 2-2,5%/mes mas e a melhor opcao do lote de 9 calls simples avaliadas (BBAS3/ROXO34/AXIA3). Mantida para fins didaticos e de comparacao."
+  },
+  {
+    "id": "an_1782124389",
+    "ticker": "AXIA3.SA",
+    "nome": "AXIA3 (comparativo vs posicao ativa)",
+    "data_foto": "2026-06-22",
+    "preco_foto": 51.81,
+    "prazo_dias": 102,
+    "tipo_estrutura": "bidirecional",
+    "kdo": 41.45,
+    "kuo": 64.24,
+    "alavancagem": 1.3,
+    "teto_retorno_pct": 4.0,
+    "origem": "pronta",
+    "status": "em_analise",
+    "observacao": "SIMULACAO COMPARATIVA, nao e posicao nova: usuario JA TEM AXIA3(B) ativa (positions.json id=a3b) com a MESMA estrutura do banco (Itau, Material Publicitario 03/06/2026, vencimento 02/10/2026), mas contratada a entry R$50,65. Esta foto simula 'se eu fechasse essa mesma estrutura HOJE' no preco atual R$51,81, para comparar contratar antes vs agora. KDO -20% / KUO +24%, alavancagem 1,30x dentro do range (inferida do quadro de rentabilidade do PDF: 24%->31,2% e 4%->5,2%, ambos = 1,30x), teto travado em 4,00% (12,33% a.a.) -- numeros do banco aceitos como premissa fixa, sem reescalar. Prob. (Monte Carlo vol.impl. 30%): fica dentro 54,6%, toca defesa 24,3%, toca teto 21,1%. Prob. de BATER A META (>=4%): 40,85% -- bem mais favoravel que o PETR4 teorico (17,9%), por causa do range mais largo e alavancagem real maior."
   }
 ]
