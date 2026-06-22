@@ -24,9 +24,10 @@
     "prazo_dias": 56,
     "tipo_estrutura": "retorno_controlado",
     "kdo": 8.82,
+    "ganho_prefixado_pct": 16.8,
     "origem": "pronta",
     "status": "em_analise",
-    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 19/02/2026, vencimento original 17/08/2026, mantido). Estrutura: Retorno Controlado, barreira unica Knock-Down-Out a -20% (R$8,82). Ganho PREFIXADO de 16,80% se NAO tocar a barreira em nenhum momento; se tocar, fica com o papel exposto a variacao real, SEM garantia de ganho. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 88,89%. Prob. de tocar barreira: 11,11%. Equivalente mensal SE nao tocar: 9,00%/mes -- muito acima da regua minima de 1%/mes. Sem alavancagem/teto_retorno_pct (estrutura diferente da bidirecional, nao se aplica a tabela de faixas ainda)."
+    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 19/02/2026, vencimento original 17/08/2026, mantido). Estrutura: Retorno Controlado, barreira unica Knock-Down-Out a -20% (R$8,82). Ganho PREFIXADO de 16,80% se NAO tocar a barreira em nenhum momento; se tocar, fica com o papel exposto a variacao real, SEM garantia de ganho. REGRA: numeros do banco aceitos como premissa fixa, sem reescalar -- so o vencimento e simulado a partir de hoje. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 88,89%. Equivalente mensal SE nao tocar: 9,00%/mes."
   },
   {
     "id": "an_1782100907",
@@ -37,8 +38,9 @@
     "prazo_dias": 60,
     "tipo_estrutura": "retorno_controlado",
     "kdo": 51.26,
+    "ganho_prefixado_pct": 10.9,
     "origem": "pronta",
     "status": "em_analise",
-    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 09/03/2026), REPROJETADA: vencimento original (11/05/2026) ja passou, entao foi simulada com MESMO prazo (2 meses, arredondado para 60 dias) a partir de hoje (22/06/2026), usando preco atual em vez do preco de contratacao original. Estrutura: Retorno Controlado, barreira unica Knock-Down-Out a -20% (R$51,26). Ganho PREFIXADO de 10,90% se NAO tocar a barreira; se tocar, fica com o papel exposto a variacao real, SEM garantia de ganho. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 87,59%. Prob. de tocar barreira: 12,41%. Equivalente mensal SE nao tocar: 5,45%/mes -- acima da regua minima de 1%/mes. Sem alavancagem/teto_retorno_pct (estrutura diferente da bidirecional)."
+    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 09/03/2026), REPROJETADA: vencimento original (11/05/2026) ja passou, entao foi simulada com MESMO prazo (2 meses, arredondado para 60 dias) a partir de hoje (22/06/2026). REGRA: numeros do banco (ganho prefixado 10,90%, barreira -20%) aceitos como premissa fixa, sem reescalar -- so o vencimento e simulado a partir de hoje. Prob. de ganhar o prefixado (Monte Carlo, vol.impl. assumida 30%): 87,59%. Equivalente mensal SE nao tocar: 5,45%/mes."
   }
 ]
