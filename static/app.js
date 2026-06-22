@@ -304,6 +304,10 @@ async function loadEvolucaoPosicao(id){
     if(p.strike!=null)body.k_call=p.strike;
     if(p.kdo!=null)body.kdo=p.kdo;
     if(p.kuo!=null)body.kuo=p.kuo;
+    if(p.exercicio!=null)body.exercicio=p.exercicio;
+    if(p.meta_pct!=null)body.meta_pct=p.meta_pct;
+    if(p.alavancagem!=null)body.alavancagem=p.alavancagem;
+    if(p.teto_retorno_pct!=null)body.teto_retorno_pct=p.teto_retorno_pct;
     const r=await fetch(B+'/montecarlo/posicao_ativa',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -360,6 +364,9 @@ function renderEvolucaoPosicao(id,d){
     } else if(s.prefixado){
       html+='<div class="sr"><span class="sl">'+s.prefixado.descricao+'</span><span class="sv ok">+'+fR(s.prefixado.retorno_reais)+'</span></div>';
       html+='<div class="sr"><span class="sl">'+s.exposto.descricao+'</span><span class="sv '+(s.exposto.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.exposto.retorno_medio_reais>=0?'+':'')+fR(s.exposto.retorno_medio_reais)+'</span></div>';
+    } else if(s.nao_exercida){
+      html+='<div class="sr"><span class="sl">'+s.nao_exercida.descricao+'</span><span class="sv '+(s.nao_exercida.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.nao_exercida.retorno_medio_reais>=0?'+':'')+fR(s.nao_exercida.retorno_medio_reais)+'</span></div>';
+      html+='<div class="sr"><span class="sl">'+s.exercida.descricao+'</span><span class="sv '+(s.exercida.retorno_reais>=0?'ok':'itm')+'">'+(s.exercida.retorno_reais>=0?'+':'')+fR(s.exercida.retorno_reais)+'</span></div>';
     }
     html+='</div></div>';
   }
@@ -1698,6 +1705,8 @@ async function loadCondicional(id){
     if(a.alavancagem!=null)body.alavancagem=a.alavancagem;
     if(a.teto_retorno_pct!=null)body.teto_retorno_pct=a.teto_retorno_pct;
     if(a.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=a.ganho_prefixado_pct;
+    if(a.exercicio!=null)body.exercicio=a.exercicio;
+    if(a.meta_pct!=null)body.meta_pct=a.meta_pct;
     const r=await fetch(B+'/montecarlo/condicional',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -1756,6 +1765,9 @@ function renderCondicional(id,d){
     } else if(s.prefixado){
       sim100Html+='<div class="sr"><span class="sl">'+s.prefixado.descricao+' ('+s.prefixado.probabilidade_pct.toFixed(1)+'%)</span><span class="sv ok">+'+fR(s.prefixado.retorno_reais)+'</span></div>';
       sim100Html+='<div class="sr"><span class="sl">'+s.exposto.descricao+' ('+s.exposto.probabilidade_pct.toFixed(1)+'%)</span><span class="sv '+(s.exposto.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.exposto.retorno_medio_reais>=0?'+':'')+fR(s.exposto.retorno_medio_reais)+'</span></div>';
+    } else if(s.nao_exercida){
+      sim100Html+='<div class="sr"><span class="sl">'+s.nao_exercida.descricao+' ('+s.nao_exercida.probabilidade_pct.toFixed(1)+'%)</span><span class="sv '+(s.nao_exercida.retorno_medio_reais>=0?'ok':'itm')+'">'+(s.nao_exercida.retorno_medio_reais>=0?'+':'')+fR(s.nao_exercida.retorno_medio_reais)+'</span></div>';
+      sim100Html+='<div class="sr"><span class="sl">'+s.exercida.descricao+' ('+s.exercida.probabilidade_pct.toFixed(1)+'%)</span><span class="sv '+(s.exercida.retorno_reais>=0?'ok':'itm')+'">'+(s.exercida.retorno_reais>=0?'+':'')+fR(s.exercida.retorno_reais)+'</span></div>';
     }
     sim100Html+='</div></div>';
   }
