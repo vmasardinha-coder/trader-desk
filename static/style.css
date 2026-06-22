@@ -148,6 +148,8 @@ footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);displ
 .enc-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:2px;letter-spacing:.5px}
 .enc-ok{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.3)}
 .enc-warn{background:rgba(255,183,77,.15);color:var(--warn);border:1px solid rgba(255,183,77,.3)}
+/* ── EM ANÁLISE — SPRINT 4 ── */
+.pos-enc.is-live{opacity:1;border-left-color:var(--accent)}
 
 /* ── ALERTAS SPRINT 4 ── */
 @keyframes pulse-border{0%,100%{border-color:var(--red)}50%{border-color:transparent}}
