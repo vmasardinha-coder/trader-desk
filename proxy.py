@@ -1,6 +1,17 @@
-"""  # v10.12
-Trader Desk — Proxy Server v10.12
+"""  # v10.13
+Trader Desk — Proxy Server v10.13
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.13:
+- BUGFIX CRITICO: /montecarlo/condicional estava FALTANDO o bloco de
+  prob_retorno_faixas + simulacao_100_acoes para venda de CALL simples
+  (k_call sem kdo/kuo) — essa extensao tinha sido adicionada por engano
+  so em /montecarlo/posicao_ativa e /montecarlo (v10.11), nunca no
+  /montecarlo/condicional, que e o endpoint usado pela aba "Em Analise".
+  Por isso a foto ROXO34-simples (an_1782123970) continuava sem o pacote
+  completo mesmo apos ter os campos exercicio/meta_pct. Corrigido agora:
+  o terceiro caso (meta_pct + k_call sem kdo) foi adicionado, com a mesma
+  protecao contra sobrescrita do bloco generico de simulacao_100_acoes
+  (sim_100 = res.get(...) em vez de None) ja usada no posicao_ativa.
 Mudancas v10.12:
 - /montecarlo/condicional: corrige prob_call_exercida/prob_put_exercida
   para tambem respeitar 'exercicio' (americana usa max/min da trajetoria
@@ -1091,6 +1102,56 @@ def run_montecarlo_condicional():
             except Exception:
                 res['prob_retorno_faixas'] = None
 
+        # ── VENDA DE CALL SIMPLES COBERTA (k_call, sem kdo/kuo): mecanica
+        # binaria, sem teto/defesa fixos. Se NAO exercida, retorno = a
+        # variacao REAL da acao (livre); se EXERCIDA, retorno trava em
+        # (k_call/preco_foto - 1). Respeita 'exercicio' (americana usa
+        # max da trajetoria completa; europeia so preco final). So roda
+        # quando o payload trouxer 'meta_pct' (a meta do usuario em %).
+        meta_pct = data.get('meta_pct')
+        if K_call is not None and kdo is None and meta_pct is not None:
+            try:
+                meta_call = float(meta_pct) / 100
+                n_faixas3 = 20000
+                z_full3 = np.random.standard_normal((n_faixas3, prazo_dias))
+                paths_full3 = preco_foto * np.exp(np.cumsum(drift_fan + vol_step_fan * z_full3, axis=1))
+                ST_full3 = paths_full3[:, -1]
+                if exercicio == 'americana':
+                    call_ex_full3 = np.max(paths_full3, axis=1) > K_call
+                else:
+                    call_ex_full3 = ST_full3 > K_call
+                variacao_full3 = (ST_full3 / preco_foto - 1)
+                retorno_full3 = np.where(call_ex_full3, (K_call / preco_foto - 1), variacao_full3)
+                faixas3 = {
+                    'menor_que_0': round(float((retorno_full3 < 0).mean() * 100), 2),
+                    'entre_0_e_1': round(float(((retorno_full3 >= 0) & (retorno_full3 < 0.01)).mean() * 100), 2),
+                    'entre_1_e_2': round(float(((retorno_full3 >= 0.01) & (retorno_full3 < 0.02)).mean() * 100), 2),
+                    'entre_2_e_meta': round(float(((retorno_full3 >= 0.02) & (retorno_full3 < meta_call)).mean() * 100), 2),
+                    'maior_ou_igual_meta': round(float((retorno_full3 >= meta_call).mean() * 100), 2),
+                }
+                res['prob_retorno_faixas'] = faixas3
+                res['retorno_medio_pct'] = round(float(retorno_full3.mean() * 100), 2)
+                res['teto_retorno_usado_pct'] = round(meta_call * 100, 2)
+                capital_100_call3 = preco_foto * 100
+                ret_nao_ex3 = retorno_full3[~call_ex_full3]
+                res['simulacao_100_acoes'] = {
+                    'acoes': 100, 'preco_foto': round(preco_foto, 2), 'capital': round(capital_100_call3, 2),
+                    'nao_exercida': {
+                        'probabilidade_pct': round(float((~call_ex_full3).mean() * 100), 2),
+                        'retorno_medio_pct': round(float(ret_nao_ex3.mean() * 100), 2) if len(ret_nao_ex3) else 0.0,
+                        'retorno_medio_reais': round(float(ret_nao_ex3.mean() * capital_100_call3), 2) if len(ret_nao_ex3) else 0.0,
+                        'descricao': 'Não exercida: mantém ações, variação livre',
+                    },
+                    'exercida': {
+                        'probabilidade_pct': round(float(call_ex_full3.mean() * 100), 2),
+                        'retorno_pct': round((K_call / preco_foto - 1) * 100, 2),
+                        'retorno_reais': round((K_call / preco_foto - 1) * capital_100_call3, 2),
+                        'descricao': 'Exercida: entrega ações no strike R$' + str(round(K_call, 2)),
+                    },
+                }
+            except Exception:
+                res['prob_retorno_faixas'] = None
+
         # ── SIMULAÇÃO DIDÁTICA EM 100 AÇÕES (padrão fixo, qualquer tipo de
         # estrutura) — traduz os percentuais abstratos em R$ concretos sobre
         # um lote de 100 ações no preco_foto, nos 3 cenários possíveis:
@@ -1101,8 +1162,8 @@ def run_montecarlo_condicional():
         # suficiente, ex. estrutura simples sem kdo/kuo/ganho_prefixado).
         try:
             capital_100 = preco_foto * 100
-            sim_100 = None
-            if retorno_full is not None and kdo is not None and kuo is not None:
+            sim_100 = res.get('simulacao_100_acoes')  # preserva o que o bloco de call simples já setou
+            if sim_100 is None and retorno_full is not None and kdo is not None and kuo is not None:
                 # caso bidirecional
                 r_full = retorno_full
                 cenario_defesa = {
@@ -1130,7 +1191,7 @@ def run_montecarlo_condicional():
                     'capital': round(capital_100, 2),
                     'defesa': cenario_defesa, 'dentro': cenario_dentro, 'teto': cenario_teto,
                 }
-            elif retorno_full2 is not None and kdo is not None:
+            elif sim_100 is None and retorno_full2 is not None and kdo is not None:
                 # caso retorno controlado (barreira única + ganho prefixado)
                 cenario_prefixado = {
                     'probabilidade_pct': round(float((~tocou_barreira2).mean() * 100), 2),
