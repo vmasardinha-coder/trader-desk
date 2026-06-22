@@ -72,5 +72,21 @@
     "origem": "pronta",
     "status": "em_analise",
     "observacao": "SIMULACAO COMPARATIVA, nao e posicao nova: usuario JA TEM AXIA3(B) ativa (positions.json id=a3b) com a MESMA estrutura do banco (Itau, Material Publicitario 03/06/2026, vencimento 02/10/2026), mas contratada a entry R$50,65. Esta foto simula 'se eu fechasse essa mesma estrutura HOJE' no preco atual R$51,81, para comparar contratar antes vs agora. KDO -20% / KUO +24%, alavancagem 1,30x dentro do range (inferida do quadro de rentabilidade do PDF: 24%->31,2% e 4%->5,2%, ambos = 1,30x), teto travado em 4,00% (12,33% a.a.) -- numeros do banco aceitos como premissa fixa, sem reescalar. Prob. (Monte Carlo vol.impl. 30%): fica dentro 54,6%, toca defesa 24,3%, toca teto 21,1%. Prob. de BATER A META (>=4%): 40,85% -- bem mais favoravel que o PETR4 teorico (17,9%), por causa do range mais largo e alavancagem real maior."
+  },
+  {
+    "id": "an_1782124685",
+    "ticker": "VALE3.SA",
+    "nome": "Vale ON (proposta nova, 21/12/2026)",
+    "data_foto": "2026-06-22",
+    "preco_foto": 80.75,
+    "prazo_dias": 182,
+    "tipo_estrutura": "bidirecional",
+    "kdo": 64.6,
+    "kuo": 121.93,
+    "alavancagem": 1.5,
+    "teto_retorno_pct": 15.0,
+    "origem": "pronta",
+    "status": "em_analise",
+    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 16/12/2025, vencimento 21/12/2026, 182 dias restantes a partir de hoje). Estrutura: Bidirecional, KDO -20% (R$64,60), KUO +51% (R$121,93). Alavancagem 1,50x dentro do range (inferida do quadro de rentabilidade do PDF: 51%->76,5% e 15%->22,5%, ambos = 1,50x). Teto travado em 15,00% (15% a.a.) -- numeros do banco aceitos como premissa fixa, sem reescalar. USUARIO DUVIDA QUE ESSA PROPOSTA ESPECIFICA AINDA ESTEJA DISPONIVEL NO BANCO HOJE -- registrada como ESTUDO/REFERENCIA, nao necessariamente executavel. Prob. (Monte Carlo vol.impl. 30%): fica dentro 51,8%, toca defesa 40,2% (RISCO ALTO, mesmo padrao do caso real VALE3 antiga que deu errado), toca teto 8,0%. Prob. de bater meta proporcional (2%/mes x 6,1 meses = 12,1%): 31,86%. Retorno medio dentro do range: positivo (+R$980,71 em 100 acoes), diferente do PETR4/AXIA3 que tinham retorno medio neutro/negativo."
   }
 ]
