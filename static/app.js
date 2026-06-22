@@ -48,6 +48,7 @@ function sw(t,el){
   if(el)el.classList.add('active');
   if(t==='indicadores'&&!window._IL){window._IL=true;loadInd();}
   if(t==='calendario'&&!window._CL){window._CL=true;loadCal();}
+  if(t==='emanalise'&&!window._AL){window._AL=true;loadAnalises();}
 
 }
 function tg(id){
@@ -1428,6 +1429,212 @@ async function loadBS(){
     }catch(e){}
   }
 
+}
+
+// ══ EM ANÁLISE — Fase 2, listagem/monitoramento de fotos congeladas ══
+// Esta aba NUNCA cria foto nova (isso acontece em sessão de chat, ver
+// FLUXO_FASE_A_FASE_B.md). Aqui só: listar, ver gráfico condicional,
+// e mover status (em_analise -> ativa -> encerrada).
+let _analiseData=null;
+const _analiseCharts={};
+
+const _STATUS_LABEL={em_analise:'🔍 EM ANÁLISE',ativa:'✅ ATIVA',encerrada:'🗂 ENCERRADA'};
+const _STATUS_CLS={em_analise:'enc-warn',ativa:'enc-ok',encerrada:'enc-warn'};
+const _ORIGEM_LABEL={customizada:'Customizada (OpLab)',pronta:'Pronta'};
+const _TIPO_LABEL={bidirecional:'Bidirecional',retorno_controlado:'Retorno Controlado',premio:'Prêmio',simples:'Simples'};
+
+async function loadAnalises(){
+  const cont=document.getElementById('analise-container');
+  if(!cont)return;
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
+    const r=await fetch(B+'/analises',{signal:ctrl.signal,cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(data.error)throw new Error(data.error);
+    _analiseData=Array.isArray(data)?data:[];
+    renderAnalises();
+  }catch(e){
+    cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar analises.json: '+e.message+'</p>';
+  }
+}
+
+function renderAnalises(){
+  const cont=document.getElementById('analise-container');
+  if(!cont||!_analiseData)return;
+  const badge=document.getElementById('analise-badge');
+  const emAberto=_analiseData.filter(a=>a.status==='em_analise');
+  if(badge)badge.style.display=emAberto.length?'inline-block':'none';
+  if(badge)badge.textContent=emAberto.length||'';
+
+  if(!_analiseData.length){
+    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise registrada ainda.<br><span style="font-size:11px">Fotos são criadas em sessão de chat (Fase A → Fase B) e aparecem aqui automaticamente.</span></p>';
+    return;
+  }
+
+  // Ordena: em_analise primeiro, depois ativa, depois encerrada; dentro de cada grupo, mais recente primeiro
+  const ordem={em_analise:0,ativa:1,encerrada:2};
+  const lista=[..._analiseData].sort((a,b)=>{
+    const oa=ordem[a.status]??9,ob=ordem[b.status]??9;
+    if(oa!==ob)return oa-ob;
+    return (b.data_foto||'').localeCompare(a.data_foto||'');
+  });
+
+  cont.innerHTML=lista.map(a=>tplAnalise(a)).join('');
+}
+
+function tplAnalise(a){
+  const id=a.id;
+  const dataFotoFmt=fmtDataOrNull(a.data_foto)||a.data_foto;
+  const subParts=[_TIPO_LABEL[a.tipo_estrutura]||a.tipo_estrutura,_ORIGEM_LABEL[a.origem]||a.origem];
+  subParts.push('Foto: '+dataFotoFmt+' · '+a.prazo_dias+'d');
+  const sub=subParts.join(' · ');
+  const badgeCls=_STATUS_CLS[a.status]||'enc-warn';
+  const badgeTxt=_STATUS_LABEL[a.status]||a.status;
+
+  let rows='';
+  rows+='<div class="sr"><span class="sl">Preço na foto</span><span class="sv">'+fR(a.preco_foto)+'</span></div>';
+  rows+='<div class="sr"><span class="sl">Prazo original</span><span class="sv">'+a.prazo_dias+' dias</span></div>';
+  if(a.k_call!=null)rows+='<div class="sr"><span class="sl">Strike Call</span><span class="sv">'+fR(a.k_call)+'</span></div>';
+  if(a.k_put!=null)rows+='<div class="sr"><span class="sl">Strike Put</span><span class="sv">'+fR(a.k_put)+'</span></div>';
+  if(a.kdo!=null)rows+='<div class="sr"><span class="sl">Barreira baixa (KDO)</span><span class="sv">'+fR(a.kdo)+'</span></div>';
+  if(a.kuo!=null)rows+='<div class="sr"><span class="sl">Barreira alta (KUO)</span><span class="sv">'+fR(a.kuo)+'</span></div>';
+  if(a.premio!=null)rows+='<div class="sr"><span class="sl">Prêmio</span><span class="sv">'+fR(a.premio)+'</span></div>';
+
+  const acoes=tplAnaliseAcoes(a);
+  const liveCls=a.status!=='encerrada'?' is-live':'';
+
+  return `
+  <div class="pos-enc${liveCls}" style="margin-top:10px">
+    <div class="pos-enc-hdr" onclick="togPos('analise-${id}')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div class="pos-acc-tk" style="color:var(--muted);font-size:18px">${a.ticker.replace('.SA','')}</div>
+          <div class="pos-acc-sub">${sub}</div>
+        </div>
+        <span class="enc-badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+      <span id="ar-analise-${id}" style="color:var(--muted)">▼</span>
+    </div>
+    <div class="pos-acc-body" id="body-analise-${id}">
+      <div class="sb">${rows}</div>
+      <div id="analise-cond-wrap-${id}" style="margin-top:14px">
+        <button onclick="loadCondicional('${id}')" id="analise-cond-btn-${id}" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📊 Ver probabilidade atualizada</button>
+        <div id="analise-cond-area-${id}" style="display:none;margin-top:10px"></div>
+      </div>
+      ${acoes}
+    </div>
+  </div>`;
+}
+
+function tplAnaliseAcoes(a){
+  if(a.status==='em_analise'){
+    return `
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="mudarStatusAnalise('${a.id}','ativa')" style="flex:1;background:var(--green);border:none;color:#06140c;padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">✓ Marcar como Ativa</button>
+      <button onclick="mudarStatusAnalise('${a.id}','encerrada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">Encerrar sem executar</button>
+    </div>`;
+  }
+  if(a.status==='ativa'){
+    return `
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="mudarStatusAnalise('${a.id}','encerrada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🗂 Encerrar operação</button>
+    </div>`;
+  }
+  return '';
+}
+
+async function mudarStatusAnalise(id,novoStatus){
+  if(novoStatus==='encerrada'){
+    const ok=confirm('Confirma mudar esta análise para ENCERRADA? Essa ação grava no repositório.');
+    if(!ok)return;
+  }
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
+      method:'PUT',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify({status:novoStatus})
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    await loadAnalises();
+  }catch(e){
+    alert('Erro ao mudar status: '+e.message);
+  }
+}
+
+async function loadCondicional(id){
+  const a=(_analiseData||[]).find(x=>x.id===id);
+  if(!a)return;
+  const btn=document.getElementById('analise-cond-btn-'+id);
+  const area=document.getElementById('analise-cond-area-'+id);
+  if(!area)return;
+  const abrir=area.style.display==='none';
+  area.style.display=abrir?'block':'none';
+  if(!abrir)return;
+  if(area.dataset.loaded){return;}
+  area.innerHTML='<p style="color:var(--muted);font-size:11px;padding:10px;text-align:center">Calculando probabilidade condicional...</p>';
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const body={ticker:a.ticker,preco_foto:a.preco_foto,data_foto:a.data_foto,prazo_dias:a.prazo_dias};
+    if(a.k_call!=null)body.k_call=a.k_call;
+    if(a.k_put!=null)body.k_put=a.k_put;
+    if(a.kdo!=null)body.kdo=a.kdo;
+    if(a.kuo!=null)body.kuo=a.kuo;
+    const r=await fetch(B+'/montecarlo/condicional',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    area.dataset.loaded='1';
+    renderCondicional(id,d);
+  }catch(e){
+    area.innerHTML='<p style="color:var(--red);font-size:11px;padding:10px">Erro: '+e.message+'</p>';
+  }
+}
+
+function renderCondicional(id,d){
+  const area=document.getElementById('analise-cond-area-'+id);
+  if(!area)return;
+
+  if(d.fora_do_prazo){
+    area.innerHTML='<div style="padding:10px;background:rgba(240,98,146,.08);border-left:2px solid var(--red);font-size:11px;color:var(--text);line-height:1.5">'+
+      '⚠ '+(d.mensagem||'Prazo original já esgotado.')+
+      '<br>Preço atual: <b>'+fR(d.preco_atual)+'</b> · Dias passados: <b>'+d.dias_passados+'</b> de '+d.prazo_dias+'</div>';
+    return;
+  }
+
+  let probsHtml='<div class="sb" style="margin-top:0">';
+  probsHtml+='<div class="sr"><span class="sl">Preço atual</span><span class="sv">'+fR(d.preco_atual)+'</span></div>';
+  probsHtml+='<div class="sr"><span class="sl">Dias passados / restantes</span><span class="sv">'+d.dias_passados+' / '+d.dias_restantes+'</span></div>';
+  if(d.prob_call_exercida!=null)probsHtml+='<div class="sr"><span class="sl">Prob. Call exercida (restante)</span><span class="sv '+(d.prob_call_exercida>50?'itm':d.prob_call_exercida>30?'warn':'ok')+'">'+d.prob_call_exercida.toFixed(2)+'%</span></div>';
+  if(d.prob_put_exercida!=null)probsHtml+='<div class="sr"><span class="sl">Prob. Put exercida (restante)</span><span class="sv '+(d.prob_put_exercida>50?'itm':d.prob_put_exercida>30?'warn':'ok')+'">'+d.prob_put_exercida.toFixed(2)+'%</span></div>';
+  if(d.prob_sem_barreira!=null){
+    probsHtml+='<div class="sr"><span class="sl">Prob. sem tocar barreira</span><span class="sv ok">'+d.prob_sem_barreira.toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr"><span class="sl">Prob. barreira alta (KUO)</span><span class="sv warn">'+d.prob_barreira_alta.toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr"><span class="sl">Prob. barreira baixa (KDO)</span><span class="sv warn">'+d.prob_barreira_baixa.toFixed(2)+'%</span></div>';
+  }
+  const g=d.garch;
+  const volTxt=g?('GARCH '+g.vol_garch_projetada_pct+'%'):('Vol.hist '+d.volatilidade_historica_pct+'%');
+  probsHtml+='<div class="sr"><span class="sl">Volatilidade usada</span><span class="sv">'+volTxt+'</span></div>';
+  probsHtml+='</div>';
+
+  area.innerHTML=probsHtml;
+}
+
+function toggleAllAnalises(){
+  if(!_analiseData)return;
+  const ids=_analiseData.map(a=>'analise-'+a.id);
+  const btn=document.getElementById('btn-all-analise');
+  const anyOpen=ids.some(id=>document.getElementById('body-'+id)?.classList.contains('open'));
+  ids.forEach(id=>{
+    const body=document.getElementById('body-'+id);
+    const arr=document.getElementById('ar-'+id);
+    if(body){body.classList.toggle('open',!anyOpen);if(arr)arr.textContent=anyOpen?'▶':'▼';}
+  });
+  if(btn)btn.textContent=anyOpen?'− Recolher Todas':'+ Expandir Todas';
 }
 
 main();setInterval(main,120000);
