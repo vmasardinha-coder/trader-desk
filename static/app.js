@@ -1583,6 +1583,7 @@ async function loadCondicional(id){
     if(a.kuo!=null)body.kuo=a.kuo;
     if(a.alavancagem!=null)body.alavancagem=a.alavancagem;
     if(a.teto_retorno_pct!=null)body.teto_retorno_pct=a.teto_retorno_pct;
+    if(a.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=a.ganho_prefixado_pct;
     const r=await fetch(B+'/montecarlo/condicional',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -1617,6 +1618,10 @@ function renderCondicional(id,d){
     probsHtml+='<div class="sr"><span class="sl">Prob. sem tocar barreira</span><span class="sv ok">'+d.prob_sem_barreira.toFixed(2)+'%</span></div>';
     probsHtml+='<div class="sr"><span class="sl">Prob. barreira alta (KUO)</span><span class="sv warn">'+d.prob_barreira_alta.toFixed(2)+'%</span></div>';
     probsHtml+='<div class="sr"><span class="sl">Prob. barreira baixa (KDO)</span><span class="sv warn">'+d.prob_barreira_baixa.toFixed(2)+'%</span></div>';
+  }
+  if(d.prob_ganho_prefixado!=null){
+    probsHtml+='<div class="sr"><span class="sl">Prob. ganho prefixado (sem tocar barreira)</span><span class="sv ok">'+d.prob_ganho_prefixado.toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr"><span class="sl">Prob. tocar barreira (sem garantia)</span><span class="sv warn">'+(100-d.prob_ganho_prefixado).toFixed(2)+'%</span></div>';
   }
   const g=d.garch;
   const volTxt=g?('GARCH '+g.vol_garch_projetada_pct+'%'):('Vol.hist '+d.volatilidade_historica_pct+'%');
