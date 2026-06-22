@@ -59,7 +59,9 @@
     "origem": "pronta",
     "status": "em_analise",
     "observacao": "Venda de call coberta (lancamento coberto), independente da posicao ja ativa ROXOG105 (strike 10.50, vencimento 16/07). Esta e uma proposta NOVA e separada: strike R$11,25, vencimento 21/08/2026 (60 dias), 2500 acoes, premio total R$550,00 (R$0,22/acao). Retorno sobre capital: 1,99% em 60 dias = 1,00%/mes -- ABAIXO da meta de 2-2,5%/mes mas e a melhor opcao do lote de 9 calls simples avaliadas (BBAS3/ROXO34/AXIA3). Mantida para fins didaticos e de comparacao.",
-    "backtest": true
+    "backtest": true,
+    "exercicio": "americana",
+    "meta_pct": 2.25
   },
   {
     "id": "an_1782124389",
