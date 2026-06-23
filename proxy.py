@@ -2485,6 +2485,11 @@ _US_EXCHANGE = {
     # NASDAQ (sem mapeamento, cairia no fallback errado). ASML e MU ja
     # ficam corretos no fallback padrao NASDAQ, nao precisam de entrada.
     'TSM':'NYSE',
+    # Adicionados 23/06/2026 -- grupos Software e Energia IA. PLTR/VST/D/
+    # OKLO sao NYSE (confirmado via SEC filings e multiplas fontes para D).
+    # ORCL, PANW, CRWD, ADBE (software) e CEG, TLN (energia) sao NASDAQ,
+    # ficam corretos no fallback padrao, nao precisam de entrada aqui.
+    'PLTR':'NYSE','VST':'NYSE','D':'NYSE','OKLO':'NYSE',
 }
 
 @app.route('/us/quotes', methods=['GET'])
@@ -2560,6 +2565,11 @@ def get_us_concentracao():
     tickers_map = {
         'semi': ['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
         'm7': ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'],
+        # Adicionados 23/06/2026 -- usuario identificou Software e Energia
+        # (infraestrutura de IA/data centers) como outras 2 areas de alta
+        # concentracao na narrativa de bolha de IA.
+        'software': ['ORCL','PANW','PLTR','CRWD','ADBE'],
+        'energia_ia': ['CEG','VST','TLN','D','OKLO'],
     }
     tickers = tickers_map.get(grupo)
     if not tickers:
