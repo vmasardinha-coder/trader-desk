@@ -2567,23 +2567,39 @@ def get_us_concentracao():
 
     detalhe = {}
     soma_marketcap = 0.0
-    try:
-        symbols_str = ','.join(tickers)
-        r = requests.get(
-            f'https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbols_str}',
-            headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
-        if r.ok:
-            for item in r.json().get('quoteResponse', {}).get('result', []):
-                sym = item.get('symbol')
-                mc = item.get('marketCap')
-                if sym and mc:
-                    detalhe[sym] = round(float(mc), 2)
-                    soma_marketcap += float(mc)
-    except Exception as e:
-        return jsonify({'error': f'falha ao buscar market caps: {e}'}), 502
+    # CORRIGIDO 23/06/2026: usuario reportou erro "Não foi possível
+    # calcular" especificamente no grupo m7 (Magnificent 7), enquanto semi
+    # funcionou normalmente. NVDA esta presente nos dois grupos e funciona
+    # no semi -- descarta bloqueio por ticker especifico. Causa mais
+    # provavel: intermitencia da API publica v7/finance/quote do Yahoo
+    # (nao documentada oficialmente, historicamente instavel). Sem acesso
+    # direto a API para confirmar a causa exata, a correcao adotada e
+    # tornar a chamada resiliente a falhas intermitentes: ate 2 tentativas
+    # com timeout maior, em vez de desistir na primeira falha.
+    symbols_str = ','.join(tickers)
+    erro_final = None
+    for tentativa in range(2):
+        try:
+            r = requests.get(
+                f'https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbols_str}',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+            if r.ok:
+                for item in r.json().get('quoteResponse', {}).get('result', []):
+                    sym = item.get('symbol')
+                    mc = item.get('marketCap')
+                    if sym and mc:
+                        detalhe[sym] = round(float(mc), 2)
+                        soma_marketcap += float(mc)
+                if detalhe:
+                    break  # sucesso, nao precisa da 2a tentativa
+                erro_final = f'Yahoo respondeu OK mas sem marketCap (status {r.status_code})'
+            else:
+                erro_final = f'Yahoo respondeu status {r.status_code}'
+        except Exception as e:
+            erro_final = f'falha ao buscar market caps: {e}'
 
     if not detalhe:
-        return jsonify({'error': 'nenhum market cap obtido do Yahoo'}), 502
+        return jsonify({'error': erro_final or 'nenhum market cap obtido do Yahoo'}), 502
 
     peso_pct = round(soma_marketcap / SP500_TOTAL_MARKETCAP_USD * 100, 2)
     return jsonify({
