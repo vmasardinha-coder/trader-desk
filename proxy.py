@@ -438,8 +438,26 @@ def yquote(ticker):
         d=r.json(); m=d['chart']['result'][0]['meta']
         cl=[c for c in d['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
         p=m.get('regularMarketPrice',cl[-1] if cl else None)
-        v=m.get('chartPreviousClose',cl[-2] if len(cl)>1 else p)
-        return {'price':round(float(p),2),'prev':round(float(v),2)} if p else None
+        if p is None: return None
+        # CORRIGIDO 23/06/2026: usuario reportou variacoes implausiveis em
+        # TODAS as commodities simultaneamente (~-11% num caso, prata real
+        # naquele dia caiu ~4,5%) -- sinal de problema sistemico no campo
+        # chartPreviousClose do Yahoo, nao de 1 ticker especifico. Esse
+        # campo e calculado pelo proprio Yahoo e pode ficar desatualizado
+        # para futuros com horario de pregao estendido (CME/COMEX/NYMEX,
+        # usado por TODAS as commodities, diferente do horario fechado da
+        # B3). Trocado para usar cl[-2] (penultimo fechamento da propria
+        # serie diaria) como fonte PRIMARIA -- mesma serie ja usada para
+        # cl[-1]/p e para vol_hist/GARCH em outras partes do app, mais
+        # verificavel que um campo de metadado calculado pelo Yahoo.
+        # chartPreviousClose fica so como fallback quando o historico nao
+        # tem pontos suficientes (ticker muito novo ou erro de fonte).
+        # NAO foi usada nenhuma heuristica de "escolher o valor mais
+        # proximo do preco atual" -- isso mascararia movimentos REAIS de
+        # mercado (como a queda real de ~4,5% da prata no caso relatado),
+        # nao so os artificiais.
+        v = cl[-2] if len(cl) > 1 else m.get('chartPreviousClose', p)
+        return {'price':round(float(p),2),'prev':round(float(v),2)}
     except: return None
 
 # ── FUTUROS ───────────────────────────────────────────
