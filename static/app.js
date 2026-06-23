@@ -106,7 +106,16 @@ async function loadSeg(id){
     g.innerHTML=concHtml+'<table class="tbl-mkt tbl-seg"><colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
       tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');return '<tr><td><div class="sym">'+t+'</div></td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+'</tbody></table>';
     if(GRUPOS_COM_CONCENTRACAO.includes(id)){
-      fetch(B+'/us/concentracao?grupo='+id).then(r=>r.ok?r.json():null).then(d=>{
+      // CORRIGIDO 23/06/2026 (5a correcao real): o bug NAO era timeout nem
+      // paralelizacao -- era que r.ok e false para o 502 que o backend
+      // retorna deliberadamente em caso de erro, e o '.then(r=>r.ok?
+      // r.json():null)' descartava o corpo JSON (com a mensagem de erro
+      // detalhada) sempre que o status nao era 2xx, mostrando so 'sem
+      // resposta do servidor' mesmo quando o backend tinha mandado um erro
+      // claro. Causa raiz REAL do erro em si (confirmada testando local
+      // com Flask test_client): Yahoo retorna status 403 (bloqueio ativo)
+      // para as chamadas de marketCap em v8/finance/chart nesses tickers.
+      fetch(B+'/us/concentracao?grupo='+id).then(r=>r.json().catch(()=>null)).then(d=>{
         const el=document.getElementById('conc-'+id);
         if(!el)return;
         if(!d||d.error){el.textContent='Não foi possível calcular: '+(d&&d.error?d.error:'sem resposta do servidor');return;}
