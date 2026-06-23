@@ -548,3 +548,97 @@ testando/distraído voltando à conversa depois de um tempo.
 6. Renda fixa (backlog de longo prazo, sem ação)
 7. **Migração Em Análise → Ativa** — especificada em detalhe em sessão
    anterior, usuário confirmou que fica POR ÚLTIMO deliberadamente
+
+---
+
+# Continuação sessão 23/06/2026 (parte 3) — Grupos de concentração EUA + correção crítica do endpoint /us/concentracao
+
+## SHAs no momento deste registro
+- proxy.py: e0367b2d5cb6648b717ae5d4c8a1f52aff5bf47d
+- static/app.js: 8ab1da65aeb3166973857a56d0896854be1cf9b3
+- templates/index.html: a44ea0308e1f25c0717e1962b1d1ccbd8fbbc9d7
+
+## Feature: 4 grupos de concentração EUA (item 2 do backlog, concluído)
+Adicionados à seção "EUA por Segmento" das Cotações, todos com a mesma
+métrica de peso vs. S&P 500:
+- **Semicondutores**: NVDA, AMD, AVGO, TSM, ASML, INTC, MU, QCOM
+- **7 Magníficas** (m7, já existia): AAPL, MSFT, NVDA, AMZN, GOOGL, META, TSLA
+- **Software**: ORCL, PANW, PLTR, CRWD, ADBE (baseado em holdings reais
+  do ETF IGV — iShares Expanded Tech-Software Sector)
+- **Energia IA** (infraestrutura/data centers, NÃO petróleo/gás
+  tradicional): CEG, VST, TLN, D, OKLO — utilities/nuclear com contratos
+  de energia para data centers de AWS/Meta/Microsoft/Google
+
+`_US_EXCHANGE` atualizado com os tickers NYSE que não seguiam o fallback
+padrão NASDAQ: TSM, PLTR, VST, D, OKLO.
+
+`SP500_TOTAL_MARKETCAP_USD = 68.06e12` (ref. 23/06/2026, fonte
+Slickcharts) — hardcoded com data de referência explícita, mesmo padrão
+do `FUND_DATA_REF`, porque esse número muda diariamente (decisão
+confirmada pelo usuário após discussão sobre trade-off de precisão).
+Nasdaq-100 NÃO foi incluído como denominador alternativo — fontes
+encontradas (Slickcharts) divergiam em mais de US$ 1 trilhão entre duas
+páginas do mesmo site, sem confiança suficiente para hardcodar. Fica
+pendente para pesquisa futura se o usuário quiser essa métrica também.
+
+## Bug crítico corrigido — /us/concentracao usava endpoint errado do Yahoo
+Historico do bug (2 correcoes até resolver de verdade):
+
+1a tentativa (insuficiente): usuario reportou erro so no grupo m7. Causa
+suposta: intermitencia do Yahoo. Correcao aplicada: retry de 2 tentativas
+no endpoint v7/finance/quote. NAO resolveu a causa raiz.
+
+2a situacao: usuario reportou que TODOS os 4 grupos (semi, m7, software,
+energia_ia) passaram a falhar com "Não foi possível calcular".
+
+**Causa raiz REAL identificada:** a implementacao original usava
+v7/finance/quote (busca em lote, multiplos simbolos numa unica chamada)
+-- esse e um endpoint NAO-OFICIAL do Yahoo, sem documentacao, e com
+historico publico de instabilidade/bloqueio (confirmado via busca:
+desenvolvedores relatam quebras frequentes nesse endpoint especificamente,
+diferente do v8/finance/chart, que e estavel ha anos apesar de tambem nao
+ser oficialmente documentado).
+
+**Correcao definitiva:** trocado para v8/finance/chart (uma chamada por
+ticker, nao em lote) -- mesmo endpoint que yquote() ja usa com sucesso
+comprovado durante TODA a sessao para commodities/indices. O campo
+meta.marketCap esta disponivel nesse endpoint tambem; nunca havia
+necessidade real de usar o v7.
+
+**Licao de processo para nao repetir:** ao montar uma chamada nova a uma
+API externa, preferir reaproveitar um endpoint que ja esta provadamente
+funcionando no projeto (yquote()/v8/finance/chart, usado dezenas de vezes
+nesta sessao) em vez de introduzir um endpoint novo e nao testado
+(v7/finance/quote), mesmo que pareca mais conveniente (1 chamada batch vs
+N chamadas individuais). A conveniencia de uma chamada em lote nao
+compensou o risco de usar um endpoint nao comprovado.
+
+**Risco residual conhecido, nao resolvido:** Claude nao tem acesso de rede
+direto a API do Yahoo neste ambiente (bash_tool e web_fetch bloqueiam o
+dominio) -- nenhuma das correcoes desta sessao envolvendo comportamento
+da API do Yahoo pode ser validada empiricamente antes do deploy. Todas as
+correcoes foram baseadas em busca de documentacao/relatos publicos +
+raciocinio sobre o codigo, nao em teste direto. Se o usuario reportar
+falha recorrente em qualquer endpoint que dependa do Yahoo, considerar
+essa limitacao ao diagnosticar.
+
+## Item de acompanhamento periodico novo -- Fusao Dominion/NextEra
+Usuario pediu para isso ser registrado como item a cobrar de tempos em
+tempos (mesmo padrao do aviso de 90 dias do FUND_DATA_REF): Dominion
+Energy (D, parte do grupo Energia IA) esta em processo de fusao anunciada
+com a NextEra Energy (negocio all-stock, criando a maior utility regulada
+do mundo, fechamento previsto em 12-18 meses a partir de ~maio/2026 quando
+anunciado). Se a fusao se concretizar, o ticker "D" pode deixar de existir
+ou ser convertido -- isso vai exigir atualizar o grupo energia_ia em
+USSEG (app.js) e tickers_map (proxy.py), removendo "D" e possivelmente
+adicionando "NEE" no lugar. Quando o usuario mencionar essa fusao ou
+perguntar sobre o status dela em sessao futura, verificar via web search
+se ja fechou antes de responder.
+
+## Lembrete de processo reforcado nesta sessao
+Usuario pediu explicitamente que toda pergunta que exige uma decisao dele
+(nao uma reflexao propria do Claude) deve usar a ferramenta de pergunta
+com botoes (ask_user_input_v0), nunca so texto solto na resposta -- ele
+pode estar distraido/ler rapido e perguntas em texto corrido se perdem.
+Isso reforca e formaliza o padrao que ja vinha sendo seguido informalmente
+ao longo da sessao.
