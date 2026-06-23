@@ -1152,6 +1152,7 @@ function doMacro(tv,ft){
     if(ft.hangseng?.price)afChg('hangseng-p','hangseng-c',ft.hangseng.price,ft.hangseng.prev);
     if(ft.sse?.price)afChg('sse-p','sse-c',ft.sse.price,ft.sse.prev);
     if(ft.asx200?.price)afChg('asx200-p','asx200-c',ft.asx200.price,ft.asx200.prev);
+    if(ft.kospi?.price)afChg('kospi-p','kospi-c',ft.kospi.price,ft.kospi.prev);
   }
 }
 function doPos(tv){
