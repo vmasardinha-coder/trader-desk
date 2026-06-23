@@ -82,8 +82,23 @@ async function loadSeg(id){
   const pfx=id+'_';
   if(USSEG[id]){
     const tks=USSEG[id];
-    g.innerHTML='<table class="tbl-mkt tbl-seg"><colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
+    // Bloco de concentracao vs S&P 500 -- so para os grupos onde isso tem
+    // sentido (semi/m7), usado como sinal de risco de concentracao/bolha.
+    // Adicionado 23/06/2026.
+    let concHtml='';
+    if(id==='semi'||id==='m7'){
+      concHtml='<div id="conc-'+id+'" style="margin-bottom:10px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted)">Calculando peso no S&amp;P 500...</div>';
+    }
+    g.innerHTML=concHtml+'<table class="tbl-mkt tbl-seg"><colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
       tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');return '<tr><td><div class="sym">'+t+'</div></td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+'</tbody></table>';
+    if(id==='semi'||id==='m7'){
+      fetch(B+'/us/concentracao?grupo='+id).then(r=>r.ok?r.json():null).then(d=>{
+        const el=document.getElementById('conc-'+id);
+        if(!el)return;
+        if(!d||d.error){el.textContent='Não foi possível calcular a concentração agora.';return;}
+        el.innerHTML='<b style="color:var(--text)">'+d.peso_pct_sp500+'%</b> do S&P 500 · grupo vale <b>US$ '+d.market_cap_grupo_tri_usd+'T</b> de um total de US$ '+d.sp500_total_tri_usd+'T (ref. '+d.sp500_total_ref_data+', aproximado)';
+      }).catch(()=>{const el=document.getElementById('conc-'+id);if(el)el.textContent='Não foi possível calcular a concentração agora.';});
+    }
     try{
       const r=await fetch(B+'/us/quotes?tickers='+tks.join(','));
       if(!r.ok)return;
