@@ -558,6 +558,10 @@ function togInd(id){
   const open=body.classList.contains('open');
   body.classList.toggle('open',!open);
   if(arr)arr.textContent=open?'▶':'▼';
+  if(!open&&!body.dataset.loaded){
+    body.dataset.loaded='1';
+    rl(id);
+  }
 }
 // ── WATCHLIST — ativos de análise fundamentalista por segmento ──
 const WATCHLIST = [
@@ -608,10 +612,10 @@ function tplWatchAtivo(a, segNome){
   <div class="ind-acc">
     <div class="ind-acc-hdr" onclick="togInd('${a.id}')">
       <div><div class="ind-acc-title">${a.nome}</div><div class="ind-acc-sub">${segNome} · clique para expandir/recolher</div></div>
-      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('${a.id}')">↻</span><span id="ar-ind-${a.id}">▼</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="cursor:pointer;color:var(--accent);font-size:13px" onclick="event.stopPropagation();rl('${a.id}')">↻</span><span id="ar-ind-${a.id}">▶</span></div>
     </div>
-    <div class="ind-acc-body open" id="${a.id}-ind-wrap">
-      <div id="${a.id}-ind"><div style="color:var(--muted);padding:12px;animation:pulse 1.5s infinite">Carregando...</div></div>
+    <div class="ind-acc-body" id="${a.id}-ind-wrap">
+      <div id="${a.id}-ind"><div style="color:var(--muted);padding:12px;font-size:12px">Clique para carregar indicadores</div></div>
       <div style="margin-top:10px">
         <button onclick="toggleFanChart('${a.id}')" id="${a.id}-fc-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📊 Ver cenários futuros (Monte Carlo)</button>
         <div id="${a.id}-fc-wrap" style="display:none;margin-top:10px">
@@ -1344,14 +1348,10 @@ async function loadInd(){
   const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
   const[bi,bc]=await Promise.all([wt(fBTCI(),15000,{error:'Timeout — clique ↻'}),wt(fBTCC(),15000,null)]);
   rndBTCI(bi);rndBTCC(bc);fFG();
-  const ativos=getWatchlistFlat();
-  // Carrega em lotes de 4 para não sobrecarregar o brapi/Yahoo simultaneamente
-  const tamLote=4;
-  for(let i=0;i<ativos.length;i+=tamLote){
-    const lote=ativos.slice(i,i+tamLote);
-    const res=await Promise.all(lote.map(a=>wt(fInd(a.ticker),30000,{error:'Timeout 30s'})));
-    lote.forEach((a,j)=>rndInd(a.id,res[j]));
-  }
+  // Lazy load: indicadores de cada ativo da watchlist NÃO carregam aqui —
+  // só quando o usuário clica para expandir o card (ver togInd), via rl(id).
+  // Antes, todos os ~16+ ativos eram buscados de uma vez ao abrir a aba,
+  // deixando o carregamento pesado mesmo sem o usuário pedir.
 }
 async function rl(tk){
   const el=document.getElementById(tk+'-ind');
