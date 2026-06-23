@@ -1029,6 +1029,25 @@ function doMacro(tv,ft){
     if(ft.vix?.price){af('vix-p',Number(ft.vix.price).toFixed(2));ChTbl('vix-v','vix-c',ft.vix.price,ft.vix.prev,'u');}
     if(ft.dxy?.price){af('dxy-p',Number(ft.dxy.price).toFixed(2));ChTbl('dxy-v','dxy-c',ft.dxy.price,ft.dxy.prev,'u');}
     if(ft.usd?.price){af('usd-p',fR(ft.usd.price));ChTbl('usd-v','usd-c',ft.usd.price,ft.usd.prev||ft.usd.price,'r');}
+    // Commodities — tabela só tem 1 coluna de variação (preço+%), sem
+    // coluna de valor absoluto separada; popula direto sem usar Ch()
+    // (que sobrescreveria a classe 'chg' já estilizada para essa tabela)
+    const afChg=(idP,idC,now,prev,tp)=>{
+      const ep=document.getElementById(idP),ec=document.getElementById(idC);
+      if(!ep||now==null)return;
+      ep.textContent=tp==='r'?fR(now):Number(now).toFixed(2);
+      ep.classList.remove('loading');
+      if(ec&&prev!=null){
+        const d=now-prev,pc=(d/Math.abs(prev||1)*100).toFixed(2),sg=d>=0?'+':'';
+        ec.textContent=sg+pc+'%';
+        ec.classList.remove('chg-up','chg-dn','chg-fl');
+        ec.classList.add(d>0?'chg-up':d<0?'chg-dn':'chg-fl');
+      }
+    };
+    if(ft.cl?.price)afChg('cl-p','cl-c',ft.cl.price,ft.cl.prev,'r');
+    if(ft.gold?.price)afChg('gold-p','gold-c',ft.gold.price,ft.gold.prev,'r');
+    if(ft.silver?.price)afChg('silver-p','silver-c',ft.silver.price,ft.silver.prev,'r');
+    if(ft.copper?.price)afChg('copper-p','copper-c',ft.copper.price,ft.copper.prev,'r');
   }
 }
 function doPos(tv){
