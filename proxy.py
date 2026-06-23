@@ -2548,13 +2548,23 @@ SP500_TOTAL_MARKETCAP_REF = '2026-06-23'
 def get_us_concentracao():
     """
     Calcula o peso agregado de um grupo de tickers (ex: Magnificent 7,
-    Semicondutores) sobre o market cap TOTAL do S&P 500 -- usado como sinal
-    de concentracao/risco de bolha. Busca o market cap individual de cada
-    ticker via Yahoo v7/finance/quote (endpoint diferente do v8/chart ja
-    usado em yquote() -- só esse retorna marketCap).
+    Semicondutores, Software, Energia IA) sobre o market cap TOTAL do
+    S&P 500 -- usado como sinal de concentracao/risco de bolha. Busca o
+    market cap individual de cada ticker via Yahoo v8/finance/chart (UMA
+    chamada por ticker) -- mesmo endpoint que yquote() ja usa com sucesso
+    comprovado durante toda a sessao.
 
-    Query param: grupo ('semi' ou 'm7'; outros valores de USSEG tambem
-    funcionam se fizer sentido pedir no futuro).
+    CORRIGIDO 23/06/2026 (2a correcao): usuario reportou que TODOS os 4
+    grupos passaram a falhar com "Não foi possível calcular" (nao so m7
+    como na 1a correcao). Causa raiz real identificada: a implementacao
+    original usava v7/finance/quote, um endpoint NAO-OFICIAL e
+    historicamente instavel/sujeito a bloqueio do Yahoo (relatos publicos
+    de quebra frequente). O v8/finance/chart, em contraste, e estavel ha
+    anos e e o mesmo que ja funciona em yquote() para todas as commodities/
+    indices desta sessao. meta.marketCap esta disponivel nesse endpoint
+    tambem -- nao precisava do v7 desde o inicio.
+
+    Query param: grupo (qualquer chave valida do tickers_map abaixo).
 
     Retorna: peso_pct (agregado vs S&P 500), market_cap_grupo_usd,
     detalhe por ticker, e a data de referencia do total do indice (para
@@ -2565,9 +2575,6 @@ def get_us_concentracao():
     tickers_map = {
         'semi': ['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
         'm7': ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'],
-        # Adicionados 23/06/2026 -- usuario identificou Software e Energia
-        # (infraestrutura de IA/data centers) como outras 2 areas de alta
-        # concentracao na narrativa de bolha de IA.
         'software': ['ORCL','PANW','PLTR','CRWD','ADBE'],
         'energia_ia': ['CEG','VST','TLN','D','OKLO'],
     }
@@ -2577,39 +2584,27 @@ def get_us_concentracao():
 
     detalhe = {}
     soma_marketcap = 0.0
-    # CORRIGIDO 23/06/2026: usuario reportou erro "Não foi possível
-    # calcular" especificamente no grupo m7 (Magnificent 7), enquanto semi
-    # funcionou normalmente. NVDA esta presente nos dois grupos e funciona
-    # no semi -- descarta bloqueio por ticker especifico. Causa mais
-    # provavel: intermitencia da API publica v7/finance/quote do Yahoo
-    # (nao documentada oficialmente, historicamente instavel). Sem acesso
-    # direto a API para confirmar a causa exata, a correcao adotada e
-    # tornar a chamada resiliente a falhas intermitentes: ate 2 tentativas
-    # com timeout maior, em vez de desistir na primeira falha.
-    symbols_str = ','.join(tickers)
-    erro_final = None
-    for tentativa in range(2):
+    erros_por_ticker = {}
+    for t in tickers:
         try:
             r = requests.get(
-                f'https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbols_str}',
-                headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+                f'https://query1.finance.yahoo.com/v8/finance/chart/{t}',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
             if r.ok:
-                for item in r.json().get('quoteResponse', {}).get('result', []):
-                    sym = item.get('symbol')
-                    mc = item.get('marketCap')
-                    if sym and mc:
-                        detalhe[sym] = round(float(mc), 2)
-                        soma_marketcap += float(mc)
-                if detalhe:
-                    break  # sucesso, nao precisa da 2a tentativa
-                erro_final = f'Yahoo respondeu OK mas sem marketCap (status {r.status_code})'
+                m = r.json()['chart']['result'][0]['meta']
+                mc = m.get('marketCap')
+                if mc:
+                    detalhe[t] = round(float(mc), 2)
+                    soma_marketcap += float(mc)
+                else:
+                    erros_por_ticker[t] = 'sem marketCap no meta'
             else:
-                erro_final = f'Yahoo respondeu status {r.status_code}'
+                erros_por_ticker[t] = f'status {r.status_code}'
         except Exception as e:
-            erro_final = f'falha ao buscar market caps: {e}'
+            erros_por_ticker[t] = str(e)
 
     if not detalhe:
-        return jsonify({'error': erro_final or 'nenhum market cap obtido do Yahoo'}), 502
+        return jsonify({'error': f'nenhum market cap obtido do Yahoo (detalhes: {erros_por_ticker})'}), 502
 
     peso_pct = round(soma_marketcap / SP500_TOTAL_MARKETCAP_USD * 100, 2)
     return jsonify({
