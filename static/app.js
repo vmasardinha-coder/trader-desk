@@ -28,7 +28,12 @@ const USSEG={
   // reais do ETF IGV (software) e do indice NUKZX/cobertura de imprensa
   // sobre acordos de energia nuclear para data centers (CEG/VST/TLN
   // fornecem energia para AWS/Meta/Microsoft/Google).
-  software:['ORCL','PANW','PLTR','CRWD','ADBE'],
+  // CORRIGIDO 23/06/2026: estava com a lista antiga de 5 tickers
+  // (ORCL/PANW/PLTR/CRWD/ADBE) -- nao batia com o top 10 real do IGV ja
+  // usado no backend (tickers_map de /us/concentracao). ADBE NEM esta no
+  // top 10 real (e a 12a posicao, 3.02%) -- foi um erro de selecao
+  // anterior, nao do IGV. Corrigido para os 10 reais.
+  software:['PANW','PLTR','MSFT','ORCL','CRWD','CRM','APP','CDNS','NOW','FTNT'],
   // energia_ia REMOVIDO 23/06/2026 -- usuario decidiu nao vale o esforco
   // (CEG/VST/TLN/D/OKLO sao utilities pequenas demais, sem dado
   // disponivel em nenhuma das fontes tentadas)
@@ -136,9 +141,9 @@ async function loadSeg(id){
         // visivel, nao so o numero final ("mais importante deixar claro
         // do que um numero sem explicacao").
         const ext = d.extrapolacao_setor_completo;
-        const extHtml = ext
+        const extHtml = ext && ext.setor_completo_peso_pct_sp500_estimado != null
           ? '<br><span style="color:var(--muted)">≈ setor de software completo (115 cias do IGV, estimado): <b style="color:var(--text)">'+ext.setor_completo_peso_pct_sp500_estimado+'%</b> do S&P 500 — top 10 conhecido (US$ '+(ext.top10_marketcap_usd/1e12).toFixed(2)+'T) representa '+ext.top10_peso_pct_no_indice+'% do ETF (ref. '+ext.top10_peso_pct_ref_data+'); resto extrapolado por regra de 3, não somado diretamente</span>'
-          : '';
+          : (ext && ext.erro ? '<br><span style="color:var(--warn,#e8a33d)">⚠ '+ext.erro+'</span>' : '');
         el.innerHTML='<b style="color:var(--text)">'+d.peso_pct_sp500+'%</b> do S&P 500 · grupo vale <b>US$ '+d.market_cap_grupo_tri_usd+'T</b> de um total de US$ '+d.sp500_total_tri_usd+'T (ref. '+d.sp500_total_ref_data+', aproximado)'+avisoIncompleto+extHtml;
       }).catch(()=>{const el=document.getElementById('conc-'+id);if(el)el.textContent='Não foi possível calcular a concentração agora.';});
     }
