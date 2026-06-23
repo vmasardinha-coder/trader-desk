@@ -317,3 +317,121 @@ ativar qualquer uma de verdade.
   ocorrências do mesmo padrão (ex: outras chamadas a `/indicators/
   ROXO34.SA`) são o MESMO bug ou contextos legítimos e separados — neste
   caso eram separados, com motivo próprio documentado no código.
+
+---
+
+# Continuação sessão 23/06/2026 (parte 2) — correções de Commodities, PRIO3, e nova feature conceitual "Análise de Papel"
+
+## SHAs no momento deste registro
+- proxy.py: 3c7f69ff3c442a463293fd5ea59cf9d7da9ff872
+- static/app.js: 619d36a5523f572c4c33f23a18727b3a9ac7e281
+- templates/index.html: b8971eb8642c6aa8708da83901fa9e0e01c919eb (não tocado nesta parte)
+
+## Correções adicionais em Commodities (após a expansão inicial desta sessão)
+1. **Moeda corrigida:** as 7 commodities (WTI, Brent, Gás Natural, Ouro,
+   Prata, Cobre, Minério de Ferro) são cotadas em USD no Yahoo, mas a
+   função `afChg()` usava `fR()` (prefixo R$) — exibia ex. "R$ 73,88"
+   quando o valor real era US$ 73,88, SEM nenhuma conversão de câmbio
+   (apenas rótulo errado). Corrigido para usar `fU()` (US$, já existia e
+   era usado para Bitcoin), trocando o parâmetro `tp` de `'r'` para `'u'`
+   nas 7 chamadas.
+2. **Sanity check no Minério de Ferro:** usuário reportou variação de
+   ~60% em 1 dia, impossível para essa commodity. Causa provável:
+   `TIO=F` é contrato de baixa liquidez (swap TSI 62% Fe CFR China),
+   sujeito a rollover de vencimento que pode fazer `prev` vir de um
+   contrato diferente. Implementado: se `|variação%| > 15`, o preço é
+   exibido normalmente mas a variação fica oculta (mantém "—") em vez de
+   mostrar um número implausível. Threshold de 15% confirmado pelo
+   usuário.
+
+**Lição de processo desta correção:** `raw.githubusercontent.com` ficou
+desatualizado por alguns minutos após o commit (CDN/cache), apesar do SHA
+via API Contents já estar correto. A verificação pós-deploy deve SEMPRE
+usar a API Contents (decodificando base64) como fonte de verdade, nunca
+confiar isoladamente em `raw.githubusercontent.com` para validação
+imediata pós-commit — exatamente como já estava documentado, mas vale
+reforçar pois aconteceu na prática nesta sessão.
+
+## PRIO3 adicionada à aba de Indicadores
+Adicionada ao segmento "🛢️ Petróleo & Gás" da `WATCHLIST` (app.js), junto
+da PETR4. Fundamentais reais coletados do Fundamentus em 13/05/2026 (9
+dias antes da `FUND_DATA_REF` global de 22/05/2026 — diferença pequena,
+mantida sem ajustar a referência global por causa de 1 ativo só):
+P/L 22.05, P/VP 2.14, LPA 2.97, VPA 30.52, DY 0%, ROE 9.7%.
+
+**Descoberta importante de arquitetura:** adicionar um novo ativo à
+watchlist de Indicadores exige tocar em 3 lugares (não documentado antes
+com essa clareza):
+1. `WATCHLIST` em `app.js` (frontend, define quais ativos aparecem)
+2. `FUND_OVERRIDE` em `proxy.py` (backend, fundamentais hardcoded:
+   pvp/dy/lpa/vpa/roe/pl)
+3. `SETOR_MAP` em `proxy.py` (backend, médias do setor para comparação:
+   nome/pl_medio/pvp_medio/roe_min)
+
+Existem TAMBÉM `SETORES` e `FUND` (linhas ~171-185 de proxy.py) — esses
+dois são dicionários DIFERENTES, menores, que servem só para as 5
+Posições Ativas reais (PETR4/VALE3/BBAS3/AXIA3/ROXO34), não para o
+universo completo de 16+ ativos da watchlist de Indicadores. Não confundir
+os dois pares de dicionários ao adicionar/editar fundamentais no futuro.
+
+## ⭐ Nova feature conceitual — "Análise de Papel" (aba nova, separada)
+
+Usuário trouxe um conceito novo, ainda não implementado, que precisa de
+uma aba própria distinta de "Em Análise" (que é exclusiva para estruturas
+de opções — call vendida, bidirecional, etc.).
+
+**O problema que motiva a feature:** hoje só existe fan chart (linha
+verde de preço real + cone Monte Carlo) quando existe uma ESTRUTURA DE
+OPÇÃO registrada (Em Análise ou Posições Ativas). Mas o usuário às vezes
+quer simplesmente avaliar se vale comprar uma AÇÃO PURA (sem opção
+nenhuma envolvida) — não existe hoje um jeito de tirar uma "foto" só do
+papel para acompanhar evolução de preço com banda de probabilidade.
+
+**Especificação dada pelo usuário:**
+1. Nova aba separada, nome de trabalho "Análise de Papel" (distinta de
+   "Em Análise", que continua exclusiva para estruturas de opções).
+2. Ao criar uma análise de papel, em vez de 1 fan chart com prazo
+   variável (como hoje), o sistema tira **3 fotos simultâneas, com
+   horizontes FIXOS: 21, 60 e 90 dias**.
+3. **Motivo explícito da escolha de 3 prazos curtos, não 1 prazo longo:**
+   o cone de incerteza do GBM cresce com a raiz do tempo — em horizontes
+   muito longos a banda fica tão larga que perde valor preditivo ("fica
+   igual jogar moeda"). Limitar a 21/60/90 dias mantém o cone útil/estreito
+   o suficiente para servir de sinal real.
+4. **Uso pretendido como sinal de entrada:** se o preço real, dentro
+   desses prazos curtos, estiver "na vermelha"/abaixo da projeção, isso é
+   um sinal de possível bom ponto de compra do papel (montagem de
+   carteira simples, sem opção envolvida) — não é uma estrutura para
+   gerar prêmio, é puramente para timing de entrada na ação.
+5. Cada uma das 3 fotos (21d/60d/90d) teria sua própria linha verde +
+   cone, igual ao padrão já usado em Em Análise/Posições Ativas, só que
+   com prazo fixo em vez de variável.
+
+**O que NÃO foi especificado ainda (decidir antes de implementar):**
+- Schema de dados exato (provavelmente um novo arquivo JSON ou nova
+  estrutura dentro de um arquivo existente — analogia a `analises.json`,
+  mas para papel puro, sem campos de estrutura de opção como kdo/kuo/
+  k_call/premio).
+- Se as 3 fotos (21/60/90d) ficam como 3 registros separados ou 1
+  registro com 3 sub-resultados.
+- Layout exato da UI: como mostrar 3 fan charts ao mesmo tempo de forma
+  legível (provavelmente lado a lado ou em abas internas).
+- Se existe transição "Análise de Papel" → "Ativa" (ex: usuário decide
+  comprar o papel após ver o sinal) — análogo à migração Em Análise →
+  Ativa que já está especificada e pendente (item de maior prioridade,
+  ainda por último no backlog atual).
+- Endpoint backend novo provavelmente necessário (reaproveitando
+  `simular_fan_chart`/GARCH já existentes, só mudando os parâmetros de
+  entrada — não deve precisar de lógica estatística nova, só uma nova
+  forma de orquestrar prazos fixos).
+
+**Prioridade:** registrado para estudo futuro, SEM ação ainda. Usuário
+ainda está testando as entregas desta sessão (Commodities, PRIO3) antes de
+seguir para o próximo item do backlog. Não é o próximo item garantido —
+fica junto dos demais itens do backlog para priorização em sessão futura.
+
+## Lembrete de processo confirmado pelo usuário nesta sessão
+Usuário pediu explicitamente para SEMPRE ser avisado quando uma entrega
+estiver pronta para teste — não assumir que ele vai notar sozinho que
+algo foi deployado. Reforçar esse aviso explícito ao final de cada
+entrega de código daqui em diante.
