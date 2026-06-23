@@ -145,6 +145,7 @@ import time
 import json
 import re  # adicionado 23/06/2026 -- scraping de fallback do 8marketcap.com
 from concurrent.futures import ThreadPoolExecutor  # adicionado 23/06/2026 -- /us/concentracao
+from threading import Lock  # adicionado 23/06/2026 -- cache lazy do 8marketcap
 
 try:
     import numpy as _np
@@ -2593,23 +2594,21 @@ _8MARKETCAP_TICKER_ALT = {
     'BRK-B': ['BRK.B', 'BRK.A'],
 }
 
-def _buscar_marketcap_8marketcap(ticker):
-    """Tenta achar o marketCap de 1 ticker fazendo scraping da pagina de
-    ranking do 8marketcap.com. Retorna valor em USD (float) ou None.
+def _parsear_marketcap_8marketcap(ticker, html_paginas):
+    """Procura o marketCap de 1 ticker no HTML ja buscado (lista de
+    strings, uma por pagina). Retorna valor em USD (float) ou None.
     Tenta o ticker original e, se nao achar, os simbolos alternativos
-    conhecidos (ver _8MARKETCAP_TICKER_ALT) -- ex: GOOGL -> GOOG."""
-    try:
-        r = requests.get('https://8marketcap.com/companies/',
-                          headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
-        if not r.ok:
-            return None
-        html = r.text
-        for candidato in [ticker] + _8MARKETCAP_TICKER_ALT.get(ticker, []):
-            # Procura o ticker como "texto" seguido (a alguma distancia, ja
-            # que ha tags HTML entre as colunas da tabela) por um valor no
-            # formato "$X.XX T" ou "$XXX.XX B". Usa re.DOTALL com um limite
-            # de distancia para nao capturar o valor de outra linha da
-            # tabela.
+    conhecidos (ver _8MARKETCAP_TICKER_ALT) -- ex: GOOGL -> GOOG.
+
+    CORRIGIDO 23/06/2026 (10a correcao): antes cada ticker fazia sua
+    PROPRIA chamada de rede ao 8marketcap (e ate 4, com paginacao) --
+    com N tickers em paralelo, isso multiplicava o numero de requisicoes
+    (N x 4), reintroduzindo risco de timeout (mesmo problema da 4a
+    correcao). Agora o HTML de todas as paginas e buscado UMA VEZ antes
+    do loop paralelo (ver _buscar_html_8marketcap_paginas), e essa
+    funcao so faz parsing em memoria, sem rede."""
+    for candidato in [ticker] + _8MARKETCAP_TICKER_ALT.get(ticker, []):
+        for html in html_paginas:
             padrao = re.compile(
                 r'>' + re.escape(candidato) + r'<.{0,500}?\$([\d,]+\.?\d*)\s*([TB])',
                 re.DOTALL)
@@ -2618,9 +2617,30 @@ def _buscar_marketcap_8marketcap(ticker):
                 valor = float(m.group(1).replace(',', ''))
                 multiplicador = 1e12 if m.group(2) == 'T' else 1e9
                 return valor * multiplicador
-        return None
-    except Exception:
-        return None
+    return None
+
+
+def _buscar_html_8marketcap_paginas(max_paginas=4):
+    """Busca o HTML de N paginas de https://8marketcap.com/companies/ UMA
+    VEZ (nao por ticker), para ser reaproveitado por todos os tickers do
+    grupo. Retorna lista de strings HTML (uma por pagina que respondeu
+    OK; paginas que falharem sao simplesmente omitidas da lista).
+
+    AVISO: o padrao de URL de paginacao (?page=N apos /companies/) foi
+    inferido a partir do padrao confirmado para o dominio raiz
+    (8marketcap.com/?page=2, visto via busca), NAO testado diretamente
+    contra /companies/?page=2 especificamente -- pode precisar de ajuste
+    se o formato real divergir."""
+    paginas = []
+    for pagina in range(1, max_paginas + 1):
+        try:
+            url = 'https://8marketcap.com/companies/' if pagina == 1 else f'https://8marketcap.com/companies/?page={pagina}'
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+            if r.ok:
+                paginas.append(r.text)
+        except Exception:
+            continue
+    return paginas
 
 @app.route('/us/concentracao', methods=['GET'])
 def get_us_concentracao():
@@ -2727,13 +2747,27 @@ def get_us_concentracao():
         except Exception:
             pass  # cai no fallback 8marketcap abaixo
 
-        # Ultimo fallback: scraping do 8marketcap.com (ver aviso completo
-        # na funcao _buscar_marketcap_8marketcap acima sobre nao ter sido
-        # testado diretamente contra o HTML real)
-        mc_8mc = _buscar_marketcap_8marketcap(t)
+        # Ultimo fallback: parsing do HTML do 8marketcap.com ja buscado
+        # ANTES do loop paralelo (ver html_8marketcap_paginas abaixo) --
+        # evita N x 4 requisicoes de rede redundantes (uma busca por
+        # pagina, compartilhada por todos os tickers do grupo).
+        mc_8mc = _parsear_marketcap_8marketcap(t, _get_html_8marketcap())
         if mc_8mc:
             return (t, round(mc_8mc, 2), None)
         return (t, None, 'sem marketCap em v7, v8 (direto/calculado) nem 8marketcap')
+
+    # Busca o HTML do 8marketcap UMA VEZ (nao por ticker) antes do loop
+    # paralelo -- ver _parsear_marketcap_8marketcap acima para o motivo.
+    # Cache lazy: paginas do 8marketcap so sao buscadas se ALGUM ticker
+    # realmente precisar (Yahoo v7/v8 falhando) -- evita 4 requisicoes de
+    # rede desnecessarias quando todos os tickers resolvem via Yahoo.
+    _cache_8marketcap = {'paginas': None}
+    _lock_8marketcap = Lock()
+    def _get_html_8marketcap():
+        with _lock_8marketcap:
+            if _cache_8marketcap['paginas'] is None:
+                _cache_8marketcap['paginas'] = _buscar_html_8marketcap_paginas()
+            return _cache_8marketcap['paginas']
 
     with ThreadPoolExecutor(max_workers=8) as executor:
         resultados = executor.map(_buscar_marketcap, tickers)
@@ -2760,17 +2794,33 @@ def get_us_concentracao():
     # final) para que o calculo seja auditavel, nao uma caixa-preta.
     extrapolacao_software = None
     if grupo == 'software':
-        mcap_total_estimado = soma_marketcap / SOFTWARE_TOP10_PESO_PCT
-        peso_pct_extrapolado = round(mcap_total_estimado / SP500_TOTAL_MARKETCAP_USD * 100, 2)
-        extrapolacao_software = {
-            'metodo': 'Top 10 do IGV conhecido (soma_marketcap_top10) dividido pelo peso % conhecido desses 10 dentro do indice = mcap total ESTIMADO do setor de software inteiro (115 empresas). Depois comparado contra o S&P 500 total.',
-            'top10_marketcap_usd': round(soma_marketcap, 2),
-            'top10_peso_pct_no_indice': round(SOFTWARE_TOP10_PESO_PCT * 100, 2),
-            'top10_peso_pct_ref_data': SOFTWARE_TOP10_PESO_REF,
-            'setor_completo_marketcap_estimado_tri_usd': round(mcap_total_estimado / 1e12, 2),
-            'setor_completo_peso_pct_sp500_estimado': peso_pct_extrapolado,
-            'aviso': 'ESTIMATIVA -- nao e soma direta de market caps, e extrapolacao via regra de 3 assumindo que a proporcao do top 10 (60.84% em 18/06) ainda e representativa hoje.',
-        }
+        # CORRIGIDO 23/06/2026 (10a correcao): a extrapolacao rodava
+        # incondicionalmente, mesmo com a base do top 10 incompleta (caso
+        # real: so 4 de 10 tickers conseguiram dado, 6 falharam por
+        # estarem fora do top 100 do 8marketcap). Isso distorcia o
+        # resultado, porque a regra de 3 pressupoe que soma_marketcap
+        # representa os 10 tickers (60.84% do indice) -- com so 4,
+        # soma_marketcap esta artificialmente baixa e a extrapolacao
+        # fica sem sentido. Agora so calcula se pelo menos 70% dos
+        # tickers do grupo tiverem dado (ex: 7 de 10); caso contrario,
+        # avisa explicitamente que a base esta incompleta demais.
+        cobertura = len(detalhe) / len(tickers) if tickers else 0
+        if cobertura >= 0.7:
+            mcap_total_estimado = soma_marketcap / SOFTWARE_TOP10_PESO_PCT
+            peso_pct_extrapolado = round(mcap_total_estimado / SP500_TOTAL_MARKETCAP_USD * 100, 2)
+            extrapolacao_software = {
+                'metodo': 'Top 10 do IGV conhecido (soma_marketcap_top10) dividido pelo peso % conhecido desses 10 dentro do indice = mcap total ESTIMADO do setor de software inteiro (115 empresas). Depois comparado contra o S&P 500 total.',
+                'top10_marketcap_usd': round(soma_marketcap, 2),
+                'top10_peso_pct_no_indice': round(SOFTWARE_TOP10_PESO_PCT * 100, 2),
+                'top10_peso_pct_ref_data': SOFTWARE_TOP10_PESO_REF,
+                'setor_completo_marketcap_estimado_tri_usd': round(mcap_total_estimado / 1e12, 2),
+                'setor_completo_peso_pct_sp500_estimado': peso_pct_extrapolado,
+                'aviso': 'ESTIMATIVA -- nao e soma direta de market caps, e extrapolacao via regra de 3 assumindo que a proporcao do top 10 (60.84% em 18/06) ainda e representativa hoje.',
+            }
+        else:
+            extrapolacao_software = {
+                'erro': f'Base incompleta demais para extrapolar com confianca: so {len(detalhe)} de {len(tickers)} tickers do top 10 do IGV tem dado (minimo 70% = 7 de 10). Numero ficaria distorcido.',
+            }
 
     # CORRIGIDO 23/06/2026 (8a correcao): usuario notou que o peso_pct
     # calculado (25.62% para m7) estava bem abaixo do valor real conhecido
