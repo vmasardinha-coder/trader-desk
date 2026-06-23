@@ -133,3 +133,187 @@ Datas de entrada são ESTIMADAS por aproximação do usuário, não documento of
 - **Memória de longo prazo (`userMemories`) pode ficar defasada em poucas trocas de assunto dentro da mesma sessão longa** — sempre reconferir contra o GitHub real antes de agir, especialmente para SHAs e schemas.
 - **PDFs de propostas reais do banco não devem ser "validados" ou recalculados com rigor financeiro extra** — isso foi tentado nesta sessão e o usuário rejeitou; os números do banco são premissa, não objeto de verificação.
 - **Erros 400 retroativos**: ao tornar um campo obrigatório num endpoint, sempre auditar TODOS os registros existentes que usam aquele endpoint antes de considerar a mudança "pronta" — a foto an_1782147275 quebrou silenciosamente até o usuário testar.
+
+---
+
+# Sessão 23/06/2026 — correções de bugs + expansão de Commodities + backlog novo
+
+## SHAs no momento do fechamento desta sessão (23/06/2026)
+- proxy.py: 3021bcc635a8e327eab30e464d2fafca91b6f91c
+- templates/index.html: b8971eb8642c6aa8708da83901fa9e0e01c919eb
+- static/app.js: 84ce049b389979f5719cf448bd648db394cf7960
+- positions.json: 584d8f955de8 (não tocado nesta sessão)
+- analises.json: 50884ff8214e (não tocado nesta sessão — divergência conhecida: PROMPT diz an_1782147275 backtest=false, mas o arquivo real tem backtest=true; usuário ainda não confirmou qual está certo)
+- montecarlo_garch.py: 31bdb9470821 (não tocado nesta sessão)
+
+## Tag de backup criada
+`v10.16-pre-novas-features` → aponta para o commit 3ed923e05d47312456ad9e66a80e4dd2a56eed96
+(estado do repo ANTES de qualquer mudança de código desta sessão — ponto de
+restauração caso algo dê errado nas novas features futuras)
+
+## Arquivos novos genéricos no repo (preparação para projeto de cripto)
+- `METODOS_ESTATISTICOS.md`: mapa de avaliação de modelos de volatilidade,
+  generalizado para qualquer ativo financeiro (não só ações B3). Contém
+  ressalva explícita de que os descartes de Heston/SABR/Jump-Diffusion foram
+  por FALTA DE DADO (book de opções, intraday) no contexto de ações B3 —
+  não necessariamente válidos para cripto, onde Deribit/Binance oferecem
+  esse dado de forma gratuita.
+- `POSITIONS_GUIDE.md`: guia simplificado do schema de positions.json (não
+  documenta todos os campos reais como data_entrada/meta_pct — ver o JSON
+  real para o schema completo).
+- Nota: `montecarlo_garch.py` (módulo extraído) NÃO é importado por
+  `proxy.py` — proxy.py tem sua própria cópia inline de garch_11/vol_hist.
+  O módulo extraído é só uma cópia paralela para reuso em outros projetos,
+  não é dependência ativa do app em produção.
+
+## Bugs corrigidos e deployados nesta sessão
+
+### 1. Desalinhamento da linha de preço real (fan chart) em fins de semana/feriados
+**Sintoma:** usuário notou que a linha verde de preço real em Em Análise e
+Posições Ativas parecia "andar adiantado" do tempo real.
+
+**Causa raiz confirmada com teste sintético isolado:** em
+`/montecarlo/condicional` e `/montecarlo/posicao_ativa`, o slice de
+`precos_reais` usava `dias_passados` (dias CORRIDOS, calculado como
+`(hoje - data_foto).days`) para cortar o array `cl[]`, que só tem 1 ponto
+por PREGÃO ÚTIL (sem fins de semana/feriados, vem do Yahoo). Toda vez que
+o período cruzava um fim de semana, o slice pegava pontos demais.
+
+**Correção:** trocado para `cl[idx_inicio:]` (todo o resto do histórico a
+partir do índice da foto/entrada) — já que o Yahoo nunca retorna pregão
+futuro, isso sempre dá exatamente os pregões reais decorridos, sem precisar
+tratar feriados manualmente (mesma causa raiz, mesma correção resolve
+ambos). Validado com teste sintético antes do deploy. Confirmado
+visualmente pelo usuário após o deploy: "a curva se ajustou, ficou mais
+precisa".
+
+**Por que não existiria em cripto:** mercado 24/7, "dias corridos" e "dias
+com preço" são a mesma coisa — não há a noção de "pregão útil" que causa
+esse desalinhamento em ações B3.
+
+### 2. ROXO34 — Vol. Simples demorava muito mais que as outras posições
+**Sintoma:** usuário notou que o card de Monte Carlo da ROXO34 ficava
+"em branco"/travado por muito mais tempo que PETR4/VALE3/BBAS3/AXIA3, que
+abrem quase instantâneo.
+
+**Causa raiz confirmada lendo o código:** ROXO34 usa uma função separada
+(`MCR`) que fazia 2 chamadas de rede em SÉRIE antes de mostrar qualquer
+resultado: primeiro `fetch('/indicators/ROXO34.SA')` para pegar o preço
+atual, e só DEPOIS `fetch('/montecarlo')`. As outras posições usam `MC`/
+`MCB`, que fazem apenas 1 chamada direta. Além disso, o timeout de MCR já
+tinha sido aumentado para 40s (vs 25s das outras) — sinal de que alguém já
+sabia da demora e só aumentou a paciência, sem resolver a causa.
+
+**Por que o fetch prévio era redundante:** `/montecarlo` já busca o preço
+via Yahoo internamente quando `price` não é enviado no payload (mesmo
+comportamento que `MC` já usa para PETR4/VALE3/BBAS3, que nunca mandam
+`price`).
+
+**Correção:** removido o fetch prévio a `/indicators`; MCR agora chama
+`/montecarlo` direto, sem esperar nada antes. Timeout reduzido de 40s para
+25s. NÃO afeta as outras 2 chamadas a `/indicators/ROXO34.SA` que existem
+no app.js (cotação simples e status ITM/OTM) — contextos diferentes, com
+motivo próprio documentado no código ("Yahoo bloqueia chamada direta
+nesses casos").
+
+## Feature nova: Commodities expandidas
+Adicionadas ao endpoint `/futures` (mesmo padrão `yquote()` já usado para
+WTI/Ouro/Prata/Cobre da v10.16), selecionadas por CRITÉRIO DE IMPACTO
+DIRETO NOS PAPÉIS DA CARTEIRA (não liquidez genérica — usuário foi
+explícito sobre isso):
+- **Minério de Ferro** (`TIO=F`, contrato TSI 62% Fe CFR China): driver
+  principal de VALE3. Atenção: é contrato de swap, liquidez/disponibilidade
+  no Yahoo menos estável que os contratos CME tradicionais abaixo — pode
+  vir `None` ocasionalmente, `yquote()` já trata isso com segurança.
+- **Brent** (`BZ=F`): benchmark internacional distinto do WTI, também
+  influencia a precificação da Petrobras (PETR4).
+- **Gás Natural** (`NG=F`): contexto energético geral, sem ligação direta
+  a uma posição específica (usuário pediu mesmo assim, "só para ter uma
+  noção").
+- **Gasolina foi EXPLICITAMENTE REJEITADA pelo usuário** — não adicionar
+  de volta sem ele pedir.
+
+AXIA3 é a antiga Eletrobras (energia elétrica, hidro em maioria) — não tem
+driver de commodity Yahoo direto e confiável (PLD/CCEE não é cotado lá).
+Não foi adicionado nada para ela.
+
+## ⚠️ Pendência importante levantada pelo usuário — "Marcar como Ativa" não migra dados
+Usuário identificou (e código confirma) que o botão "Marcar como Ativa" em
+Em Análise hoje só troca o campo `status` dentro do MESMO registro em
+`analises.json` (`PUT /analises/<id>/status`). NÃO cria nada em
+`positions.json`, NÃO reseta a data/preço de entrada. Resultado: mesmo
+"ativada", a análise continuaria sendo lida com a `data_foto` original, e
+a linha verde do fan chart NÃO reseta como deveria.
+
+**Especificação confirmada pelo usuário para a implementação futura:**
+1. Migração é COMPLETA: o registro é REMOVIDO de `analises.json` e um
+   registro NOVO é criado em `positions.json` — não fica duplicado nos
+   dois lugares.
+2. O preço de entrada da nova posição ativa é o PREÇO REAL DO DIA DA
+   MIGRAÇÃO (capturado via Yahoo nesse momento), NÃO o `preco_foto`
+   antigo que já estava na análise — é um novo "dia zero" genuíno.
+3. Precisa mapear os campos de `analises.json` (tipo_estrutura, kdo/kuo,
+   k_call/k_put, alavancagem, teto_retorno_pct, ganho_prefixado_pct, etc.)
+   para o schema de `positions.json` (tipo_posicao simples/barreira) —
+   ainda não especificado em detalhe, fica para quando for implementar.
+4. "Encerrar sem executar" já funciona corretamente como está (não precisa
+   de migração, é só uma foto histórica de "olhei e não fechei negócio").
+
+**Prioridade:** usuário pediu explicitamente para deixar este item por
+ÚLTIMO no backlog desta fase — é o item mais complexo e ele quer estudar
+os outros temas primeiro. Hoje ele tem 7 análises todas em `em_analise`
+(todas backtest), vai carregar uma amostra real maior antes de pensar em
+ativar qualquer uma de verdade.
+
+## Backlog novo desta sessão (ordem não é prioridade — usuário define a cada sessão)
+
+1. **Fundos Imobiliários (FIIs):** pesquisar fontes gratuitas de dados,
+   criar critério de avaliação (segurança + preço atrativo) parecido com o
+   já usado para estruturadas, aplicado ao universo líquido de FIIs.
+   Ainda não iniciado.
+
+2. **Nova aba em Cotações — mercado Europeu e Asiático:** só futuros +
+   índices (sem detalhe de ações individuais). Mercado americano já está
+   coberto (US quotes/futures existentes); o foco da expansão é
+   especificamente Europa + Ásia.
+
+3. **PRIO3 nos Indicadores:** usuário vai pedir formalmente em sessão
+   futura — ação de petróleo (PetroRio), ligada à mesma lógica de
+   exposição a WTI/Brent.
+
+4. **Watchlist de Semicondutores + "Magnificent 7" + métrica de
+   concentração no S&P 500/Nasdaq-100:** usuário está preocupado com risco
+   de bolha de IA — dados de mercado confirmam concentração recorde
+   (top 10 empresas = ~36% do S&P 500 em 2026, vs 23% em 2000; Magnificent
+   7 = ~33,8% do índice; Nasdaq-100 top 5 = ~55,4%). Lista proposta e
+   CONFIRMADA pelo usuário como ponto de partida:
+   - Núcleo semicondutores: NVDA, AMD, AVGO, TSM, ASML, INTC, MU, QCOM
+   - Núcleo Magnificent 7: MSFT, AAPL, GOOGL/GOOG, AMZN, META, TSLA (+NVDA
+     do grupo de cima)
+   - Métrica de concentração: peso agregado desses nomes vs. SPY/S&P 500
+     total — fonte de dado ainda não definida (StockAnalysis/State Street
+     publicam holdings do SPY diariamente, mas não é um "preço" simples de
+     puxar via Yahoo como as commodities; precisa de investigação técnica
+     própria antes de implementar).
+   Ainda não iniciado — só lista e conceito confirmados.
+
+5. **ETFs:** estudo futuro, mencionado como naturalmente ligado ao item 4
+   (ETFs temáticos de semicondutores/IA, ex. SOXX, agrupam exatamente esses
+   nomes). Backlog de longo prazo, sem ação ainda.
+
+6. **Renda fixa:** registrar a ideia no backlog, sem ação por enquanto
+   (usuário confirmou explicitamente "só registrar, sem ação agora").
+
+## Aprendizados desta sessão (não repetir)
+- Sempre re-baixar o arquivo do GitHub (`raw.githubusercontent.com`) antes
+  de editar quando há qualquer chance de ter mudado desde a última leitura
+  na mesma sessão — feito antes de cada edição desta sessão, evitou
+  trabalhar em cima de versão desatualizada.
+- Ao investigar uma demora/bug de performance, ler o código real (não
+  assumir) — o caso da ROXO34 parecia "só lentidão de rede" mas a causa
+  raiz era arquitetural (chamada redundante em série), só visível lendo o
+  fluxo completo de chamadas no app.js.
+- Antes de marcar um item como "resolvido" em UI, verificar se outras
+  ocorrências do mesmo padrão (ex: outras chamadas a `/indicators/
+  ROXO34.SA`) são o MESMO bug ou contextos legítimos e separados — neste
+  caso eram separados, com motivo próprio documentado no código.
