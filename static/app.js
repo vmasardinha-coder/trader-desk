@@ -15,7 +15,12 @@ const USSEG={
   m7:['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'],
   nq:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','COST','NFLX','QCOM','AMD','ADBE','INTC','CSCO'],
   sp:['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','BRK.B','JPM','LLY','V','UNH','XOM','MA','NFLX','PG','JNJ','HD','BAC'],
-  dj:['UNH','GS','HD','SHW','CAT','AXP','MCD','AMGN','V','TRV','IBM','JPM','HON','CRM','CVX','AAPL','MSFT','DIS','NKE','BA']
+  dj:['UNH','GS','HD','SHW','CAT','AXP','MCD','AMGN','V','TRV','IBM','JPM','HON','CRM','CVX','AAPL','MSFT','DIS','NKE','BA'],
+  // Adicionado 23/06/2026 -- usuario preocupado com risco de concentracao/
+  // bolha de IA no mercado americano. Lista confirmada pelo usuario:
+  // nucleo de semicondutores (infraestrutura fisica da IA), separado dos
+  // grupos acima para nao misturar com Amazon/Meta/etc. do Nasdaq Top 15.
+  semi:['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
 };
 const fR=v=>v!=null?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const fU=v=>v!=null?'US$ '+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
