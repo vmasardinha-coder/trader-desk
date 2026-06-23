@@ -2712,16 +2712,32 @@ def get_us_concentracao():
         return jsonify({'error': f'nenhum market cap obtido do Yahoo (detalhes: {erros_por_ticker})'}), 502
 
     peso_pct = round(soma_marketcap / SP500_TOTAL_MARKETCAP_USD * 100, 2)
+    # CORRIGIDO 23/06/2026 (8a correcao): usuario notou que o peso_pct
+    # calculado (25.62% para m7) estava bem abaixo do valor real conhecido
+    # (33-35% segundo multiplas fontes de mercado em junho/2026). Causa
+    # raiz: ate aqui, tickers que falhavam em TODAS as fontes (Yahoo v7/v8
+    # + 8marketcap) eram simplesmente OMITIDOS da soma, sem nenhum aviso na
+    # resposta -- erros_por_ticker so aparecia na mensagem de erro do caso
+    # de FALHA TOTAL, nunca em sucesso parcial. Agora sempre incluido na
+    # resposta, com contagem explicita de quantos tickers faltaram, para
+    # que o usuario (e qualquer sessao futura) saiba quando o numero esta
+    # incompleto em vez de confiar nele como se fosse a soma completa.
     return jsonify({
         'grupo': grupo,
         'tickers': tickers,
+        'tickers_com_dado': list(detalhe.keys()),
+        'tickers_sem_dado': erros_por_ticker,
         'market_cap_grupo_usd': round(soma_marketcap, 2),
         'market_cap_grupo_tri_usd': round(soma_marketcap / 1e12, 2),
         'detalhe_por_ticker_usd': detalhe,
         'peso_pct_sp500': peso_pct,
         'sp500_total_tri_usd': round(SP500_TOTAL_MARKETCAP_USD / 1e12, 2),
         'sp500_total_ref_data': SP500_TOTAL_MARKETCAP_REF,
-        'aviso': 'Aproximacao -- market cap total do indice muda diariamente, numero de referencia pode estar desatualizado',
+        'aviso': (
+            f'INCOMPLETO: {len(erros_por_ticker)} de {len(tickers)} tickers sem dado ({list(erros_por_ticker.keys())}) -- peso_pct esta SUBESTIMADO'
+            if erros_por_ticker else
+            'Aproximacao -- market cap total do indice muda diariamente, numero de referencia pode estar desatualizado'
+        ),
     })
 
 # ── POSIÇÕES (JSON modular) ───────────────────────────
