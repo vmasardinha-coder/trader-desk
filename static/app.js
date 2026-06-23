@@ -584,6 +584,7 @@ const WATCHLIST = [
   ]},
   {segmento:'🛢️ Petróleo & Gás', ativos:[
     {id:'petr4', ticker:'PETR4.SA', nome:'PETR4 — Petrobras PN'},
+    {id:'prio3', ticker:'PRIO3.SA', nome:'PRIO3 — PetroRio ON'},
   ]},
   {segmento:'⛏️ Mineração', ativos:[
     {id:'vale3', ticker:'VALE3.SA', nome:'VALE3 — Vale ON'},
