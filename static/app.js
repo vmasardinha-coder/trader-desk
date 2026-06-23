@@ -119,7 +119,16 @@ async function loadSeg(id){
         const el=document.getElementById('conc-'+id);
         if(!el)return;
         if(!d||d.error){el.textContent='Não foi possível calcular: '+(d&&d.error?d.error:'sem resposta do servidor');return;}
-        el.innerHTML='<b style="color:var(--text)">'+d.peso_pct_sp500+'%</b> do S&P 500 · grupo vale <b>US$ '+d.market_cap_grupo_tri_usd+'T</b> de um total de US$ '+d.sp500_total_tri_usd+'T (ref. '+d.sp500_total_ref_data+', aproximado)';
+        // CORRIGIDO 23/06/2026 (8a correcao): usuario notou peso_pct
+        // subestimado (25.62% para m7, vs 33-35% real conhecido) porque
+        // tickers que falhavam em todas as fontes eram omitidos da soma
+        // SEM nenhum aviso visivel. Agora mostra quantos tickers faltam,
+        // se for o caso.
+        const incompleto = d.tickers_sem_dado && Object.keys(d.tickers_sem_dado).length > 0;
+        const avisoIncompleto = incompleto
+          ? '<br><span style="color:var(--warn,#e8a33d)">⚠ incompleto: faltam '+Object.keys(d.tickers_sem_dado).join(', ')+'</span>'
+          : '';
+        el.innerHTML='<b style="color:var(--text)">'+d.peso_pct_sp500+'%</b> do S&P 500 · grupo vale <b>US$ '+d.market_cap_grupo_tri_usd+'T</b> de um total de US$ '+d.sp500_total_tri_usd+'T (ref. '+d.sp500_total_ref_data+', aproximado)'+avisoIncompleto;
       }).catch(()=>{const el=document.getElementById('conc-'+id);if(el)el.textContent='Não foi possível calcular a concentração agora.';});
     }
     try{
