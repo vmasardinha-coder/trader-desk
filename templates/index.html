@@ -51,6 +51,26 @@
   </div>
 
   <div class="tbl-wrap">
+    <div class="tbl-hdr" onclick="togCot('intl')" style="cursor:pointer"><span class="tbl-hdr-title">Europa &amp; Ásia</span><span id="ar-cot-intl" style="color:var(--muted)">▼</span></div>
+    <div id="cot-intl-wrap" style="display:block">
+    <table class="tbl-mkt">
+      <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup><thead><tr><th>Índice</th><th class="r">Último</th><th class="r">Variação</th></tr></thead>
+      <tbody>
+        <tr><td><div class="sym">DAX</div><div class="desc">Alemanha</div></td><td class="r"><span class="val loading" id="dax-p">—</span></td><td class="r"><span class="chg" id="dax-c">—</span></td></tr>
+        <tr><td><div class="sym">CAC 40</div><div class="desc">França</div></td><td class="r"><span class="val loading" id="cac40-p">—</span></td><td class="r"><span class="chg" id="cac40-c">—</span></td></tr>
+        <tr><td><div class="sym">EURO STOXX 50</div><div class="desc">Zona do Euro</div></td><td class="r"><span class="val loading" id="stoxx50-p">—</span></td><td class="r"><span class="chg" id="stoxx50-c">—</span></td></tr>
+        <tr><td><div class="sym">FTSE 100</div><div class="desc">Reino Unido</div></td><td class="r"><span class="val loading" id="ftse100-p">—</span></td><td class="r"><span class="chg" id="ftse100-c">—</span></td></tr>
+        <tr><td><div class="sym">NIKKEI 225</div><div class="desc">Japão</div></td><td class="r"><span class="val loading" id="nikkei-p">—</span></td><td class="r"><span class="chg" id="nikkei-c">—</span></td></tr>
+        <tr><td><div class="sym">HANG SENG</div><div class="desc">Hong Kong</div></td><td class="r"><span class="val loading" id="hangseng-p">—</span></td><td class="r"><span class="chg" id="hangseng-c">—</span></td></tr>
+        <tr><td><div class="sym">SSE COMPOSITE</div><div class="desc">China (Shanghai)</div></td><td class="r"><span class="val loading" id="sse-p">—</span></td><td class="r"><span class="chg" id="sse-c">—</span></td></tr>
+        <tr><td><div class="sym">KOSPI</div><div class="desc">Coreia do Sul</div></td><td class="r"><span class="val loading" id="kospi-p">—</span></td><td class="r"><span class="chg" id="kospi-c">—</span></td></tr>
+        <tr><td><div class="sym">S&amp;P/ASX 200</div><div class="desc">Austrália</div></td><td class="r"><span class="val loading" id="asx200-p">—</span></td><td class="r"><span class="chg" id="asx200-c">—</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
     <div class="tbl-hdr" onclick="togCot('b3')" style="cursor:pointer"><span class="tbl-hdr-title">B3 — Top 10</span><span id="ar-cot-b3" style="color:var(--muted)">▼</span></div>
     <div id="cot-b3-wrap" style="display:block">
     <table class="tbl-mkt">
@@ -127,26 +147,8 @@
   </div>
 
   <div class="tbl-wrap">
-    <div class="tbl-hdr" onclick="togCot('intl')" style="cursor:pointer"><span class="tbl-hdr-title">Europa &amp; Ásia</span><span id="ar-cot-intl" style="color:var(--muted)">▼</span></div>
-    <div id="cot-intl-wrap" style="display:block">
-    <table class="tbl-mkt">
-      <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup><thead><tr><th>Índice</th><th class="r">Último</th><th class="r">Variação</th></tr></thead>
-      <tbody>
-        <tr><td><div class="sym">DAX</div><div class="desc">Alemanha</div></td><td class="r"><span class="val loading" id="dax-p">—</span></td><td class="r"><span class="chg" id="dax-c">—</span></td></tr>
-        <tr><td><div class="sym">CAC 40</div><div class="desc">França</div></td><td class="r"><span class="val loading" id="cac40-p">—</span></td><td class="r"><span class="chg" id="cac40-c">—</span></td></tr>
-        <tr><td><div class="sym">EURO STOXX 50</div><div class="desc">Zona do Euro</div></td><td class="r"><span class="val loading" id="stoxx50-p">—</span></td><td class="r"><span class="chg" id="stoxx50-c">—</span></td></tr>
-        <tr><td><div class="sym">FTSE 100</div><div class="desc">Reino Unido</div></td><td class="r"><span class="val loading" id="ftse100-p">—</span></td><td class="r"><span class="chg" id="ftse100-c">—</span></td></tr>
-        <tr><td><div class="sym">NIKKEI 225</div><div class="desc">Japão</div></td><td class="r"><span class="val loading" id="nikkei-p">—</span></td><td class="r"><span class="chg" id="nikkei-c">—</span></td></tr>
-        <tr><td><div class="sym">HANG SENG</div><div class="desc">Hong Kong</div></td><td class="r"><span class="val loading" id="hangseng-p">—</span></td><td class="r"><span class="chg" id="hangseng-c">—</span></td></tr>
-        <tr><td><div class="sym">SSE COMPOSITE</div><div class="desc">China (Shanghai)</div></td><td class="r"><span class="val loading" id="sse-p">—</span></td><td class="r"><span class="chg" id="sse-c">—</span></td></tr>
-        <tr><td><div class="sym">S&amp;P/ASX 200</div><div class="desc">Austrália</div></td><td class="r"><span class="val loading" id="asx200-p">—</span></td><td class="r"><span class="chg" id="asx200-c">—</span></td></tr>
-      </tbody>
-    </table>
-    </div>
-  </div>
-
-  <div class="tbl-wrap">
-    <div class="tbl-hdr"><span class="tbl-hdr-title">Bitcoin</span></div>
+    <div class="tbl-hdr" onclick="togCot('btc')" style="cursor:pointer"><span class="tbl-hdr-title">Bitcoin</span><span id="ar-cot-btc" style="color:var(--muted)">▶</span></div>
+    <div id="cot-btc-wrap" style="display:none">
     <table class="tbl-mkt">
       <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Info</th></tr></thead>
       <tbody>
@@ -156,6 +158,7 @@
         <tr><td><div class="sym">Fear &amp; Greed</div><div class="desc">Índice sentimento</div></td><td class="r"><span class="val loading" id="fg-val">—</span></td><td class="r"></td><td class="r"><span id="fg-lbl" style="font-size:12px;color:var(--muted)">—</span></td></tr>
       </tbody>
     </table>
+    </div>
   </div>
   <footer><span id="footer-time">—</span><span>Trader Desk v11.3</span></footer>
 </div>
