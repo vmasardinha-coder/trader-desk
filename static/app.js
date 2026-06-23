@@ -1141,6 +1141,17 @@ function doMacro(tv,ft){
     if(ft.gold?.price)afChg('gold-p','gold-c',ft.gold.price,ft.gold.prev,'u');
     if(ft.silver?.price)afChg('silver-p','silver-c',ft.silver.price,ft.silver.prev,'u');
     if(ft.copper?.price)afChg('copper-p','copper-c',ft.copper.price,ft.copper.prev,'u');
+    // Adicionado 23/06/2026 -- Europa & Asia (indices, sem moeda --
+    // pontos de indice, nao um valor monetario direto, por isso tipo 'n'
+    // numero puro em vez de 'r'/'u').
+    if(ft.dax?.price)afChg('dax-p','dax-c',ft.dax.price,ft.dax.prev);
+    if(ft.cac40?.price)afChg('cac40-p','cac40-c',ft.cac40.price,ft.cac40.prev);
+    if(ft.stoxx50?.price)afChg('stoxx50-p','stoxx50-c',ft.stoxx50.price,ft.stoxx50.prev);
+    if(ft.ftse100?.price)afChg('ftse100-p','ftse100-c',ft.ftse100.price,ft.ftse100.prev);
+    if(ft.nikkei?.price)afChg('nikkei-p','nikkei-c',ft.nikkei.price,ft.nikkei.prev);
+    if(ft.hangseng?.price)afChg('hangseng-p','hangseng-c',ft.hangseng.price,ft.hangseng.prev);
+    if(ft.sse?.price)afChg('sse-p','sse-c',ft.sse.price,ft.sse.prev);
+    if(ft.asx200?.price)afChg('asx200-p','asx200-c',ft.asx200.price,ft.asx200.prev);
   }
 }
 function doPos(tv){
