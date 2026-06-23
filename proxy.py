@@ -1,6 +1,13 @@
-"""  # v10.15
-Trader Desk — Proxy Server v10.15
+"""  # v10.16
+Trader Desk — Proxy Server v10.16
 Indicadores tecnicos + fundamentalistas + Monte Carlo + Futuros
+Mudancas v10.16:
+- /futures: adiciona busca real de Commodities (WTI/CL=F, Ouro/GC=F,
+  Prata/SI=F, Cobre/HG=F) via Yahoo Finance, reaproveitando a funcao
+  yquote() ja usada para VIX/indices. Antes a tabela de Commodities no
+  frontend nunca tinha sido conectada a nenhuma fonte de dados real (so
+  o HTML existia, sem nenhum codigo de busca) -- por isso preco e %
+  nunca apareciam.
 Mudancas v10.15:
 - /montecarlo/condicional: put_resultado_fixo agora padroniza valores em
   R$ para 100 acoes (mesmo padrao didatico das outras 3 estruturas:
@@ -504,7 +511,16 @@ def get_futures():
         except: pass
 
     usd = yquote('USDBRL=X')
-    return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd})
+
+    # Commodities — futuros CME/COMEX, mesmo padrao yquote ja usado para
+    # indices/vix (busca via Yahoo Finance, retorna price + prev close)
+    cl = yquote('CL%3DF')      # Petroleo WTI
+    gold = yquote('GC%3DF')    # Ouro
+    silver = yquote('SI%3DF')  # Prata
+    copper = yquote('HG%3DF')  # Cobre
+
+    return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
+                     'cl':cl,'gold':gold,'silver':silver,'copper':copper})
 
 @app.route('/dji', methods=['GET'])
 def get_dji():
