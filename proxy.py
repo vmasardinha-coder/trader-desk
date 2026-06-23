@@ -2628,7 +2628,18 @@ def get_us_concentracao():
                 mc = m.get('marketCap')
                 if mc:
                     return (t, round(float(mc), 2), None)
-                return (t, None, 'sem marketCap em v7 nem v8')
+                # CORRIGIDO 23/06/2026 (6a correcao): testando isoladamente
+                # se sharesOutstanding e mais estavel que marketCap direto
+                # no mesmo meta -- ambos vem do v8/chart, sem chamada de
+                # rede extra. Se funcionar, calculamos marketCap = preco x
+                # sharesOutstanding em vez de depender do Yahoo ja
+                # entregar o campo pronto.
+                preco = m.get('regularMarketPrice')
+                shares = m.get('sharesOutstanding')
+                if preco and shares:
+                    mc_calculado = float(preco) * float(shares)
+                    return (t, round(mc_calculado, 2), None)
+                return (t, None, 'sem marketCap (direto ou calculado) em v7 nem v8')
             return (t, None, f'v8 status {r.status_code}')
         except Exception as e:
             return (t, None, f'v7 e v8 falharam: {e}')
