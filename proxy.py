@@ -2588,8 +2588,37 @@ def get_us_concentracao():
     erros_por_ticker = {}
 
     def _buscar_marketcap(t):
-        """Busca marketCap de 1 ticker via v8/finance/chart. Retorna
-        (ticker, valor_ou_None, erro_ou_None)."""
+        """Busca marketCap de 1 ticker. Retorna (ticker, valor_ou_None,
+        erro_ou_None).
+
+        CORRIGIDO 23/06/2026 (5a correcao): usuario reportou erro real
+        'sem marketCap no meta' para TODOS os tickers apos a 4a correcao
+        (paralelizacao). Causa raiz: meta.marketCap NAO e um campo
+        garantido em v8/finance/chart -- relatos publicos confirmam que
+        campos do meta desse endpoint mudam/desaparecem sem aviso do
+        Yahoo. v7/finance/quote e a fonte correta historicamente para
+        marketCap (campo nativo desse endpoint), mas a tentativa anterior
+        com ele falhava por usar busca em LOTE (multiplos simbolos numa
+        chamada). Agora: v7 INDIVIDUAL por ticker (nao lote) como fonte
+        primaria, com fallback para v8/chart se o v7 falhar para aquele
+        ticker especifico.
+        """
+        # Tenta v7/finance/quote primeiro (fonte nativa do campo marketCap)
+        try:
+            r = requests.get(
+                f'https://query1.finance.yahoo.com/v7/finance/quote?symbols={t}',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+            if r.ok:
+                resultados = r.json().get('quoteResponse', {}).get('result', [])
+                if resultados:
+                    mc = resultados[0].get('marketCap')
+                    if mc:
+                        return (t, round(float(mc), 2), None)
+        except Exception:
+            pass  # cai no fallback v8 abaixo
+
+        # Fallback: v8/finance/chart (caso v7 falhe ou nao traga marketCap
+        # para esse ticker especifico)
         try:
             r = requests.get(
                 f'https://query1.finance.yahoo.com/v8/finance/chart/{t}?interval=1d&range=5d',
@@ -2599,19 +2628,11 @@ def get_us_concentracao():
                 mc = m.get('marketCap')
                 if mc:
                     return (t, round(float(mc), 2), None)
-                return (t, None, 'sem marketCap no meta')
-            return (t, None, f'status {r.status_code}')
+                return (t, None, 'sem marketCap em v7 nem v8')
+            return (t, None, f'v8 status {r.status_code}')
         except Exception as e:
-            return (t, None, str(e))
+            return (t, None, f'v7 e v8 falharam: {e}')
 
-    # CORRIGIDO 23/06/2026 (4a correcao): usuario reportou "sem resposta do
-    # servidor" apos a 3a correcao (parametros de query). Causa raiz real:
-    # ate 8 chamadas SEQUENCIAIS de ate 8s de timeout cada podiam somar
-    # mais de 60s no pior caso, estourando o timeout do Render/proxy
-    # intermediario antes do Flask conseguir responder -- por isso o
-    # frontend recebia uma resposta nao-JSON (conexao cortada), nao um erro
-    # estruturado. Paralelizado com ThreadPoolExecutor: tempo total agora e
-    # o da chamada mais lenta (~8s no pior caso), nao a soma de todas.
     with ThreadPoolExecutor(max_workers=8) as executor:
         resultados = executor.map(_buscar_marketcap, tickers)
         for t, valor, erro in resultados:
