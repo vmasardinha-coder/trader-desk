@@ -94,6 +94,32 @@ PUT vendida (tipo_estrutura='premio') tem um bloco "2-3" combinado em vez de blo
 | a3b | AXIA3(B) | europeia | ~08/06/2026 | alavancagem: 1.3, teto_retorno_pct: 4.0 |
 Datas de entrada são ESTIMADAS por aproximação do usuário, não documento oficial — ajustar se ele achar nota de corretagem real.
 
+## Métodos estatísticos / modelos de volatilidade — mapa completo do que já foi avaliado
+
+### Em produção hoje (motor atual do Trader Desk)
+- **Black-Scholes (BS)**: usado como referência/comparação pontual, não é o motor principal de probabilidade.
+- **GARCH(1,1)**: motor PRINCIPAL de volatilidade em produção (`montecarlo_garch.py`). Calibrado com histórico de preço real (Yahoo/brapi), captura "clusters" de volatilidade (períodos calmos/turbulentos).
+- **Monte Carlo (com GARCH)**: simula milhares de trajetórias diárias completas a partir da vol. GARCH, usado em TODOS os endpoints (`/montecarlo`, `/montecarlo/condicional`, `/montecarlo/posicao_ativa`, `/montecarlo/trajetorias`, `/montecarlo/barrier`). Para opções AMERICANAS ou estruturas com barreira (kdo/kuo), usa o caminho completo (max/min); para EUROPEIAS simples, usa só o preço final.
+- **Vol. implícita extraída via Black-Scholes invertido**: quando o usuário cola um book real do OpLab, Claude já extrai a vol. implícita real por strike (via `brentq`/busca de raiz) para calibrar simulações teóricas — usado nas sessões de Fase A para montar estruturas do zero.
+
+### Avaliados e FECHADOS (não vale a pena seguir, decisão do usuário)
+- **MLE contínuo (scipy) vs. grid search para calibrar GARCH**: testado em 5 cenários sintéticos, diferença de 0.00pp em todos os casos. Não vale o esforço de implementar.
+- **Jump-Diffusion (Merton)**: modela "saltos"/gaps no preço além da variação contínua normal. Calibrável só com histórico de preço (sem precisar de book de opções). Testado contra GARCH puro: diferença de -0.7pp a -6.8pp. Fica como estudo futuro, SEM prioridade atual — diferença pequena não justificou implementar.
+- **Heston (volatilidade estocástica)**: precisa de book de opções reais para calibrar 2 parâmetros (xi, rho). Testado com parâmetros estimados: diferença de -2.3pp a -13.0pp vs. GARCH — faixa MUITO mais larga e instável (alta sensibilidade a parâmetro mal calibrado sem dado real). CONSIDERADO NÃO VIÁVEL sem fonte paga de book de opções.
+- **SABR**: "primo" do Heston, mesma limitação (precisa de book de opções real para calibrar a superfície de vol.). Não exploraria nada que o Heston já não tivesse mostrado ser inviável sem dado pago — descartado pelo mesmo motivo.
+- **Modelos de Lévy mais gerais (Variance Gamma, CGMY)**: generalizações do Jump-Diffusion com saltos mais ricos estatisticamente. Mesma família já testada (Merton); ganho marginal incerto, exigiria ainda mais dados históricos para calibrar bem. Não avaliado numericamente, descartado por inferência da família.
+- **Machine Learning / redes neurais para previsão de preço**: categoria diferente (ajuste estatístico de padrão, não modelo de difusão com fundamento probabilístico). Avaliação qualitativa: evidência acadêmica de que ML supera de forma consistente um random walk + vol. estocástica é fraca para ações individuais de curto prazo. NÃO RECOMENDADO — mais hype do que ferramenta confiável neste contexto.
+
+### ⭐ PRÓXIMO A EXPLORAR (usuário vai iniciar a próxima sessão por aqui)
+- **Volatilidade realizada de alta frequência (intraday)**: em vez de usar só o preço de FECHAMENTO diário (como o GARCH atual faz), usar dados intraday (a cada minuto, ou pelo menos a cada hora) para calcular a volatilidade realizada de forma mais precisa e responsiva a eventos recentes do próprio dia. Esse é o ÚNICO método, dentre os avaliados, identificado como genuinamente diferente e potencialmente valioso — mas também depende de dado mais granular que o close diário gratuito que o Yahoo/brapi already fornecem hoje. Pontos a investigar na próxima sessão:
+  1. Se existe fonte GRATUITA de dados intraday para ações brasileiras/BDRs com granularidade suficiente (Yahoo Finance tem endpoint intraday para alguns mercados, checar se cobre B3; brapi free provavelmente não tem)
+  2. Se a fonte achada tem profundidade histórica suficiente para calibrar (não só o dia de hoje, mas uma janela de dias/semanas de dados intraday)
+  3. Comparar a vol. realizada intraday contra a vol. GARCH atual em alguns ativos da watchlist, com metodologia parecida com os testes já feitos para Merton/Heston (rodar em paralelo, medir divergência em pontos percentuais)
+  4. Decidir se a melhoria de precisão justifica a complexidade extra de implementação e o custo/limite de requisições da fonte de dados
+
+### Fora de escopo / mencionado mas não avaliado tecnicamente
+- **Mercados de previsão/apostas (estilo Polymarket) para criptoativos**: usuário mencionou que sites de apostas sobre preço futuro do Bitcoin poderiam compor um método adicional de probabilidade implícita do mercado (similar a usar vol. implícita de opções, mas via odds de apostas). Isso seria explorado num projeto separado de Bitcoin que o usuário está construindo, depois trazido/mesclado para o Trader Desk. NÃO avaliado tecnicamente ainda — fica registrado como ideia futura, fora do escopo desta sessão e do backlog imediato.
+
 ## Backlog pendente — sem ação ainda, mas mapeado
 1. **VIX/DXY**: % de variação diverge da fonte que o usuário acompanha externamente — investigado e CONCLUÍDO que é divergência normal entre fontes públicas (não é bug do app); sem ação.
 2. **Estender `simples`/`premio` com `k_put` isolado** (sem `meta_pct`/`qtd_acoes`) — só a foto an_1782147275 tem o suporte completo hoje; outras fotos futuras de venda de PUT vão precisar dos mesmos campos (`premio`, `qtd_acoes`, `exercicio`) para mostrar o bloco fixo.
