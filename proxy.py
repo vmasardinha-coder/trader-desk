@@ -2587,8 +2587,16 @@ def get_us_concentracao():
     erros_por_ticker = {}
     for t in tickers:
         try:
+            # CORRIGIDO 23/06/2026 (3a correcao): usuario reportou que a
+            # falha persistiu mesmo apos trocar para v8/finance/chart (2a
+            # correcao). Diferenca real encontrada comparando com yquote():
+            # a chamada estava SEM parametros de query (?interval=1d&
+            # range=5d), diferente de yquote() que sempre usa esses
+            # parametros explicitamente. Adicionados agora, exatamente
+            # iguais aos de yquote() -- mesma chamada que ja funciona
+            # comprovadamente para todas as commodities/indices.
             r = requests.get(
-                f'https://query1.finance.yahoo.com/v8/finance/chart/{t}',
+                f'https://query1.finance.yahoo.com/v8/finance/chart/{t}?interval=1d&range=5d',
                 headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
             if r.ok:
                 m = r.json()['chart']['result'][0]['meta']
