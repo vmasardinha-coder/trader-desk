@@ -730,3 +730,107 @@ ações tokenizadas) foram avaliadas e descartadas com justificativa clara
 real (ex: Nvidia tokenizada ~US$42M contra ~US$5T real), não serve para
 essa métrica especificamente. Documentado para não reconsiderar essa
 opção no futuro sem motivo novo.
+
+---
+
+# Resumo consolidado — sessão 23/06/2026 (estado final, validado pelo usuário)
+
+## SHAs finais
+- proxy.py: 3119679099b3ead49775b1ed5c92fcfc4c84f64a
+- static/app.js: cc11954ad2b8e6165093feeede81a14a3980e8bf
+- templates/index.html: 13e3d6fce8b14505f795cd6468ede5fcdf64c4c9
+
+## Nova regra de processo (válida a partir desta sessão)
+Atualizar este arquivo ao final de cada item de backlog CONCLUÍDO e
+VALIDADO pelo usuário -- não a cada tentativa/iteração intermediária de
+um bug, nem automaticamente a cada commit. Evita reconstituir estado lendo
+vários arquivos em sessões futuras, economiza tokens. Usuário quer
+replicar esse padrão em outros projetos também.
+
+## Itens concluídos e validados nesta sessão
+
+**1. Bug do fan chart (linha de preço real) desalinhado em fins de
+semana/feriados** -- corrigido em /montecarlo/condicional e
+/montecarlo/posicao_ativa (slice usava dias corridos para cortar array de
+pregões úteis). Confirmado visualmente pelo usuário.
+
+**2. ROXO34 -- Vol. Simples lenta** -- causa real era uma chamada
+redundante a /indicators antes de /montecarlo (2 chamadas em série em vez
+de 1). Removida. Confirmado.
+
+**3. PRIO3 adicionada aos Indicadores** -- segmento Petróleo & Gás,
+fundamentais reais do Fundamentus (ref. 13/05/2026).
+
+**4. Commodities expandidas e corrigidas**:
+- Minério de Ferro (TIO=F), Brent (BZ=F), Gás Natural (NG=F) adicionados
+- Moeda corrigida: todas as 7 commodities agora mostram US$ (estavam
+  rotuladas como R$ por engano -- valor sempre esteve certo, só o rótulo)
+- Sanity check no Minério de Ferro: variação >15% em módulo oculta o %
+  (contrato de baixa liquidez, sujeito a dado de rollover inconsistente)
+- yquote() corrigido: usa cl[-2] (penúltimo fechamento da série real) em
+  vez de chartPreviousClose (campo do Yahoo que ficava desatualizado para
+  futuros com horário estendido) -- variações absurdas em TODAS as
+  commodities (ex: -11% relatado quando o real era -4,5%) resolvidas.
+
+**5. Grupos de concentração no S&P 500 (Cotações → EUA por Segmento)**:
+- Semicondutores (NVDA/AMD/AVGO/TSM/ASML/INTC/MU/QCOM): ~18% do S&P 500,
+  validado pelo usuário como plausível.
+- 7 Magníficas (AAPL/MSFT/NVDA/AMZN/GOOGL/META/TSLA): ~31,8% do S&P 500
+  (após corrigir GOOGL→GOOG, que faltava por diferença de classe de ação
+  no 8marketcap), validado contra fontes externas (faixa real 33-35% em
+  maio-início de junho/2026; diferença pequena coerente com queda do dia).
+- Software: expandido para o top 10 real do IGV (PANW/PLTR/MSFT/ORCL/
+  CRWD/CRM/APP/CDNS/NOW/FTNT, 60,84% do ETF) + extrapolação opcional do
+  setor completo (115 holdings) via regra de 3 (só calcula se ≥70% dos
+  10 tickers tiverem dado, evitando número distorcido). PENDENTE DE TESTE
+  FINAL pelo usuário (paginação no 8marketcap acabou de subir).
+- Energia IA (CEG/VST/TLN/D/OKLO): implementada e depois REMOVIDA --
+  usuário decidiu não valer o esforço (empresas pequenas, <2% de impacto,
+  sem dado disponível em nenhuma fonte tentada).
+
+**Causa raiz definitiva do bug de concentração (8 correções até
+resolver)**: Yahoo (v7 e v8) não retorna nenhum campo de valuation
+(marketCap nem sharesOutstanding) no ambiente de produção (Render), de
+forma consistente. Resolvido com scraping de 8marketcap.com/companies/
+como fallback (com paginação e cache compartilhado para não multiplicar
+requisições). Ver código para detalhes técnicos completos (comentários
+inline em proxy.py documentam cada correção numerada).
+
+## Backlog restante, por ordem de simplicidade (usuário define prioridade a cada sessão)
+
+9. **Cotações Europa/Ásia** -- nova seção com futuros + índices apenas
+   (sem ações individuais). Mercado americano já está coberto. PRÓXIMO
+   ITEM A FAZER (usuário confirmou em 23/06/2026).
+10. **FIIs** -- pesquisar fontes gratuitas de dados, criar critério de
+    avaliação (segurança + preço atrativo). Não iniciado.
+11. **ETFs** -- estudo futuro, ligado ao grupo Software/IGV. Não
+    iniciado.
+12. **Renda fixa** -- backlog de longo prazo, sem ação (registrar só).
+13. **"Análise de Papel"** -- feature nova: aba separada de "Em Análise"
+    (que é exclusiva para estruturas de opções). Permite tirar 3 fotos
+    simultâneas com horizontes FIXOS (21/60/90 dias) de um ativo PURO
+    (sem opção), para servir de sinal de timing de entrada na ação (se
+    preço real ficar abaixo da projeção no curto prazo = sinal de
+    possível bom ponto de compra). Motivo de horizontes fixos curtos: cone
+    de incerteza do GBM cresce com raiz do tempo, em prazos longos perde
+    valor preditivo. Especificação completa registrada na parte 2 deste
+    arquivo (sessão 23/06, mais acima). Não iniciado.
+14. **Migração Em Análise → Ativa** (a mais complexa, fica por último por
+    decisão do usuário): hoje o botão só troca status dentro do mesmo
+    registro em analises.json -- NÃO migra para positions.json, NÃO
+    reseta data/preço de entrada. Especificação confirmada: migração
+    COMPLETA (remove de analises.json, cria em positions.json, sem
+    duplicado); preço de entrada = preço REAL do dia da migração (novo
+    dia zero genuíno, não o preco_foto antigo). Mapeamento de campos
+    entre os 2 schemas ainda não detalhado. Usuário quer carregar uma
+    base maior de análises reais primeiro, antes de pensar em ativar
+    qualquer uma de verdade.
+
+## Pendências/observações menores
+- ADBE e CRWD (e outros do top 10 do IGV) podem continuar fora de
+  cobertura mesmo com a paginação nova -- usuário disse que abaixo de ~2%
+  de impacto não vale insistir mais.
+- Lista de Software pode ser revisada se o usuário decidir que vale
+  cobrir holdings menores do IGV (ele mencionou completar para ver o
+  tamanho real do setor -- isso já foi parcialmente resolvido pela
+  extrapolação via regra de 3).
