@@ -569,11 +569,12 @@ def get_futures():
     hangseng = yquote('%5EHSI')   # Hong Kong
     sse = yquote('000001.SS')     # China (Shanghai)
     asx200 = yquote('%5EAXJO')    # Australia
+    kospi = yquote('%5EKS11')     # Coreia do Sul
 
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
                      'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
-                     'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,
+                     'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas})
 
 @app.route('/dji', methods=['GET'])
