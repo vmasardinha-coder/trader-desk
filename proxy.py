@@ -2529,6 +2529,75 @@ def get_us_quotes():
         if q: result[t] = q
     return jsonify(result)
 
+# Total de market cap do S&P 500 -- numero MUDA TODO DIA (diferente de
+# fundamentais trimestrais como P/L/ROE), entao e tratado explicitamente
+# como aproximacao com data de referencia, mesmo padrao do FUND_DATA_REF.
+# Atualizar manualmente de vez em quando (sem necessidade de precisao
+# diaria -- o objetivo e mostrar ORDEM DE GRANDEZA da concentracao, nao um
+# numero exato). Fonte: Slickcharts (soma do market cap de todos os
+# constituintes do indice).
+SP500_TOTAL_MARKETCAP_USD = 68.06e12  # ref. 23/06/2026 (Slickcharts)
+SP500_TOTAL_MARKETCAP_REF = '2026-06-23'
+
+@app.route('/us/concentracao', methods=['GET'])
+def get_us_concentracao():
+    """
+    Calcula o peso agregado de um grupo de tickers (ex: Magnificent 7,
+    Semicondutores) sobre o market cap TOTAL do S&P 500 -- usado como sinal
+    de concentracao/risco de bolha. Busca o market cap individual de cada
+    ticker via Yahoo v7/finance/quote (endpoint diferente do v8/chart ja
+    usado em yquote() -- só esse retorna marketCap).
+
+    Query param: grupo ('semi' ou 'm7'; outros valores de USSEG tambem
+    funcionam se fizer sentido pedir no futuro).
+
+    Retorna: peso_pct (agregado vs S&P 500), market_cap_grupo_usd,
+    detalhe por ticker, e a data de referencia do total do indice (para
+    deixar explicito que e uma aproximacao, nao um numero exato em tempo
+    real).
+    """
+    grupo = request.args.get('grupo', 'semi')
+    tickers_map = {
+        'semi': ['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
+        'm7': ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'],
+    }
+    tickers = tickers_map.get(grupo)
+    if not tickers:
+        return jsonify({'error': f"grupo invalido: {grupo!r} (validos: {list(tickers_map.keys())})"}), 422
+
+    detalhe = {}
+    soma_marketcap = 0.0
+    try:
+        symbols_str = ','.join(tickers)
+        r = requests.get(
+            f'https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbols_str}',
+            headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+        if r.ok:
+            for item in r.json().get('quoteResponse', {}).get('result', []):
+                sym = item.get('symbol')
+                mc = item.get('marketCap')
+                if sym and mc:
+                    detalhe[sym] = round(float(mc), 2)
+                    soma_marketcap += float(mc)
+    except Exception as e:
+        return jsonify({'error': f'falha ao buscar market caps: {e}'}), 502
+
+    if not detalhe:
+        return jsonify({'error': 'nenhum market cap obtido do Yahoo'}), 502
+
+    peso_pct = round(soma_marketcap / SP500_TOTAL_MARKETCAP_USD * 100, 2)
+    return jsonify({
+        'grupo': grupo,
+        'tickers': tickers,
+        'market_cap_grupo_usd': round(soma_marketcap, 2),
+        'market_cap_grupo_tri_usd': round(soma_marketcap / 1e12, 2),
+        'detalhe_por_ticker_usd': detalhe,
+        'peso_pct_sp500': peso_pct,
+        'sp500_total_tri_usd': round(SP500_TOTAL_MARKETCAP_USD / 1e12, 2),
+        'sp500_total_ref_data': SP500_TOTAL_MARKETCAP_REF,
+        'aviso': 'Aproximacao -- market cap total do indice muda diariamente, numero de referencia pode estar desatualizado',
+    })
+
 # ── POSIÇÕES (JSON modular) ───────────────────────────
 def _validar_positions(data):
     """Valida estrutura do positions.json. Retorna lista de erros (vazia se OK)."""
