@@ -8,6 +8,32 @@
 > brasileiras (PETR4/VALE3/AXIA3); a ORDEM DE GRANDEZA relativa entre os
 > métodos tende a se manter, mas vale re-testar no novo contexto.
 
+## ⚠️ LEIA PRIMEIRO — por que isto NÃO é um veredito definitivo para cripto
+
+Os métodos marcados como "descartados" abaixo (Heston, SABR, e em menor
+grau Jump-Diffusion/Lévy) foram descartados especificamente no contexto
+de **ações na B3**, onde a limitação real era **falta de acesso gratuito
+a book de opções e dados intraday**. Essa restrição de dado é o motivo
+do descarte — **não é uma limitação do método em si**.
+
+**Em criptoativos, essa restrição de dado tende a não existir, ou ser
+muito mais branda**, porque:
+- Exchanges como Binance/Coinbase oferecem candles intraday (1min, 5min)
+  históricos via API gratuita, com profundidade de semanas/meses
+- Exchanges de derivativos como Deribit publicam book de opções de BTC/ETH
+  de forma aberta, incluindo dados históricos em alguns casos
+- O mercado roda 24/7, gerando muito mais pontos de dado por dia do que
+  um pregão de ações de poucas horas
+
+**Conclusão prática**: ao iniciar o projeto de cripto, NÃO assumir que
+Heston/SABR/Jump-Diffusion estão descartados — a primeira tarefa é
+reavaliar se a fonte de dado que os tornava inviáveis aqui (book de
+opções, dados intraday) está disponível de forma gratuita/acessível lá.
+Se estiver, vale rodar os mesmos testes comparativos feitos no Trader
+Desk (rodar cada método, medir divergência em pp contra o GARCH/baseline)
+para decidir com dado real, não por analogia ao que foi decidido para
+ações.
+
 ## Em produção / validados como suficientes
 
 - **Black-Scholes (BS)**: fórmula fechada clássica de precificação de
@@ -39,7 +65,7 @@
   para aquele vencimento específico — mais informativo que vol. histórica
   pura quando o dado está disponível.
 
-## Avaliados e descartados (não valeu o esforço/custo, neste contexto)
+## Avaliados e descartados NO CONTEXTO DE AÇÕES B3 (não valeu o esforço/custo ali — ver ressalva no topo antes de assumir o mesmo para cripto)
 
 - **Calibração GARCH via MLE contínuo (scipy/Nelder-Mead) vs. grid
   search simples**: testado em 5 cenários sintéticos — diferença de
