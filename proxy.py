@@ -143,6 +143,7 @@ import requests
 import math
 import time
 import json
+from concurrent.futures import ThreadPoolExecutor  # adicionado 23/06/2026 -- /us/concentracao
 
 try:
     import numpy as _np
@@ -2585,16 +2586,11 @@ def get_us_concentracao():
     detalhe = {}
     soma_marketcap = 0.0
     erros_por_ticker = {}
-    for t in tickers:
+
+    def _buscar_marketcap(t):
+        """Busca marketCap de 1 ticker via v8/finance/chart. Retorna
+        (ticker, valor_ou_None, erro_ou_None)."""
         try:
-            # CORRIGIDO 23/06/2026 (3a correcao): usuario reportou que a
-            # falha persistiu mesmo apos trocar para v8/finance/chart (2a
-            # correcao). Diferenca real encontrada comparando com yquote():
-            # a chamada estava SEM parametros de query (?interval=1d&
-            # range=5d), diferente de yquote() que sempre usa esses
-            # parametros explicitamente. Adicionados agora, exatamente
-            # iguais aos de yquote() -- mesma chamada que ja funciona
-            # comprovadamente para todas as commodities/indices.
             r = requests.get(
                 f'https://query1.finance.yahoo.com/v8/finance/chart/{t}?interval=1d&range=5d',
                 headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
@@ -2602,14 +2598,28 @@ def get_us_concentracao():
                 m = r.json()['chart']['result'][0]['meta']
                 mc = m.get('marketCap')
                 if mc:
-                    detalhe[t] = round(float(mc), 2)
-                    soma_marketcap += float(mc)
-                else:
-                    erros_por_ticker[t] = 'sem marketCap no meta'
-            else:
-                erros_por_ticker[t] = f'status {r.status_code}'
+                    return (t, round(float(mc), 2), None)
+                return (t, None, 'sem marketCap no meta')
+            return (t, None, f'status {r.status_code}')
         except Exception as e:
-            erros_por_ticker[t] = str(e)
+            return (t, None, str(e))
+
+    # CORRIGIDO 23/06/2026 (4a correcao): usuario reportou "sem resposta do
+    # servidor" apos a 3a correcao (parametros de query). Causa raiz real:
+    # ate 8 chamadas SEQUENCIAIS de ate 8s de timeout cada podiam somar
+    # mais de 60s no pior caso, estourando o timeout do Render/proxy
+    # intermediario antes do Flask conseguir responder -- por isso o
+    # frontend recebia uma resposta nao-JSON (conexao cortada), nao um erro
+    # estruturado. Paralelizado com ThreadPoolExecutor: tempo total agora e
+    # o da chamada mais lenta (~8s no pior caso), nao a soma de todas.
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        resultados = executor.map(_buscar_marketcap, tickers)
+        for t, valor, erro in resultados:
+            if valor is not None:
+                detalhe[t] = valor
+                soma_marketcap += valor
+            else:
+                erros_por_ticker[t] = erro
 
     if not detalhe:
         return jsonify({'error': f'nenhum market cap obtido do Yahoo (detalhes: {erros_por_ticker})'}), 502
