@@ -518,9 +518,22 @@ def get_futures():
     gold = yquote('GC%3DF')    # Ouro
     silver = yquote('SI%3DF')  # Prata
     copper = yquote('HG%3DF')  # Cobre
+    # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
+    # papeis da carteira (nao por liquidez generica): minerio de ferro e o
+    # principal driver de VALE3; Brent e o benchmark internacional distinto
+    # do WTI que tambem influencia a precificacao da Petrobras (PETR4); gas
+    # natural fica como contexto energetico geral, sem ligacao direta a uma
+    # posicao especifica. TIO=F (minerio, contrato de swap TSI 62% Fe CFR
+    # China) tem liquidez/disponibilidade no Yahoo menos estavel que os
+    # contratos CME tradicionais acima -- yquote ja retorna None com
+    # seguranca se a busca falhar, sem quebrar o resto do payload.
+    iron_ore = yquote('TIO%3DF')  # Minerio de Ferro 62% Fe (TSI, CFR China)
+    brent = yquote('BZ%3DF')      # Petroleo Brent
+    natgas = yquote('NG%3DF')     # Gas Natural
 
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
-                     'cl':cl,'gold':gold,'silver':silver,'copper':copper})
+                     'cl':cl,'gold':gold,'silver':silver,'copper':copper,
+                     'iron_ore':iron_ore,'brent':brent,'natgas':natgas})
 
 @app.route('/dji', methods=['GET'])
 def get_dji():
