@@ -143,6 +143,7 @@ import requests
 import math
 import time
 import json
+import re  # adicionado 23/06/2026 -- scraping de fallback do 8marketcap.com
 from concurrent.futures import ThreadPoolExecutor  # adicionado 23/06/2026 -- /us/concentracao
 
 try:
@@ -2545,6 +2546,54 @@ def get_us_quotes():
 SP500_TOTAL_MARKETCAP_USD = 68.06e12  # ref. 23/06/2026 (Slickcharts)
 SP500_TOTAL_MARKETCAP_REF = '2026-06-23'
 
+# CORRIGIDO 23/06/2026 (7a correcao): apos 3 tentativas diferentes via
+# Yahoo (v7/finance/quote, v8/finance/chart marketCap direto, v8/chart
+# calculado via price x sharesOutstanding) todas falharem de forma
+# consistente em producao -- usuario confirmou que NENHUM campo de
+# valuation (marketCap nem sharesOutstanding) vem no meta do Yahoo nesse
+# ambiente, mesmo com preco/historico funcionando normalmente -- fica
+# claro que e uma limitacao real e consistente do Yahoo para esse tipo de
+# dado nesse IP/ambiente, nao um erro de implementacao. Adicionado
+# scraping do 8marketcap.com como fallback final.
+#
+# IMPORTANTE: Claude nao tem acesso de rede a 8marketcap.com no sandbox de
+# desenvolvimento (dominio bloqueado) -- esta funcao foi escrita com base
+# em inspecao do conteudo via ferramenta de busca/fetch (que retorna
+# Markdown pre-processado, nao o HTML bruto), NAO testada diretamente
+# contra o HTML real. Parsing usa regex tolerante (busca o padrao
+# "SYMBOL ... $valorT/B" perto um do outro no texto) em vez de depender de
+# estrutura exata de tags/classes, para ser mais resiliente a pequenas
+# mudancas de layout -- mas pode precisar de ajuste se a estrutura real
+# divergir do esperado. Cobertura conhecida: bom para large-caps
+# (Semicondutores/m7/Software, todos no top ~100 por market cap), MAS
+# provavelmente NAO cobre Energia IA (CEG/VST/TLN/D/OKLO sao utilities
+# menores, fora do top 100 -- usuario confirmou que aceita essa cobertura
+# parcial).
+def _buscar_marketcap_8marketcap(ticker):
+    """Tenta achar o marketCap de 1 ticker fazendo scraping da pagina de
+    ranking do 8marketcap.com. Retorna valor em USD (float) ou None."""
+    try:
+        r = requests.get('https://8marketcap.com/companies/',
+                          headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+        if not r.ok:
+            return None
+        html = r.text
+        # Procura o ticker como "texto" seguido (a alguma distancia, ja
+        # que ha tags HTML entre as colunas da tabela) por um valor no
+        # formato "$X.XX T" ou "$XXX.XX B". Usa re.DOTALL com um limite de
+        # distancia para nao capturar o valor de outra linha da tabela.
+        padrao = re.compile(
+            r'>' + re.escape(ticker) + r'<.{0,500}?\$([\d,]+\.?\d*)\s*([TB])',
+            re.DOTALL)
+        m = padrao.search(html)
+        if not m:
+            return None
+        valor = float(m.group(1).replace(',', ''))
+        multiplicador = 1e12 if m.group(2) == 'T' else 1e9
+        return valor * multiplicador
+    except Exception:
+        return None
+
 @app.route('/us/concentracao', methods=['GET'])
 def get_us_concentracao():
     """
@@ -2639,10 +2688,16 @@ def get_us_concentracao():
                 if preco and shares:
                     mc_calculado = float(preco) * float(shares)
                     return (t, round(mc_calculado, 2), None)
-                return (t, None, 'sem marketCap (direto ou calculado) em v7 nem v8')
-            return (t, None, f'v8 status {r.status_code}')
-        except Exception as e:
-            return (t, None, f'v7 e v8 falharam: {e}')
+        except Exception:
+            pass  # cai no fallback 8marketcap abaixo
+
+        # Ultimo fallback: scraping do 8marketcap.com (ver aviso completo
+        # na funcao _buscar_marketcap_8marketcap acima sobre nao ter sido
+        # testado diretamente contra o HTML real)
+        mc_8mc = _buscar_marketcap_8marketcap(t)
+        if mc_8mc:
+            return (t, round(mc_8mc, 2), None)
+        return (t, None, 'sem marketCap em v7, v8 (direto/calculado) nem 8marketcap')
 
     with ThreadPoolExecutor(max_workers=8) as executor:
         resultados = executor.map(_buscar_marketcap, tickers)
