@@ -2487,9 +2487,10 @@ _US_EXCHANGE = {
     # NASDAQ (sem mapeamento, cairia no fallback errado). ASML e MU ja
     # ficam corretos no fallback padrao NASDAQ, nao precisam de entrada.
     'TSM':'NYSE',
-    # Adicionado 23/06/2026 -- grupo Software. PLTR e NYSE (confirmado).
-    # ORCL, PANW, CRWD, ADBE ficam corretos no fallback padrao NASDAQ.
-    'PLTR':'NYSE',
+    # Adicionado 23/06/2026 -- grupo Software expandido para o top 10 do
+    # IGV (iShares Expanded Tech-Software ETF). CRM e NOW sao NYSE; APP,
+    # CDNS, FTNT ficam corretos no fallback padrao NASDAQ.
+    'PLTR':'NYSE','CRM':'NYSE','NOW':'NYSE',
 }
 
 @app.route('/us/quotes', methods=['GET'])
@@ -2543,6 +2544,19 @@ def get_us_quotes():
 # constituintes do indice).
 SP500_TOTAL_MARKETCAP_USD = 68.06e12  # ref. 23/06/2026 (Slickcharts)
 SP500_TOTAL_MARKETCAP_REF = '2026-06-23'
+
+# Adicionado 23/06/2026 -- usado para EXTRAPOLAR o tamanho total do setor
+# de software (todos os 115 holdings do IGV), sem precisar buscar
+# market cap de cada um individualmente. Logica (confirmada com o
+# usuario, ele concordou que faz sentido dado que o IGV e ponderado por
+# market cap -- ou seja, peso_% = market_cap_empresa / market_cap_total
+# do indice, por definicao, nao aproximacao):
+#   market_cap_total_IGV = soma_marketcap_top10 / SOFTWARE_TOP10_PESO_PCT
+# Fonte do peso conhecido: StockAnalysis/Finnhub, dado de 18/06/2026 (IGV
+# tinha 115 holdings, top 10 = 60.84% do fundo). Atualizar esse numero de
+# vez em quando (igual FUND_DATA_REF) -- nao precisa ser diario.
+SOFTWARE_TOP10_PESO_PCT = 0.6084
+SOFTWARE_TOP10_PESO_REF = '2026-06-18'  # data do dado original (IGV holdings)
 
 # CORRIGIDO 23/06/2026 (7a correcao): apos 3 tentativas diferentes via
 # Yahoo (v7/finance/quote, v8/finance/chart marketCap direto, v8/chart
@@ -2639,7 +2653,12 @@ def get_us_concentracao():
     tickers_map = {
         'semi': ['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
         'm7': ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'],
-        'software': ['ORCL','PANW','PLTR','CRWD','ADBE'],
+        # Expandido 23/06/2026 -- top 10 do IGV (iShares Expanded
+        # Tech-Software ETF), que juntos somam 60.84% do fundo (fonte:
+        # StockAnalysis/Finnhub, dado de 18/06/2026). Usado tambem como
+        # base para a extrapolacao do setor de software completo -- ver
+        # SOFTWARE_TOP10_PESO_PCT abaixo.
+        'software': ['PANW','PLTR','MSFT','ORCL','CRWD','CRM','APP','CDNS','NOW','FTNT'],
         # energia_ia REMOVIDO 23/06/2026 -- usuario decidiu nao vale o
         # esforco: CEG/VST/TLN/D/OKLO sao utilities pequenas demais,
         # sem dado disponivel em nenhuma das 4 fontes tentadas (Yahoo
@@ -2729,6 +2748,30 @@ def get_us_concentracao():
         return jsonify({'error': f'nenhum market cap obtido do Yahoo (detalhes: {erros_por_ticker})'}), 502
 
     peso_pct = round(soma_marketcap / SP500_TOTAL_MARKETCAP_USD * 100, 2)
+
+    # CORRIGIDO 23/06/2026 (9a correcao) -- EXTRAPOLACAO para o grupo
+    # 'software': usuario notou que mesmo com o top 10 do IGV, o numero
+    # ainda subestima o setor de software completo (115 holdings no
+    # indice). Como o IGV e ponderado por market cap (peso_% = mcap /
+    # mcap_total_indice, por DEFINICAO), usa-se regra de 3 para estimar o
+    # mcap total do indice a partir do mcap do top 10 conhecido + peso %
+    # conhecido. Usuario concordou explicitamente com esse metodo --
+    # exposto com TOTAL transparencia na resposta (nao apenas o numero
+    # final) para que o calculo seja auditavel, nao uma caixa-preta.
+    extrapolacao_software = None
+    if grupo == 'software':
+        mcap_total_estimado = soma_marketcap / SOFTWARE_TOP10_PESO_PCT
+        peso_pct_extrapolado = round(mcap_total_estimado / SP500_TOTAL_MARKETCAP_USD * 100, 2)
+        extrapolacao_software = {
+            'metodo': 'Top 10 do IGV conhecido (soma_marketcap_top10) dividido pelo peso % conhecido desses 10 dentro do indice = mcap total ESTIMADO do setor de software inteiro (115 empresas). Depois comparado contra o S&P 500 total.',
+            'top10_marketcap_usd': round(soma_marketcap, 2),
+            'top10_peso_pct_no_indice': round(SOFTWARE_TOP10_PESO_PCT * 100, 2),
+            'top10_peso_pct_ref_data': SOFTWARE_TOP10_PESO_REF,
+            'setor_completo_marketcap_estimado_tri_usd': round(mcap_total_estimado / 1e12, 2),
+            'setor_completo_peso_pct_sp500_estimado': peso_pct_extrapolado,
+            'aviso': 'ESTIMATIVA -- nao e soma direta de market caps, e extrapolacao via regra de 3 assumindo que a proporcao do top 10 (60.84% em 18/06) ainda e representativa hoje.',
+        }
+
     # CORRIGIDO 23/06/2026 (8a correcao): usuario notou que o peso_pct
     # calculado (25.62% para m7) estava bem abaixo do valor real conhecido
     # (33-35% segundo multiplas fontes de mercado em junho/2026). Causa
@@ -2748,6 +2791,7 @@ def get_us_concentracao():
         'market_cap_grupo_tri_usd': round(soma_marketcap / 1e12, 2),
         'detalhe_por_ticker_usd': detalhe,
         'peso_pct_sp500': peso_pct,
+        'extrapolacao_setor_completo': extrapolacao_software,
         'sp500_total_tri_usd': round(SP500_TOTAL_MARKETCAP_USD / 1e12, 2),
         'sp500_total_ref_data': SP500_TOTAL_MARKETCAP_REF,
         'aviso': (
