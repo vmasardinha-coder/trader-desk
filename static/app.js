@@ -1216,7 +1216,10 @@ async function MCB(tk,en,kd,ku,dias,pfx){
 }
 async function MCR(tk,en,kd,dias,price){
   try{
-    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),40000);
+    // CORRIGIDO 23/06/2026: timeout reduzido de 40000 para 25000 (igual MC) --
+    // o tempo extra so compensava a chamada previa a /indicators, que foi
+    // removida. Agora MCR faz so 1 chamada de rede, igual as outras.
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const payload={ticker:tk,k_call:en,k_put:en,t_days:dias,n:5000,exercicio:'americana'};
     if(kd)payload.knock_down=kd;
     if(price)payload.price=price;
@@ -1491,17 +1494,17 @@ async function main(){
         delay+=6000;
       });
 
-      // MCR — ROXO34 (caso especial: busca preço via /indicators antes)
+      // MCR — ROXO34 (CORRIGIDO 23/06/2026: antes buscava /indicators
+      // primeiro para pegar o preco e so depois chamava /montecarlo --
+      // duas chamadas de rede em SERIE, causando demora desproporcional
+      // vs as outras posicoes (MC/MCB fazem 1 chamada so). O /montecarlo
+      // ja busca o preco via Yahoo internamente quando 'price' nao e
+      // enviado (mesmo comportamento usado por MC para PETR4/VALE3/BBAS3)
+      // -- entao o fetch previo era redundante. Agora chama direto, em
+      // paralelo com as demais, sem esperar nada antes.
       if(byId.rx){
         const dR=diasAte(byId.rx.vencimento);
-        setTimeout(async()=>{
-          try{
-            const rRX=await fetch(B+'/indicators/ROXO34.SA');
-            const dRX=rRX.ok?await rRX.json():{};
-            const priceRX=dRX.preco_atual||null;
-            await MCR('ROXO34.SA',byId.rx.strike,null,dR,priceRX);
-          }catch(e){MCR('ROXO34.SA',byId.rx.strike,null,dR,null);}
-        },delay);
+        setTimeout(()=>MCR('ROXO34.SA',byId.rx.strike,null,dR,null),delay);
         delay+=6000;
       }
 
