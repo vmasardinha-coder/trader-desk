@@ -2481,6 +2481,10 @@ _US_EXCHANGE = {
     'IBM':'NYSE','CRM':'NYSE','CVX':'NYSE','DIS':'NYSE','NKE':'NYSE',
     'BA':'NYSE','LLY':'NYSE','BRK-B':'NYSE','BRK.B':'NYSE',
     'WMT':'NYSE','KO':'NYSE','PEP':'NYSE','T':'NYSE','VZ':'NYSE',
+    # Adicionado 23/06/2026 -- TSM (Taiwan Semiconductor ADR) e NYSE, nao
+    # NASDAQ (sem mapeamento, cairia no fallback errado). ASML e MU ja
+    # ficam corretos no fallback padrao NASDAQ, nao precisam de entrada.
+    'TSM':'NYSE',
 }
 
 @app.route('/us/quotes', methods=['GET'])
