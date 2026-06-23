@@ -29,7 +29,9 @@ const USSEG={
   // sobre acordos de energia nuclear para data centers (CEG/VST/TLN
   // fornecem energia para AWS/Meta/Microsoft/Google).
   software:['ORCL','PANW','PLTR','CRWD','ADBE'],
-  energia_ia:['CEG','VST','TLN','D','OKLO'],
+  // energia_ia REMOVIDO 23/06/2026 -- usuario decidiu nao vale o esforco
+  // (CEG/VST/TLN/D/OKLO sao utilities pequenas demais, sem dado
+  // disponivel em nenhuma das fontes tentadas)
 };
 const fR=v=>v!=null?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const fU=v=>v!=null?'US$ '+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
@@ -94,11 +96,11 @@ async function loadSeg(id){
   // nas 2 checagens abaixo para nao precisar atualizar 2 lugares ao
   // adicionar um grupo novo (lição da v10.11-13: extensao parcial gerou
   // bug por falta de cobertura em 1 dos lugares).
-  const GRUPOS_COM_CONCENTRACAO=['semi','m7','software','energia_ia'];
+  const GRUPOS_COM_CONCENTRACAO=['semi','m7','software'];
   if(USSEG[id]){
     const tks=USSEG[id];
     // Bloco de concentracao vs S&P 500. Adicionado 23/06/2026, expandido
-    // para software/energia_ia na mesma data.
+    // para software na mesma data.
     let concHtml='';
     if(GRUPOS_COM_CONCENTRACAO.includes(id)){
       concHtml='<div id="conc-'+id+'" style="margin-bottom:10px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted)">Calculando peso no S&amp;P 500...</div>';
