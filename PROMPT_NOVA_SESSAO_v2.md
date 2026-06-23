@@ -435,3 +435,116 @@ Usuário pediu explicitamente para SEMPRE ser avisado quando uma entrega
 estiver pronta para teste — não assumir que ele vai notar sozinho que
 algo foi deployado. Reforçar esse aviso explícito ao final de cada
 entrega de código daqui em diante.
+
+---
+
+# Continuação sessão 23/06/2026 (parte 3) — correção sistêmica de yquote, grupo Semicondutores, métrica de concentração
+
+## SHAs no momento deste registro
+- proxy.py: 7a44a373d21c9a5e5a0c9e32faab5dd007cec0c6
+- static/app.js: e288c5f406cbeecc088f39ef95732d125369641d
+- templates/index.html: b4f683ff165201833ffe06a30d324e5108c4ddd4
+
+## Correção: variação implausível em TODAS as commodities (causa sistêmica)
+Usuário relatou que variações pareciam excessivas em todas as commodities,
+não só na Prata isolada. Investigação:
+- Movimento real do dia (FXStreet, 23/06): Prata caiu -4,47% (US$ 65,09 →
+  US$ 62,18) — bem menor que o ~-11% visto no app.
+- Causa raiz: `yquote()` usava `meta.chartPreviousClose` (campo calculado
+  pelo próprio Yahoo) como referência de "ontem". Esse campo pode ficar
+  desatualizado para futuros com horário de pregão ESTENDIDO (CME/COMEX/
+  NYMEX) — diferente do horário fechado da B3/NYSE. Afeta TODAS as
+  commodities + outros consumidores de `yquote()` (DJI, ES=F, NQ=F, VIX,
+  IBOV, USD/BRL).
+- Correção: `yquote()` agora usa `cl[-2]` (penúltimo fechamento da própria
+  série histórica diária, mesma série já usada para `cl[-1]`/price e para
+  `vol_hist`/GARCH) como fonte PRIMÁRIA. `chartPreviousClose` fica só como
+  fallback quando o histórico não tem pontos suficientes.
+- **Decisão deliberada**: NÃO foi usada nenhuma heurística de "escolher o
+  valor mais próximo do preço atual" entre os dois candidatos — isso
+  mascararia movimentos REAIS de mercado (como a queda real de -4,47% da
+  prata), não só os artificiais. A correção troca a FONTE do dado, não
+  filtra o resultado por plausibilidade.
+- **Limitação assumida**: não foi possível validar empiricamente contra a
+  API real do Yahoo (sandbox sem acesso de rede a `query1.finance.yahoo.com`)
+  — a correção é baseada em raciocínio sobre a causa mais provável, não em
+  teste direto. Usuário confirmou visualmente que "ficou bom" após o
+  deploy.
+
+## Feature nova: grupo "Semicondutores" em Cotações
+Descoberta importante: a infraestrutura para "EUA por Segmento" (botões
+expansíveis tipo "7 Magníficas", "Nasdaq Top 15", etc.) JÁ EXISTIA
+completa (`USSEG` em app.js + `loadSeg()` + endpoint `/us/quotes`) —
+adicionar um grupo novo foi só adicionar a entrada no dicionário + a
+seção HTML correspondente, sem precisar de lógica nova.
+
+Lista confirmada pelo usuário: `semi: ['NVDA','AMD','AVGO','TSM','ASML',
+'INTC','MU','QCOM']`. Adicionado `'TSM':'NYSE'` ao `_US_EXCHANGE` (TSM é
+NYSE, não NASDAQ — sem isso o fallback do TradingView erraria a bolsa).
+ASML e MU já ficam corretos no fallback padrão NASDAQ.
+
+## Feature nova: métrica de concentração no S&P 500 (`/us/concentracao`)
+Calcula o peso agregado de um grupo (`semi` ou `m7`) sobre o market cap
+TOTAL do S&P 500 — sinal de risco de concentração/bolha de IA que o
+usuário queria acompanhar.
+
+**Decisões de arquitetura tomadas nesta sessão:**
+1. Calcular nós mesmos (market cap individual via Yahoo ÷ total do
+   índice), não fazer scraping de página de terceiro (mais fragante a
+   mudança de layout).
+2. Market cap individual vem de `v7/finance/quote?symbols=...` — endpoint
+   DIFERENTE do `v8/finance/chart` já usado em `yquote()`; só o v7 retorna
+   o campo `marketCap`. Suporta múltiplos tickers numa só chamada.
+3. `SP500_TOTAL_MARKETCAP_USD` é hardcoded com data de referência
+   explícita (`SP500_TOTAL_MARKETCAP_REF`), mesmo padrão do
+   `FUND_DATA_REF` — mas com uma ressalva importante: esse número muda
+   TODO DIA (diferente de P/L/ROE que mudam por trimestre), então é
+   tratado como aproximação para ORDEM DE GRANDEZA, não precisão em tempo
+   real. A resposta da API inclui um campo `aviso` explícito sobre isso.
+   Usuário confirmou estar OK com essa limitação antes de implementar.
+4. **Nasdaq-100 NÃO foi implementado** — pesquisa não encontrou um número
+   confiável e específico do market cap TOTAL do índice (só do "Nasdaq
+   exchange" inteiro, que é uma coisa MAIOR e DIFERENTE — confundir os
+   dois seria erro de precisão real). Mesmo o Slickcharts teve divergência
+   de >US$1tri entre páginas do mesmo site (US$38,59T vs US$39,69T,
+   provavelmente datas de captura diferentes). Fica como pendência —
+   antes de implementar Nasdaq-100, pesquisar mais ou aceitar uma fonte
+   específica com ressalva clara.
+5. Valor de referência atual: `SP500_TOTAL_MARKETCAP_USD = 68.06e12` (ref.
+   23/06/2026, fonte Slickcharts).
+
+**UI**: card de resumo acima da tabela, nos grupos `semi` e `m7` apenas
+(Nasdaq/S&P/Dow Jones não mostram essa métrica, só os dois grupos
+relevantes ao tema de concentração de IA).
+
+## Lição de processo desta sessão — usar ask_user_input_v0 sempre que a pergunta exigir decisão
+Usuário pediu explicitamente: quando uma pergunta no meio do texto exigir
+uma decisão real (não só contexto), usar a ferramenta de perguntas com
+botões em vez de deixar a pergunta solta em prosa — fica mais claro
+visualmente que aquilo precisa de resposta, especialmente para alguém
+testando/distraído voltando à conversa depois de um tempo.
+
+## Estado do backlog ao final desta sessão (23/06/2026)
+**Concluído hoje:**
+- ✅ Desalinhamento fim de semana/feriado na linha de preço real
+- ✅ ROXO34 (lentidão do Vol. Simples)
+- ✅ Commodities expandidas (Minério de Ferro, Brent, Gás Natural)
+- ✅ Moeda das Commodities (US$ em vez de R$)
+- ✅ Sanity check no Minério de Ferro (variação >15% oculta)
+- ✅ Correção sistêmica de `yquote()` (todas as commodities + DJI/ES/NQ/
+  VIX/IBOV/USD-BRL)
+- ✅ PRIO3 nos Indicadores (fundamentais reais do Fundamentus)
+- ✅ Grupo Semicondutores em Cotações
+- ✅ Métrica de concentração S&P 500 (semi/m7)
+
+**Backlog pendente, por ordem de simplicidade (definida pelo usuário):**
+1. Nasdaq-100 na métrica de concentração (precisa de fonte confiável de
+   market cap total do índice)
+2. Cotações Europa/Ásia (futuros + índices, sem ações individuais)
+3. FIIs (pesquisa de fontes gratuitas + critério de avaliação)
+4. "Análise de Papel" (feature conceitual nova — 3 fotos fixas 21/60/90d
+   para ações puras, sinal de entrada, aba separada de "Em Análise")
+5. ETFs (estudo futuro)
+6. Renda fixa (backlog de longo prazo, sem ação)
+7. **Migração Em Análise → Ativa** — especificada em detalhe em sessão
+   anterior, usuário confirmou que fica POR ÚLTIMO deliberadamente
