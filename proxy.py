@@ -1044,7 +1044,14 @@ def run_montecarlo_condicional():
                         idx_inicio = i
                         break
                 if idx_inicio is not None:
-                    janela_real = cl[idx_inicio:idx_inicio + dias_passados + 1]
+                    # CORRIGIDO (23/06/2026): antes usava dias_passados+1 (dias
+                    # CORRIDOS) para fatiar cl[], que so tem 1 ponto por PREGAO
+                    # UTIL -- isso desalinhava sempre que o periodo cruzava fim
+                    # de semana/feriado (slice pegava pontos demais). Agora pega
+                    # TODO o resto do historico a partir da foto: o Yahoo nunca
+                    # retorna pregao futuro, entao isso sempre da exatamente os
+                    # pregoes reais decorridos, sem contar dias sem pregao.
+                    janela_real = cl[idx_inicio:]
                     precos_reais_fan = [round(float(p), 2) for p in janela_real]
 
             res['fan_chart'] = {
@@ -1455,7 +1462,15 @@ def run_montecarlo_posicao_ativa():
                 percentis_fan[f'p{p}'] = np.percentile(paths_fan, p, axis=0).round(2).tolist()
             idx_amostra = np.random.choice(n_fan, size=min(20, n_fan), replace=False)
             trajetorias_fan = paths_fan[idx_amostra].round(2).tolist()
-            precos_reais_fan = [round(float(p), 2) for p in cl[idx_entrada:idx_entrada+dias_passados+1]]
+            # CORRIGIDO (23/06/2026): antes usava dias_passados+1 (dias CORRIDOS)
+            # para fatiar cl[], que so tem 1 ponto por PREGAO UTIL -- isso
+            # desalinhava sempre que o periodo desde data_entrada cruzava fim
+            # de semana/feriado (slice pegava pontos demais). Agora pega TODO o
+            # resto do historico a partir da entrada: o Yahoo nunca retorna
+            # pregao futuro, entao isso sempre da exatamente os pregoes reais
+            # decorridos, sem contar dias sem pregao. Mesma correcao aplicada
+            # em /montecarlo/condicional (ver linha ~1040).
+            precos_reais_fan = [round(float(p), 2) for p in cl[idx_entrada:]]
             res['fan_chart'] = {
                 'dias': list(range(prazo_dias+1)), 'percentis': percentis_fan,
                 'trajetorias': trajetorias_fan, 'precos_reais': precos_reais_fan,
