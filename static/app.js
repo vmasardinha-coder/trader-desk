@@ -21,6 +21,15 @@ const USSEG={
   // nucleo de semicondutores (infraestrutura fisica da IA), separado dos
   // grupos acima para nao misturar com Amazon/Meta/etc. do Nasdaq Top 15.
   semi:['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
+  // Adicionados 23/06/2026 -- mesma logica de concentracao/bolha de IA,
+  // usuario identificou que Software e Energia (ligada a infraestrutura
+  // de IA/data centers, NAO petroleo/gas tradicional) sao outras 2 areas
+  // de alta concentracao na narrativa de IA. Listas baseadas em holdings
+  // reais do ETF IGV (software) e do indice NUKZX/cobertura de imprensa
+  // sobre acordos de energia nuclear para data centers (CEG/VST/TLN
+  // fornecem energia para AWS/Meta/Microsoft/Google).
+  software:['ORCL','PANW','PLTR','CRWD','ADBE'],
+  energia_ia:['CEG','VST','TLN','D','OKLO'],
 };
 const fR=v=>v!=null?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const fU=v=>v!=null?'US$ '+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
@@ -80,18 +89,23 @@ async function loadSeg(id){
   const g=document.getElementById('g-'+id);if(!g)return;
   g.classList.remove('grid');g.style.display='block';
   const pfx=id+'_';
+  // Grupos onde a metrica de concentracao vs S&P 500 faz sentido (areas de
+  // alta concentracao na narrativa de bolha de IA). Constante unica usada
+  // nas 2 checagens abaixo para nao precisar atualizar 2 lugares ao
+  // adicionar um grupo novo (lição da v10.11-13: extensao parcial gerou
+  // bug por falta de cobertura em 1 dos lugares).
+  const GRUPOS_COM_CONCENTRACAO=['semi','m7','software','energia_ia'];
   if(USSEG[id]){
     const tks=USSEG[id];
-    // Bloco de concentracao vs S&P 500 -- so para os grupos onde isso tem
-    // sentido (semi/m7), usado como sinal de risco de concentracao/bolha.
-    // Adicionado 23/06/2026.
+    // Bloco de concentracao vs S&P 500. Adicionado 23/06/2026, expandido
+    // para software/energia_ia na mesma data.
     let concHtml='';
-    if(id==='semi'||id==='m7'){
+    if(GRUPOS_COM_CONCENTRACAO.includes(id)){
       concHtml='<div id="conc-'+id+'" style="margin-bottom:10px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted)">Calculando peso no S&amp;P 500...</div>';
     }
     g.innerHTML=concHtml+'<table class="tbl-mkt tbl-seg"><colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
       tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');return '<tr><td><div class="sym">'+t+'</div></td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+'</tbody></table>';
-    if(id==='semi'||id==='m7'){
+    if(GRUPOS_COM_CONCENTRACAO.includes(id)){
       fetch(B+'/us/concentracao?grupo='+id).then(r=>r.ok?r.json():null).then(d=>{
         const el=document.getElementById('conc-'+id);
         if(!el)return;
