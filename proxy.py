@@ -1958,6 +1958,10 @@ def get_indicators(ticker):
             'PSSA3': {'pvp':2.05,'dy':6.10,'lpa':5.70,'vpa':24.03,'roe':23.7,'pl':8.63},
             'SAPR11':{'pvp':1.45,'dy':5.20,'lpa':3.30,'vpa':26.16,'roe':12.6,'pl':11.49},
             'EUCA4': {'pvp':0.77,'dy':4.60,'lpa':4.42,'vpa':31.80,'roe':13.9,'pl':5.54},
+            # Adicionado 23/06/2026 -- Fundamentus, dado coletado em 13/05/2026
+            # (9 dias antes da FUND_DATA_REF global de 22/05/2026 -- diferenca
+            # pequena, mantida sem ajustar a referencia global por 1 ativo)
+            'PRIO3': {'pvp':2.14,'dy':0.00,'lpa':2.97,'vpa':30.52,'roe':9.7,'pl':22.05},
         }
         fundamentais_de_override = False
         if symbol in FUND_OVERRIDE:
@@ -1983,6 +1987,7 @@ def get_indicators(ticker):
             'EUCA4': {'nome':'Papel & Celulose','pl_medio':10.0,'pvp_medio':1.0,'roe_min':10},
             'SAPR11':{'nome':'Saneamento','pl_medio':9.0,'pvp_medio':1.3,'roe_min':12},
             'GGBR4': {'nome':'Siderurgia','pl_medio':8.0,'pvp_medio':1.0,'roe_min':10},
+            'PRIO3': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
         }
         setor = SETOR_MAP.get(symbol, {'nome':'Geral','pl_medio':12.0,'pvp_medio':2.0,'roe_min':12})
 
