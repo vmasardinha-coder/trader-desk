@@ -109,7 +109,7 @@ async function loadSeg(id){
       fetch(B+'/us/concentracao?grupo='+id).then(r=>r.ok?r.json():null).then(d=>{
         const el=document.getElementById('conc-'+id);
         if(!el)return;
-        if(!d||d.error){el.textContent='Não foi possível calcular a concentração agora.';return;}
+        if(!d||d.error){el.textContent='Não foi possível calcular: '+(d&&d.error?d.error:'sem resposta do servidor');return;}
         el.innerHTML='<b style="color:var(--text)">'+d.peso_pct_sp500+'%</b> do S&P 500 · grupo vale <b>US$ '+d.market_cap_grupo_tri_usd+'T</b> de um total de US$ '+d.sp500_total_tri_usd+'T (ref. '+d.sp500_total_ref_data+', aproximado)';
       }).catch(()=>{const el=document.getElementById('conc-'+id);if(el)el.textContent='Não foi possível calcular a concentração agora.';});
     }
