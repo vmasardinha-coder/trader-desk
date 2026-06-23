@@ -1039,7 +1039,11 @@ function doMacro(tv,ft){
     const afChg=(idP,idC,now,prev,tp)=>{
       const ep=document.getElementById(idP),ec=document.getElementById(idC);
       if(!ep||now==null)return;
-      ep.textContent=tp==='r'?fR(now):Number(now).toFixed(2);
+      // CORRIGIDO 23/06/2026: commodities sao cotadas em USD no Yahoo, mas
+      // estavam usando fR() (prefixo R$) -- exibia "R$ 73,88" quando o valor
+      // real era US$ 73,88, sem nenhuma conversao de cambio. Agora usa fU()
+      // (US$) quando tp==='u', mantendo fR() para os casos que sao mesmo R$.
+      ep.textContent=tp==='r'?fR(now):tp==='u'?fU(now):Number(now).toFixed(2);
       ep.classList.remove('loading');
       if(ec&&prev!=null){
         const d=now-prev,pc=(d/Math.abs(prev||1)*100).toFixed(2),sg=d>=0?'+':'';
@@ -1048,13 +1052,26 @@ function doMacro(tv,ft){
         ec.classList.add(d>0?'chg-up':d<0?'chg-dn':'chg-fl');
       }
     };
-    if(ft.iron_ore?.price)afChg('iron_ore-p','iron_ore-c',ft.iron_ore.price,ft.iron_ore.prev,'r');
-    if(ft.cl?.price)afChg('cl-p','cl-c',ft.cl.price,ft.cl.prev,'r');
-    if(ft.brent?.price)afChg('brent-p','brent-c',ft.brent.price,ft.brent.prev,'r');
-    if(ft.natgas?.price)afChg('natgas-p','natgas-c',ft.natgas.price,ft.natgas.prev,'r');
-    if(ft.gold?.price)afChg('gold-p','gold-c',ft.gold.price,ft.gold.prev,'r');
-    if(ft.silver?.price)afChg('silver-p','silver-c',ft.silver.price,ft.silver.prev,'r');
-    if(ft.copper?.price)afChg('copper-p','copper-c',ft.copper.price,ft.copper.prev,'r');
+    // CORRIGIDO 23/06/2026: 'u' em vez de 'r' -- todas as commodities sao
+    // cotadas em USD no Yahoo, nao em R$ (ver comentario em afChg acima).
+    // Minerio de Ferro (TIO=F) tem um sanity check extra: contrato de baixa
+    // liquidez sujeito a rollover de vencimento, que pode fazer 'prev' vir
+    // de um contrato diferente e gerar variacao % implausivel (caso real
+    // observado: ~60% em 1 dia, impossivel para essa commodity). Se a
+    // variacao calculada for >15% em modulo, mostra preco mas oculta a
+    // variacao (sinal de dado de prev/rollover inconsistente) em vez de
+    // exibir um numero errado.
+    if(ft.iron_ore?.price){
+      const p=ft.iron_ore.price,pv=ft.iron_ore.prev;
+      const varPct=pv?Math.abs((p-pv)/pv*100):0;
+      afChg('iron_ore-p','iron_ore-c',p,varPct>15?null:pv,'u');
+    }
+    if(ft.cl?.price)afChg('cl-p','cl-c',ft.cl.price,ft.cl.prev,'u');
+    if(ft.brent?.price)afChg('brent-p','brent-c',ft.brent.price,ft.brent.prev,'u');
+    if(ft.natgas?.price)afChg('natgas-p','natgas-c',ft.natgas.price,ft.natgas.prev,'u');
+    if(ft.gold?.price)afChg('gold-p','gold-c',ft.gold.price,ft.gold.prev,'u');
+    if(ft.silver?.price)afChg('silver-p','silver-c',ft.silver.price,ft.silver.prev,'u');
+    if(ft.copper?.price)afChg('copper-p','copper-c',ft.copper.price,ft.copper.prev,'u');
   }
 }
 function doPos(tv){
