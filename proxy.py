@@ -552,8 +552,28 @@ def get_futures():
     brent = yquote('BZ%3DF')      # Petroleo Brent
     natgas = yquote('NG%3DF')     # Gas Natural
 
+    # Adicionado 23/06/2026 -- Cotacoes: mercado Europeu e Asiatico
+    # (futuros + indices apenas, sem acoes individuais -- mercado
+    # americano ja cobertos acima/em outros endpoints). Tickers Yahoo
+    # confirmados via busca (todos ^INDICE, mesmo padrao ja usado para
+    # ^DJI/^VIX acima). Indices a vista escolhidos em vez de futuros
+    # especificos de cada bolsa (ex: DAX futures via Q2JF.DE) porque
+    # estes ultimos parecem ser instrumentos de nicho com liquidez/
+    # disponibilidade incerta no Yahoo -- os indices a vista sao
+    # extremamente liquidos e ja servem como termometro intraday.
+    dax = yquote('%5EGDAXI')      # Alemanha
+    cac40 = yquote('%5EFCHI')     # Franca
+    stoxx50 = yquote('%5ESTOXX50E')  # Zona do Euro
+    ftse100 = yquote('%5EFTSE')   # Reino Unido
+    nikkei = yquote('%5EN225')    # Japao
+    hangseng = yquote('%5EHSI')   # Hong Kong
+    sse = yquote('000001.SS')     # China (Shanghai)
+    asx200 = yquote('%5EAXJO')    # Australia
+
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
+                     'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
+                     'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas})
 
 @app.route('/dji', methods=['GET'])
