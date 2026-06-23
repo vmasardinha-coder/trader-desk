@@ -642,3 +642,91 @@ com botoes (ask_user_input_v0), nunca so texto solto na resposta -- ele
 pode estar distraido/ler rapido e perguntas em texto corrido se perdem.
 Isso reforca e formaliza o padrao que ja vinha sendo seguido informalmente
 ao longo da sessao.
+
+---
+
+# Continuação sessão 23/06/2026 (parte 4) — Fechamento da feature de concentração EUA
+
+## SHAs no momento deste registro
+- proxy.py: f5d5d88fe4b5ce6e8b5795e4772783c17ee6a185
+- static/app.js: c11c1af186815952b2144b2f1305a1819758f186
+- templates/index.html: 13e3d6fce8b14505f795cd6468ede5fcdf64c4c9
+
+## Item 2 do backlog (Watchlist Semicondutores/m7 + concentração) — FECHADO E VALIDADO
+
+Histórico completo de correções até funcionar (8 iterações no total, todas
+documentadas nas partes 2-3 anteriores deste arquivo):
+1. Endpoint usava v7/finance/quote em lote → trocado para v8/finance/chart
+2. v8/chart não tinha marketCap confiável → tentativa de paralelização
+3. Faltavam parâmetros de query → adicionados (sem efeito real)
+4. Paralelização via ThreadPoolExecutor (correta, mas não era a causa raiz)
+5. v7 individual por ticker (ainda sem marketCap em produção)
+6. Tentativa de calcular via price × sharesOutstanding (também ausente)
+7. **Scraping de 8marketcap.com/companies/ como fallback final — isso
+   resolveu para a maioria dos tickers**
+8. Exposição de tickers_sem_dado/aviso na resposta (para nunca mostrar
+   número incompleto sem avisar) + correção GOOGL→GOOG (Alphabet só
+   listada como classe C nesse site)
+
+**Causa raiz definitiva confirmada pelo usuário com testes reais**: o
+Yahoo (v7 e v8) não retorna NENHUM campo de valuation (marketCap nem
+sharesOutstanding) no ambiente de produção (Render), de forma consistente
+-- mesmo com preço/histórico funcionando normalmente em todo o resto do
+app. Causa exata desconhecida (possível throttling/filtro específico do
+Yahoo para esses campos nesse IP), mas o padrão é claro e replicável.
+
+**Resultado final validado pelo usuário (23/06/2026, mercado em queda no
+dia):**
+- Semicondutores: ~18% do S&P 500 — usuário considerou plausível
+- 7 Magníficas: ~31,8% do S&P 500 (todos os 7 tickers, incluindo GOOGL
+  via fallback GOOG) — bate com a faixa real confirmada via busca (33-35%
+  em maio/início de junho/2026); diferença pequena para baixo é coerente
+  com mercado em queda no dia da consulta
+- Software: funciona para ORCL/PANW/PLTR (3 de 5) — ADBE (posição 313 no
+  ranking) e CRWD (posição 119) estão fora do top 100 que a função busca
+  (só primeira página, sem paginação)
+- Energia IA: REMOVIDO permanentemente (CEG/VST/TLN/D/OKLO são utilities
+  pequenas, sem dado em nenhuma fonte tentada)
+
+## Decisão sobre ADBE/CRWD faltando em Software
+Usuário decidiu NÃO implementar paginação para cobrir esses 2 tickers
+agora -- consideração explícita: "não dá nem 2%, não é isso que vai ser
+indicador de bolha". Decisão consciente de custo/benefício, não uma
+limitação técnica não resolvida.
+
+**Condicional para revisitar**: usuário quer primeiro investigar a lista
+completa de holdings do ETF de software que ele mencionou (citado como
+"usado para comparar com Bitcoin" -- possivelmente um ETF tipo IGV
+iShares Expanded Tech-Software, ou outro popular nesse nicho, ainda não
+identificado com certeza). Se essa lista for extensa e revelar que há
+muito mais nomes relevantes fora do ranking atual de 5 tickers do grupo
+`software`, ele quer reavaliar nessa ocasião -- não antes.
+
+## Pendência de pesquisa para próxima sessão (sem ação ainda)
+Identificar e estudar o ETF de software mencionado pelo usuário como
+"usado para comparar com Bitcoin" em discussões de mercado. Pode revelar
+uma lista de holdings mais ampla/diferente da atual (ORCL/PANW/PLTR/CRWD/
+ADBE) que valeria incorporar ao grupo `software`, dependendo do que for
+encontrado. Usuário não deu o nome exato do ETF -- precisa de pesquisa
+para identificá-lo (candidatos prováveis: IGV, ou algo do universo
+"AI/cloud/SaaS" popularmente comparado a Bitcoin em conteúdo de mercado).
+
+## Lição de processo importante desta sessão (correções do mesmo bug)
+Esta foi a sequência de correção mais longa da sessão (8 iterações para
+um único bug). Padrão a reconhecer mais rápido em sessões futuras: quando
+uma fonte de dado externa (aqui, campos de valuation do Yahoo) falha de
+forma CONSISTENTE e IDÊNTICA através de múltiplas variações de
+implementação (endpoint diferente, parâmetros diferentes, campo
+calculado em vez de direto), é sinal de limitação real da fonte nesse
+ambiente -- não vale continuar variando a MESMA fonte indefinidamente.
+O sinal para trocar de fonte (scraping de terceiro, nesse caso) deveria
+ter vindo mais cedo, não somente após confirmação explícita do usuário em
+3 testes seguidos com o mesmo padrão de erro.
+
+Também vale notar: alternativas como APIs pagas (Financial Modeling Prep,
+EOD Historical Data) e exchanges de cripto/RWA (Binance/Hyperliquid para
+ações tokenizadas) foram avaliadas e descartadas com justificativa clara
+-- RWA tokenizado tem market cap muitas ordens de grandeza menor que o
+real (ex: Nvidia tokenizada ~US$42M contra ~US$5T real), não serve para
+essa métrica especificamente. Documentado para não reconsiderar essa
+opção no futuro sem motivo novo.
