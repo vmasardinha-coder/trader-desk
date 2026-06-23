@@ -2487,11 +2487,9 @@ _US_EXCHANGE = {
     # NASDAQ (sem mapeamento, cairia no fallback errado). ASML e MU ja
     # ficam corretos no fallback padrao NASDAQ, nao precisam de entrada.
     'TSM':'NYSE',
-    # Adicionados 23/06/2026 -- grupos Software e Energia IA. PLTR/VST/D/
-    # OKLO sao NYSE (confirmado via SEC filings e multiplas fontes para D).
-    # ORCL, PANW, CRWD, ADBE (software) e CEG, TLN (energia) sao NASDAQ,
-    # ficam corretos no fallback padrao, nao precisam de entrada aqui.
-    'PLTR':'NYSE','VST':'NYSE','D':'NYSE','OKLO':'NYSE',
+    # Adicionado 23/06/2026 -- grupo Software. PLTR e NYSE (confirmado).
+    # ORCL, PANW, CRWD, ADBE ficam corretos no fallback padrao NASDAQ.
+    'PLTR':'NYSE',
 }
 
 @app.route('/us/quotes', methods=['GET'])
@@ -2565,32 +2563,48 @@ SP500_TOTAL_MARKETCAP_REF = '2026-06-23'
 # estrutura exata de tags/classes, para ser mais resiliente a pequenas
 # mudancas de layout -- mas pode precisar de ajuste se a estrutura real
 # divergir do esperado. Cobertura conhecida: bom para large-caps
-# (Semicondutores/m7/Software, todos no top ~100 por market cap), MAS
-# provavelmente NAO cobre Energia IA (CEG/VST/TLN/D/OKLO sao utilities
-# menores, fora do top 100 -- usuario confirmou que aceita essa cobertura
-# parcial).
+# (Semicondutores/m7/Software, todos no top ~100 por market cap).
+# (Energia IA -- CEG/VST/TLN/D/OKLO -- foi tentado e depois REMOVIDO em
+# 23/06/2026: utilities pequenas demais, fora do top 100, usuario decidiu
+# nao vale o esforco.)
+# Tickers cujo simbolo no 8marketcap.com difere do simbolo padrao do
+# Yahoo/USSEG. Confirmado pelo usuario: GOOGL (classe A, com voto) so
+# falhava porque o 8marketcap lista a Alphabet so como GOOG (classe C,
+# sem voto) -- mesma empresa, simbolo diferente. BRK.B/BRK-B adicionado
+# por precaucao (mesmo tipo de variacao de simbolo ja visto em
+# _US_EXCHANGE para Berkshire).
+_8MARKETCAP_TICKER_ALT = {
+    'GOOGL': ['GOOG'],
+    'BRK.B': ['BRK-B', 'BRK.A'],
+    'BRK-B': ['BRK.B', 'BRK.A'],
+}
+
 def _buscar_marketcap_8marketcap(ticker):
     """Tenta achar o marketCap de 1 ticker fazendo scraping da pagina de
-    ranking do 8marketcap.com. Retorna valor em USD (float) ou None."""
+    ranking do 8marketcap.com. Retorna valor em USD (float) ou None.
+    Tenta o ticker original e, se nao achar, os simbolos alternativos
+    conhecidos (ver _8MARKETCAP_TICKER_ALT) -- ex: GOOGL -> GOOG."""
     try:
         r = requests.get('https://8marketcap.com/companies/',
                           headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
         if not r.ok:
             return None
         html = r.text
-        # Procura o ticker como "texto" seguido (a alguma distancia, ja
-        # que ha tags HTML entre as colunas da tabela) por um valor no
-        # formato "$X.XX T" ou "$XXX.XX B". Usa re.DOTALL com um limite de
-        # distancia para nao capturar o valor de outra linha da tabela.
-        padrao = re.compile(
-            r'>' + re.escape(ticker) + r'<.{0,500}?\$([\d,]+\.?\d*)\s*([TB])',
-            re.DOTALL)
-        m = padrao.search(html)
-        if not m:
-            return None
-        valor = float(m.group(1).replace(',', ''))
-        multiplicador = 1e12 if m.group(2) == 'T' else 1e9
-        return valor * multiplicador
+        for candidato in [ticker] + _8MARKETCAP_TICKER_ALT.get(ticker, []):
+            # Procura o ticker como "texto" seguido (a alguma distancia, ja
+            # que ha tags HTML entre as colunas da tabela) por um valor no
+            # formato "$X.XX T" ou "$XXX.XX B". Usa re.DOTALL com um limite
+            # de distancia para nao capturar o valor de outra linha da
+            # tabela.
+            padrao = re.compile(
+                r'>' + re.escape(candidato) + r'<.{0,500}?\$([\d,]+\.?\d*)\s*([TB])',
+                re.DOTALL)
+            m = padrao.search(html)
+            if m:
+                valor = float(m.group(1).replace(',', ''))
+                multiplicador = 1e12 if m.group(2) == 'T' else 1e9
+                return valor * multiplicador
+        return None
     except Exception:
         return None
 
@@ -2626,7 +2640,10 @@ def get_us_concentracao():
         'semi': ['NVDA','AMD','AVGO','TSM','ASML','INTC','MU','QCOM'],
         'm7': ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'],
         'software': ['ORCL','PANW','PLTR','CRWD','ADBE'],
-        'energia_ia': ['CEG','VST','TLN','D','OKLO'],
+        # energia_ia REMOVIDO 23/06/2026 -- usuario decidiu nao vale o
+        # esforco: CEG/VST/TLN/D/OKLO sao utilities pequenas demais,
+        # sem dado disponivel em nenhuma das 4 fontes tentadas (Yahoo
+        # v7/v8 + 8marketcap, que so cobre top ~100 por market cap).
     }
     tickers = tickers_map.get(grupo)
     if not tickers:
