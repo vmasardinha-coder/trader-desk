@@ -1048,7 +1048,10 @@ function doMacro(tv,ft){
         ec.classList.add(d>0?'chg-up':d<0?'chg-dn':'chg-fl');
       }
     };
+    if(ft.iron_ore?.price)afChg('iron_ore-p','iron_ore-c',ft.iron_ore.price,ft.iron_ore.prev,'r');
     if(ft.cl?.price)afChg('cl-p','cl-c',ft.cl.price,ft.cl.prev,'r');
+    if(ft.brent?.price)afChg('brent-p','brent-c',ft.brent.price,ft.brent.prev,'r');
+    if(ft.natgas?.price)afChg('natgas-p','natgas-c',ft.natgas.price,ft.natgas.prev,'r');
     if(ft.gold?.price)afChg('gold-p','gold-c',ft.gold.price,ft.gold.prev,'r');
     if(ft.silver?.price)afChg('silver-p','silver-c',ft.silver.price,ft.silver.prev,'r');
     if(ft.copper?.price)afChg('copper-p','copper-c',ft.copper.price,ft.copper.prev,'r');
