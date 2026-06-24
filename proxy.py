@@ -2954,8 +2954,61 @@ def _github_put_file(path, conteudo_str, sha, mensagem):
         raise RuntimeError(f'Falha ao escrever {path} via API ({r.status_code}): {r.text[:300]}')
     return r.json()
 
+def _github_criar_arquivo(path, conteudo_str, mensagem):
+    """Cria um arquivo NOVO no repo (sem SHA previo -- payload sem 'sha').
+    Usado como fallback caso stats_analises.json ainda nao exista."""
+    import base64 as _b64
+    token = _github_write_token()
+    if not token:
+        raise RuntimeError('GITHUB_WRITE_TOKEN nao configurado')
+    b64 = _b64.b64encode(conteudo_str.encode('utf-8')).decode('utf-8')
+    payload = {'message': mensagem, 'content': b64, 'branch': 'main'}
+    r = requests.put(
+        f'https://api.github.com/repos/vmasardinha-coder/trader-desk/contents/{path}',
+        headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'},
+        json=payload, timeout=15)
+    if not r.ok:
+        raise RuntimeError(f'Falha ao criar {path} via API ({r.status_code}): {r.text[:300]}')
+    return r.json()
+
 _CAMPOS_OBRIGATORIOS_ANALISE = ['id', 'ticker', 'nome', 'data_foto', 'preco_foto', 'prazo_dias', 'tipo_estrutura', 'origem', 'status']
 _STATUS_VALIDOS = ['em_analise', 'ativa', 'encerrada']
+
+def _hoje_str():
+    """Data de hoje no formato YYYY-MM-DD, mesmo padrao ja usado em data_foto."""
+    from datetime import date as _date
+    return _date.today().isoformat()
+
+def _incrementar_contador_rejeitadas():
+    """
+    Incrementa o contador PERMANENTE de analises rejeitadas, em
+    stats_analises.json (arquivo separado de analises.json -- analises.json
+    e uma lista pura sem wrapper de metadados, mudar isso quebraria
+    _validar_analise e o frontend que itera direto sobre o array).
+
+    Este contador NUNCA diminui, mesmo apos a limpeza de 30 dias remover
+    o registro detalhado da analise rejeitada da listagem visivel (ver
+    rotina de limpeza chamada em GET /analises) -- e o numero que sustenta
+    a estatistica de longo prazo ('total de rejeitadas: 47') pedida pelo
+    usuario, independente de quantos registros detalhados ainda existem.
+    """
+    try:
+        conteudo_str, sha = _github_get_file('stats_analises.json')
+        stats = json.loads(conteudo_str) if conteudo_str.strip() else {'total_rejeitadas': 0}
+    except RuntimeError:
+        # Arquivo ainda nao existe -- comeca do zero (sera criado abaixo)
+        stats, sha = {'total_rejeitadas': 0}, None
+
+    stats['total_rejeitadas'] = stats.get('total_rejeitadas', 0) + 1
+    stats['ultima_atualizacao'] = _hoje_str()
+    novo_conteudo = json.dumps(stats, indent=2, ensure_ascii=False)
+
+    if sha:
+        _github_put_file('stats_analises.json', novo_conteudo, sha,
+            f"feat: incrementa contador de rejeitadas para {stats['total_rejeitadas']}")
+    else:
+        _github_criar_arquivo('stats_analises.json', novo_conteudo,
+            "feat: cria stats_analises.json com contador inicial de rejeitadas")
 _TIPOS_VALIDOS = ['bidirecional', 'retorno_controlado', 'premio', 'simples']
 _ORIGENS_VALIDAS = ['customizada', 'pronta']
 
@@ -2974,7 +3027,20 @@ def _validar_analise(item):
 
 @app.route('/analises', methods=['GET'])
 def get_analises():
-    """Le analises.json do repo (publico, via raw — leitura nao precisa de token)."""
+    """Le analises.json do repo (publico, via raw — leitura nao precisa de token).
+
+    ADICIONADO 23/06/2026: filtra da resposta (nao do arquivo real --
+    evitar escrita a cada GET) analises com status='encerrada' e
+    motivo_encerramento='rejeitada' com mais de 30 dias desde
+    data_rejeicao. O CONTADOR PERMANENTE em stats_analises.json (ver
+    _incrementar_contador_rejeitadas) ja foi incrementado no momento da
+    rejeicao e nao depende desses registros continuarem visiveis aqui --
+    por isso e seguro escondê-los da listagem sem perder a estatistica
+    de longo prazo. O arquivo real (analises.json) so e fisicamente
+    limpo numa rotina de manutencao futura (nao implementada ainda --
+    por ora so filtra a resposta, registro real permanece no historico
+    do GitHub indefinidamente, sem custo de leitura).
+    """
     try:
         r = requests.get(
             'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
@@ -2982,11 +3048,43 @@ def get_analises():
         if not r.ok:
             return jsonify({'error': 'analises.json indisponivel'}), 500
         data = r.json()
-        return jsonify(data)
+
+        from datetime import date as _date, timedelta as _timedelta
+        limite = _date.today() - _timedelta(days=30)
+        data_filtrada = []
+        for item in data:
+            if item.get('motivo_encerramento') == 'rejeitada' and item.get('data_rejeicao'):
+                try:
+                    data_rej = _date.fromisoformat(item['data_rejeicao'])
+                    if data_rej < limite:
+                        continue  # mais de 30 dias -- esconde da listagem
+                except ValueError:
+                    pass  # data malformada, mantem visivel por seguranca
+            data_filtrada.append(item)
+
+        return jsonify(data_filtrada)
     except ValueError as e:
         return jsonify({'error': f'analises.json com JSON malformado: {str(e)}'}), 422
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/analises/stats', methods=['GET'])
+def get_analises_stats():
+    """
+    Expoe o contador PERMANENTE de analises rejeitadas (stats_analises.json),
+    para o dashboard de Encerradas mostrar a estatistica de longo prazo
+    mesmo apos os registros detalhados individuais terem sumido da
+    listagem (ver filtro de 30 dias em GET /analises).
+    """
+    try:
+        r = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/stats_analises.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        if not r.ok:
+            return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
+        return jsonify(r.json())
+    except Exception:
+        return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
 @app.route('/analises', methods=['POST'])
 def criar_analise():
@@ -3023,10 +3121,19 @@ def mudar_status_analise(analise_id):
     """
     Move uma analise entre estagios (em_analise -> ativa -> encerrada, ou
     em_analise -> encerrada direto). Espera {'status': 'ativa'} no body.
+
+    ADICIONADO 23/06/2026: aceita tambem 'motivo_encerramento' opcional no
+    body (ex: 'rejeitada' -- analise descartada na Fase A por
+    probabilidade real baixa via Monte Carlo, NUNCA chegou a ser ativa).
+    Quando motivo_encerramento='rejeitada', incrementa o contador
+    PERMANENTE em stats_analises.json -- esse contador nunca diminui,
+    mesmo apos a limpeza de 30 dias remover o registro detalhado da
+    listagem (ver rotina de limpeza em /analises GET).
     """
     try:
         body = request.get_json() or {}
         novo_status = body.get('status')
+        motivo = body.get('motivo_encerramento')
         if novo_status not in _STATUS_VALIDOS:
             return jsonify({'error': f'status invalido: {novo_status!r}'}), 422
 
@@ -3036,6 +3143,9 @@ def mudar_status_analise(analise_id):
         for item in lista:
             if item.get('id') == analise_id:
                 item['status'] = novo_status
+                if motivo:
+                    item['motivo_encerramento'] = motivo
+                    item['data_rejeicao'] = _hoje_str()
                 encontrado = True
                 break
         if not encontrado:
@@ -3044,6 +3154,10 @@ def mudar_status_analise(analise_id):
         novo_conteudo = json.dumps(lista, indent=2, ensure_ascii=False)
         _github_put_file('analises.json', novo_conteudo, sha,
             f"feat: analise {analise_id} -> status={novo_status} via app")
+
+        if motivo == 'rejeitada':
+            _incrementar_contador_rejeitadas()
+
         return jsonify({'id': analise_id, 'status': novo_status})
     except RuntimeError as e:
         return jsonify({'error': str(e)}), 500
