@@ -834,3 +834,99 @@ inline em proxy.py documentam cada correção numerada).
   cobrir holdings menores do IGV (ele mencionou completar para ver o
   tamanho real do setor -- isso já foi parcialmente resolvido pela
   extrapolação via regra de 3).
+
+---
+
+# FLUXO DE ANÁLISE DE LOTE (Fase A) — Critérios consolidados em 23-24/06/2026
+
+Esta seção formaliza o processo que se repete sempre que o usuário traz um lote de
+propostas (PDFs do banco e/ou planilha "Index/Fixing/Strike/KO/Delta") para escolher
+candidatos antes de "tirar a foto". Aplicar AUTOMATICAMENTE sempre que esse padrão de
+input aparecer numa sessão nova, sem precisar que o usuário reexplique os critérios.
+
+## Como decodificar a planilha "Index/Fixing/Strike/KO/Delta"
+Vem de propostas FECHADAS do banco (não é menu de escolha livre, já são estruturas de
+Retorno Controlado prontas). Colunas:
+- **Index**: número de linha/identificador, sem uso analítico
+- **Ativo**: ticker B3
+- **Fixing**: data de VENCIMENTO da estrutura (não data de criação)
+- **Strike**: na verdade é o GANHO/RETORNO da estrutura, expresso como % do valor
+  inicial. Ex: "101,02%" significa retorno de **1,02%** no período (subtrair 100)
+- **KO (Knock-Out)**: nível de PROTEÇÃO/barreira de baixa, % do valor inicial. Ex:
+  "82,00%" = proteção até a ação cair 18% (100% - 82%) sem perder a estrutura
+- **Delta**: probabilidade (no momento em que a tabela foi gerada) de o cenário BOM se
+  realizar (não tocar a barreira, ganhar o retorno) — quanto MAIOR, melhor, mas é
+  informação SECUNDÁRIA na decisão do usuário (ver ordem de critérios abaixo)
+
+## Ordem de critérios do usuário (aplicar nesta ordem, sem pular etapas)
+
+**1º filtro (ALVO/retorno) — eliminatório, sempre primeiro:**
+Calcular retorno mensal equivalente = (Strike% - 100) / meses_até_o_fixing.
+Usar meses = dias_corridos_até_fixing / 30.4 (a partir de HOJE, não da data de
+emissão da planilha).
+- Corte: **retorno mensal > 2%** (não "2 a 2,5%" — para este fluxo de filtro
+  preliminar de lote, o corte simples é >2%, mais permissivo que a meta de
+  2-2,5%/mês usada como referência geral do app)
+- Se uma linha NÃO passa neste filtro, ela é DESCARTADA imediatamente — não importa
+  o quão boa seja a proteção (KO) ou o Delta. Comprar a ação à vista já seria melhor
+  que estruturar por um prêmio menor que isso.
+- Ex. confirmado pelo usuário: BBSE3 e CXSE3 NUNCA passam neste filtro em nenhuma
+  combinação da planilha de 24/06/2026 (Strike sempre próximo de 100%) — não vale a
+  estrutura para esses dois, independente de KO/Delta.
+
+**2º filtro (PROTEÇÃO/KO) — só considerado DEPOIS de passar no 1º:**
+Quanto mais funda a proteção (KO mais baixo = % de queda tolerada maior), melhor —
+mas só entra na decisão depois do retorno já ter passado no corte de 2%.
+
+**3º critério (DIVIDENDO do papel-base) — desempate / mitigação de pior caso:**
+Se a barreira for rompida, o usuário fica com o papel em carteira, sem garantia,
+exposto à variação real. Usuário aceita esse risco com mais conforto se o papel
+PAGA BEM DIVIDENDO (carrega recebendo renda enquanto espera recuperar/decidir
+repetir a operação). Corte usado nesta sessão: **dividend yield > 8%**.
+- Resultado possível: papel passa nos 2 (retorno bom + dividendo bom — ideal),
+  só no retorno (dividendo zero/baixo — ok mas sem chão se der errado), só no
+  dividendo (retorno da estrutura não compensa, mas o usuário pode comprar o
+  papel À VISTA mesmo, sem estruturar — esse foi o caso explícito de BBSE3, DY
+  18,7% mas retorno de estrutura sempre <2%/mês: "é só pra comprar mesmo"), ou
+  nenhum dos 2 (sem interesse).
+- ADRs/BDRs de ações americanas que não pagam dividendo (AMZO34, NVDC34, ROXO34,
+  TSLA34) e BDR de ETF de prata (BSLV39, nunca paga, metal físico não gera caixa)
+  são SEMPRE dividend yield 0% — isso é esperado e não é falha de análise, é
+  característica do ativo. Usuário aceita isso conscientemente: tende a concentrar
+  o retorno mais alto justamente nessas ADRs (confirmado nesta sessão: ROXO34,
+  TSLA34, BSLV39, AMZO34, NVDC34 dominam o topo do ranking de retorno mensal).
+
+## Caso especial: estrutura Bidirecional (ex: WEGE3)
+Tratar SEPARADO do ranking de Retorno Controlado — risco assimétrico diferente:
+- Ganho fixo (ex: 15%) só é GARANTIDO no lado de ALTA (se romper a barreira de
+  alta) ou dentro do range. NÃO há piso garantido no lado de BAIXA — se romper a
+  barreira de baixa, o resultado acompanha a queda real da ação integralmente,
+  igual às estruturas de Retorno Controlado (sem garantia).
+- Por isso WEGE3 (PDF de 24/06/2026, ganho fixo 15% em 12 meses = 1,25%/mês) NÃO
+  passou no filtro de retorno >2%/mês desta rodada — mas isso é avaliado como
+  ESTUDO SEPARADO do ranking principal, não descartado pelo mesmo critério direto.
+
+## Próximo passo depois do filtro de retorno (>2%) — rodar probabilidade real
+Para os candidatos que passam no 1º filtro, USUÁRIO ESCOLHE MANUALMENTE quais
+aprofundar (ele "bate o olho" na tabela completa e decide) — Claude NÃO deve rodar
+Monte Carlo para todas as 66+ linhas automaticamente, só para as que o usuário
+apontar especificamente. Motivo do usuário: quando o retorno é muito alto, pode
+valer o risco mesmo com probabilidade menor (ele pode repetir a operação se der
+errado) — então a decisão de quais vale a pena rodar com mais rigor é dele, não
+um corte automático adicional.
+
+## Entregável esperado pelo usuário neste fluxo
+Tabela ÚNICA e completa (CSV/planilha), com TODAS as linhas (inclusive as que NÃO
+passam nos critérios, sem esconder) das duas fontes juntas (PDFs + planilha de
+opções), ordenada por retorno mensal decrescente, com colunas: origem, ativo,
+fixing/vencimento, dias restantes, meses, retorno %, retorno mensal %, flag
+passa_retorno_2pct, KO%, proteção%, Delta%, DY%, flag passa_dy_8pct. Usuário prefere
+abrir isso no Excel/Sheets dele e filtrar/decidir por conta própria, em vez de receber
+só um resumo verbal. Disponibilizar como arquivo para download.
+
+## Lembrete de processo já validado nesta sessão (reforçar)
+NÃO subir nada em analises.json neste fluxo até o usuário escolher explicitamente
+quais ativos avançar ("eu vou escolher: quero esse e esse, para análise"). O
+quadro/tabela é só para ele decidir — a Fase B (registro real) só acontece depois
+dessa escolha manual, e mesmo aí seguindo a regra já estabelecida de confirmar os
+4 números-chave antes de "tirar a foto".
