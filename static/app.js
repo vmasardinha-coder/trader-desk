@@ -1684,6 +1684,17 @@ const _analiseCharts={};
 
 const _STATUS_LABEL={em_analise:'🔍 EM ANÁLISE',ativa:'✅ ATIVA',encerrada:'🗂 ENCERRADA'};
 const _STATUS_CLS={em_analise:'enc-warn',ativa:'enc-ok',encerrada:'enc-warn'};
+// Adicionado 23/06/2026 -- distinguir "encerrada/rejeitada" (nunca foi
+// ativa, descartada na Fase A por probabilidade real baixa, calculada via
+// Monte Carlo) de uma encerrada normal (operacao real que foi ativa e
+// foi encerrada de fato). Mesmo campo status='encerrada', diferenciado
+// pelo campo extra motivo_encerramento.
+function statusBadge(a){
+  if(a.status==='encerrada'&&a.motivo_encerramento==='rejeitada'){
+    return {cls:'enc-rejeitada',txt:'🚫 REJEITADA'};
+  }
+  return {cls:_STATUS_CLS[a.status]||'enc-warn',txt:_STATUS_LABEL[a.status]||a.status};
+}
 const _ORIGEM_LABEL={customizada:'Customizada (OpLab)',pronta:'Pronta'};
 const _TIPO_LABEL={bidirecional:'Bidirecional',retorno_controlado:'Retorno Controlado',premio:'Prêmio',simples:'Simples'};
 
@@ -1701,6 +1712,20 @@ async function loadAnalises(){
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar analises.json: '+e.message+'</p>';
   }
+  // Adicionado 23/06/2026 -- contador PERMANENTE de rejeitadas (nao
+  // depende dos registros detalhados continuarem visiveis na lista
+  // apos os 30 dias de limpeza, ver GET /analises/stats no backend).
+  try{
+    const rs=await fetch(B+'/analises/stats',{cache:'no-store'});
+    if(rs.ok){
+      const stats=await rs.json();
+      const el=document.getElementById('analise-stats-rejeitadas');
+      if(el&&stats.total_rejeitadas>0){
+        el.style.display='block';
+        el.textContent='🚫 Total histórico de análises rejeitadas (probabilidade real baixa): '+stats.total_rejeitadas;
+      }
+    }
+  }catch(e){/* nao bloqueia a tela principal se stats falhar */}
 }
 
 function renderAnalises(){
@@ -1733,8 +1758,9 @@ function tplAnalise(a){
   const subParts=[_TIPO_LABEL[a.tipo_estrutura]||a.tipo_estrutura,_ORIGEM_LABEL[a.origem]||a.origem];
   subParts.push('Foto: '+dataFotoFmt+' · '+a.prazo_dias+'d');
   const sub=subParts.join(' · ');
-  const badgeCls=_STATUS_CLS[a.status]||'enc-warn';
-  const badgeTxt=_STATUS_LABEL[a.status]||a.status;
+  const badge=statusBadge(a);
+  const badgeCls=badge.cls;
+  const badgeTxt=badge.txt;
 
   let rows='';
   rows+='<div class="sr"><span class="sl">Preço na foto</span><span class="sv">'+fR(a.preco_foto)+'</span></div>';
