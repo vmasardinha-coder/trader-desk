@@ -2119,12 +2119,12 @@ function renderCondicional(id,d){
   if(d.prob_call_exercida!=null)probsHtml+='<div class="sr"><span class="sl">Prob. Call exercida (restante)</span><span class="sv '+(d.prob_call_exercida>50?'itm':d.prob_call_exercida>30?'warn':'ok')+'">'+d.prob_call_exercida.toFixed(2)+'%</span></div>';
   if(d.prob_put_exercida!=null)probsHtml+='<div class="sr"><span class="sl">Prob. Put exercida (restante)</span><span class="sv '+(d.prob_put_exercida>50?'itm':d.prob_put_exercida>30?'warn':'ok')+'">'+d.prob_put_exercida.toFixed(2)+'%</span></div>';
   if(d.prob_sem_barreira!=null){
-    probsHtml+='<div class="sr"><span class="sl">Prob. sem tocar barreira</span><span class="sv ok">'+d.prob_sem_barreira.toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr" title="Chance de NAO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, usando o preco atual). Numero dinamico -- muda conforme o preco se move. E o numero que importa para decidir o proximo passo."><span class="sl">Prob. sem tocar barreira (daqui p/ frente)</span><span class="sv ok">'+d.prob_sem_barreira.toFixed(2)+'%</span></div>';
     probsHtml+='<div class="sr"><span class="sl">Prob. barreira alta (KUO)</span><span class="sv warn">'+d.prob_barreira_alta.toFixed(2)+'%</span></div>';
     probsHtml+='<div class="sr"><span class="sl">Prob. barreira baixa (KDO)</span><span class="sv warn">'+d.prob_barreira_baixa.toFixed(2)+'%</span></div>';
   }
   if(d.prob_ganho_prefixado!=null){
-    probsHtml+='<div class="sr"><span class="sl">Prob. ganho prefixado (sem tocar barreira)</span><span class="sv ok">'+d.prob_ganho_prefixado.toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr" title="Chance de NAO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, usando o preco atual). Numero dinamico -- muda conforme o preco se move. E o numero que importa para decidir o proximo passo (mesmo numero usado no ranking)."><span class="sl">Prob. ganho prefixado (daqui p/ frente)</span><span class="sv ok">'+d.prob_ganho_prefixado.toFixed(2)+'%</span></div>';
     probsHtml+='<div class="sr"><span class="sl">Prob. tocar barreira (sem garantia)</span><span class="sv warn">'+(100-d.prob_ganho_prefixado).toFixed(2)+'%</span></div>';
   }
   const g=d.garch;
@@ -2177,13 +2177,13 @@ function renderCondicional(id,d){
   if(d.prob_retorno_faixas){
     const f=d.prob_retorno_faixas;
     faixasHtml='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'+
-      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">3. PROBABILIDADE DE RETORNO FINAL DA ESTRUTURA</div>'+
+      '<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px" title="Estes numeros simulam DESDE O INICIO da estrutura (do preco da foto, com o prazo TOTAL original) -- diferente das probabilidades do bloco 1, que so olham daqui pra frente. Use este bloco como contexto historico de como a estrutura nasceu, nao como criterio de decisao do dia a dia.">3. PROBABILIDADE DE RETORNO FINAL DA ESTRUTURA (desde o início, ⓘ)</div>'+
       '<div class="sb" style="margin-top:0">'+
       '<div class="sr"><span class="sl">Abaixo de 0% (perda)</span><span class="sv itm">'+f.menor_que_0.toFixed(1)+'%</span></div>'+
       '<div class="sr"><span class="sl">Entre 0% e 1%</span><span class="sv">'+f.entre_0_e_1.toFixed(1)+'%</span></div>'+
       '<div class="sr"><span class="sl">Entre 1% e 2%</span><span class="sv">'+f.entre_1_e_2.toFixed(1)+'%</span></div>'+
       '<div class="sr"><span class="sl">Entre 2% e a meta</span><span class="sv warn">'+f.entre_2_e_meta.toFixed(1)+'%</span></div>'+
-      '<div class="sr"><span class="sl">Bate a meta (≥'+(d.teto_retorno_usado_pct!=null?d.teto_retorno_usado_pct:'?')+'%)</span><span class="sv ok">'+f.maior_ou_igual_meta.toFixed(1)+'%</span></div>'+
+      '<div class="sr" title="Probabilidade calculada DESDE O INICIO da operacao (prazo total, a partir do preco da foto) -- e diferente do numero do ranking, que olha so daqui pra frente. Pode ser mais alta porque ja incorpora o caminho que o preco percorreu desde a foto."><span class="sl">Bate a meta (≥'+(d.teto_retorno_usado_pct!=null?d.teto_retorno_usado_pct:'?')+'%) — desde o início</span><span class="sv ok">'+f.maior_ou_igual_meta.toFixed(1)+'%</span></div>'+
       '</div>'+
       '<div style="margin-top:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);font-size:11px;color:var(--text);line-height:1.5">'+
       '📍 Retorno médio esperado da estrutura: <b style="color:var(--accent)">'+(d.retorno_medio_pct>=0?'+':'')+d.retorno_medio_pct.toFixed(2)+'%</b>'+
