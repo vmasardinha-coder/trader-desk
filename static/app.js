@@ -1746,23 +1746,26 @@ function tplRanking(d){
     if(r.erro){
       return `<tr style="opacity:.55">
         <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
-        <td colspan="7" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+        <td colspan="8" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
       </tr>`;
     }
-    const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(2)+'%':'—';
+    const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(1)+'%':'—';
     const colchao=r.colchao_dy_vs_cdi_pct!=null
-      ? (r.colchao_dy_vs_cdi_pct>0?'<span style="color:var(--green)">+':'<span style="color:var(--red)">')+r.colchao_dy_vs_cdi_pct.toFixed(3)+'%</span>'
+      ? (r.colchao_dy_vs_cdi_pct>0?'<span style="color:var(--green)">+':'<span style="color:var(--red)">')+r.colchao_dy_vs_cdi_pct.toFixed(2)+'%</span>'
       : '—';
     const loteTag=r.lote?`<span style="font-size:9px;color:var(--muted)"> · ${r.lote}</span>`:'';
-    return `<tr>
+    return `<tr id="rk-row-${r.id}">
       <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}</td>
-      <td style="padding:6px 8px;font-size:10px;color:var(--muted)">${_TIPO_LABEL[r.tipo_estrutura]||r.tipo_estrutura}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
       <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${r.prob_meta_pct>=50?'var(--green)':'var(--muted)'}">${r.prob_meta_pct.toFixed(1)}%</td>
       <td style="padding:6px 8px;text-align:right">${dy}</td>
       <td style="padding:6px 8px;text-align:right">${colchao}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)">${r.score.toFixed(3)}</td>
+      <td style="padding:6px 8px;text-align:right;white-space:nowrap">
+        <button onclick="acaoRanking('${r.id}','ativa')" title="Marcar como Ativa" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
+        <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">🚫</button>
+      </td>
     </tr>`;
   }).join('');
   return `
@@ -1771,17 +1774,49 @@ function tplRanking(d){
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
       <th style="padding:6px 8px">Ativo</th>
-      <th style="padding:6px 8px">Tipo</th>
       <th style="padding:6px 8px;text-align:right">Prazo</th>
       <th style="padding:6px 8px;text-align:right">Ret. mensal</th>
-      <th style="padding:6px 8px;text-align:right">Prob. meta</th>
-      <th style="padding:6px 8px;text-align:right">DY papel</th>
-      <th style="padding:6px 8px;text-align:right">Colchão vs CDI</th>
+      <th style="padding:6px 8px;text-align:right">Prob.</th>
+      <th style="padding:6px 8px;text-align:right">DY</th>
+      <th style="padding:6px 8px;text-align:right">Colchão</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
   </div>`;
+}
+
+// Adicionado 25/06/2026 -- botoes Aprovar/Rejeitar direto na linha do
+// ranking (substituem os botoes que existiam nos cards soltos de
+// Em Analise -- decisao do usuario: nao faz sentido duplicar a acao em
+// dois lugares quando o ranking e o ponto de decisao real).
+async function acaoRanking(id,acao){
+  const novoStatus = acao==='ativa' ? 'ativa' : 'encerrada';
+  const motivo = acao==='rejeitada' ? 'rejeitada' : null;
+  const linha=document.getElementById('rk-row-'+id);
+  if(motivo){
+    const ok=confirm('Confirma REJEITAR esta análise (sai de Em Análise e vai para Encerradas como rejeitada)? Essa ação grava no repositório.');
+    if(!ok)return;
+  }else{
+    const ok=confirm('Confirma MARCAR COMO ATIVA esta análise? Essa ação grava no repositório.');
+    if(!ok)return;
+  }
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const body={status:novoStatus};
+    if(motivo)body.motivo_encerramento=motivo;
+    const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
+      method:'PUT',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    if(linha)linha.style.opacity='.4';
+    await loadAnalises();
+  }catch(e){
+    alert('Erro ao aplicar ação: '+e.message);
+  }
 }
 
 function renderAnalises(){
@@ -1964,13 +1999,11 @@ function tplAnalise(a){
 }
 
 function tplAnaliseAcoes(a){
-  if(a.status==='em_analise'){
-    return `
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button onclick="mudarStatusAnalise('${a.id}','ativa')" style="flex:1;background:var(--green);border:none;color:#06140c;padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">✓ Marcar como Ativa</button>
-      <button onclick="mudarStatusAnalise('${a.id}','encerrada','rejeitada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🚫 Rejeitar</button>
-    </div>`;
-  }
+  // CORRIGIDO 25/06/2026: botoes Marcar como Ativa / Rejeitar migraram para
+  // a tabela de ranking (usuario decidiu que faz mais sentido decidir
+  // direto na linha ranqueada, em vez de duplicar a acao no card solto).
+  // O card aqui so mantem "Encerrar operacao" para quem ja esta 'ativa' --
+  // isso nao faz parte do fluxo de ranking (ranking e so para em_analise).
   if(a.status==='ativa'){
     return `
     <div style="display:flex;gap:8px;margin-top:14px">
