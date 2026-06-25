@@ -1231,3 +1231,178 @@ status (Rejeitar / Marcar como Ativa) estão funcionando corretamente — não
 testado nesta sessão ainda. Backlog de "Análise de Papel" mencionado como
 possivelmente já implementado ou não — PRECISA CONFIRMAR no código real
 antes de assumir, usuário não tem certeza do estado atual desse item.
+
+---
+
+# Sessão 25/06/2026 (parte 2) — Endpoint de ranking em lote + correção de dados + lições de cache
+
+## SHAs finais desta parte
+- proxy.py: 470dd940e0a23a80c47ff4a53549136946fe52e5
+- static/app.js: b6b82ff3dc67991bd64a656ef4b0f4e25d49fb71
+- templates/index.html: b7ab4663c28b680138c5b7f9e66e22bd03a51087
+- analises.json: 253232d5d5f2fd217c69b86976947cdc25439536 (após rejeição real de AXIA3
+  feita pelo usuário em teste)
+
+## ⭐ Feature nova: GET /analises/ranking (resolve o problema de escala do lote)
+Usuário identificou que copiar manualmente probabilidade de cada análise (abrindo
+card por card) não escala para lotes de 14+ — formalizado um endpoint que roda
+Monte Carlo de TODAS as `em_analise` de uma vez e devolve tabela ordenada por
+score. Especificação fechada com o usuário antes de implementar (ver árvore de
+decisão desenhada na sessão — diagrama SVG mostrado em chat, não persiste no
+repo, mas a lógica está documentada abaixo).
+
+**Fórmula do score (fechada com usuário em 25/06/2026):**
+```
+retorno_mensal = ganho_pct / meses_restantes
+peso_prazo = 1 + (30/dias_restantes) * 0.1   (vantagem leve, giro de capital --
+                                                usuário confirmou "peso levinho")
+SE papel-base tem DY relevante (cadastrado em FUND_OVERRIDE_GLOBAL, > 0, e
+NAO está em _SEM_DY_RELEVANTE -- ROXO34/TSLA34/BSLV39/AMZO34/PRIO3):
+    colchao_vs_cdi = (dy_anual/12) - (cdi_anual/12)
+    score = (prob_meta/100) * retorno_mensal * peso_prazo + (0.1 se colchao>0)
+SE NAO (BDR/ADR/commodity sem dividendo): score = puro, sem bonus de colchao
+```
+CDI buscado via `get_cdi()` já existente (API Bacen, SGS 4389), nao hardcoded.
+
+**Tabela NUNCA filtra/esconde linha** -- score e so para ORDENACAO. Linhas com
+erro de calculo aparecem com motivo explicito, nunca somem silenciosamente.
+
+**Lógica de decisão sobre DY/CDI, fechada com o usuário (importante para
+qualquer extensão futura do critério):**
+- Bidirecional/retorno_controlado: se romper a barreira, fica com o papel --
+  nesse cenário o DY funciona como "colchão" comparado ao CDI (custo de
+  oportunidade). Quanto mais o DY mensal supera o CDI mensal, melhor o
+  consolo do pior caso.
+- BDR/ADR/commodity sem dividendo relevante: nao tem esse colchao -- decisao
+  cai 100% em prob_meta x retorno_mensal puro (usuario: "eu vou sempre olhar
+  mais a probabilidade e a meta... se está muito acima com boa probabilidade
+  é pra onde eu vou").
+
+**Dado novo cadastrado:** ALOS3 nao tinha DY em lugar nenhum do codigo --
+adicionado a FUND_OVERRIDE_GLOBAL com 10,27% (StatusInvest, 25/06/2026).
+Mesma lacuna deveria ser checada para qualquer ticker novo que entrar em
+lotes futuros (nem todo ativo da B3 tem DY cadastrado ainda).
+
+## Painel de ranking na aba Em Análise (UI)
+Botão "Rodar ranking" no topo da aba (acima da lista de cards), abre tabela
+com: Ativo+nome completo, Tipo (rotulo curto BI/RC/SI/PR com title no
+hover), Prazo, Ret. mensal, Prob., DY, Colchão (com tooltip explicando a
+fórmula), Score, e coluna de Ação com botões ✓ (Aprovar/Marcar como Ativa)
+e 🚫 (Rejeitar) DIRETO NA LINHA.
+
+**Decisão de UX importante:** os botões "Marcar como Ativa"/"Rejeitar" foram
+REMOVIDOS dos cards soltos de Em Análise (tplAnaliseAcoes) -- usuário decidiu
+que não faz sentido duplicar a ação em dois lugares agora que o ranking é o
+ponto de decisão real. Cards mantêm só "Encerrar operação" para quem já
+está `status=ativa` (isso não faz parte do fluxo de ranking, que é só para
+`em_analise`).
+
+**Erro cometido e corrigido nesta sessão:** ao implementar a primeira versão
+da tabela, removi a coluna "Tipo" por engano (usuário tinha pedido só para
+ENCURTAR colunas, não remover nenhuma). Corrigido restaurando com rótulo
+curto + title. Lição: ao receber pedido de "encurtar"/"compactar", nunca
+remover uma coluna/campo sem confirmação explícita -- só reduzir largura/
+formato.
+
+## Bug real encontrado e corrigido: preço desatualizado quebrava o cálculo
+Ao montar o lote de 14 análises (sessão anterior, mesma data), o `preco_foto`
+da ROXO34 (retorno_controlado, lote 24/06) foi coletado errado via busca web
+(R$14,01, fonte sem timestamp confiável) -- o preço real na época já estava
+em ~R$10,90-10,96 (ROXO34 caiu bastante: rebaixamento BofA + saída do CFO
+Guilherme Lago). Isso fez o `kdo` calculado (R$11,43) ficar ACIMA do preço
+real, ou seja, a barreira já estaria tecnicamente "rompida" pelo próprio
+preço de partida da simulação -- resultado: `prob_meta=0,1%` no ranking,
+descoberto justamente porque o ranking expôs o outlier (usuário suspeitou
+"essa deve estar distorcida" ao ver o score quase zero).
+
+**Corrigido:** `preco_foto`→10.96, `kdo` recalculado→8.94 (mesma barreira
+-18,40% do PDF, premissa fixa mantida). Após a correção, ROXO34 do lote
+voltou a uma posição de ranking coerente (score ~3.9, prob ~80%).
+
+**Lição de processo reforçada:** sempre que um preço coletado por busca web
+(não Yahoo/brapi direto, que estão bloqueados no sandbox) alimentar um
+cálculo de barreira/KDO, é prudente desconfiar de scores/probabilidades
+extremas (muito perto de 0% ou 100%) como sinal de possível erro de dado de
+entrada -- o endpoint de ranking, ao rodar TODAS de uma vez, serviu como uma
+boa ferramenta de detecção de outliers para esse tipo de erro.
+
+## Lição de infraestrutura: cache de raw.githubusercontent.com após rejeição
+Usuário testou o botão Rejeitar (AXIA3) -- backend gravou corretamente e na
+HORA no GitHub (confirmado via API Contents: status='encerrada',
+motivo_encerramento='rejeitada'), mas o app continuou mostrando a AXIA3 no
+card de Em Análise por alguns minutos, sem aparecer ainda em Encerradas.
+
+**Causa confirmada:** `GET /analises` lê via `raw.githubusercontent.com`
+(não API Contents) -- mesmo com header `Cache-Control: no-cache` na
+requisição do backend, a CDN do GitHub para raw.githubusercontent.com NÃO
+respeita esse header do lado do servidor/CDN e serve uma cópia em cache por
+alguns minutos após qualquer commit. Isso é uma limitação conhecida da
+infraestrutura do GitHub (mesma causa raiz já documentada antes nesta sessão
+para outro contexto: "raw.githubusercontent.com ficou desatualizado por
+alguns minutos após o commit (CDN/cache), apesar do SHA via API Contents já
+estar correto").
+
+**Não há correção de código possível para isso** (não dá para forçar a CDN
+do GitHub a invalidar cache do lado de fora). Comportamento esperado:
+esperar alguns minutos (variável, não documentado por tempo fixo) após
+qualquer ação que grave no analises.json antes de esperar refletir na
+listagem. Usuário confirmou entendimento e que o teste funcionou após
+esperar.
+
+## Resultado do teste real do usuário (validado)
+1. ✅ AXIA3 rejeitada via botão na tabela de ranking -- confirmou popup,
+   linha saiu do ranking imediatamente, e após esperar alguns minutos
+   (propagação do cache do GitHub), também saiu do card de Em Análise e
+   foi confirmada como migrada (status real no GitHub: encerrada/rejeitada).
+2. Rejeição em lote (clicar em várias seguidas) -- confirmado que funciona
+   da mesma forma, cada clique é independente.
+
+## ⭐ Reflexão sobre o score -- registrado para evolução futura
+Usuário perguntou se o score atual é "como os grandes bancos decidem" --
+resposta honesta dada: NÃO é um modelo rigoroso de mercado, é uma heurística
+pragmática para o fluxo específico do usuário. Diferenças reais de um modelo
+mais rigoroso:
+- Bancos usariam Sharpe/Sortino (retorno ajustado a volatilidade real), não
+  só probabilidade de bater uma meta binária.
+- O "colchão vs CDI" (bônus fixo de +0.1) é uma boa intuição prática, mas um
+  modelo rigoroso ponderaria TODOS os cenários (sucesso/parcial/pior caso)
+  por probabilidade e valor presente, não um bônus binário.
+- O peso_prazo (vantagem de 10% para prazo curto) é preferência pessoal do
+  usuário (giro de capital), sem fundamento de mercado -- está correto para
+  o objetivo dele, mas não é "como o mercado precifica".
+
+**Usuário confirmou explicitamente: quer evoluir para EV completo (Valor
+Esperado ponderado por TODOS os cenários do `prob_retorno_faixas`, que a
+engine já calcula mas não está sendo usado no score hoje) em sessão futura.**
+Não implementado ainda -- só registrado como próximo passo prioritário do
+ranking.
+
+## Backlog novo desta sessão (ordem sugerida)
+1. ⭐ **PRÓXIMO PASSO PRIORITÁRIO:** evoluir score do ranking para EV
+   completo, usando `prob_retorno_faixas` (já calculado pela engine) em vez
+   de só `prob_meta` binária -- pondera TODOS os cenários (perda, parcial,
+   meta, acima da meta) por probabilidade, não só "bateu ou não bateu".
+2. **Minério de Ferro (TIO=F) parece fixo/sem oscilar em Cotações** --
+   usuário notou e pediu para investigar em sessão futura (sem ação ainda).
+   Possível causa a investigar: mesmo padrão de liquidez baixa/rollover já
+   documentado para essa commodity especificamente, ou bug separado no
+   fetch/cache do valor.
+3. Lote de 24/06 -- usuário começou a decidir via ranking (AXIA3 rejeitada
+   em teste real, não só teste de UI). Resto do lote (13 análises restantes
+   + as 2 antigas que sobraram em_analise: ROXO34 posição real e
+   ROXO34/TSLA34 do lote antigo) ainda aguardando decisão -- usuário vai
+   usar o ranking para decidir o resto.
+4. Resto do backlog de sessões anteriores continua igual (FIIs, ETFs, Renda
+   fixa, "Análise de Papel", Migração Em Análise→Ativa) -- sem mudança.
+
+## Lembrete de processo reforçado nesta sessão
+- Ao receber pedido de "encurtar"/"compactar" algo visual, nunca remover um
+  campo/coluna sem confirmação explícita -- só reduzir formato/largura.
+- Scores ou probabilidades extremas (perto de 0% ou 100%) em qualquer
+  cálculo em lote são sinal de possível erro de dado de entrada (preço
+  desatualizado, barreira mal calculada) -- vale conferir antes de assumir
+  que é um resultado real.
+- Após qualquer escrita no analises.json via app (não via sessão de chat),
+  esperar alguns minutos antes de assumir que a listagem (`GET /analises`,
+  que lê via raw.githubusercontent.com) já reflete a mudança -- é
+  limitação de cache de CDN do GitHub, não bug de lógica.
