@@ -1750,6 +1750,14 @@ function renderAnalises(){
 // historico de analises (rejeitadas + encerradas reais com sucesso/
 // fracasso), distinta da secao de Posicoes reais (positions.json) que
 // ja existia. Dashboard no mesmo estilo visual de calcDashboardEncerradas.
+// CORRIGIDO 23/06/2026 (2a correcao): usuario simplificou -- nao precisa
+// separar por "fase", e UM historico unico com funil simples:
+// Total (todas as analises que ja existiram) -> % Aprovadas/Ativadas (do
+// total, quantas chegaram a ser ativas -- inclui as que ainda estao
+// ativas agora E as que ja foram encerradas) -> % Rejeitadas (do total,
+// nunca chegaram a ser ativas) -> Taxa de Sucesso (medida SO entre as
+// que foram ativas e ja encerraram, nao entre o total e nao incluindo
+// rejeitadas, que nunca foram testadas de verdade).
 async function loadAnalisesEncerradas(){
   const cont=document.getElementById('enc-analises-container');
   if(!cont)return;
@@ -1760,39 +1768,52 @@ async function loadAnalisesEncerradas(){
     ]);
     const dataA=rA.ok?await rA.json():[];
     const stats=(rS&&rS.ok)?await rS.json():{total_rejeitadas:0};
-    const lista=Array.isArray(dataA)?dataA.filter(a=>a.status==='encerrada'):[];
-
-    const rejeitadas=lista.filter(a=>a.motivo_encerramento==='rejeitada');
-    const encerradasReais=lista.filter(a=>a.resultado);
-    const sucessos=encerradasReais.filter(a=>a.resultado==='sucesso').length;
-    const taxaSucesso=encerradasReais.length?Math.round(sucessos/encerradasReais.length*100):null;
+    const todasVisiveis=Array.isArray(dataA)?dataA:[];
     const totalRejeitadasPermanente=stats.total_rejeitadas||0;
+    // Total = todas as visiveis + rejeitadas ja limpas da lista (>30 dias)
+    // que so existem no contador permanente
+    const rejeitadasVisiveis=todasVisiveis.filter(a=>a.motivo_encerramento==='rejeitada').length;
+    const total=todasVisiveis.length+Math.max(0,totalRejeitadasPermanente-rejeitadasVisiveis);
+
+    const jaFoiAtiva=todasVisiveis.filter(a=>a.status==='ativa'||(a.status==='encerrada'&&a.resultado));
+    const encerradasComResultado=todasVisiveis.filter(a=>a.status==='encerrada'&&a.resultado);
+    const sucessos=encerradasComResultado.filter(a=>a.resultado==='sucesso').length;
+    const taxaSucesso=encerradasComResultado.length?Math.round(sucessos/encerradasComResultado.length*100):null;
+    const pctAprovadas=total?Math.round(jaFoiAtiva.length/total*100):0;
+    const pctRejeitadas=total?Math.round(totalRejeitadasPermanente/total*100):0;
+
+    const listaCards=todasVisiveis.filter(a=>a.status==='encerrada');
 
     let dashboard=`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
       <div class="card g">
-        <div class="cl">Encerradas (operadas)</div>
-        <div class="cp">${encerradasReais.length}</div>
-        <div class="cc" style="color:var(--muted)">sucesso/fracasso</div>
+        <div class="cl">Total Analisado</div>
+        <div class="cp">${total}</div>
+        <div class="cc" style="color:var(--muted)">histórico completo</div>
       </div>
       <div class="card g">
-        <div class="cl">Taxa de Sucesso</div>
-        <div class="cp">${taxaSucesso!=null?taxaSucesso+'%':'—'}</div>
-        <div class="cc" style="color:var(--green)">${sucessos} de ${encerradasReais.length} ✅</div>
+        <div class="cl">Aprovadas/Ativadas</div>
+        <div class="cp">${pctAprovadas}%</div>
+        <div class="cc" style="color:var(--green)">${jaFoiAtiva.length} de ${total}</div>
       </div>
       <div class="card b">
-        <div class="cl">Rejeitadas (histórico)</div>
-        <div class="cp">${totalRejeitadasPermanente}</div>
-        <div class="cc" style="color:#ff6b6b">🚫 nunca foram ativas</div>
+        <div class="cl">Rejeitadas</div>
+        <div class="cp">${pctRejeitadas}%</div>
+        <div class="cc" style="color:#ff6b6b">🚫 ${totalRejeitadasPermanente} de ${total}</div>
+      </div>
+      <div class="card b">
+        <div class="cl">Taxa de Sucesso</div>
+        <div class="cp">${taxaSucesso!=null?taxaSucesso+'%':'—'}</div>
+        <div class="cc" style="color:var(--accent)">${sucessos} de ${encerradasComResultado.length} (só ativadas)</div>
       </div>
     </div>`;
 
-    if(!lista.length){
+    if(!listaCards.length){
       cont.innerHTML=dashboard+'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
       return;
     }
 
-    const cards=lista.map(a=>tplAnaliseEncerrada(a)).join('');
+    const cards=listaCards.map(a=>tplAnaliseEncerrada(a)).join('');
     cont.innerHTML=dashboard+cards;
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar histórico de análises: '+e.message+'</p>';
