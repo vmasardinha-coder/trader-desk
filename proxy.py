@@ -3170,6 +3170,197 @@ def mudar_status_analise(analise_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ── RANKING EM LOTE (Fase A→decisao) ─────────────────────
+# Adicionado 25/06/2026. Resolve o problema de Victor ter que abrir analise
+# por analise em "Em Analise" e copiar numeros manualmente quando o lote
+# cresce (visto na pratica com o lote de 14 do dia 24/06). Roda a MESMA
+# logica de probabilidade do /montecarlo/condicional para TODAS as analises
+# em_analise de uma vez, monta uma tabela com todas as colunas (sem filtro
+# automatico -- Victor decide manualmente olhando tudo) e calcula um SCORE
+# so para ORDENACAO, nunca para esconder linhas.
+#
+# Formula do score (fechada com Victor em 25/06/2026):
+#   retorno_mensal = ganho_pct / meses_restantes
+#   peso_prazo = 1 + (30/dias_restantes) * 0.1   (vantagem leve, giro de capital)
+#   SE dy do papel-base existir e for > 0 (bidirecional/retorno_controlado
+#   com dividendo real cadastrado em FUND_OVERRIDE_GLOBAL):
+#       colchao_vs_cdi = (dy_anual/12) - (cdi_anual/12)
+#       score = (prob_meta/100) * retorno_mensal * peso_prazo
+#               + (0.1 if colchao_vs_cdi > 0 else 0)
+#   SE NAO (BDR/ADR/commodity sem dividendo -- ex. ROXO34/TSLA34/BSLV39/
+#   AMZO34): score = (prob_meta/100) * retorno_mensal * peso_prazo, puro,
+#   sem bonus de colchao (nao tem rede de seguranca de dividendo).
+FUND_OVERRIDE_GLOBAL = {
+    # Mesmos dados do FUND_OVERRIDE usado em /indicators (ref. Fundamentus,
+    # ver FUND_DATA_REF la dentro -- duplicado aqui de proposito para nao
+    # acoplar este endpoint a estrutura interna de outro endpoint.
+    'PETR4': 6.42, 'VALE3': 6.70, 'BBAS3': 9.80, 'AXIA3': 5.30, 'ROXO34': 0.00,
+    'ITUB4': 8.70, 'BBSE3': 13.60, 'CXSE3': 7.50, 'MULT3': 3.70, 'CYRE3': 10.80,
+    'DIRR3': 17.30, 'CMIN3': 24.30, 'GGBR4': 2.90, 'PSSA3': 6.10,
+    'SAPR11': 5.20, 'EUCA4': 4.60, 'PRIO3': 0.00,
+    # Adicionado 25/06/2026 para o lote -- ALOS3 nao estava cadastrado em
+    # nenhum lugar do app ainda. DY coletado via busca web (StatusInvest,
+    # 25/06/2026): 10,27%.
+    'ALOS3': 10.27,
+}
+# Tickers sem dividendo relevante (BDRs de empresas/ETFs sem distribuicao,
+# ou commodities) -- mesmo se aparecessem com dy=0.0 cadastrado, marcar
+# explicitamente como "sem DY" para nao confundir com dado ausente.
+_SEM_DY_RELEVANTE = {'ROXO34', 'TSLA34', 'BSLV39', 'AMZO34', 'PRIO3'}
+
+@app.route('/analises/ranking', methods=['GET'])
+def ranking_analises():
+    """
+    Roda a probabilidade (Monte Carlo) de TODAS as analises em_analise de
+    uma vez e devolve uma tabela ja pronta para ranquear, com score de
+    ORDENACAO (nunca filtro). Ver comentario acima desta funcao para a
+    formula completa do score, fechada com o usuario em 25/06/2026.
+    """
+    try:
+        import numpy as np
+        from datetime import datetime as _dt3
+
+        conteudo_str, _ = _github_get_file('analises.json')
+        lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+        em_analise = [a for a in lista if a.get('status') == 'em_analise']
+
+        cdi_anual = get_cdi()
+        cdi_mensal = cdi_anual / 12
+
+        resultado = []
+        for a in em_analise:
+            try:
+                ticker = a['ticker']
+                symbol = ticker.replace('.SA', '').upper()
+                preco_foto = float(a['preco_foto'])
+                data_foto = _dt3.strptime(a['data_foto'][:10], '%Y-%m-%d').date()
+                prazo_dias = int(a['prazo_dias'])
+                hoje = _dt3.now().date()
+                dias_passados = (hoje - data_foto).days
+                dias_restantes = max(prazo_dias - dias_passados, 1)
+                meses_restantes = max(dias_restantes / 30.4, 0.1)
+
+                # Busca preco atual + historico (mesmo padrao Yahoo->brapi
+                # ja usado em /montecarlo/condicional)
+                S = None
+                cl = []
+                sigma = 0.35
+                for host in ['query1', 'query2']:
+                    try:
+                        r = requests.get(
+                            f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                            headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                        if r.ok:
+                            d = r.json()
+                            meta_y = d['chart']['result'][0]['meta']
+                            raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                            cl = [c for c in raw_cl if c is not None]
+                            S = float(meta_y.get('regularMarketPrice', cl[-1] if cl else 0))
+                            if cl: sigma = vol_hist(cl)
+                            break
+                    except: continue
+                if not S:
+                    try:
+                        rb = requests.get(
+                            f'https://brapi.dev/api/quote/{symbol}?range=3mo&interval=1d',
+                            headers=BRAPI_HEADERS, timeout=10)
+                        if rb.ok:
+                            rd = rb.json().get('results', [{}])[0]
+                            S = rd.get('regularMarketPrice')
+                            hist = rd.get('historicalDataPrice', [])
+                            cl_bp = [x['close'] for x in hist if x.get('close')]
+                            if cl_bp:
+                                cl = cl_bp
+                                sigma = vol_hist(cl)
+                    except: pass
+                if not S or S <= 0:
+                    resultado.append({**_linha_ranking_base(a), 'erro': 'preco atual indisponivel'})
+                    continue
+
+                if len(cl) >= 50:
+                    try:
+                        garch_info = garch_11(cl, horizon_days=min(max(dias_restantes, 1), 60))
+                        if garch_info:
+                            sigma = garch_info['vol_garch_projetada_pct'] / 100
+                    except: pass
+
+                tipo = a.get('tipo_estrutura')
+                ganho_pct = None
+                prob_meta = None
+
+                n_sim = 20000
+                dt_sim = 1/252.0
+                drift_sim = -0.5*sigma**2*dt_sim
+                vol_step_sim = sigma*math.sqrt(dt_sim)
+                z_sim = np.random.standard_normal((n_sim, dias_restantes))
+                paths_sim = S*np.exp(np.cumsum(drift_sim+vol_step_sim*z_sim, axis=1))
+                min_sim = np.min(paths_sim, axis=1)
+                max_sim = np.max(paths_sim, axis=1)
+
+                if tipo == 'retorno_controlado' and a.get('kdo') is not None and a.get('ganho_prefixado_pct') is not None:
+                    ganho_pct = float(a['ganho_prefixado_pct'])
+                    kdo = float(a['kdo'])
+                    tocou = min_sim <= kdo
+                    prob_meta = round(float((~tocou).mean()*100), 2)
+                elif tipo == 'bidirecional' and a.get('kdo') is not None and a.get('kuo') is not None and a.get('teto_retorno_pct') is not None:
+                    ganho_pct = float(a['teto_retorno_pct'])
+                    kdo = float(a['kdo']); kuo = float(a['kuo'])
+                    tocou_alta = max_sim >= kuo
+                    prob_meta = round(float(tocou_alta.mean()*100), 2)
+                else:
+                    resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
+                    continue
+
+                retorno_mensal = round(ganho_pct / meses_restantes, 3)
+                peso_prazo = 1 + (30/dias_restantes)*0.1
+
+                dy_anual = FUND_OVERRIDE_GLOBAL.get(symbol)
+                tem_dy_relevante = (symbol not in _SEM_DY_RELEVANTE and dy_anual is not None and dy_anual > 0)
+                colchao_vs_cdi = None
+                if tem_dy_relevante:
+                    colchao_vs_cdi = round((dy_anual/12) - cdi_mensal, 3)
+
+                score = (prob_meta/100) * retorno_mensal * peso_prazo
+                if tem_dy_relevante and colchao_vs_cdi is not None and colchao_vs_cdi > 0:
+                    score += 0.1
+
+                resultado.append({
+                    'id': a['id'], 'ticker': ticker, 'nome': a.get('nome'),
+                    'tipo_estrutura': tipo, 'lote': a.get('lote'),
+                    'backtest': a.get('backtest'),
+                    'preco_foto': preco_foto, 'preco_atual': round(S, 2),
+                    'dias_restantes': dias_restantes,
+                    'meses_restantes': round(meses_restantes, 2),
+                    'ganho_pct': ganho_pct,
+                    'retorno_mensal_pct': retorno_mensal,
+                    'prob_meta_pct': prob_meta,
+                    'dy_anual_pct': dy_anual if tem_dy_relevante else None,
+                    'cdi_mensal_pct': round(cdi_mensal, 3),
+                    'colchao_dy_vs_cdi_pct': colchao_vs_cdi,
+                    'peso_prazo': round(peso_prazo, 3),
+                    'score': round(score, 4),
+                })
+            except Exception as e_item:
+                resultado.append({**_linha_ranking_base(a), 'erro': str(e_item)})
+
+        resultado.sort(key=lambda r: r.get('score', -1) if r.get('score') is not None else -1, reverse=True)
+        return jsonify({
+            'cdi_anual_pct': cdi_anual,
+            'total_analises': len(em_analise),
+            'ranking': resultado,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def _linha_ranking_base(a):
+    """Linha minima quando o calculo completo falha -- nunca esconde o
+    registro, so marca que deu erro (Victor ve TODOS, sempre)."""
+    return {
+        'id': a.get('id'), 'ticker': a.get('ticker'), 'nome': a.get('nome'),
+        'tipo_estrutura': a.get('tipo_estrutura'), 'lote': a.get('lote'),
+        'backtest': a.get('backtest'), 'score': None,
+    }
+
 @app.route('/positions', methods=['GET'])
 def get_positions():
     """
