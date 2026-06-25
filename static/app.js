@@ -1784,8 +1784,8 @@ function tplRanking(d){
       <th style="padding:6px 8px">Ativo</th>
       <th style="padding:6px 8px" title="BI=Bidirecional, RC=Retorno Controlado, SI=Simples, PR=Prêmio">Tipo</th>
       <th style="padding:6px 8px;text-align:right">Prazo</th>
-      <th style="padding:6px 8px;text-align:right">Ret. mensal</th>
-      <th style="padding:6px 8px;text-align:right">Prob.</th>
+      <th style="padding:6px 8px;text-align:right" title="Retorno mensal equivalente SE bater a meta (ganho prefixado/teto), ignorando o cenário de romper a barreira. Veja EV mensal para o retorno médio considerando TODOS os cenários.">Ret. mensal <span style="opacity:.6;cursor:help">ⓘ</span></th>
+      <th style="padding:6px 8px;text-align:right" title="Probabilidade de NÃO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, com o preço atual) -- é dinâmica, recalcula a cada vez que você roda o ranking. Diferente do número 'desde o início' que aparece no detalhe de cada análise (esse usa o prazo total a partir do preço da foto).">Prob. <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="EV mensal -- retorno médio ponderando todos os cenários, não só se bateu a meta">EV mensal</th>
       <th style="padding:6px 8px;text-align:right">DY</th>
       <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
