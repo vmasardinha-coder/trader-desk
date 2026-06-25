@@ -1044,3 +1044,66 @@ Nenhum foi registrado em analises.json ainda.
   zero, verificar se já existe um mecanismo parecido no código (ex: o
   botão "Encerrar sem executar" já era o "Rejeitar", só faltava a
   semântica certa — não precisava reinventar por fora).
+
+---
+
+# Anexo — Tabelas completas do lote de 24/06/2026 (exclusivas deste lote)
+
+Estas são as DUAS tabelas completas construídas e usadas para a filtragem
+e decisão do lote de 24/06/2026 (8 PDFs + planilha de 144 linhas). O
+resumo de 10 candidatos já registrado na seção anterior é o RESULTADO
+final dessas tabelas — aqui fica o caminho completo, caso precise
+revisitar/refazer o raciocínio numa sessão futura.
+
+## Tabela 1 — Critério completo (retorno + dividendo), pós-exclusões do usuário
+
+Critério: retorno mensal equivalente > 2% (eliminatório) + dividend
+yield do papel-base > 8% (desempate/mitigação de pior caso). Exclusões
+já aplicadas pelo usuário: BBSE3, CXSE3 (nunca passam retorno), PRIO3
+(PETR4 quase igual em retorno e paga dividendo), BEEF3 (comentado antes
+como fora), WEGE3 (bidirecional, estudo separado — sem piso de queda).
+
+| Ativo | Origem | Fixing | Dias | Ret. total | Ret. mensal | DY | Passa os 2? |
+|---|---|---|---|---|---|---|---|
+| CMIN3 | Tabela | 21/09/2026 | 89 | 13,61% | 4,65% | 11,7% | ✅✅ |
+| ROXO34 | PDF | 21/08/2026 | 58 | 8,90% | 4,66% | 0% | Só retorno |
+| TSLA34 | PDF | 21/08/2026 | 58 | 8,80% | 4,61% | 0% | Só retorno |
+| BSLV39 | PDF | 21/08/2026 | 58 | 8,30% | 4,35% | 0% | Só retorno |
+| DIRR3 | Tabela | 21/09/2026 | 89 | 12,26% | 4,19% | 9,0% | ✅✅ |
+| AMZO34 | PDF | 10/08/2026 | 47 | 6,00% | 3,88% | 0% | Só retorno |
+| PETR4 | Tabela | 21/09/2026 | 89 | 9,38% | 3,20% | 12,0% | ✅✅ |
+| CYRE3 | PDF | 21/08/2026 | 58 | 5,60% | 2,94% | 12,8% | ✅✅ |
+| VALE3 | Tabela | 21/09/2026 | 89 | 6,23% | 2,13% | 9,0% | ✅✅ |
+| ALOS3 | Tabela | 21/09/2026 | 89 | 6,25% | 2,13% | 12,0% | ✅✅ |
+
+## Tabela 2 — Melhor combinação por ativo via EV (retorno × Delta), pós-desempate
+
+Para ativos com múltiplas combinações na planilha (DIRR3, CMIN3, PETR4,
+VALE3, ALOS3), o usuário pediu desempate por EV simplificado = retorno
+mensal × (Delta/100), em vez de só o maior retorno isolado — porque
+retorno mais alto às vezes "compra" probabilidade (Delta) muito mais
+baixa. Resultado: todos os 4 com opção de vencimento curto (08/07/2026,
+14 dias) convergiram para essa data como melhor EV (só ALOS3 não tinha
+opção curta na planilha filtrada).
+
+| Ativo | Fixing | Dias | Ret. total | Ret. mensal | Delta | EV |
+|---|---|---|---|---|---|---|
+| DIRR3 | 08/07/2026 | 14 | 2,62% | 5,69% | 46,4% | 2,64 |
+| CMIN3 | 08/07/2026 | 14 | 2,00% | 4,34% | 53,1% | 2,31 |
+| ROXO34 (PDF) | 21/08/2026 | 58 | 8,90% | 4,66% | — | — |
+| TSLA34 (PDF) | 21/08/2026 | 58 | 8,80% | 4,61% | — | — |
+| BSLV39 (PDF) | 21/08/2026 | 58 | 8,30% | 4,35% | — | — |
+| AMZO34 (PDF) | 10/08/2026 | 47 | 6,00% | 3,88% | — | — |
+| CYRE3 (PDF) | 21/08/2026 | 58 | 5,60% | 2,94% | — | — |
+| PETR4 | 08/07/2026 | 14 | 1,22% | 2,65% | 66,0% | 1,75 |
+| ALOS3 | 21/09/2026 | 89 | 2,13% | 2,13% | 47,1% | 1,00 |
+| VALE3 | 08/07/2026 | 14 | 0,97% | 2,11% | 71,5% | 1,51 |
+
+## Observação importante sobre DIRR3/CMIN3/PETR4/VALE3
+As duas tabelas têm fixing DIFERENTE para esses 4 ativos (Tabela 1 usa
+21/09/2026 — maior retorno total nominal — Tabela 2 usa 08/07/2026 —
+melhor EV). O usuário AINDA NÃO decidiu qual das duas filosofias seguir
+para esses 4 quando for escolher os candidatos finais — isso precisa ser
+resolvido antes de "tirar a foto" de qualquer um desses 4 (CMIN3, DIRR3,
+PETR4, VALE3). Os outros 6 (ROXO34, TSLA34, BSLV39, AMZO34, CYRE3, ALOS3)
+não têm esse conflito — são os mesmos números nas duas tabelas.
