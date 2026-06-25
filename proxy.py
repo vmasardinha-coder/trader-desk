@@ -468,41 +468,58 @@ def yquote(ticker):
 # de baixa liquidez sujeito a rollover de vencimento -- o sanity check
 # (variacao >15% oculta o %) estava disparando quase todo dia, fazendo a
 # variacao parecer congelada mesmo com o preco em si atualizando. Usuario
-# pediu fonte alternativa mais estavel em vez de so ajustar parametros do
-# Yahoo. Investing.com confirmado via busca: pagina mostra "Day's Range"
-# e "Prev. Close" claramente, mas e SCRAPING DE PAGINA (nao API oficial) --
-# pode parar de funcionar se o investing.com mudar o HTML/exigir JS. Se o
-# scraping falhar silenciosamente, FAZ FALLBACK para o yquote('TIO=F') já
-# existente (nunca quebra o endpoint /futures por completo).
+# pediu fonte alternativa mais estavel.
+#
+# TENTATIVA 1 (Investing.com) DESCARTADA apos teste real: usuario reportou
+# preco ainda fixo apos deploy, e investigacao confirmou que a propria
+# pagina do Investing.com para esse contrato esta com "Delayed Data·11/05"
+# -- ou seja, a FONTE em si parou de atualizar ha mais de um mes para esse
+# ticker especifico, nao e so liquidez baixa do pregao do dia. Trocar de
+# fonte nao ajudaria enquanto a fonte nova tambem estiver congelada.
+#
+# TENTATIVA 2 (Trading Economics, pt.tradingeconomics.com/commodity/iron-ore):
+# confirmado via inspecao manual mostrando data mais recente (12/06/2026 no
+# momento do teste, ~13 dias de defasagem vs tempo real, mas ATUALIZANDO --
+# nao travado como o Investing.com). Pagina e SCRAPING (nao API oficial),
+# mesma ressalva de fragilidade a mudanca de HTML. Se falhar, fallback para
+# yquote('TIO=F') existente -- nunca quebra o endpoint /futures por completo.
 def scrape_iron_ore_investing():
-    """Fallback de fonte para Minerio de Ferro via scraping leve do
-    Investing.com (sem JS rendering -- se a pagina exigir JS para carregar
-    o preco, este scraping retorna None e o caller cai de volta no Yahoo).
-    NUNCA usar para outros tickers sem validar o HTML primeiro -- layout
-    de pagina pode mudar sem aviso."""
+    """Fonte alternativa para Minerio de Ferro via scraping leve do Trading
+    Economics (pt.tradingeconomics.com). Nome da funcao mantido por
+    compatibilidade com o restante do codigo, mas a fonte real e Trading
+    Economics, nao Investing.com (trocado apos teste real confirmar que o
+    Investing.com estava com dado congelado ha >1 mes para este ticker)."""
     try:
         r = requests.get(
-            'https://www.investing.com/commodities/iron-ore-62-cfr-futures',
+            'https://pt.tradingeconomics.com/commodity/iron-ore',
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'},
             timeout=8)
         if not r.ok:
             return None
         html = r.text
-        # Padrao confirmado via inspecao manual da pagina (25/06/2026):
-        # "The current price of Iron Ore 62% futures is 111.42" -- texto
-        # fixo do FAQ, mais estavel que tentar parsear o widget de preco
-        # principal (que pode ter classes CSS dinamicas).
-        # Regex tolerante a tags/espacos no meio (requests.get traz HTML
-        # bruto, nao o markdown limpo que web_fetch mostra) -- usa \s+ e
-        # permite tags simples entre as palavras-chave.
-        html_limpo = re.sub(r'<[^>]+>', ' ', html)  # remove tags HTML cruas
-        m_price = re.search(r'current\s+price\s+of\s+Iron\s+Ore\s+62%\s+futures\s+is\s+([\d,]+\.?\d*)', html_limpo)
-        m_prev = re.search(r'previous\s+close\s+of\s+([\d,]+\.?\d*)', html_limpo)
-        if not m_price:
+        html_limpo = re.sub(r'<[^>]+>', ' ', html)
+        # Padrao confirmado via inspecao manual (25/06/2026): "subiu/caiu
+        # para 101,62 USD/T em 12 de junho de 2026" -- numero usa VIRGULA
+        # decimal (formato BR), nao ponto. Tambem busca a linha da tabela
+        # "Minério De Ferro | 101.62" (essa com PONTO) como fonte alternativa
+        # caso o texto narrativo mude de formato.
+        m_narrativo = re.search(r'minério\s+de\s+ferro\s+(?:subiu|caiu|manteve-se)\s+para\s+([\d.,]+)\s*USD\s*/\s*T', html_limpo, re.IGNORECASE)
+        m_tabela = re.search(r'Minério\s+De\s+Ferro\s*\|?\s*([\d.,]+)\s*\|', html_limpo, re.IGNORECASE)
+        m = m_narrativo or m_tabela
+        if not m:
             return None
-        price = float(m_price.group(1).replace(',', ''))
-        prev = float(m_prev.group(1).replace(',', '')) if m_prev else price
-        return {'price': round(price, 2), 'prev': round(prev, 2), 'source': 'investing.com'}
+        raw = m.group(1)
+        # Normaliza formato BR (101,62) vs US (101.62): se tiver virgula E
+        # ponto, assume ponto=milhar/virgula=decimal (BR); se so virgula,
+        # vira decimal; se so ponto, mantem.
+        if ',' in raw and '.' in raw:
+            raw = raw.replace('.', '').replace(',', '.')
+        elif ',' in raw:
+            raw = raw.replace(',', '.')
+        price = float(raw)
+        if price < 20 or price > 500:  # sanity check de ordem de grandeza
+            return None
+        return {'price': round(price, 2), 'prev': round(price, 2), 'source': 'tradingeconomics.com'}
     except Exception:
         return None
 
