@@ -3484,23 +3484,39 @@ def _linha_ranking_base(a):
 # de relevancia: papel > tijolo > FoF (usuario opera os tres).
 #
 # Mapeamento real de "Segmento" do Fundamentus (NAO e exatamente papel/
-# tijolo/fof -- e o SETOR DE ATUACAO): confirmado via pesquisa que os
-# valores reais sao: "Títulos e Val. Mob." (~=papel/CRI), "Híbrido",
-# "Lajes Corporativas", "Shoppings", "Logística", "Residencial",
-# "Hospital", "Hotel", "Outros". Mapeado abaixo para papel/tijolo/hibrido/
-# outros, ja que o Fundamentus nao usa a nomenclatura papel/tijolo/fof
-# diretamente.
+# tijolo/fof -- e o SETOR DE ATUACAO). Lista COMPLETA confirmada via teste
+# real em produção (25/06/2026, 560 FIIs brutos retornados): "Títulos e
+# Val. Mob." (~=papel/CRI), "Híbrido", "Multicategoria", "Lajes
+# Corporativas", "Escritórios", "Shoppings", "Logística", "Residencial",
+# "Varejo", "Hospital", "Hotel", "Outros". Mapeado para papel/tijolo/
+# hibrido/outros (Fundamentus nao usa papel/tijolo/fof diretamente).
+# CORRIGIDO 25/06/2026: mapeamento original (especificado antes do teste
+# real) estava incompleto -- "Multicategoria" e outros caiam em "outros"
+# por padrão sem terem sido analisados. Ajustado apos ver os segmentos
+# reais retornados pelo endpoint.
 _FII_SEGMENTO_MAP = {
     'Títulos e Val. Mob.': 'papel',
     'Híbrido': 'hibrido',
+    'Multicategoria': 'hibrido',  # mistura varios tipos de imovel/ativo, mais proximo de hibrido que de "outros" generico
     'Lajes Corporativas': 'tijolo',
+    'Escritórios': 'tijolo',
     'Shoppings': 'tijolo',
     'Logística': 'tijolo',
     'Residencial': 'tijolo',
+    'Varejo': 'tijolo',
     'Hospital': 'tijolo',
     'Hotel': 'tijolo',
     'Outros': 'outros',
 }
+
+# Filtro de P/VP minimo contra "yield trap" -- fechado com o usuario em
+# 25/06/2026 apos o primeiro teste real mostrar FIIs com P/VP muito baixo
+# (0.15-0.19) e DY muito alto (19-23%) no topo do ranking (HCTR11, DEVA11,
+# VSLH11 -- FIIs de papel/CRI com historico real de problemas de credito
+# documentados no mercado). P/VP tao descontado normalmente reflete
+# desconfianca do mercado sobre o valor patrimonial declarado, nao uma
+# pechincha genuina -- usuario confirmou que quer esse filtro adicional.
+_FII_PVP_MINIMO = 0.5
 
 def scrape_fiis_fundamentus():
     """Scraping da tabela completa de FIIs do Fundamentus. Retorna lista de
@@ -3630,8 +3646,9 @@ def get_fiis():
                 motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
             elif f['dy_pct'] is None or f['dy_pct'] <= 0:
                 motivo = 'DY zerado ou ausente'
-            elif f['p_vp'] is None or f['p_vp'] <= 0 or f['p_vp'] > 3:
-                motivo = f'P/VP anômalo ({f["p_vp"]})' if f['p_vp'] is not None else 'P/VP ausente'
+            elif f['p_vp'] is None or f['p_vp'] < _FII_PVP_MINIMO or f['p_vp'] > 3:
+                motivo = (f'P/VP fora da faixa segura ({f["p_vp"]}, mínimo {_FII_PVP_MINIMO} contra yield trap)'
+                          if f['p_vp'] is not None else 'P/VP ausente')
 
             if motivo:
                 descartados.append({'ticker': f['ticker'], 'motivo': motivo})
