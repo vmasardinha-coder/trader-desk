@@ -1712,18 +1712,37 @@ async function loadAnalises(){
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar analises.json: '+e.message+'</p>';
   }
-  // Adicionado 23/06/2026 -- contador PERMANENTE de rejeitadas (nao
-  // depende dos registros detalhados continuarem visiveis na lista
-  // apos os 30 dias de limpeza, ver GET /analises/stats no backend).
+  // CORRIGIDO 23/06/2026: usuario pediu dashboard de funil completo, nao
+  // so o contador isolado de rejeitadas. Logica: Total = todas as
+  // analises (incluindo rejeitadas e ja migradas); Ativas = status atual
+  // ainda ativo; Encerradas = JA FORAM ativas e fecharam de fato (tem
+  // campo 'resultado' sucesso/fracasso) -- so essas entram na taxa de
+  // sucesso; Rejeitadas = NUNCA foram ativas (motivo_encerramento=
+  // 'rejeitada') -- usa o contador PERMANENTE (nao conta so os visiveis
+  // na lista, que podem ter sido limpos apos 30 dias).
   try{
     const rs=await fetch(B+'/analises/stats',{cache:'no-store'});
-    if(rs.ok){
-      const stats=await rs.json();
-      const el=document.getElementById('analise-stats-rejeitadas');
-      if(el&&stats.total_rejeitadas>0){
-        el.style.display='block';
-        el.textContent='🚫 Total histórico de análises rejeitadas (probabilidade real baixa): '+stats.total_rejeitadas;
-      }
+    const stats=rs.ok?await rs.json():{total_rejeitadas:0};
+    const lista=_analiseData||[];
+    const ativas=lista.filter(a=>a.status==='ativa').length;
+    const encerradasReais=lista.filter(a=>a.status==='encerrada'&&a.resultado);
+    const sucessos=encerradasReais.filter(a=>a.resultado==='sucesso').length;
+    const taxaSucesso=encerradasReais.length?Math.round(sucessos/encerradasReais.length*100):null;
+    const totalRejeitadas=stats.total_rejeitadas||0;
+    // Total visivel agora (pode nao incluir rejeitadas com mais de 30
+    // dias, que ja saíram da lista mas continuam no contador permanente)
+    const totalVisivel=lista.length;
+
+    const el=document.getElementById('analise-stats-rejeitadas');
+    if(el){
+      el.style.display='block';
+      el.style.color='var(--muted)';
+      let html='📊 Total (visível): <b style="color:var(--text)">'+totalVisivel+'</b>';
+      html+=' · Ativas: <b style="color:var(--green)">'+ativas+'</b>';
+      html+=' · Encerradas: <b style="color:var(--text)">'+encerradasReais.length+'</b>';
+      if(taxaSucesso!=null)html+=' (<b style="color:'+(taxaSucesso>=50?'var(--green)':'#ff6b6b')+'">'+taxaSucesso+'% sucesso</b>)';
+      html+=' · <span style="color:#ff6b6b">🚫 Rejeitadas: <b>'+totalRejeitadas+'</b></span>';
+      el.innerHTML=html;
     }
   }catch(e){/* nao bloqueia a tela principal se stats falhar */}
 }
@@ -1803,28 +1822,48 @@ function tplAnaliseAcoes(a){
     return `
     <div style="display:flex;gap:8px;margin-top:14px">
       <button onclick="mudarStatusAnalise('${a.id}','ativa')" style="flex:1;background:var(--green);border:none;color:#06140c;padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">✓ Marcar como Ativa</button>
-      <button onclick="mudarStatusAnalise('${a.id}','encerrada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">Encerrar sem executar</button>
+      <button onclick="mudarStatusAnalise('${a.id}','encerrada','rejeitada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🚫 Rejeitar</button>
     </div>`;
   }
   if(a.status==='ativa'){
     return `
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button onclick="mudarStatusAnalise('${a.id}','encerrada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🗂 Encerrar operação</button>
+      <button onclick="encerrarOperacaoAtiva('${a.id}')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🗂 Encerrar operação</button>
     </div>`;
   }
   return '';
 }
 
-async function mudarStatusAnalise(id,novoStatus){
-  if(novoStatus==='encerrada'){
-    const ok=confirm('Confirma mudar esta análise para ENCERRADA? Essa ação grava no repositório.');
+// Adicionado 23/06/2026 -- ao encerrar uma analise que JA FOI ativa (nao
+// uma rejeitada, que nunca chegou a operar), pergunta sucesso/fracasso
+// para alimentar a taxa de sucesso do dashboard de funil. Fluxo em 2
+// passos para nao confundir 'cancelar a acao' com 'foi fracasso'.
+async function encerrarOperacaoAtiva(id){
+  const prosseguir=confirm('Confirma ENCERRAR esta operação? Essa ação grava no repositório.');
+  if(!prosseguir)return;
+  const deuCerto=confirm('A operação foi um SUCESSO?\n\nClique OK para SIM (sucesso) ou Cancelar para NÃO (fracasso).');
+  await mudarStatusAnalise(id,'encerrada',null,deuCerto?'sucesso':'fracasso');
+}
+
+// CORRIGIDO 23/06/2026: usuario esclareceu que o botao 'Encerrar sem
+// executar' (renomeado para 'Rejeitar' acima) JA ERA o mecanismo certo
+// para marcar uma analise como rejeitada -- nao precisava criar logica
+// separada por fora. Agora mudarStatusAnalise aceita motivo opcional
+// (so passado pelo botao 'Rejeitar', NAO pelo botao 'Encerrar operação'
+// de uma posicao que ja foi ativa de fato).
+async function mudarStatusAnalise(id,novoStatus,motivo,resultado){
+  if(novoStatus==='encerrada'&&motivo==='rejeitada'){
+    const ok=confirm('Confirma REJEITAR esta análise (nunca foi ativa, sai de Em Análise e vai para Encerradas como rejeitada)? Essa ação grava no repositório.');
     if(!ok)return;
   }
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const body={status:novoStatus};
+    if(motivo)body.motivo_encerramento=motivo;
+    if(resultado)body.resultado=resultado;
     const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
       method:'PUT',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
-      body:JSON.stringify({status:novoStatus})
+      body:JSON.stringify(body)
     });
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
