@@ -1679,3 +1679,89 @@ qualquer scraping novo for construído (FIIs e outros futuros).
    mínima → vacância (para tijolo).
 4. Decidir layout de UI (nova aba? seção dentro de Cotações/Indicadores?)
    -- ainda não discutido com o usuário.
+
+---
+
+# Sessão 25/06/2026 (parte 6) — Esclarecimento das duas probabilidades + visão de arquitetura para FIIs
+
+## SHA final
+- static/app.js: 25e4809fab4baeec81637c06ff4207aab03944ed
+
+## Confusão real do usuário esclarecida: duas probabilidades diferentes coexistem
+Usuário notou que a ROXO34 (lote) mostrava 67,5% no ranking mas 81,8% no
+detalhe individual ("Ver probabilidade atualizada") -- mesma estrutura,
+números diferentes. Investigação confirmou que SÃO DOIS CÁLCULOS REAIS
+DIFERENTES, não bug:
+
+- **`prob_ganho_prefixado`/`prob_sem_barreira`** (usado no ranking e no
+  bloco 1 do detalhe): simula com `dias_restantes` (a partir de HOJE) e
+  preço ATUAL (S, buscado fresco). É "daqui pra frente" -- dinâmico, muda
+  conforme o preço se move. **Este é o número que importa para decisão
+  operacional contínua** (confirmado com o usuário).
+- **`maior_ou_igual_meta`** (dentro de `prob_retorno_faixas`, bloco 3 do
+  detalhe): simula com `prazo_dias` TOTAL (a partir do `preco_foto`
+  original). É "desde o início" -- mistura o caminho que o preço já
+  percorreu desde a foto com a projeção futura. Serve como CONTEXTO
+  HISTÓRICO de como a estrutura nasceu, não como critério de decisão do
+  dia a dia.
+
+**Confirmado que isso NÃO muda quando a análise migra para Ativa**
+(`/montecarlo/posicao_ativa` replica a mesma estrutura de dois cálculos,
+trocando só a fonte de `data_foto`/`preco_foto` -- de registro fixo no
+JSON para extraído do histórico real via Yahoo a partir de `data_entrada`).
+
+**Resolução implementada:** tooltips explicativos (atributo `title`) em
+todos os pontos onde essas probabilidades aparecem -- bloco 1 e bloco 3 do
+detalhe individual, e nos cabeçalhos "Prob." e "Ret. mensal" da tabela de
+ranking, com ícone visual ⓘ (não só cursor de ajuda no hover, que o usuário
+não tinha como notar sem indicador visual).
+
+**Exemplo real usado para validar o entendimento (ROXO34, posição ativa
+real):** estrutura já em andamento, prêmio já recebido. Probabilidade alta
+tanto "desde o início" quanto "daqui pra frente" porque a estrutura já
+está bem posicionada (vol. atual indica que reverter ficaria difícil) --
+usuário descreveu corretamente como "matematicamente quase impossível não
+bater a meta" nesse caso específico.
+
+## ⭐ Visão de arquitetura para FIIs (item 1 do backlog) -- REGISTRADA, NÃO IMPLEMENTADA
+Usuário descreveu a estrutura que imagina para a feature de FIIs (mesmo
+padrão de hoje da pesquisa de fontes, ainda sem código):
+
+1. **Filtragem online** com os critérios já fechados (P/VP → DY →
+   liquidez), mesmo padrão do ranking de estruturadas -- sempre calculado
+   ao vivo, não um snapshot estático.
+2. **Duas abas**: uma de screening/filtro (bloco de análise -- só
+   visualização e decisão) + uma de "Carteira Ativa" (FIIs que o usuário
+   já escolheu manter).
+3. **Usuário NUNCA informa quantidade de cotas** -- só ativa o FII (mesma
+   filosofia de simplicidade já usada nas estruturadas, que também não
+   pedem quantidade de capital).
+4. **Ao ativar um FII**: sistema grava o preço do dia da ativação e passa
+   a monitorar quanto de dividendo foi pago desde aquela data -- métrica
+   de performance real ("será que valeu a pena ter montado essa posição"),
+   não só uma projeção teórica.
+5. **Carga inicial da carteira já existente**: usuário mencionou que pode
+   trazer os parâmetros de FIIs que já possui HOJE (fora do app) na
+   primeira carga -- like com preço de entrada/data já passada, não
+   necessariamente "ativado agora". Detalhe de como fazer essa carga
+   retroativa NÃO foi discutido ainda -- fica para quando o usuário trouxer
+   isso ("a gente discute isso depois", palavras do usuário).
+
+**Paralelo estrutural com item 5 do backlog (Migração Em Análise → Ativa
+para estruturadas):** a lógica de "ativar e gravar preço do dia + monitorar
+performance desde ali" é conceitualmente o MESMO padrão já especificado
+para estruturadas. Vale desenhar os dois períodos (estruturadas E fiis)
+juntos quando for implementar, para reaproveitar o mesmo mecanismo de
+migração/snapshot em vez de duplicar lógica.
+
+## Estado do backlog ao final desta sessão
+1. Item 7 (EV completo no score) -- ✅ CONCLUÍDO
+2. Item 6 (Minério de Ferro) -- ✅ CONCLUÍDO (aguardando confirmação final
+   do usuário se TradingView FEF1! está funcionando em produção)
+3. Item 1 (FIIs) -- pesquisa de fonte CONCLUÍDA (Fundamentus), critério
+   fechado (P/VP→DY→liquidez), visão de arquitetura registrada -- mas
+   NADA implementado ainda, por decisão deliberada do usuário.
+4. Itens 2-5 restantes (ETFs, Renda Fixa, Análise de Papel, Migração
+   Em Análise→Ativa) -- ainda sem ação.
+5. Lote de 24/06 (ranking) -- usuário continua decidindo via tabela,
+   conversa volta para lá após esta pausa de esclarecimento conceitual.
