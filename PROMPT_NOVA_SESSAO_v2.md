@@ -1504,3 +1504,78 @@ pode não estar funcionando e precisar de ajuste do regex/abordagem.
   em produção real -- documentar claramente o fallback e avisar o usuário
   que pode precisar de iteração, em vez de prometer que vai funcionar de
   primeira.
+
+---
+
+# Sessão 25/06/2026 (parte 4) — Minério de Ferro: 2ª e 3ª iteração de fonte
+
+## SHA final desta parte
+- proxy.py: 3a5d9ce5b7f601070048b267e67aed275379072c
+
+## Continuação da investigação do item 6 (Minério de Ferro)
+Usuário testou a correção 1 (Investing.com) em produção real -- preço
+continuou "fixo" (161.91, valor implausível). Investigação revelou que a
+PRÓPRIA PÁGINA do Investing.com para esse contrato está com "Delayed
+Data·11/05" -- a fonte parou de atualizar há mais de um mês para esse
+ticker específico. Confirmado: o app caiu no fallback Yahoo (sem campo
+`source` na resposta), que trouxe um valor fora de qualquer faixa
+plausível (161.91, vs faixa real ~93-115).
+
+## Informação-chave do usuário: como ele de fato acompanha essa commodity
+Usuário esclareceu que NUNCA existiu um índice/ticker À VISTA acessível
+para minério de ferro -- ele mesmo usa o CONTRATO FUTURO no TradingView:
+**TIO1!** (COMEX) ou **FEF1!** (SGX IODEX Iron Ore Futures). Mencionou
+também IODEX (Xangai) mas sem ticker específico identificado. Isso muda a
+estratégia: a fonte certa não é um "índice spot mais estável", é o MESMO
+instrumento (futuro corrente) que ele já usa para decisão -- correto seria
+espelhar isso, não substituir por outra coisa.
+
+## 2ª tentativa: Trading Economics (descartada como primária, mantida como fallback)
+`pt.tradingeconomics.com/commodity/iron-ore` -- confirmado funcional e
+atualizando (12/06/2026 no momento do teste, ~13 dias de defasagem vs
+tempo real). Mas é um ÍNDICE GENÉRICO de minério de ferro, não o mesmo
+contrato futuro (FEF1!/TIO1!) que o usuário acompanha de fato. Mantido
+como FALLBACK SECUNDÁRIO (melhor que nada se o TradingView falhar), mas
+não é mais a fonte primária.
+
+## 3ª tentativa (ATUAL): TradingView FEF1! -- fonte primária
+`www.tradingview.com/symbols/SGX-FEF1!/` -- confirmado via inspeção manual
+que é o MESMO ticker (SGX IODEX Iron Ore Futures, continuous contract)
+que o usuário usa no seu próprio TradingView. Página pública tem FAQ
+estruturado: "The current price of SGX IODEX Iron Ore Futures is X USD /
+TNE" -- preço confirmado plausível no teste (99.95).
+
+**Cadeia de fallback final**: TradingView FEF1! → Trading Economics →
+Yahoo (`TIO=F`) → None (se todas falharem, `/futures` não quebra, só
+`iron_ore` vem null). Campo `source` na resposta identifica qual fonte
+respondeu (`"tradingview.com (FEF1!)"`, `"tradingeconomics.com"`, ou
+ausente = caiu no Yahoo).
+
+**AINDA NÃO TESTADO em produção real** -- mesma limitação de sandbox
+(tradingview.com também provavelmente bloqueado, não testável
+diretamente). Usuário vai testar com o mesmo comando de console já usado
+nas iterações anteriores:
+```js
+fetch('https://trader-desk.onrender.com/futures').then(r=>r.json()).then(d=>console.log(JSON.stringify(d.iron_ore,null,2)))
+```
+
+## Caso essa 3ª tentativa também falhe -- candidatos a investigar depois
+- **IODEX (Xangai)** -- usuário mencionou mas não temos o ticker exato
+  identificado ainda; precisa de pesquisa adicional.
+- **TIO1! (COMEX)** -- alternativa ao FEF1!, mesmo padrão de página
+  TradingView, pode ser testado da mesma forma se FEF1! não funcionar
+  (ex: `www.tradingview.com/symbols/COMEX-TIO1!/`).
+- Considerar pedir ajuda ao usuário para ele mesmo verificar se o
+  TradingView bloqueia scraping sem JS (ele tem acesso de navegador real,
+  diferente do sandbox de Claude).
+
+## Lição de processo reforçada nesta sessão (Minério de Ferro)
+- Antes de trocar de fonte de dado para "resolver" um problema de
+  atualização, CONFIRMAR que a fonte nova está de fato atualizando (não
+  assumir que qualquer alternativa é melhor que a atual) -- 1ª tentativa
+  (Investing.com) tinha o MESMO problema da causa original, só que
+  escondido até o teste real revelar.
+- Perguntar ao usuário COMO ele mesmo acompanha o dado na prática (qual
+  ticker, qual fonte) ANTES de escolher uma fonte alternativa -- a
+  resposta dele (TIO1!/FEF1! no TradingView) deveria ter sido a primeira
+  pergunta, não a terceira tentativa.
