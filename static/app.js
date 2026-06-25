@@ -1715,6 +1715,75 @@ async function loadAnalises(){
   }
 }
 
+// Adicionado 25/06/2026 -- painel de ranking em lote. Roda Monte Carlo de
+// TODAS as em_analise de uma vez via GET /analises/ranking, monta tabela
+// completa ordenada por score (ordenacao, NUNCA filtro -- todas as linhas
+// aparecem, mesmo as com erro de calculo). Usuario decide manualmente
+// olhando todas as colunas (prob, retorno mensal, prazo, DY vs CDI).
+async function loadRankingAnalises(){
+  const area=document.getElementById('ranking-container');
+  const btn=document.getElementById('btn-ranking');
+  if(!area)return;
+  area.innerHTML='Calculando probabilidade de todas as análises em aberto (Monte Carlo em lote, pode levar alguns segundos)...';
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),60000);
+    const r=await fetch(B+'/analises/ranking',{signal:ctrl.signal,cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    area.innerHTML=tplRanking(d);
+  }catch(e){
+    area.innerHTML='<p style="color:var(--red)">⚠ Erro ao rodar ranking: '+e.message+'</p>';
+  }finally{
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
+function tplRanking(d){
+  const linhas=d.ranking||[];
+  if(!linhas.length)return '<p style="color:var(--muted)">Nenhuma análise em_analise para ranquear.</p>';
+  const rows=linhas.map(r=>{
+    if(r.erro){
+      return `<tr style="opacity:.55">
+        <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
+        <td colspan="7" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+      </tr>`;
+    }
+    const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(2)+'%':'—';
+    const colchao=r.colchao_dy_vs_cdi_pct!=null
+      ? (r.colchao_dy_vs_cdi_pct>0?'<span style="color:var(--green)">+':'<span style="color:var(--red)">')+r.colchao_dy_vs_cdi_pct.toFixed(3)+'%</span>'
+      : '—';
+    const loteTag=r.lote?`<span style="font-size:9px;color:var(--muted)"> · ${r.lote}</span>`:'';
+    return `<tr>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}</td>
+      <td style="padding:6px 8px;font-size:10px;color:var(--muted)">${_TIPO_LABEL[r.tipo_estrutura]||r.tipo_estrutura}</td>
+      <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
+      <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${r.prob_meta_pct>=50?'var(--green)':'var(--muted)'}">${r.prob_meta_pct.toFixed(1)}%</td>
+      <td style="padding:6px 8px;text-align:right">${dy}</td>
+      <td style="padding:6px 8px;text-align:right">${colchao}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)">${r.score.toFixed(3)}</td>
+    </tr>`;
+  }).join('');
+  return `
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por score (maior primeiro) — score é só ordenação, nenhuma linha é escondida</div>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+      <th style="padding:6px 8px">Ativo</th>
+      <th style="padding:6px 8px">Tipo</th>
+      <th style="padding:6px 8px;text-align:right">Prazo</th>
+      <th style="padding:6px 8px;text-align:right">Ret. mensal</th>
+      <th style="padding:6px 8px;text-align:right">Prob. meta</th>
+      <th style="padding:6px 8px;text-align:right">DY papel</th>
+      <th style="padding:6px 8px;text-align:right">Colchão vs CDI</th>
+      <th style="padding:6px 8px;text-align:right">Score</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </div>`;
+}
+
 function renderAnalises(){
   const cont=document.getElementById('analise-container');
   if(!cont||!_analiseData)return;
