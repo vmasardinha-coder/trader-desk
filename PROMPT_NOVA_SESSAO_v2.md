@@ -1107,3 +1107,53 @@ para esses 4 quando for escolher os candidatos finais — isso precisa ser
 resolvido antes de "tirar a foto" de qualquer um desses 4 (CMIN3, DIRR3,
 PETR4, VALE3). Os outros 6 (ROXO34, TSLA34, BSLV39, AMZO34, CYRE3, ALOS3)
 não têm esse conflito — são os mesmos números nas duas tabelas.
+
+---
+
+# Correção final 24/06/2026 — Dashboard de análises simplificado para funil único
+
+## SHA final
+- static/app.js: 3625c11c541c6e489d7b5107dba0f03be4e753ce
+
+Usuário simplificou o dashboard de análises (na aba Encerradas, seção
+"Histórico de Análises"): NÃO precisa separar por "fase" — é UM
+histórico único. Removida a divisão anterior em 2 dashboards.
+
+**Funil final (4 cards, nesta ordem):**
+1. **Total Analisado** — todas as análises que já existiram, incluindo
+   rejeitadas que já saíram da listagem visível após 30 dias (usa o
+   contador permanente de `stats_analises.json` para compensar isso:
+   `total = visiveis.length + max(0, total_rejeitadas_permanente -
+   rejeitadas_ainda_visiveis)`).
+2. **Aprovadas/Ativadas (%)** — do total, quantas chegaram a ser ativas
+   de fato (inclui as que ainda estão `ativa` agora + as já `encerrada`
+   com campo `resultado` preenchido).
+3. **Rejeitadas (%)** — do total, usa o contador PERMANENTE (não as
+   visíveis), já que nunca chegaram a ser ativas.
+4. **Taxa de Sucesso (%)** — calculada SÓ entre as que têm
+   `status==='encerrada' && resultado` (ou seja, só entre as que
+   realmente foram ativas e fecharam) — NÃO inclui rejeitadas no
+   denominador, porque elas nunca foram testadas de verdade.
+
+Estado real hoje (24/06/2026, 7 análises totais): Total=7,
+Aprovadas/Ativadas=0% (nenhuma virou Ativa ainda — as 3 atuais, ROXO34/
+TSLA34/AXIA3, são comparações teóricas em `em_analise`), Rejeitadas=57%
+(4 de 7), Taxa de Sucesso=— (ainda não há nenhuma encerrada com
+resultado, pois nenhuma análise chegou a ser ativada e depois encerrada
+de fato ainda).
+
+## Estado da sessão ao encerrar (24/06/2026)
+Usuário confirmou que vai abrir uma NOVA sessão a partir daqui. Pontos
+em aberto para quando ela começar:
+
+1. **Lote de 24/06 ainda não decidido** — usuário precisa "bater o olho"
+   nas duas tabelas completas (ver seção "Anexo — Tabelas completas do
+   lote") e escolher manualmente quais dos 10 candidatos avançar para
+   Fase B. Conflito de fixing em 4 ativos (CMIN3/DIRR3/PETR4/VALE3) entre
+   Tabela 1 (retorno total maior, prazo longo) e Tabela 2 (EV maior,
+   prazo curto) ainda não resolvido.
+2. **Dashboard de análises (Encerradas) implementado e validado** pelo
+   usuário nesta sessão — não precisa de mais ajuste, a menos que ele
+   peça.
+3. Todo o resto do backlog (FIIs, ETFs, Renda fixa, "Análise de Papel",
+   Migração Em Análise→Ativa) continua igual, sem mudança nesta sessão.
