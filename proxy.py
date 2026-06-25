@@ -3297,21 +3297,54 @@ def ranking_analises():
                 min_sim = np.min(paths_sim, axis=1)
                 max_sim = np.max(paths_sim, axis=1)
 
+                # ── EV completo (adicionado 25/06/2026, item 7 do backlog) ──
+                # Simulacao SEPARADA, com o PRAZO TOTAL original (prazo_dias)
+                # a partir do preco_foto -- mesmo padrao ja usado em
+                # /montecarlo/condicional para prob_retorno_faixas/
+                # retorno_medio_pct. Pondera TODOS os cenarios (perda total
+                # se romper a barreira, ganho parcial, ganho prefixado/teto)
+                # pela propria media da simulacao -- nao so prob binaria de
+                # "bateu ou nao bateu a meta". retorno_medio_pct = EV real.
+                z_full = np.random.standard_normal((n_sim, prazo_dias))
+                drift_full = -0.5*sigma**2*dt_sim
+                paths_full = preco_foto*np.exp(np.cumsum(drift_full+vol_step_sim*z_full, axis=1))
+                min_full = np.min(paths_full, axis=1)
+                max_full = np.max(paths_full, axis=1)
+                ST_full = paths_full[:, -1]
+                variacao_full = (ST_full/preco_foto - 1)
+                retorno_medio_pct = None
+
                 if tipo == 'retorno_controlado' and a.get('kdo') is not None and a.get('ganho_prefixado_pct') is not None:
                     ganho_pct = float(a['ganho_prefixado_pct'])
                     kdo = float(a['kdo'])
                     tocou = min_sim <= kdo
                     prob_meta = round(float((~tocou).mean()*100), 2)
+                    # EV: se nao tocou a barreira no prazo TOTAL, ganho prefixado;
+                    # se tocou, fica exposto a variacao real (pode ser negativa)
+                    tocou_full = min_full <= kdo
+                    retorno_full_ev = np.where(~tocou_full, ganho_pct/100, variacao_full)
+                    retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
                 elif tipo == 'bidirecional' and a.get('kdo') is not None and a.get('kuo') is not None and a.get('teto_retorno_pct') is not None:
                     ganho_pct = float(a['teto_retorno_pct'])
                     kdo = float(a['kdo']); kuo = float(a['kuo'])
                     tocou_alta = max_sim >= kuo
                     prob_meta = round(float(tocou_alta.mean()*100), 2)
+                    # EV: 0 se tocou defesa, teto se tocou alta, variacao*alavancagem
+                    # dentro do range (alavancagem default 1.0 se nao informada)
+                    alav = float(a.get('alavancagem', 1.0))
+                    tocou_baixa_full = min_full <= kdo
+                    tocou_alta_full = max_full >= kuo
+                    retorno_full_ev = np.where(tocou_baixa_full, 0.0,
+                                       np.where(tocou_alta_full, ganho_pct/100,
+                                       variacao_full*alav))
+                    retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
                 else:
                     resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
                     continue
 
-                retorno_mensal = round(ganho_pct / meses_restantes, 3)
+                retorno_mensal = round(ganho_pct / meses_restantes, 3)  # mantido para referencia/coluna antiga
+                meses_totais = max(prazo_dias / 30.4, 0.1)
+                ev_mensal_pct = round(retorno_medio_pct / meses_totais, 3)
                 peso_prazo = 1 + (30/dias_restantes)*0.1
 
                 dy_anual = FUND_OVERRIDE_GLOBAL.get(symbol)
@@ -3320,7 +3353,12 @@ def ranking_analises():
                 if tem_dy_relevante:
                     colchao_vs_cdi = round((dy_anual/12) - cdi_mensal, 3)
 
-                score = (prob_meta/100) * retorno_mensal * peso_prazo
+                # Score agora usa EV mensal (pondera TODOS os cenarios via
+                # media da simulacao), em vez de prob_meta x ganho fixo.
+                # prob_meta continua exposta como coluna separada -- usuario
+                # pediu para MANTER, nao substituir, so trocar o que entra
+                # na formula do score.
+                score = ev_mensal_pct * peso_prazo
                 if tem_dy_relevante and colchao_vs_cdi is not None and colchao_vs_cdi > 0:
                     score += 0.1
 
@@ -3334,6 +3372,8 @@ def ranking_analises():
                     'ganho_pct': ganho_pct,
                     'retorno_mensal_pct': retorno_mensal,
                     'prob_meta_pct': prob_meta,
+                    'retorno_medio_pct': retorno_medio_pct,
+                    'ev_mensal_pct': ev_mensal_pct,
                     'dy_anual_pct': dy_anual if tem_dy_relevante else None,
                     'cdi_mensal_pct': round(cdi_mensal, 3),
                     'colchao_dy_vs_cdi_pct': colchao_vs_cdi,
