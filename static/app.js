@@ -1742,6 +1742,7 @@ async function loadRankingAnalises(){
 function tplRanking(d){
   const linhas=d.ranking||[];
   if(!linhas.length)return '<p style="color:var(--muted)">Nenhuma análise em_analise para ranquear.</p>';
+  const TIPO_CURTO={bidirecional:'BI',retorno_controlado:'RC',simples:'SI',premio:'PR'};
   const rows=linhas.map(r=>{
     if(r.erro){
       return `<tr style="opacity:.55">
@@ -1754,13 +1755,16 @@ function tplRanking(d){
       ? (r.colchao_dy_vs_cdi_pct>0?'<span style="color:var(--green)">+':'<span style="color:var(--red)">')+r.colchao_dy_vs_cdi_pct.toFixed(2)+'%</span>'
       : '—';
     const loteTag=r.lote?`<span style="font-size:9px;color:var(--muted)"> · ${r.lote}</span>`:'';
+    const tipoLabel=TIPO_CURTO[r.tipo_estrutura]||'?';
+    const tipoFull=_TIPO_LABEL[r.tipo_estrutura]||r.tipo_estrutura;
     return `<tr id="rk-row-${r.id}">
       <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}</td>
+      <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
       <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${r.prob_meta_pct>=50?'var(--green)':'var(--muted)'}">${r.prob_meta_pct.toFixed(1)}%</td>
       <td style="padding:6px 8px;text-align:right">${dy}</td>
-      <td style="padding:6px 8px;text-align:right">${colchao}</td>
+      <td style="padding:6px 8px;text-align:right" title="DY mensal − CDI mensal: quanto o dividendo do papel rende a mais (ou menos) que o CDI por mês, se a estrutura quebrar e você ficar com o papel">${colchao}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)">${r.score.toFixed(3)}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         <button onclick="acaoRanking('${r.id}','ativa')" title="Marcar como Ativa" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
@@ -1774,11 +1778,12 @@ function tplRanking(d){
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
       <th style="padding:6px 8px">Ativo</th>
+      <th style="padding:6px 8px" title="BI=Bidirecional, RC=Retorno Controlado, SI=Simples, PR=Prêmio">Tipo</th>
       <th style="padding:6px 8px;text-align:right">Prazo</th>
       <th style="padding:6px 8px;text-align:right">Ret. mensal</th>
       <th style="padding:6px 8px;text-align:right">Prob.</th>
       <th style="padding:6px 8px;text-align:right">DY</th>
-      <th style="padding:6px 8px;text-align:right">Colchão</th>
+      <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
