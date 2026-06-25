@@ -3505,14 +3505,31 @@ _FII_SEGMENTO_MAP = {
 def scrape_fiis_fundamentus():
     """Scraping da tabela completa de FIIs do Fundamentus. Retorna lista de
     dicts (um por FII) ou None se o sanity check falhar (layout mudou,
-    pagina vazia, etc -- NUNCA retorna dado parcial/suspeito sem avisar)."""
+    pagina vazia, etc -- NUNCA retorna dado parcial/suspeito sem avisar).
+
+    NOTA TECNICA (25/06/2026): pagina do Fundamentus usa encoding
+    ISO-8859-1 (Latin-1), confirmado via inspecao manual da pagina real
+    (charset=iso-8859-1 no content-type). requests pode nao detectar isso
+    corretamente sozinho -- forcamos r.encoding explicitamente antes de
+    ler r.text, e usamos headers mais completos (simulando navegador real)
+    para reduzir chance de bloqueio anti-bot, que e mais comum contra IPs
+    de datacenter (Render) do que conexoes residenciais."""
     try:
         r = requests.get(
             'https://www.fundamentus.com.br/fii_resultado.php',
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'},
-            timeout=10)
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Referer': 'https://www.fundamentus.com.br/index.php',
+            },
+            timeout=15)
         if not r.ok:
-            return None, 'http_error'
+            return None, f'http_error_{r.status_code}'
+        # Forca o encoding correto (pagina e ISO-8859-1, requests pode
+        # detectar errado e corromper acentos, o que nao afeta o parsing
+        # de numeros mas pode afetar match de texto como nome de Segmento)
+        r.encoding = 'iso-8859-1'
         html = r.text
 
         # Extrai linhas da tabela via regex (sem BeautifulSoup, mesmo
@@ -3522,7 +3539,13 @@ def scrape_fiis_fundamentus():
         fiis = []
         for linha in linhas_raw:
             celulas = re.findall(r'<td[^>]*>(.*?)</td>', linha, re.DOTALL)
-            if len(celulas) != 13:
+            # CORRIGIDO 25/06/2026: pagina real tem 14 colunas (a 14a e
+            # "Endereco", que nao existia na referencia de scraping de 2023
+            # usada para montar a especificacao original -- causa raiz real
+            # do "0 FIIs encontrados" no primeiro teste em produção). Aceita
+            # 13 OU 14 para tolerar se o site remover/adicionar essa coluna
+            # de novo no futuro sem quebrar o parsing.
+            if len(celulas) not in (13, 14):
                 continue
             # Limpa tags HTML internas (ex: <a href=...>MXRF11</a>) e espacos
             valores = [re.sub(r'<[^>]+>', '', c).strip() for c in celulas]
@@ -3551,6 +3574,7 @@ def scrape_fiis_fundamentus():
                     'aluguel_m2': _num(valores[10]),
                     'cap_rate_pct': _pct(valores[11]),
                     'vacancia_pct': _pct(valores[12]),
+                    'endereco': valores[13] if len(valores) > 13 else None,
                 })
             except (ValueError, IndexError):
                 continue
