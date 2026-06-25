@@ -467,61 +467,67 @@ def yquote(ticker):
 # "fixo" em Cotacoes). Causa raiz confirmada: TIO=F no Yahoo e um contrato
 # de baixa liquidez sujeito a rollover de vencimento -- o sanity check
 # (variacao >15% oculta o %) estava disparando quase todo dia, fazendo a
-# variacao parecer congelada mesmo com o preco em si atualizando. Usuario
-# pediu fonte alternativa mais estavel.
+# variacao parecer congelada mesmo com o preco em si atualizando.
 #
-# TENTATIVA 1 (Investing.com) DESCARTADA apos teste real: usuario reportou
-# preco ainda fixo apos deploy, e investigacao confirmou que a propria
-# pagina do Investing.com para esse contrato esta com "Delayed Data·11/05"
-# -- ou seja, a FONTE em si parou de atualizar ha mais de um mes para esse
-# ticker especifico, nao e so liquidez baixa do pregao do dia. Trocar de
-# fonte nao ajudaria enquanto a fonte nova tambem estiver congelada.
+# HISTORICO DE TENTATIVAS (mais detalhe no PROMPT_NOVA_SESSAO_v2.md):
+# 1. Investing.com -- DESCARTADA: pagina confirmada com "Delayed Data·11/05",
+#    fonte parada ha >1 mes para esse contrato especifico.
+# 2. Trading Economics (indice generico) -- funcional mas ~13 dias de
+#    defasagem e NAO e o mesmo instrumento que o usuario acompanha de fato.
+# 3. TradingView FEF1! (SGX IODEX Iron Ore Futures) -- usuario confirmou que
+#    e EXATAMENTE o ticker que ele usa no proprio TradingView para decisao
+#    (FEF1!/TIO1!, nao existe indice a vista acessivel para essa commodity).
+#    Pagina publica tem FAQ estruturado: "The current price of SGX IODEX
+#    Iron Ore Futures is X USD / TNE". Usado como fonte PRIMARIA agora.
 #
-# TENTATIVA 2 (Trading Economics, pt.tradingeconomics.com/commodity/iron-ore):
-# confirmado via inspecao manual mostrando data mais recente (12/06/2026 no
-# momento do teste, ~13 dias de defasagem vs tempo real, mas ATUALIZANDO --
-# nao travado como o Investing.com). Pagina e SCRAPING (nao API oficial),
-# mesma ressalva de fragilidade a mudanca de HTML. Se falhar, fallback para
-# yquote('TIO=F') existente -- nunca quebra o endpoint /futures por completo.
+# Trading Economics mantido como FALLBACK SECUNDARIO (mais estavel que
+# Yahoo, mesmo que nao seja o ticker exato), e yquote('TIO=F') como ultimo
+# fallback -- nunca quebra o endpoint /futures por completo.
 def scrape_iron_ore_investing():
-    """Fonte alternativa para Minerio de Ferro via scraping leve do Trading
-    Economics (pt.tradingeconomics.com). Nome da funcao mantido por
-    compatibilidade com o restante do codigo, mas a fonte real e Trading
-    Economics, nao Investing.com (trocado apos teste real confirmar que o
-    Investing.com estava com dado congelado ha >1 mes para este ticker)."""
+    """Fonte para Minerio de Ferro: TradingView FEF1! (SGX IODEX Iron Ore
+    Futures) como primaria -- mesmo ticker que o usuario acompanha no
+    proprio TradingView. Fallback: Trading Economics. Nome da funcao
+    mantido por compatibilidade historica com o restante do codigo."""
+    # PRIMARIA: TradingView FEF1!
     try:
         r = requests.get(
+            'https://www.tradingview.com/symbols/SGX-FEF1!/',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'},
+            timeout=8)
+        if r.ok:
+            html_limpo = re.sub(r'<[^>]+>', ' ', r.text)
+            m = re.search(
+                r'current\s+price\s+of\s+SGX\s+IODEX\s+Iron\s+Ore\s+Futures\s+is\s+([\d,]+\.?\d*)\s*USD\s*/\s*TNE',
+                html_limpo, re.IGNORECASE)
+            if m:
+                price = float(m.group(1).replace(',', ''))
+                if 20 <= price <= 500:
+                    return {'price': round(price, 2), 'prev': round(price, 2), 'source': 'tradingview.com (FEF1!)'}
+    except Exception:
+        pass
+    # FALLBACK SECUNDARIO: Trading Economics
+    try:
+        r2 = requests.get(
             'https://pt.tradingeconomics.com/commodity/iron-ore',
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'},
             timeout=8)
-        if not r.ok:
-            return None
-        html = r.text
-        html_limpo = re.sub(r'<[^>]+>', ' ', html)
-        # Padrao confirmado via inspecao manual (25/06/2026): "subiu/caiu
-        # para 101,62 USD/T em 12 de junho de 2026" -- numero usa VIRGULA
-        # decimal (formato BR), nao ponto. Tambem busca a linha da tabela
-        # "Minério De Ferro | 101.62" (essa com PONTO) como fonte alternativa
-        # caso o texto narrativo mude de formato.
-        m_narrativo = re.search(r'minério\s+de\s+ferro\s+(?:subiu|caiu|manteve-se)\s+para\s+([\d.,]+)\s*USD\s*/\s*T', html_limpo, re.IGNORECASE)
-        m_tabela = re.search(r'Minério\s+De\s+Ferro\s*\|?\s*([\d.,]+)\s*\|', html_limpo, re.IGNORECASE)
-        m = m_narrativo or m_tabela
-        if not m:
-            return None
-        raw = m.group(1)
-        # Normaliza formato BR (101,62) vs US (101.62): se tiver virgula E
-        # ponto, assume ponto=milhar/virgula=decimal (BR); se so virgula,
-        # vira decimal; se so ponto, mantem.
-        if ',' in raw and '.' in raw:
-            raw = raw.replace('.', '').replace(',', '.')
-        elif ',' in raw:
-            raw = raw.replace(',', '.')
-        price = float(raw)
-        if price < 20 or price > 500:  # sanity check de ordem de grandeza
-            return None
-        return {'price': round(price, 2), 'prev': round(price, 2), 'source': 'tradingeconomics.com'}
+        if r2.ok:
+            html_limpo2 = re.sub(r'<[^>]+>', ' ', r2.text)
+            m_narrativo = re.search(r'minério\s+de\s+ferro\s+(?:subiu|caiu|manteve-se)\s+para\s+([\d.,]+)\s*USD\s*/\s*T', html_limpo2, re.IGNORECASE)
+            m_tabela = re.search(r'Minério\s+De\s+Ferro\s*\|?\s*([\d.,]+)\s*\|', html_limpo2, re.IGNORECASE)
+            m2 = m_narrativo or m_tabela
+            if m2:
+                raw = m2.group(1)
+                if ',' in raw and '.' in raw:
+                    raw = raw.replace('.', '').replace(',', '.')
+                elif ',' in raw:
+                    raw = raw.replace(',', '.')
+                price2 = float(raw)
+                if 20 <= price2 <= 500:
+                    return {'price': round(price2, 2), 'prev': round(price2, 2), 'source': 'tradingeconomics.com'}
     except Exception:
-        return None
+        pass
+    return None
 
 # ── FUTUROS ───────────────────────────────────────────
 @app.route('/futures', methods=['GET'])
