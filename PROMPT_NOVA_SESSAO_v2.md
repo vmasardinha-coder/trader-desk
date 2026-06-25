@@ -1579,3 +1579,103 @@ fetch('https://trader-desk.onrender.com/futures').then(r=>r.json()).then(d=>cons
   ticker, qual fonte) ANTES de escolher uma fonte alternativa -- a
   resposta dele (TIO1!/FEF1! no TradingView) deveria ter sido a primeira
   pergunta, não a terceira tentativa.
+
+---
+
+# Sessão 25/06/2026 (parte 5) — Pesquisa de FIIs (item 1 do backlog, SÓ PESQUISA, sem implementação)
+
+## Status: pesquisa concluída, NADA implementado ainda (decisão deliberada do usuário)
+Usuário pediu explicitamente para só pesquisar fontes e fechar o critério
+nesta sessão -- implementação fica para sessão futura.
+
+## Critério confirmado com o usuário (ordem de prioridade)
+1. **P/VP** (desconto sobre valor patrimonial) -- PRIMEIRO filtro
+2. **Dividend Yield** -- SEGUNDO filtro
+   (nota: ordem INVERTIDA comparada ao critério já usado para estruturadas,
+   onde DY é desempate terciário -- usuário foi explícito que para FIIs é
+   o contrário, P/VP primeiro)
+3. **Liquidez** -- filtro de risco operacional (usuário adicionou depois:
+   "se eu não conseguir entrar/saída sem mover o preço, é risco real")
+
+**Tipos de FII que o usuário opera, em ordem de relevância/preferência:**
+papel (1º) → tijolo (2º) → fundo de fundos/FoF (3º). Usuário opera os três,
+não é exclusivo de um tipo.
+
+## Nuances de prática de mercado discutidas (refinamento do critério do usuário)
+- **P/VP "armadilha":** confiabilidade do desconto depende do tipo de FII --
+  em FIIs de papel (CRI/recebíveis) o VP é mais confiável (títulos marcados
+  a mercado); em FIIs de tijolo, o VP depende de laudo de avaliação de
+  imóveis, que pode estar desatualizado/inflado. Isso reforça a ordem de
+  prioridade do usuário (papel > tijolo): papel tem o P/VP mais "real".
+- **DY "yield trap":** DY alto pode vir de distribuição NÃO recorrente
+  (venda de imóvel, evento extraordinário) ou de AMORTIZAÇÃO (devolução do
+  próprio capital do cotista, não lucro real) -- prática de mercado é
+  considerar DY recorrente dos últimos 6-12 meses, não só o último mês
+  isolado, e desconfiar de DY muito acima da média do segmento.
+- **Vacância** (relevante para tijolo especificamente): imóveis desocupados
+  comem a distribuição futura mesmo com DY atual aparentemente bom --
+  terceiro filtro natural para FIIs de tijolo.
+
+**Avaliação do usuário vs. prática de mercado:** critério dele (P/VP→DY,
+mais liquidez) já está alinhado com a prática padrão -- não está "longe"
+disso. Os refinamentos acima (DY recorrente vs pontual, confiabilidade do
+P/VP por tipo) são ajustes finos, não uma reformulação do critério.
+
+## Fontes investigadas (resumo final)
+
+| Fonte | P/VP | DY | Liquidez | Segmento | Custo |
+|---|---|---|---|---|---|
+| brapi `/api/v2/fii/indicators` | ✅ | ✅ | ❌ (não confirmado) | ✅ | **Só MXRF11/HGLG11 grátis** -- resto exige plano Pro (pago) |
+| brapi `/api/quote/` | ❌ | ❌ | parcial (volume) | ❌ | Grátis, mas só cotação básica |
+| **Fundamentus `fii_resultado.php`** | ✅ | ✅ (DY + FFO Yield) | ✅ (coluna própria) | ✅ (coluna própria) | **100% gratuito, sem limite de FIIs** |
+| Investidor10 (rankings) | ✅ | ✅ | parcial | ✅ | Gratuito mas scraping de página mais pesada/dinâmica |
+
+**Fonte recomendada e fechada: Fundamentus (`fundamentus.com.br/fii_resultado.php`)**
+-- mesmo padrão já usado com sucesso no app para fundamentais de ações
+(FUND_OVERRIDE), tabela HTML simples sem JS, sem necessidade de token,
+cobre ~391 FIIs de uma vez. Estrutura confirmada da tabela (13 colunas,
+via exemplo de scraping real encontrado):
+1. Papel, 2. Segmento, 3. Cotação, 4. FFO Yield%, 5. Dividend Yield%,
+6. P/VP, 7. Valor de Mercado, 8. **Liquidez**, 9. Qtd de Imóveis,
+10. Preço do m², 11. Aluguel por m², 12. Cap Rate%, 13. Vacância Média%.
+
+Todas as colunas que o critério do usuário precisa (P/VP, DY, Liquidez,
+Segmento, Vacância) já vêm de graça numa ÚNICA tabela -- não precisa
+combinar múltiplas fontes.
+
+**Filtro por segmento:** Fundamentus tem parâmetro `?segmento=N` na URL
+(visto `?segmento=3` numa busca, mapeamento exato N→papel/tijolo/fof ainda
+NÃO confirmado -- precisa verificar ao implementar).
+
+## ⭐ Ideia nova registrada: sanity check padronizado para TODO scraping
+Usuário perguntou sobre como detectar quando um site mudar de layout e
+quebrar o scraping silenciosamente (preocupação válida, já mordeu o projeto
+antes no caso do 8marketcap, 8 iterações até funcionar). Não existe hoje
+nenhuma validação desse tipo no código (nem para o Fundamentus de ações,
+que o app já usa há tempo).
+
+**Padrão recomendado para qualquer scraping futuro (incluindo o futuro
+endpoint de FIIs):**
+1. Checagem de número de colunas (ex: tabela do Fundamentus sempre deveria
+   ter exatamente 13 colunas -- se vier diferente, layout mudou).
+2. Checagem de faixa de valores plausíveis (ex: P/VP entre 0 e 5, DY entre
+   0% e 50% -- fora disso, dado suspeito, mesmo padrão já usado no sanity
+   check do Minério de Ferro corrigido nesta sessão).
+3. Checagem de contagem mínima de linhas (ex: tabela de FIIs deveria trazer
+   300+ linhas -- se vier vazia ou com poucas linhas, scraping quebrou).
+4. Se qualquer checagem falhar: NÃO atualizar com dado ruim -- manter o
+   último dado bom conhecido e expor um aviso visual no app (ex: badge
+   "⚠ fonte pode ter mudado, dados desatualizados").
+
+**Não implementado ainda** -- registrado como prática a adotar quando
+qualquer scraping novo for construído (FIIs e outros futuros).
+
+## Próximos passos quando o item 1 (FIIs) for implementado de fato
+1. Buscar a página real do Fundamentus e confirmar estrutura exata da
+   tabela + mapeamento de segmento (`?segmento=N`).
+2. Implementar a função de scraping com os 4 sanity checks acima.
+3. Desenhar o endpoint (provavelmente `/fiis` ou `/fiis/screener`) com os
+   critérios em ordem: P/VP → DY (recorrente, não pontual) → liquidez
+   mínima → vacância (para tijolo).
+4. Decidir layout de UI (nova aba? seção dentro de Cotações/Indicadores?)
+   -- ainda não discutido com o usuário.
