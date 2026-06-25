@@ -1569,6 +1569,7 @@ async function loadCal(){
 async function main(){
   try{
     if(!_posData)await loadPositions();
+    loadAnalisesEncerradas();
     const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
     const[,tv,ft]=await Promise.all([wt(fHL(),12000,null),wt(fTV(),14000,{}),wt(fFut(),14000,null)]);
     const now=new Date().toLocaleTimeString('pt-BR');
@@ -1712,39 +1713,6 @@ async function loadAnalises(){
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar analises.json: '+e.message+'</p>';
   }
-  // CORRIGIDO 23/06/2026: usuario pediu dashboard de funil completo, nao
-  // so o contador isolado de rejeitadas. Logica: Total = todas as
-  // analises (incluindo rejeitadas e ja migradas); Ativas = status atual
-  // ainda ativo; Encerradas = JA FORAM ativas e fecharam de fato (tem
-  // campo 'resultado' sucesso/fracasso) -- so essas entram na taxa de
-  // sucesso; Rejeitadas = NUNCA foram ativas (motivo_encerramento=
-  // 'rejeitada') -- usa o contador PERMANENTE (nao conta so os visiveis
-  // na lista, que podem ter sido limpos apos 30 dias).
-  try{
-    const rs=await fetch(B+'/analises/stats',{cache:'no-store'});
-    const stats=rs.ok?await rs.json():{total_rejeitadas:0};
-    const lista=_analiseData||[];
-    const ativas=lista.filter(a=>a.status==='ativa').length;
-    const encerradasReais=lista.filter(a=>a.status==='encerrada'&&a.resultado);
-    const sucessos=encerradasReais.filter(a=>a.resultado==='sucesso').length;
-    const taxaSucesso=encerradasReais.length?Math.round(sucessos/encerradasReais.length*100):null;
-    const totalRejeitadas=stats.total_rejeitadas||0;
-    // Total visivel agora (pode nao incluir rejeitadas com mais de 30
-    // dias, que ja saíram da lista mas continuam no contador permanente)
-    const totalVisivel=lista.length;
-
-    const el=document.getElementById('analise-stats-rejeitadas');
-    if(el){
-      el.style.display='block';
-      el.style.color='var(--muted)';
-      let html='📊 Total (visível): <b style="color:var(--text)">'+totalVisivel+'</b>';
-      html+=' · Ativas: <b style="color:var(--green)">'+ativas+'</b>';
-      html+=' · Encerradas: <b style="color:var(--text)">'+encerradasReais.length+'</b>';
-      if(taxaSucesso!=null)html+=' (<b style="color:'+(taxaSucesso>=50?'var(--green)':'#ff6b6b')+'">'+taxaSucesso+'% sucesso</b>)';
-      html+=' · <span style="color:#ff6b6b">🚫 Rejeitadas: <b>'+totalRejeitadas+'</b></span>';
-      el.innerHTML=html;
-    }
-  }catch(e){/* nao bloqueia a tela principal se stats falhar */}
 }
 
 function renderAnalises(){
@@ -1755,20 +1723,107 @@ function renderAnalises(){
   if(badge)badge.style.display=emAberto.length?'inline-block':'none';
   if(badge)badge.textContent=emAberto.length||'';
 
-  if(!_analiseData.length){
-    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise registrada ainda.<br><span style="font-size:11px">Fotos são criadas em sessão de chat (Fase A → Fase B) e aparecem aqui automaticamente.</span></p>';
+  // CORRIGIDO 23/06/2026: usuario esclareceu que a aba Em Analise deve
+  // mostrar SO o que esta em_analise ou ativa -- uma vez que vira
+  // 'encerrada' (rejeitada ou encerramento real), ela MIGRA por completo
+  // para a aba Encerradas (ver renderAnalisesEncerradas), nao fica mais
+  // visivel aqui.
+  const ativas=_analiseData.filter(a=>a.status==='em_analise'||a.status==='ativa');
+
+  if(!ativas.length){
+    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise em andamento.<br><span style="font-size:11px">Fotos são criadas em sessão de chat (Fase A → Fase B) e aparecem aqui automaticamente.</span></p>';
     return;
   }
 
-  // Ordena: em_analise primeiro, depois ativa, depois encerrada; dentro de cada grupo, mais recente primeiro
-  const ordem={em_analise:0,ativa:1,encerrada:2};
-  const lista=[..._analiseData].sort((a,b)=>{
+  // Ordena: em_analise primeiro, depois ativa; dentro de cada grupo, mais recente primeiro
+  const ordem={em_analise:0,ativa:1};
+  const lista=[...ativas].sort((a,b)=>{
     const oa=ordem[a.status]??9,ob=ordem[b.status]??9;
     if(oa!==ob)return oa-ob;
     return (b.data_foto||'').localeCompare(a.data_foto||'');
   });
 
   cont.innerHTML=lista.map(a=>tplAnalise(a)).join('');
+}
+
+// Adicionado 23/06/2026 -- secao separada na aba Encerradas para
+// historico de analises (rejeitadas + encerradas reais com sucesso/
+// fracasso), distinta da secao de Posicoes reais (positions.json) que
+// ja existia. Dashboard no mesmo estilo visual de calcDashboardEncerradas.
+async function loadAnalisesEncerradas(){
+  const cont=document.getElementById('enc-analises-container');
+  if(!cont)return;
+  try{
+    const [rA,rS]=await Promise.all([
+      fetch(B+'/analises',{cache:'no-store'}),
+      fetch(B+'/analises/stats',{cache:'no-store'}).catch(()=>null),
+    ]);
+    const dataA=rA.ok?await rA.json():[];
+    const stats=(rS&&rS.ok)?await rS.json():{total_rejeitadas:0};
+    const lista=Array.isArray(dataA)?dataA.filter(a=>a.status==='encerrada'):[];
+
+    const rejeitadas=lista.filter(a=>a.motivo_encerramento==='rejeitada');
+    const encerradasReais=lista.filter(a=>a.resultado);
+    const sucessos=encerradasReais.filter(a=>a.resultado==='sucesso').length;
+    const taxaSucesso=encerradasReais.length?Math.round(sucessos/encerradasReais.length*100):null;
+    const totalRejeitadasPermanente=stats.total_rejeitadas||0;
+
+    let dashboard=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div class="card g">
+        <div class="cl">Encerradas (operadas)</div>
+        <div class="cp">${encerradasReais.length}</div>
+        <div class="cc" style="color:var(--muted)">sucesso/fracasso</div>
+      </div>
+      <div class="card g">
+        <div class="cl">Taxa de Sucesso</div>
+        <div class="cp">${taxaSucesso!=null?taxaSucesso+'%':'—'}</div>
+        <div class="cc" style="color:var(--green)">${sucessos} de ${encerradasReais.length} ✅</div>
+      </div>
+      <div class="card b">
+        <div class="cl">Rejeitadas (histórico)</div>
+        <div class="cp">${totalRejeitadasPermanente}</div>
+        <div class="cc" style="color:#ff6b6b">🚫 nunca foram ativas</div>
+      </div>
+    </div>`;
+
+    if(!lista.length){
+      cont.innerHTML=dashboard+'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
+      return;
+    }
+
+    const cards=lista.map(a=>tplAnaliseEncerrada(a)).join('');
+    cont.innerHTML=dashboard+cards;
+  }catch(e){
+    cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar histórico de análises: '+e.message+'</p>';
+  }
+}
+
+function tplAnaliseEncerrada(a){
+  const isRejeitada=a.motivo_encerramento==='rejeitada';
+  const badgeCls=isRejeitada?'enc-rejeitada':(a.resultado==='sucesso'?'enc-ok':'enc-warn');
+  const badgeTxt=isRejeitada?'🚫 REJEITADA':(a.resultado==='sucesso'?'✅ SUCESSO':a.resultado==='fracasso'?'⚠ FRACASSO':'🗂 ENCERRADA');
+  const dataRef=isRejeitada?fmtDataOrNull(a.data_rejeicao):fmtDataOrNull(a.data_encerramento);
+  const sub=[_TIPO_LABEL[a.tipo_estrutura]||a.tipo_estrutura,dataRef?'Encerrada '+dataRef:'Encerrada'].join(' · ');
+  let rows=`<div class="sr"><span class="sl">Tipo</span><span class="sv">${_TIPO_LABEL[a.tipo_estrutura]||a.tipo_estrutura}</span></div>`;
+  if(a.preco_foto!=null)rows+=`<div class="sr"><span class="sl">Preço na foto</span><span class="sv">R$ ${Number(a.preco_foto).toFixed(2).replace('.',',')}</span></div>`;
+  if(a.observacao)rows+=`<div class="sr"><span class="sl">Observação</span><span class="sv" style="color:var(--muted);white-space:pre-wrap">${a.observacao.slice(0,400)}</span></div>`;
+  return `
+  <div class="pos-enc" style="margin-top:10px">
+    <div class="pos-enc-hdr" onclick="togPos('an-${a.id}')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div class="pos-acc-tk" style="color:var(--muted);font-size:18px">${a.ticker}</div>
+          <div class="pos-acc-sub">${sub}</div>
+        </div>
+        <span class="enc-badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+      <span id="ar-an-${a.id}" style="color:var(--muted)">▼</span>
+    </div>
+    <div class="pos-acc-body" id="body-an-${a.id}">
+      <div class="sb">${rows}</div>
+    </div>
+  </div>`;
 }
 
 function tplAnalise(a){
