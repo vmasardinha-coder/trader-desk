@@ -3473,6 +3473,166 @@ def _linha_ranking_base(a):
         'backtest': a.get('backtest'), 'score': None,
     }
 
+# ── FIIs (item 1 do backlog) ──────────────────────────
+# Adicionado 25/06/2026. Fonte: Fundamentus (fii_resultado.php), tabela
+# HTML publica, gratuita, sem token, ~390 FIIs de uma vez. Mesma logica
+# de scraping de tabela ja usada com sucesso para fundamentais de acoes
+# (FUND_OVERRIDE usa Fundamentus tambem, fonte ja confiavel no projeto).
+#
+# Criterio fechado com o usuario em 25/06/2026: P/VP (1o filtro) -> DY
+# (2o filtro) -> Liquidez (3o filtro, risco operacional). Tipos em ordem
+# de relevancia: papel > tijolo > FoF (usuario opera os tres).
+#
+# Mapeamento real de "Segmento" do Fundamentus (NAO e exatamente papel/
+# tijolo/fof -- e o SETOR DE ATUACAO): confirmado via pesquisa que os
+# valores reais sao: "Títulos e Val. Mob." (~=papel/CRI), "Híbrido",
+# "Lajes Corporativas", "Shoppings", "Logística", "Residencial",
+# "Hospital", "Hotel", "Outros". Mapeado abaixo para papel/tijolo/hibrido/
+# outros, ja que o Fundamentus nao usa a nomenclatura papel/tijolo/fof
+# diretamente.
+_FII_SEGMENTO_MAP = {
+    'Títulos e Val. Mob.': 'papel',
+    'Híbrido': 'hibrido',
+    'Lajes Corporativas': 'tijolo',
+    'Shoppings': 'tijolo',
+    'Logística': 'tijolo',
+    'Residencial': 'tijolo',
+    'Hospital': 'tijolo',
+    'Hotel': 'tijolo',
+    'Outros': 'outros',
+}
+
+def scrape_fiis_fundamentus():
+    """Scraping da tabela completa de FIIs do Fundamentus. Retorna lista de
+    dicts (um por FII) ou None se o sanity check falhar (layout mudou,
+    pagina vazia, etc -- NUNCA retorna dado parcial/suspeito sem avisar)."""
+    try:
+        r = requests.get(
+            'https://www.fundamentus.com.br/fii_resultado.php',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'},
+            timeout=10)
+        if not r.ok:
+            return None, 'http_error'
+        html = r.text
+
+        # Extrai linhas da tabela via regex (sem BeautifulSoup, mesmo
+        # padrao leve ja usado no resto do projeto). Cada linha <tr> tem
+        # 13 <td>, primeiro com o ticker dentro de um <a>.
+        linhas_raw = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL)
+        fiis = []
+        for linha in linhas_raw:
+            celulas = re.findall(r'<td[^>]*>(.*?)</td>', linha, re.DOTALL)
+            if len(celulas) != 13:
+                continue
+            # Limpa tags HTML internas (ex: <a href=...>MXRF11</a>) e espacos
+            valores = [re.sub(r'<[^>]+>', '', c).strip() for c in celulas]
+            ticker = valores[0]
+            if not ticker or not re.match(r'^[A-Z0-9]+$', ticker):
+                continue  # pula cabecalho ou linha invalida
+            try:
+                def _pct(s):
+                    s = s.replace('%', '').replace('.', '').replace(',', '.').strip()
+                    return float(s) if s and s != '-' else None
+                def _num(s):
+                    s = s.replace('.', '').replace(',', '.').strip()
+                    return float(s) if s and s != '-' else None
+                fiis.append({
+                    'ticker': ticker,
+                    'segmento_fundamentus': valores[1],
+                    'segmento': _FII_SEGMENTO_MAP.get(valores[1], 'outros'),
+                    'cotacao': _num(valores[2]),
+                    'ffo_yield_pct': _pct(valores[3]),
+                    'dy_pct': _pct(valores[4]),
+                    'p_vp': _num(valores[5]),
+                    'valor_mercado': _num(valores[6]),
+                    'liquidez': _num(valores[7]),
+                    'qtd_imoveis': _num(valores[8]),
+                    'preco_m2': _num(valores[9]),
+                    'aluguel_m2': _num(valores[10]),
+                    'cap_rate_pct': _pct(valores[11]),
+                    'vacancia_pct': _pct(valores[12]),
+                })
+            except (ValueError, IndexError):
+                continue
+
+        # ── Sanity checks (NUNCA aceitar dado suspeito sem avisar) ──
+        if len(fiis) < 300:
+            return None, f'poucos_fiis_encontrados ({len(fiis)}, esperado 300+)'
+        p_vps_validos = [f['p_vp'] for f in fiis if f['p_vp'] is not None]
+        if p_vps_validos:
+            frac_fora_faixa = sum(1 for v in p_vps_validos if v < 0 or v > 5) / len(p_vps_validos)
+            if frac_fora_faixa > 0.1:  # mais de 10% fora da faixa plausivel = layout suspeito
+                return None, f'p_vp_fora_da_faixa ({frac_fora_faixa*100:.1f}% das linhas)'
+
+        return fiis, None
+    except Exception as e:
+        return None, str(e)
+
+@app.route('/fiis', methods=['GET'])
+def get_fiis():
+    """
+    Screening de FIIs via Fundamentus. Query params opcionais:
+    - segmento: papel|tijolo|hibrido|outros (filtra por tipo)
+    - liquidez_min: minimo de liquidez diaria em R$ (default 50000 --
+      descarte inicial fechado com o usuario)
+
+    Aplica DESCARTE INICIAL (liquidez minima, DY zerado, P/VP anomalo)
+    antes de devolver a lista -- usuario confirmou que esses 3 criterios
+    sao seguros para eliminar o que e operacionalmente inviavel ou
+    claramente quebrado, sem aplicar julgamento de qualidade ainda (isso
+    fica para o criterio fino P/VP->DY->Liquidez, feito no frontend/
+    proxima iteracao).
+
+    NUNCA filtra silenciosamente por causa de erro de scraping -- se o
+    sanity check falhar, retorna erro explicito em vez de lista vazia.
+    """
+    try:
+        liquidez_min = float(request.args.get('liquidez_min', 50000))
+        segmento_filtro = request.args.get('segmento')
+
+        fiis, erro = scrape_fiis_fundamentus()
+        if fiis is None:
+            return jsonify({
+                'error': f'Scraping do Fundamentus falhou ou layout pode ter mudado: {erro}',
+                'fiis': [],
+            }), 502
+
+        # Descarte inicial -- fechado com o usuario em 25/06/2026
+        descartados = []
+        validos = []
+        for f in fiis:
+            motivo = None
+            if f['liquidez'] is None or f['liquidez'] < liquidez_min:
+                motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
+            elif f['dy_pct'] is None or f['dy_pct'] <= 0:
+                motivo = 'DY zerado ou ausente'
+            elif f['p_vp'] is None or f['p_vp'] <= 0 or f['p_vp'] > 3:
+                motivo = f'P/VP anômalo ({f["p_vp"]})' if f['p_vp'] is not None else 'P/VP ausente'
+
+            if motivo:
+                descartados.append({'ticker': f['ticker'], 'motivo': motivo})
+            else:
+                validos.append(f)
+
+        if segmento_filtro:
+            validos = [f for f in validos if f['segmento'] == segmento_filtro]
+
+        # Ordenacao: P/VP (menor/mais descontado primeiro) -> DY (maior
+        # primeiro) -> Liquidez (maior primeiro) -- ordem de prioridade
+        # fechada com o usuario (P/VP e o filtro PRINCIPAL, ao contrario
+        # do criterio de estruturadas onde DY e desempate terciario)
+        validos.sort(key=lambda f: (f['p_vp'], -f['dy_pct'], -f['liquidez']))
+
+        return jsonify({
+            'total_brutos': len(fiis),
+            'total_descartados': len(descartados),
+            'total_validos': len(validos),
+            'descartados': descartados,
+            'fiis': validos,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/positions', methods=['GET'])
 def get_positions():
     """
