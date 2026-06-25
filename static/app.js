@@ -1879,6 +1879,7 @@ function tplAnalise(a){
         </div>
         <span class="enc-badge ${badgeCls}">${badgeTxt}</span>
         ${a.backtest?'<span class="enc-badge" style="background:rgba(124,106,247,.15);color:var(--accent);border:1px solid rgba(124,106,247,.3)">🧪 BACKTEST</span>':''}
+        ${a.lote?'<span class="enc-badge" style="background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)" title="Lote de origem">📦 '+a.lote+'</span>':''}
       </div>
       <span id="ar-analise-${id}" style="color:var(--muted)">▼</span>
     </div>
