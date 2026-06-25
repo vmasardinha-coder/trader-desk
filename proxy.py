@@ -3134,6 +3134,9 @@ def mudar_status_analise(analise_id):
         body = request.get_json() or {}
         novo_status = body.get('status')
         motivo = body.get('motivo_encerramento')
+        resultado = body.get('resultado')
+        if resultado and resultado not in ('sucesso', 'fracasso'):
+            return jsonify({'error': f"resultado invalido: {resultado!r} (validos: sucesso, fracasso)"}), 422
         if novo_status not in _STATUS_VALIDOS:
             return jsonify({'error': f'status invalido: {novo_status!r}'}), 422
 
@@ -3146,6 +3149,9 @@ def mudar_status_analise(analise_id):
                 if motivo:
                     item['motivo_encerramento'] = motivo
                     item['data_rejeicao'] = _hoje_str()
+                if resultado:
+                    item['resultado'] = resultado
+                    item['data_encerramento'] = _hoje_str()
                 encontrado = True
                 break
         if not encontrado:
