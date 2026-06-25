@@ -1765,3 +1765,86 @@ migração/snapshot em vez de duplicar lógica.
    Em Análise→Ativa) -- ainda sem ação.
 5. Lote de 24/06 (ranking) -- usuário continua decidindo via tabela,
    conversa volta para lá após esta pausa de esclarecimento conceitual.
+
+---
+
+# Sessão 25/06/2026 (parte 7) — Implementação real do endpoint /fiis (item 1 do backlog)
+
+## SHA final
+- proxy.py: 5b49eaefa90f013669920178196996bfdc3880d6
+
+## Implementação completa do endpoint GET /fiis
+Usuário pediu para avançar de pesquisa para implementação real. Endpoint
+`scrape_fiis_fundamentus()` + `GET /fiis` criados com:
+- Scraping de `fundamentus.com.br/fii_resultado.php` via regex (sem
+  BeautifulSoup, mesmo padrão leve do resto do projeto)
+- Sanity checks: mínimo 300 FIIs, máximo 10% de P/VP fora da faixa 0-5
+- Descarte inicial fechado com usuário: liquidez < R$50k/dia, DY ≤ 0%,
+  P/VP fora de [0.5, 3] (ver correção de yield trap abaixo)
+- Ranking: P/VP (menor primeiro) → DY (maior primeiro) → Liquidez (maior
+  primeiro), com filtro opcional por segmento via query param
+
+## 🐛 Bug crítico encontrado e corrigido: contagem de colunas errada
+**Primeiro teste real deu `total_brutos: 0`** -- sanity check funcionou
+(não deixou passar dado vazio), mas o scraping não capturou NADA.
+
+**Causa raiz confirmada via `web_fetch` da página real:** a especificação
+original foi baseada em um artigo de scraping de **fevereiro de 2023**
+que documentava **13 colunas**. A página REAL hoje (25/06/2026) tem
+**14 colunas** -- o Fundamentus adicionou uma coluna "Endereço" em algum
+momento desde então. O código tinha `if len(celulas) != 13: continue`,
+que descartava **literalmente todas as linhas** (nenhuma tinha exatamente
+13, todas tinham 14).
+
+**Corrigido:** `if len(celulas) not in (13, 14): continue` -- tolera 13
+OU 14 colunas, para não quebrar de novo se a coluna for removida no
+futuro. Campo `endereco` adicionado ao retorno (opcional, vem vazio para
+a maioria dos FIIs sem imóvel físico).
+
+**Também corrigido por precaução (não confirmado se era necessário):**
+forçado `r.encoding = 'iso-8859-1'` explicitamente (página usa esse
+charset, confirmado via inspeção real) e headers mais completos
+(Accept-Language, Referer) contra possível bloqueio anti-bot de IPs de
+datacenter.
+
+**Resultado do segundo teste real, após a correção:** `total_brutos: 560`,
+`total_validos: 246` -- funcionando.
+
+## 🐛 Segundo problema encontrado (não-bug, mas critério insuficiente): yield trap
+Primeiros 3 resultados do ranking corrigido (VSLH11, HCTR11, DEVA11) com
+**P/VP 0.15-0.19 e DY 19.89-22.94%** -- padrão clássico de "yield trap":
+FIIs de papel/CRI com histórico real de problema de crédito (P/VP tão
+descontado normalmente reflete desconfiança do mercado sobre o valor
+patrimonial declarado, não uma pechincha genuína).
+
+**Corrigido com novo filtro, fechado com o usuário:** `_FII_PVP_MINIMO =
+0.5` -- descarte agora exige P/VP no intervalo [0.5, 3], não só > 0.
+Também corrigido mapeamento de segmento incompleto descoberto no mesmo
+teste: "Multicategoria" (mapeado para 'hibrido'), "Varejo" e
+"Escritórios" (mapeados para 'tijolo') não estavam no `_FII_SEGMENTO_MAP`
+original e caíam silenciosamente em 'outros'.
+
+**Lista completa de segmentos reais confirmados via teste em produção**
+(560 FIIs brutos): Títulos e Val. Mob., Híbrido, Multicategoria, Lajes
+Corporativas, Escritórios, Shoppings, Logística, Residencial, Varejo,
+Hospital, Hotel, Outros.
+
+## Próximo passo (frontend) -- ainda não implementado
+Backend funcional e validado em produção real (não só teste isolado).
+Falta: UI para exibir o ranking de FIIs no app (aba ou seção, conforme
+visão de arquitetura já registrada na parte 6 desta sessão -- duas abas,
+screening + Carteira Ativa, sem quantidade de cotas, performance via
+dividendo desde data de ativação).
+
+## Lição de processo reforçada nesta sessão (FIIs)
+- Especificação baseada em artigo/exemplo de scraping de terceiros pode
+  estar desatualizada (o artigo usado tinha 2+ anos) -- sempre que
+  possível, confirmar a estrutura ATUAL da página real (via web_fetch)
+  antes de travar uma contagem fixa de colunas/campos no código, ou pelo
+  menos tornar o sanity check tolerante a pequenas variações (13 OU 14,
+  não só um valor fixo).
+- Mesmo após o scraping "funcionar" (retornar dados), revisar os
+  PRIMEIROS resultados reais antes de confiar no critério -- o teste real
+  revelou um problema de qualidade de critério (yield trap) que não
+  apareceria em nenhum teste isolado com dados simulados, só com dados
+  reais de mercado.
