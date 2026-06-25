@@ -463,6 +463,49 @@ def yquote(ticker):
         return {'price':round(float(p),2),'prev':round(float(v),2)}
     except: return None
 
+# Adicionado 25/06/2026 -- item 6 do backlog (Minerio de Ferro parecia
+# "fixo" em Cotacoes). Causa raiz confirmada: TIO=F no Yahoo e um contrato
+# de baixa liquidez sujeito a rollover de vencimento -- o sanity check
+# (variacao >15% oculta o %) estava disparando quase todo dia, fazendo a
+# variacao parecer congelada mesmo com o preco em si atualizando. Usuario
+# pediu fonte alternativa mais estavel em vez de so ajustar parametros do
+# Yahoo. Investing.com confirmado via busca: pagina mostra "Day's Range"
+# e "Prev. Close" claramente, mas e SCRAPING DE PAGINA (nao API oficial) --
+# pode parar de funcionar se o investing.com mudar o HTML/exigir JS. Se o
+# scraping falhar silenciosamente, FAZ FALLBACK para o yquote('TIO=F') já
+# existente (nunca quebra o endpoint /futures por completo).
+def scrape_iron_ore_investing():
+    """Fallback de fonte para Minerio de Ferro via scraping leve do
+    Investing.com (sem JS rendering -- se a pagina exigir JS para carregar
+    o preco, este scraping retorna None e o caller cai de volta no Yahoo).
+    NUNCA usar para outros tickers sem validar o HTML primeiro -- layout
+    de pagina pode mudar sem aviso."""
+    try:
+        r = requests.get(
+            'https://www.investing.com/commodities/iron-ore-62-cfr-futures',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'},
+            timeout=8)
+        if not r.ok:
+            return None
+        html = r.text
+        # Padrao confirmado via inspecao manual da pagina (25/06/2026):
+        # "The current price of Iron Ore 62% futures is 111.42" -- texto
+        # fixo do FAQ, mais estavel que tentar parsear o widget de preco
+        # principal (que pode ter classes CSS dinamicas).
+        # Regex tolerante a tags/espacos no meio (requests.get traz HTML
+        # bruto, nao o markdown limpo que web_fetch mostra) -- usa \s+ e
+        # permite tags simples entre as palavras-chave.
+        html_limpo = re.sub(r'<[^>]+>', ' ', html)  # remove tags HTML cruas
+        m_price = re.search(r'current\s+price\s+of\s+Iron\s+Ore\s+62%\s+futures\s+is\s+([\d,]+\.?\d*)', html_limpo)
+        m_prev = re.search(r'previous\s+close\s+of\s+([\d,]+\.?\d*)', html_limpo)
+        if not m_price:
+            return None
+        price = float(m_price.group(1).replace(',', ''))
+        prev = float(m_prev.group(1).replace(',', '')) if m_prev else price
+        return {'price': round(price, 2), 'prev': round(prev, 2), 'source': 'investing.com'}
+    except Exception:
+        return None
+
 # ── FUTUROS ───────────────────────────────────────────
 @app.route('/futures', methods=['GET'])
 def get_futures():
@@ -548,7 +591,13 @@ def get_futures():
     # China) tem liquidez/disponibilidade no Yahoo menos estavel que os
     # contratos CME tradicionais acima -- yquote ja retorna None com
     # seguranca se a busca falhar, sem quebrar o resto do payload.
-    iron_ore = yquote('TIO%3DF')  # Minerio de Ferro 62% Fe (TSI, CFR China)
+    # Adicionado 25/06/2026 -- Minerio de Ferro: Investing.com como fonte
+    # PRIMARIA (mais estavel, ver scrape_iron_ore_investing acima), Yahoo
+    # (yquote) como FALLBACK se o scraping falhar (HTML mudou, exige JS,
+    # rede indisponivel, etc). Nunca quebra o endpoint /futures inteiro.
+    iron_ore = scrape_iron_ore_investing()
+    if not iron_ore:
+        iron_ore = yquote('TIO%3DF')  # Minerio de Ferro 62% Fe (TSI, CFR China) -- fallback
     brent = yquote('BZ%3DF')      # Petroleo Brent
     natgas = yquote('NG%3DF')     # Gas Natural
 
