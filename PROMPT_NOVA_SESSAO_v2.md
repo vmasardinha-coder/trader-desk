@@ -1157,3 +1157,77 @@ em aberto para quando ela começar:
    peça.
 3. Todo o resto do backlog (FIIs, ETFs, Renda fixa, "Análise de Papel",
    Migração Em Análise→Ativa) continua igual, sem mudança nesta sessão.
+
+---
+
+# Sessão 25/06/2026 — Lote de 24/06 resolvido e subido (14 análises)
+
+## SHA final
+- analises.json: 21f23087b89d1efe66ab185356d667ee5124451c
+
+## Ambiguidade dos 4 ativos (DIRR3/CMIN3/PETR4/VALE3) — RESOLVIDA
+Usuário decidiu: subir AMBAS as versões (curto 08/07 e longo 21/09) em vez de
+escolher uma filosofia só. Justificativa: ambas estão dentro do limite de
+~120 dias considerado aceitável para uma análise (o limite mais estrito é
+para posição REALIZADA, não para o registro em análise). Decisão vale como
+padrão para casos futuros parecidos — não reabrir essa discussão sem motivo
+novo.
+
+## Campo novo: `lote` em analises.json
+Adicionado a cada registro de análise, formato `"lote": "AAAA-MM-DD"` (data
+do lote de origem, não necessariamente igual a `data_foto`). Objetivo:
+diferenciar lotes diferentes quando o usuário trouxer novos no futuro, mesmo
+padrão de utilidade do campo `backtest`. Usar esse campo (não criar um novo)
+sempre que houver outro lote de candidatos.
+
+## KOs dos PDFs do banco extraídos corretamente (lição: sempre ler o PDF antes de assumir)
+Os 5 PDFs do lote de 24/06 (AMZO34/BSLV39/CYRE3/ROXO34/TSLA34) tinham a
+barreira (KO) só no documento, não nas tabelas-resumo já registradas em
+sessão anterior. Usuário enviou os 5 PDFs reais; KOs extraídos da seção
+"Composição da Estratégia" de cada (campo "Valor da Barreira"):
+- AMZO34: barreira -10,00% (89,90% do valor inicial), vencimento 10/08/2026
+- BSLV39: barreira -20,00% (79,90%), vencimento 21/08/2026
+- CYRE3: barreira -20,00% (79,90%), vencimento 21/08/2026
+- ROXO34 (retorno_controlado, NOVA estrutura): barreira -18,40% (81,50%),
+  vencimento 21/08/2026 — independente da posição ativa real ROXOG105
+  (strike R$10,50, vencimento 16/07/2026), mesmo padrão da an_1782123970
+  antiga (call simples), mas esta é retorno_controlado.
+- TSLA34: barreira -20,00% (79,90%), vencimento 21/08/2026
+
+## KOs dos 4 ativos com conflito de fixing (planilha) confirmados via dados reais
+Usuário colou a planilha completa de 144 linhas. Confirmado por cálculo
+reverso (retorno mensal e EV batendo com os números já registrados na
+Tabela 2 da sessão anterior):
+- PETR4/VALE3 prazo curto (08/07): KO = 91,80% (não 87,80%, que é uma
+  combinação de KO mais raso disponível na mesma planilha mas não a que
+  gerou os números já registrados)
+- DIRR3/CMIN3 prazo curto (08/07): mesma lógica, KO = 91,80% confirmado
+  (vs. alternativa 87,80% que dava números diferentes)
+- Todos os 4 ativos no prazo curto usam a MESMA combinação de barreira
+  (91,80%), sinal de que vêm do mesmo lote/dia de emissão da planilha.
+
+## Preços de foto (preco_foto) coletados via web search, não via Yahoo direto
+Yahoo confirmado bloqueado no sandbox (bash_tool/web_fetch, mesmo padrão já
+documentado em sessões anteriores). Preços usados (fonte StatusInvest/ADVFN,
+25/06/2026, mais recentes disponíveis no momento da busca):
+PETR4=39.33, VALE3=79.38, ALOS3=27.13, DIRR3=12.81, CMIN3=4.31, ROXO34=14.01,
+TSLA34=65.12, BSLV39=96.68, AMZO34=61.01, CYRE3=20.86.
+**Limitação assumida**: alguns desses preços têm 1-2 semanas de defasagem
+(fonte não tinha cotação de hoje exata para todos os ativos) — usuário pode
+querer confirmar/corrigir manualmente os preços de foto mais sensíveis antes
+de tomar decisão final, especialmente para os de prazo curto (14 dias), onde
+a defasagem do preço de entrada tem mais impacto proporcional no resultado.
+
+## 14 análises subidas, todas em_analise, backtest=false, lote=2026-06-24
+IDs an_1782394704 a an_1782394717. Ver analises.json no repo para o detalhe
+completo de cada uma. Usuário vai analisar os resultados de probabilidade
+(Monte Carlo, calculados pela engine ao abrir cada card no app) para decidir
+o que rejeitar ou manter — não decidir por conta própria nem pré-filtrar.
+
+## Próximo passo
+Usuário vai abrir o app (aba Em Análise) e olhar os botões/probabilidades já
+calculadas pela engine para cada uma das 14. Verificar se os botões de
+status (Rejeitar / Marcar como Ativa) estão funcionando corretamente — não
+testado nesta sessão ainda. Backlog de "Análise de Papel" mencionado como
+possivelmente já implementado ou não — PRECISA CONFIRMAR no código real
+antes de assumir, usuário não tem certeza do estado atual desse item.
