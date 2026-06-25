@@ -1406,3 +1406,101 @@ ranking.
   esperar alguns minutos antes de assumir que a listagem (`GET /analises`,
   que lê via raw.githubusercontent.com) já reflete a mudança -- é
   limitação de cache de CDN do GitHub, não bug de lógica.
+
+---
+
+# Sessão 25/06/2026 (parte 3) — EV completo no score + correção do Minério de Ferro
+
+## SHAs finais desta parte
+- proxy.py: 477d13505b67d5712ead123f3809f35e66390f4f
+- static/app.js: 1afec907fc42457faeb7dae0a0440a709e97acf0
+
+## ⭐ Item 7 do backlog CONCLUÍDO: score do ranking agora usa EV completo
+Usuário perguntou se o score atual "é como os grandes bancos decidem" --
+resposta honesta: não, era uma heurística simplificada (prob_meta binária
+× ganho fixo). Confirmado com o usuário: evoluir para EV completo,
+ponderando TODOS os cenários (sucesso, parcial, rompimento de barreira com
+perda real) via média da própria simulação Monte Carlo, em vez de só
+"bateu ou não bateu a meta".
+
+**Implementação:** `/analises/ranking` agora roda uma simulação SEPARADA
+com o prazo TOTAL original (`prazo_dias`, a partir de `preco_foto`) -- mesmo
+padrão já usado em `/montecarlo/condicional` para `prob_retorno_faixas`/
+`retorno_medio_pct`. Calcula `retorno_full_ev` considerando o payoff real
+de cada tipo de estrutura:
+- `retorno_controlado`: ganho prefixado se não tocar a barreira no prazo
+  TOTAL; variação real (pode ser negativa) se tocar.
+- `bidirecional`: 0 se tocou defesa, teto se tocou alta, variação×alavancagem
+  dentro do range (alavancagem default 1.0 se não informada na análise).
+
+Nova coluna na tabela: **"EV mensal"** = `retorno_medio_pct / meses_totais`
+(verde se positivo, vermelho se negativo). **`prob_meta` mantida como
+coluna separada** -- usuário pediu explicitamente para MANTER, não
+substituir, só adicionar a nova coluna e trocar o que entra no SCORE.
+
+Score v2: `score = ev_mensal_pct * peso_prazo + bonus_colchao` (mesmo
+peso_prazo e bônus de colchão de antes, só a base do cálculo mudou de
+`prob_meta * ganho_fixo` para `ev_mensal_pct` real).
+
+**Insight validado com o usuário via teste numérico:** EV pode ficar
+NEGATIVO mesmo com probabilidade de meta alta (~70-75%), porque o tamanho
+da perda no cenário de rompimento de barreira (sem teto de proteção na
+queda) pesa proporcionalmente mais que o ganho fixo nos cenários bons --
+assimetria de payoff. Usuário confirmou entendimento: "mesmo que a
+probabilidade de atingir a meta seja boa, pode ficar negativo porque a
+chance de dar errado, se acontecer, custa caro". Esse é o comportamento
+ESPERADO e CORRETO do EV completo, não um bug.
+
+## ✅ Item 6 do backlog CONCLUÍDO: Minério de Ferro corrigido
+**Causa raiz confirmada:** TIO=F no Yahoo é mapeado para um contrato
+específico de vencimento (visto via busca: ticker real é algo como
+TIOM15.NYM/TIOM2026, com sufixo de mês) -- baixa liquidez e rollover de
+vencimento fazem a variação calculada disparar o sanity check (>15% oculta
+o %) quase TODO dia, não ocasionalmente. O PREÇO em si continuava
+atualizando normalmente (`ep.textContent` sempre roda no app.js), mas a
+variação % ficava sempre oculta -- dando a sensação de "preço fixo" mesmo
+sem ser literalmente travado.
+
+**Confirmado via Investing.com (página real, visualizada por web_fetch):**
+"Day's Range: 111.42 - 111.42" e "Open: 111.42" -- mesmo valor repetido em
+todos os campos no dia consultado, evidência direta de baixíssima liquidez/
+poucos negócios reais no pregão.
+
+**Correção implementada:** nova função `scrape_iron_ore_investing()` --
+scraping leve (regex, sem lib de parsing HTML) da página pública do
+Investing.com (`/commodities/iron-ore-62-cfr-futures`), buscando o texto
+fixo do FAQ ("The current price of Iron Ore 62% futures is X, with a
+previous close of Y"). Usado como FONTE PRIMÁRIA; `yquote('TIO=F')` (Yahoo)
+mantido como FALLBACK se o scraping falhar (HTML mudar, exigir JS,
+indisponibilidade de rede) -- nunca quebra o endpoint `/futures` inteiro.
+
+**Risco assumido e aceito pelo usuário:** scraping de página (não API
+oficial) pode parar de funcionar se o Investing.com mudar o HTML. Claude
+não conseguiu testar empiricamente se `requests.get()` simples (sem JS
+rendering) captura o preço real em produção -- `investing.com` está
+bloqueado no sandbox de teste (mesma limitação já documentada para Yahoo/
+brapi). Regex foi escrito de forma tolerante a tags HTML intercaladas
+(remove tags antes de buscar o padrão) para aumentar a chance de funcionar,
+mas **PRECISA DE VALIDAÇÃO REAL NO RENDER** -- se o usuário notar que o
+Minério de Ferro continua com problema (ou começar a dar erro/None), o
+fallback para Yahoo já garante que não quebra nada, mas a correção em si
+pode não estar funcionando e precisar de ajuste do regex/abordagem.
+
+## Estado do backlog ao final desta sessão
+1. ✅ Item 7 (EV completo no score) -- CONCLUÍDO E DEPLOYADO
+2. ✅ Item 6 (Minério de Ferro) -- CONCLUÍDO E DEPLOYADO, mas precisa de
+   validação real no Render (scraping não testável no sandbox)
+3. Itens 1-5 do backlog original (FIIs, ETFs, Renda fixa, Análise de Papel,
+   Migração Em Análise→Ativa) -- continuam sem ação, próxima sessão.
+4. Lote de 24/06 -- usuário decidindo via ranking (AXIA3 já rejeitada de
+   verdade; resto aguardando decisão usando a tabela com EV completo agora).
+
+## Lembrete de processo reforçado nesta sessão
+- Ao evoluir uma fórmula de score/critério de decisão, perguntar
+  explicitamente se o usuário quer SUBSTITUIR ou MANTER+ADICIONAR campos
+  existentes antes de implementar -- usuário corrigiu uma vez nesta sessão
+  (queria manter prob_meta, só adicionar EV ao lado).
+- Scraping de página pública (sem API oficial) é sempre incerto até testar
+  em produção real -- documentar claramente o fallback e avisar o usuário
+  que pode precisar de iteração, em vez de prometer que vai funcionar de
+  primeira.
