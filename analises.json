@@ -80,9 +80,11 @@
     "alavancagem": 1.3,
     "teto_retorno_pct": 4.0,
     "origem": "pronta",
-    "status": "em_analise",
+    "status": "encerrada",
     "observacao": "SIMULACAO COMPARATIVA, nao e posicao nova: usuario JA TEM AXIA3(B) ativa (positions.json id=a3b) com a MESMA estrutura do banco (Itau, Material Publicitario 03/06/2026, vencimento 02/10/2026), mas contratada a entry R$50,65. Esta foto simula 'se eu fechasse essa mesma estrutura HOJE' no preco atual R$51,81, para comparar contratar antes vs agora. KDO -20% / KUO +24%, alavancagem 1,30x dentro do range (inferida do quadro de rentabilidade do PDF: 24%->31,2% e 4%->5,2%, ambos = 1,30x), teto travado em 4,00% (12,33% a.a.) -- numeros do banco aceitos como premissa fixa, sem reescalar. Prob. (Monte Carlo vol.impl. 30%): fica dentro 54,6%, toca defesa 24,3%, toca teto 21,1%. Prob. de BATER A META (>=4%): 40,85% -- bem mais favoravel que o PETR4 teorico (17,9%), por causa do range mais largo e alavancagem real maior.",
-    "backtest": true
+    "backtest": true,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-06-25"
   },
   {
     "id": "an_1782124685",
