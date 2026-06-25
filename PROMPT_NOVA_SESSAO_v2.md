@@ -930,3 +930,117 @@ quais ativos avançar ("eu vou escolher: quero esse e esse, para análise"). O
 quadro/tabela é só para ele decidir — a Fase B (registro real) só acontece depois
 dessa escolha manual, e mesmo aí seguindo a regra já estabelecida de confirmar os
 4 números-chave antes de "tirar a foto".
+
+---
+
+# Fechamento sessão 23-24/06/2026 — Lote de análises + categoria "rejeitada"
+
+## SHAs finais
+- proxy.py: eb0381b171afadcb1ef975c2afbb2982c1e0f6b9
+- static/app.js: acbe3237e3c38d0e9cc5a250e35bc82140eabf39
+- static/style.css: e3305846812e60e8d4ed33f89181fb157d432b49
+- templates/index.html: 9ee178b2350ab85295e29732be22a9376a21918e
+- analises.json: 4d6bebc1cf01b263340d5231ff3d14a7c9f273de
+- stats_analises.json: 558869f0d357da3954f9f5f9f0df5dfb7cb3c074 (arquivo NOVO)
+
+## Feature nova: categoria "rejeitada" para análises (concluída e corrigida)
+
+**Mecânica final correta** (após 2 correções de UX nesta sessão):
+- Botão "Encerrar sem executar" (em `em_analise`) foi **renomeado para "🚫
+  Rejeitar"** — é ELE que marca `motivo_encerramento='rejeitada'`
+  automaticamente (não precisa de lógica nova por fora, o botão já
+  existia, só faltava essa semântica).
+- Botão "Encerrar operação" (em `ativa`) agora pergunta **sucesso ou
+  fracasso** (2 confirmações sequenciais, para não confundir "cancelar a
+  ação" com "foi fracasso") — grava em `resultado` ('sucesso'/'fracasso').
+- `PUT /analises/<id>/status` aceita `motivo_encerramento` e `resultado`
+  opcionais no body.
+- Contador **permanente** em `stats_analises.json` (arquivo separado,
+  já que `analises.json` é lista pura sem wrapper de metadados) —
+  incrementado a cada rejeição, nunca diminui.
+- `GET /analises` filtra da **resposta** (não do arquivo real) itens
+  rejeitados com mais de 30 dias desde `data_rejeicao` — o contador
+  permanente já garante a estatística de longo prazo independente disso.
+- Novo endpoint `GET /analises/stats` expõe o contador.
+
+**Localização correta da UI** (usuário corrigiu o posicionamento errado
+que eu tinha feito inicialmente):
+- Aba **"Em Análise"** mostra SÓ `em_analise`/`ativa` — limpa, sem
+  dashboard misturado.
+- Aba **"Encerradas"** tem 2 seções agora: "Histórico de Operações"
+  (posições reais, `positions.json`, já existia) + nova seção "Histórico
+  de Análises (Fase A)" (`analises.json`, rejeitadas + encerradas reais
+  com sucesso/fracasso), cada uma com seu próprio mini-dashboard no
+  mesmo estilo visual (`calcDashboardEncerradas`/`pos-enc`/`enc-badge`).
+- Uma vez rejeitada/encerrada, a análise MIGRA por completo da aba Em
+  Análise para Encerradas — não fica visível nos dois lugares.
+
+## Resultado do exercício "qual das 7 em análise é melhor" (concluído)
+Comparando retorno nominal × probabilidade REAL (Monte Carlo, já
+calculada pela engine na observação de cada análise):
+
+| Ativo | Tipo | Retorno/mês | Probabilidade | Decisão |
+|---|---|---|---|---|
+| ROXO34 (an_1782100906) | Retorno Controlado | 9,00% | 88,89% | Mantida em_analise |
+| TSLA34 (an_1782100907) | Retorno Controlado | 5,45% | 87,59% | Mantida em_analise |
+| AXIA3 (an_1782124389) | Bidirecional | 4,00% (teto) | 40,85% | Mantida em_analise |
+| PETR4 (an_1782098774) | Bidirecional | 2,25% (teto) | 17,90% | **Rejeitada** |
+| VALE3 (an_1782124685) | Bidirecional | 2,46% (teto) | 31,86% | **Rejeitada** |
+| ROXO34-PUT (an_1782147275) | Venda de PUT | 2,26% | — (baixa liquidez) | **Rejeitada** |
+| ROXO34-Call (an_1782123970) | Venda de Call | 1,00% | — (abaixo da meta) | **Rejeitada** |
+
+Lição confirmada pelo usuário nesta sessão: "não adianta o número estar
+bonito se a chance é ruim" — retorno nominal alto não compensa
+probabilidade real baixa de bater a meta.
+
+## ⭐ NOVO: Lote de análise de propostas reais (24/06/2026) — AINDA EM ABERTO
+
+Usuário trouxe um lote grande: 8 PDFs reais do Itaú (WEGE3-bidirecional,
+AMZO34/BEEF3/BSLV39/CYRE3/NVDC34/ROXO34/TSLA34-retorno controlado) + uma
+planilha de 144 linhas (ALOS3/BBSE3/CMIN3/CXSE3/DIRR3/PETR4/PRIO3/VALE3,
+campos Index/Fixing/Strike/KO/Delta).
+
+**Processo aplicado, já formalizado na seção "FLUXO DE ANÁLISE DE LOTE"
+mais acima neste arquivo** (critérios: retorno mensal >2%, depois KO,
+depois DY >8% como desempate/mitigação, EV=retorno×Delta para desempate
+entre combinações do mesmo ativo).
+
+**Resultado final, ainda PENDENTE de decisão do usuário sobre subir ou
+não para análise** (ele disse explicitamente "não é pra subir nada
+ainda sem falar comigo" — aguardando ele escolher quais):
+
+Candidatos que sobraram depois das exclusões do usuário (BBSE3, CXSE3,
+WEGE3, PRIO3, BEEF3 excluídos por comparação direta com alternativas
+melhores):
+
+| Ativo | Fixing (melhor por EV) | Dias | Ret. mensal | Delta |
+|---|---|---|---|---|
+| DIRR3 | 08/07/2026 | 14 | 5,69% | 46,4% |
+| CMIN3 | 08/07/2026 | 14 | 4,34% | 53,1% |
+| ROXO34 (PDF) | 21/08/2026 | 58 | 4,66% | — |
+| TSLA34 (PDF) | 21/08/2026 | 58 | 4,61% | — |
+| BSLV39 (PDF) | 21/08/2026 | 58 | 4,35% | — |
+| AMZO34 (PDF) | 10/08/2026 | 47 | 3,88% | — |
+| CYRE3 (PDF) | 21/08/2026 | 58 | 2,94% | — |
+| PETR4 | 08/07/2026 | 14 | 2,65% | 66,0% |
+| ALOS3 | 21/09/2026 | 89 | 2,13% | 47,1% |
+| VALE3 | 08/07/2026 | 14 | 2,11% | 71,5% |
+
+**Próximo passo quando a sessão continuar**: usuário vai "bater o olho"
+e escolher manualmente quais desses 10 candidatos avançar para
+"tirar a foto" (Fase B) — alguns são PDFs do banco (4 números já
+fechados), outros são da planilha (também já fechados, formato similar).
+Nenhum foi registrado em analises.json ainda.
+
+## Lembretes de processo reforçados nesta sessão
+- Sempre avisar explicitamente quando algo estiver pronto para o usuário
+  testar.
+- Sempre usar ask_user_input_v0 (popup com botões) para perguntas que
+  exigem decisão do usuário, nunca só texto corrido.
+- Para análise de lote: tabelas SEMPRE em formato de tabela visual
+  (markdown), nunca em texto corrido — usuário tem dificuldade de
+  analisar informação densa em prosa.
+- Antes de implementar uma feature nova que parece exigir lógica do
+  zero, verificar se já existe um mecanismo parecido no código (ex: o
+  botão "Encerrar sem executar" já era o "Rejeitar", só faltava a
+  semântica certa — não precisava reinventar por fora).
