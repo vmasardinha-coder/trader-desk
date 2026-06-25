@@ -1758,7 +1758,7 @@ function tplRanking(d){
     const tipoLabel=TIPO_CURTO[r.tipo_estrutura]||'?';
     const tipoFull=_TIPO_LABEL[r.tipo_estrutura]||r.tipo_estrutura;
     return `<tr id="rk-row-${r.id}">
-      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}</td>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
       <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
