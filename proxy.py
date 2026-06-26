@@ -3494,10 +3494,21 @@ def _linha_ranking_base(a):
 # real) estava incompleto -- "Multicategoria" e outros caiam em "outros"
 # por padrão sem terem sido analisados. Ajustado apos ver os segmentos
 # reais retornados pelo endpoint.
-_FII_SEGMENTO_MAP = {
+# CORRIGIDO 25/06/2026 (segunda vez): usuario apontou que "outros"/
+# "Multicategoria" tinham FIIs que claramente pertenciam a outras
+# categorias. Investigacao via amostra real (segmento=1, todos os FIIs)
+# confirmou: "Multicategoria" do Fundamentus e GENUINAMENTE misto -- alguns
+# tem imoveis fisicos reais (tijolo/hibrido de verdade, ex: BTLG11/BLOG11/
+# BPML11 com 30+ imoveis logisticos/shoppings), outros sao CRI/recebiveis/
+# fundo-de-fundos puros (ex: AFHI11/ARRI11/CACR11/BBFO11/BCIA11, todos com
+# qtd_imoveis=0) que o Fundamentus rotula como "Multicategoria" mesmo sem
+# nenhum imovel fisico. O texto do segmento SOZINHO nao basta -- usa
+# qtd_imoveis (sinal mais confiavel: zero imoveis = nao e tijolo de
+# verdade) + palavras-chave do nome do fundo como segundo sinal.
+_FII_SEGMENTO_BASE = {
     'Títulos e Val. Mob.': 'papel',
     'Híbrido': 'hibrido',
-    'Multicategoria': 'hibrido',  # mistura varios tipos de imovel/ativo, mais proximo de hibrido que de "outros" generico
+    'Multicategoria': 'hibrido',  # default, sera corrigido por qtd_imoveis/nome abaixo
     'Lajes Corporativas': 'tijolo',
     'Escritórios': 'tijolo',
     'Shoppings': 'tijolo',
@@ -3508,6 +3519,46 @@ _FII_SEGMENTO_MAP = {
     'Hotel': 'tijolo',
     'Outros': 'outros',
 }
+
+# Palavras-chave que, no NOME do fundo, indicam fundo de papel (CRI/
+# recebiveis/credito) mesmo quando o Fundamentus rotula como
+# "Multicategoria" ou "Outros" -- confirmado via amostra real (ex: "AF
+# INVEST CRI", "ALIANZA CREDITO IMOBILIARIO", "CARTESIA RECEBIVEIS").
+_FII_PALAVRAS_PAPEL = ['CRI', 'RECEBÍVEIS', 'RECEBIVEIS', 'CRÉDITO', 'CREDITO',
+                       'SECURITIES', 'CDI', 'CRA', 'FIAGRO']
+# Palavras-chave que indicam fundo de fundos (compra cotas de outros FIIs,
+# nao imoveis diretos) -- confirmado via amostra real (ex: "BB FUNDO DE
+# FUNDOS", "BRADESCO CARTEIRA IMOBILIARIA ATIVA - FUNDO DE FUNDOS").
+_FII_PALAVRAS_FOF = ['FUNDO DE FUNDOS', 'CARTEIRA IMOBILIARIA', 'CARTEIRA IMOBILIÁRIA']
+
+def _classificar_segmento_fii(segmento_fundamentus, qtd_imoveis, nome_completo=''):
+    """Reclassifica o segmento usando qtd_imoveis e nome do fundo como
+    sinais adicionais, nao so o texto de Segmento do Fundamentus (que pode
+    estar generico demais para Multicategoria/Outros). nome_completo vem
+    do atributo title do link <a> na pagina (nome oficial do fundo) -- se
+    nao disponivel no scraping atual, fallback para o mapeamento base."""
+    base = _FII_SEGMENTO_MAP_BASE = _FII_SEGMENTO_BASE.get(segmento_fundamentus, 'outros')
+    nome_upper = (nome_completo or '').upper()
+
+    # So tenta reclassificar os segmentos ambiguos (Multicategoria/Outros/
+    # Hibrido) -- segmentos especificos como Shoppings/Logistica/Escritorios
+    # ja sao confiaveis o suficiente no texto original.
+    if segmento_fundamentus in ('Multicategoria', 'Outros', 'Híbrido'):
+        if any(p in nome_upper for p in _FII_PALAVRAS_FOF):
+            return 'fof'
+        if any(p in nome_upper for p in _FII_PALAVRAS_PAPEL):
+            return 'papel'
+        if qtd_imoveis is not None and qtd_imoveis == 0:
+            # Zero imoveis fisicos e o sinal mais forte de que nao e
+            # tijolo de verdade -- mais provavel ser papel (CRI/recebiveis
+            # sem nome-chave explicito, ou FoF generico).
+            return 'papel'
+        if qtd_imoveis is not None and qtd_imoveis > 0:
+            # Tem imovel fisico de verdade -- mantem como hibrido (mistura
+            # de tipos de imovel, que e o sentido original de "Multicategoria"
+            # quando aplicado a um fundo de tijolo de verdade).
+            return 'hibrido'
+    return base
 
 # Filtro de P/VP minimo contra "yield trap" -- fechado com o usuario em
 # 25/06/2026 apos o primeiro teste real mostrar FIIs com P/VP muito baixo
@@ -3568,6 +3619,12 @@ def scrape_fiis_fundamentus():
             ticker = valores[0]
             if not ticker or not re.match(r'^[A-Z0-9]+$', ticker):
                 continue  # pula cabecalho ou linha invalida
+            # Nome completo do fundo vem no atributo title do link <a> da
+            # primeira celula (ex: title="AF INVEST CRI FUNDO DE..."),
+            # usado como sinal adicional para reclassificar segmentos
+            # ambiguos (ver _classificar_segmento_fii acima).
+            m_title = re.search(r'title=["\']([^"\']+)["\']', celulas[0])
+            nome_fundo = m_title.group(1) if m_title else ''
             try:
                 def _pct(s):
                     s = s.replace('%', '').replace('.', '').replace(',', '.').strip()
@@ -3575,17 +3632,19 @@ def scrape_fiis_fundamentus():
                 def _num(s):
                     s = s.replace('.', '').replace(',', '.').strip()
                     return float(s) if s and s != '-' else None
+                qtd_imoveis_val = _num(valores[8])
                 fiis.append({
                     'ticker': ticker,
+                    'nome_fundo': nome_fundo,
                     'segmento_fundamentus': valores[1],
-                    'segmento': _FII_SEGMENTO_MAP.get(valores[1], 'outros'),
+                    'segmento': _classificar_segmento_fii(valores[1], qtd_imoveis_val, nome_fundo),
                     'cotacao': _num(valores[2]),
                     'ffo_yield_pct': _pct(valores[3]),
                     'dy_pct': _pct(valores[4]),
                     'p_vp': _num(valores[5]),
                     'valor_mercado': _num(valores[6]),
                     'liquidez': _num(valores[7]),
-                    'qtd_imoveis': _num(valores[8]),
+                    'qtd_imoveis': qtd_imoveis_val,
                     'preco_m2': _num(valores[9]),
                     'aluguel_m2': _num(valores[10]),
                     'cap_rate_pct': _pct(valores[11]),
