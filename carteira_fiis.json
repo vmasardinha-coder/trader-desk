@@ -64,5 +64,16 @@
     "preco_ativacao": 8.9,
     "dy_anual_pct_ativacao": 12.01,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1782486504",
+    "ticker": "KNCA11",
+    "nome_fundo": "KNCA11 - FII Títulos e Val. Mob.",
+    "segmento": "papel",
+    "nivel_risco": "high_yield",
+    "data_ativacao": "2026-06-26",
+    "preco_ativacao": 90.2,
+    "dy_anual_pct_ativacao": 1.06,
+    "status": "ativa"
   }
 ]
