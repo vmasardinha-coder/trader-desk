@@ -2579,3 +2579,89 @@ está em positions.json ou se essa ação ainda está pendente.
     re-fazer via ranking
 16. 'simples' (covered call) -- ESCOPO FECHADO: nunca precisa de migração
     automática, decidido em sessão de chat e inserido direto como ativo
+
+---
+
+# Sessão 26/06/2026 (parte 15, FINAL) — Princípio anti-dado-inventado + descoberta de BSLV39 sem histórico suficiente
+
+## SHA final
+- proxy.py: d4ff126bf3b8ef59ca0465e0e7cbde2d9087fc4c
+- positions.json: BSLV39 com vol_impl=null, vol_impl_fonte="nao_calculado"
+
+## ⭐ PRINCÍPIO CRÍTICO estabelecido pelo usuário (aplica-se a TODO o projeto, não só esta correção)
+Usuário descobriu que `vol_impl` do BSLV39 (migração automática) tinha
+ficado em 0.35 -- valor IDÊNTICO ao fallback hardcoded que Claude
+escreveu no código, não um cálculo real. Usuário perguntou explicitamente
+de onde vinha esse número, e ao confirmar que era fallback inventado,
+estabeleceu o princípio:
+
+**"Não invente dados para eu decidir... eu decidi hoje com base em X% de
+chance de ganho, o que implica que posso estar errado."**
+
+Isso significa: o usuário PREFERE um campo vazio/null explícito (que ele
+sabe que precisa completar manualmente) a um número fixo "bonito" que
+PARECE um cálculo real mas não é. A decisão dele já incorpora a
+possibilidade de estar errada (82% de confiança, não 100%) -- mas essa
+decisão precisa ser baseada em dados reais ou em incerteza EXPLÍCITA,
+nunca em uma ilusão de precisão.
+
+**Esse princípio deve ser aplicado retroativamente a QUALQUER outro
+fallback fixo que exista no código** (ex: vol_hist() também tinha um
+`return 0.35` se len(closes)<22 -- esse fallback específico AINDA EXISTE
+em vol_hist() como função standalone, usado em outros endpoints; não foi
+removido de lá, só da função de migração nova. Vale revisar TODOS os usos
+de vol_hist() no projeto na próxima sessão para decidir se esse padrão
+precisa ser eliminado em mais lugares.**
+
+## Correção implementada: cascata real, nunca fallback fixo
+Reescrita a lógica de cálculo de vol_impl na migração:
+1. **≥60 pontos válidos no histórico** → GARCH(1,1) completo
+2. **≥5 pontos válidos** (mas <60) → calcula vol histórica MANUALMENTE
+   com a quantidade real disponível (não usa vol_hist() padrão, que tem
+   seu próprio limite de 22 e cairia no mesmo fallback fixo)
+3. **<5 pontos válidos** → `vol_impl: null` explícito, `vol_impl_fonte:
+   "nao_calculado"`, mensagem clara avisando que precisa completar manual
+
+Campo novo `vol_impl_fonte` adicionado ao registro, sempre indicando a
+origem real do número (`garch` / `vol_historica_Nd_baixa_amostra` /
+`nao_calculado`) -- usuário pode auditar a qualidade do dado a qualquer
+momento olhando esse campo.
+
+## Descoberta real sobre BSLV39: histórico de liquidez extremamente baixa
+Confirmado via pesquisa (Yahoo Finance, ADVFN): BSLV39 (iShares Silver
+Trust BDR) teve variações diárias de quase 20% em um único dia e faixa de
+preço de R$51,86 a R$139,33 no ano -- consistente com BDR de baixíssima
+liquidez na B3. Resultado real após a correção: **menos de 5 pontos
+válidos de preço em todo o histórico de 1 ano** -- a própria fonte de
+dados gratuita (Yahoo) não tem cobertura suficiente para esse ticker
+específico.
+
+**BSLV39 migrado com sucesso para positions.json, mas com `vol_impl: null`
+-- usuário precisa completar esse campo MANUALMENTE** (decidir uma
+estimativa própria, talvez baseada em volatilidade de prata/XAG de outra
+fonte, ou aceitar rodar sem esse campo até haver mais histórico
+acumulado).
+
+## Lição para futuras estruturas envolvendo ativos de baixa liquidez
+Qualquer BDR/ETF/commodity de baixa liquidez na B3 (prata, ouro, índices
+exóticos) pode sofrer do MESMO problema -- histórico insuficiente no
+Yahoo Finance para calcular volatilidade real automaticamente. Não é bug
+do processo, é limitação real da fonte gratuita. Quando isso acontecer,
+o sistema vai avisar explicitamente (`vol_impl: null`) em vez de
+mascarar com número inventado -- usuário precisa estar preparado para
+complementar manualmente nesses casos específicos.
+
+## ESTADO FINAL da sessão (15 partes, muito longa)
+Sessão extremamente produtiva e longa. Resumo do que foi entregue:
+ranking EV completo, correção Minério de Ferro, módulo FIIs inteiro
+(screening, risco, FFO, carteira, busca, árvore Todos/Critério),
+segurança via token, disclaimer CVM, separação Em Análise em 2 seções
+com rankings próprios, migração automática Em Análise → Posições Ativas
+com cálculo real de volatilidade (sem dados inventados), e a descoberta/
+correção do princípio anti-fallback-fixo que deve guiar todo trabalho
+futuro no projeto.
+
+Usuário mencionou estar perto do limite semanal de uso -- esta pode ser a
+última interação desta sessão. Próxima sessão deve começar lendo este
+arquivo do início (parte 1) até aqui para reconstituir o contexto
+completo antes de continuar qualquer trabalho novo.
