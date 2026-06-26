@@ -2173,3 +2173,120 @@ preferência de workflow.
    de segurança desta sessão -- as duas questões (memória e autenticação
    multi-usuário) são facetas do mesmo problema maior ("isso vira produto
    de verdade, como sustenta múltiplos usuários reais").
+
+---
+
+# Sessão 25-26/06/2026 (parte 11) — Disclaimer CVM implementado + correção CPTS11 "outros"
+
+## SHAs finais
+- templates/index.html: 8c2a16b52889065d8c4b090214f9e1c11565464f (modal disclaimer)
+- static/app.js: 273dcf30b00ed61d5e035cdd084b56c891a7bf78 (logica disclaimer)
+- proxy.py: f598ae6f8e657f40ef3ed58b795f67e74972cda4 (fix qtd_imoveis None)
+
+## ⭐ Visão de produto esclarecida pelo usuário: engenharia ≠ produto vendável
+Usuário esclareceu importante distinção: a ENGENHARIA interna (ranking,
+scraping, classificação de risco) NUNCA será vendida -- é só ferramenta de
+trabalho pessoal, "igual uma casa de investimento, toda engenharia interna
+é dela, ela não é vendável". O que pode virar produto no futuro é um
+botão que GERA UM RELATÓRIO PDF com os resultados/estudos -- mas usuário
+foi explícito sobre limitação legal real: **não tem registro CVM como
+analista/consultor de valores mobiliários**, então não pode dar
+recomendação de investimento formalmente. "Posso só falar e mostrar... o
+resultado é esse, você faz o que quiser, não recomendo nada".
+
+## Pesquisa de prática de mercado real (disclaimers CVM)
+Pesquisado e confirmado: padrão real usado por BTG Pactual, Genial
+Investimentos, Valora -- todos com disclaimers parecidos citando
+Resolução CVM 20/2021 (analista) e CVM 19/2021 (consultor). **ALERTA
+IMPORTANTE confirmado via pesquisa**: a própria área técnica da CVM já
+se posicionou oficialmente (Ofício Circular CVM/SIN 13/2020) que
+disclaimers/expressões padrão NÃO SÃO SUFICIENTES por si só para
+descaracterizar serviço de análise de valores mobiliários, se houver
+indícios de exercício profissional da atividade -- ou seja, o disclaimer
+ajuda mas não é blindagem legal completa; o que importa de fato é a
+SUBSTÂNCIA do que é entregue, não só o texto do aviso.
+
+**Usuário decidiu, dado esse contexto**: como NÃO está cobrando nada
+agora (material gratuito), o risco regulatório principal (que recai
+sobre atividade profissional/comercial remunerada) é bem menor. Disclaimer
+implementado como boa prática de transparência, mas Claude alertou
+explicitamente que isso NÃO substitui validação jurídica real antes de
+qualquer monetização futura.
+
+## Disclaimer implementado: modal na primeira visita + botão de rodapé
+- Modal aparece automaticamente no primeiro carregamento (controlado via
+  `localStorage.getItem('disclaimer_aceito')`, mesmo padrão já usado para
+  o token de API).
+- Botão "Entendi e concordo" fecha e salva (não aparece de novo nesse
+  navegador/dispositivo).
+- Botão discreto "ⓘ Aviso Legal" fixo no rodapé, sempre visível, para
+  reabrir o texto quando quiser.
+- Texto cita Resolução CVM nº 20/2021 (analista) e CVM nº 19/2021
+  (consultor), deixa claro que autor não é registrado na CVM, e que
+  decisão de investimento é responsabilidade exclusiva do leitor.
+
+**PENDENTE DE CONFIRMAÇÃO**: usuário testou em aba anônima e o modal NÃO
+apareceu. Código confirmado presente e correto no GitHub via API Contents
+(sem cache) -- suspeita forte é cache do CDN do Render/raw.githubusercontent
+ainda não ter propagado no momento do teste (mesmo padrão já visto
+repetidamente nesta sessão para outras correções). Usuário precisa testar
+de novo depois de esperar alguns minutos -- NÃO CONFIRMADO FUNCIONANDO
+ainda, só implementado.
+
+## Bug de classificação de FII corrigido: CPTS11 caindo em "outros" por engano
+Usuário notou que CPTS11 apareceu com badge "Outros" no ranking de FIIs,
+mas pela sua experiência pessoal sabia que essa categoria "não existe
+mais" para esse fundo específico -- intuição confirmada via pesquisa
+extensa: CPTS11 é, segundo MÚLTIPLAS fontes (Investidor10, Funds Explorer,
+Genial Analisa, Toro, StatusInvest), um **Fundo de Papel, segmento
+"Títulos e Valores Mobiliários"** -- focado em CRIs.
+
+**Causa raiz provável**: a função `_classificar_segmento_fii` já tinha
+lógica para usar `qtd_imoveis == 0` como sinal de fundo de papel, mas só
+tratava o valor EXPLICITAMENTE ZERO -- se o campo viesse como `None`
+(ausente, mais provável para um fundo de CRI puro que não reporta
+"quantidade de imóveis" porque não tem nenhum), a condição falhava e caía
+no fallback errado ('outros'). Corrigido: `qtd_imoveis is None or
+qtd_imoveis == 0` agora trata ambos os casos como sinal de papel.
+
+**NÃO CONFIRMADO se resolve 100% dos casos** -- pode haver outras causas
+adicionais (ex: nome_fundo vindo vazio se a página não tiver atributo
+`title` no link, o que impediria a detecção de "SECURITIES" no nome
+"Capitania Securities II"). Usuário precisa rodar o ranking de novo após
+esta correção e confirmar se CPTS11 (e outros casos parecidos) migraram
+para a categoria correta.
+
+## Ideia registrada (não implementada): link direto para fonte externa
+Usuário sugeriu, para o futuro ("se for viável"), adicionar um link em
+cada FII do ranking que leve direto à página do Fundamentus (ou outra
+fonte) daquele papel específico -- para o usuário fazer pesquisa externa
+mais profunda sobre fundos que não conhece, sem precisar buscar
+manualmente. Não implementado, backlog futuro.
+
+## Validação da metodologia pelo usuário (insight de qualidade, não bug)
+Usuário comparou CPTS11 vs KNCR11 vs ITRI11 manualmente usando os números
+do próprio ranking (P/VP, DY, liquidez) e concluiu corretamente que CPTS11
+parecia "mais arriscado aparentemente" mas o desconto maior (P/VP mais
+baixo) e o DY um pouco maior compensavam isso comparado a KNCR11 -- e que
+ITRI11 (que ele já possui) tinha um desconto bom mas DY relativamente
+baixo para o desconto, sugerindo que "deveria ter desconto maior ou pagar
+mais". **Esse tipo de raciocínio comparativo manual é exatamente o
+objetivo do ranking** -- ele não decide por você, mas dá os números
+organizados para você aplicar seu próprio julgamento ("notório saber").
+
+## Estado do backlog ao final desta sessão MUITO longa (11 partes)
+1-7. Itens já fechados em partes anteriores (EV completo, Minério de
+     Ferro, FIIs screening+carteira, segurança, bug crítico do ranking).
+8. ✅ Disclaimer CVM implementado (pendente confirmação de funcionamento)
+9. ✅ Bug CPTS11/qtd_imoveis None corrigido (pendente confirmação completa)
+10. Link externo para fonte de cada FII -- registrado, não implementado
+11. Itens 2,3,4 do backlog original (ETFs, Renda Fixa, Análise de Papel)
+    -- ainda sem ação
+12. Item 5 original (Migração Em Análise→Ativa para ESTRUTURADAS) --
+    ainda sem ação
+13. Teto de análises por lote do ranking (15-20, não fechado) -- backlog
+14. Visão de escala multi-usuário (memória + autenticação por usuário) --
+    backlog, registrado em detalhe na parte 10
+15. 3 melhorias de UX do fluxo FII (separação visual Em Análise,
+    duplicidade, comportamento ao remover da carteira) -- backlog,
+    registrado em detalhe na parte 9
