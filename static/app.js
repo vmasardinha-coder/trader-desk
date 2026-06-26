@@ -72,6 +72,100 @@ function sw(t,el){
   if(t==='emanalise'&&!window._AL){window._AL=true;loadAnalises();}
 
 }
+
+// Adicionado 25/06/2026 -- item 1 do backlog (FIIs). Screening via
+// Fundamentus, descarte automatico no backend (liquidez/DY/P-VP), filtro
+// de segmento aplicado no FRONTEND (dado completo ja vem do backend numa
+// chamada so -- nao recarrega ao trocar de segmento, so refiltra a lista
+// em memoria). Carregamento MANUAL via botao "Atualizar" (nao automatico
+// ao trocar de aba) -- scraping de 560 FIIs e mais pesado que as outras
+// abas, usuario decide quando vale rodar de novo.
+let _fiisData=[];
+let _fiisSegmentoAtivo='todos';
+
+const _FII_SEGMENTO_LABEL={
+  todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', outros:'Outros'
+};
+
+async function loadFiis(){
+  const cont=document.getElementById('fiis-container');
+  const btn=document.getElementById('btn-fiis-reload');
+  if(!cont)return;
+  cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Buscando dados do Fundamentus (560+ FIIs, pode levar alguns segundos)...</p>';
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),30000);
+    const r=await fetch(B+'/fiis',{signal:ctrl.signal,cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    _fiisData=d.fiis||[];
+    renderFiisFiltro();
+    renderFiis();
+  }catch(e){
+    cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao buscar FIIs: '+e.message+'</p>';
+  }finally{
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
+function renderFiisFiltro(){
+  const area=document.getElementById('fiis-segmento-filtro');
+  if(!area)return;
+  const contagens={todos:_fiisData.length};
+  _fiisData.forEach(f=>{contagens[f.segmento]=(contagens[f.segmento]||0)+1;});
+  const segs=['todos','papel','tijolo','hibrido','outros'];
+  area.innerHTML=segs.map(s=>{
+    const ativo=s===_fiisSegmentoAtivo;
+    const n=contagens[s]||0;
+    return `<button onclick="setFiisSegmento('${s}')" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_SEGMENTO_LABEL[s]} (${n})</button>`;
+  }).join('');
+}
+
+function setFiisSegmento(seg){
+  _fiisSegmentoAtivo=seg;
+  renderFiisFiltro();
+  renderFiis();
+}
+
+function renderFiis(){
+  const cont=document.getElementById('fiis-container');
+  if(!cont)return;
+  const lista=_fiisSegmentoAtivo==='todos'?_fiisData:_fiisData.filter(f=>f.segmento===_fiisSegmentoAtivo);
+  if(!lista.length){
+    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhum FII nesse segmento.</p>';
+    return;
+  }
+  const rows=lista.map(f=>{
+    const dyCor=f.dy_pct>=8?'var(--green)':'var(--muted)';
+    const pvpCor=f.p_vp<1?'var(--green)':'var(--muted)';
+    const vac=f.vacancia_pct!=null&&f.vacancia_pct>0?f.vacancia_pct.toFixed(1)+'%':'—';
+    return `<tr>
+      <td style="padding:6px 8px;font-weight:700">${f.ticker}</td>
+      <td style="padding:6px 8px;font-size:10px;color:var(--muted)">${f.segmento_fundamentus}</td>
+      <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${pvpCor}">${f.p_vp.toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
+      <td style="padding:6px 8px;text-align:right">${vac}</td>
+    </tr>`;
+  }).join('');
+  cont.innerHTML=`
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${lista.length} FIIs neste segmento · ordenado por P/VP (menor primeiro) → DY → Liquidez</div>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+      <th style="padding:6px 8px">Ticker</th>
+      <th style="padding:6px 8px">Segmento</th>
+      <th style="padding:6px 8px;text-align:right">Cotação</th>
+      <th style="padding:6px 8px;text-align:right" title="Preço sobre Valor Patrimonial -- abaixo de 1,0 indica desconto">P/VP</th>
+      <th style="padding:6px 8px;text-align:right" title="Dividend Yield -- já filtrado para excluir yield trap (P/VP muito baixo)">DY</th>
+      <th style="padding:6px 8px;text-align:right" title="Volume financeiro médio negociado por dia -- filtro mínimo de R$50k/dia já aplicado">Liquidez</th>
+      <th style="padding:6px 8px;text-align:right" title="Vacância média dos imóveis (relevante para FIIs de tijolo)">Vacância</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </div>`;
+}
 function tg(id){
   const b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);
   if(!b)return;const op=b.style.display!=='block';
