@@ -3044,6 +3044,11 @@ def _github_criar_arquivo(path, conteudo_str, mensagem):
     return r.json()
 
 _CAMPOS_OBRIGATORIOS_ANALISE = ['id', 'ticker', 'nome', 'data_foto', 'preco_foto', 'prazo_dias', 'tipo_estrutura', 'origem', 'status']
+# NOTA (25/06/2026): para tipo_estrutura='fii', prazo_dias NAO representa
+# um vencimento real (FIIs sao perpetuos, sem data de expiracao como as
+# estruturadas). Convencao adotada: prazo_dias=9999 para FIIs, sinalizando
+# "sem vencimento" -- mantem o campo obrigatorio (evita duplicar logica de
+# validacao so para FII) sem dar a falsa impressao de um prazo real.
 _STATUS_VALIDOS = ['em_analise', 'ativa', 'encerrada']
 
 def _hoje_str():
@@ -3081,8 +3086,8 @@ def _incrementar_contador_rejeitadas():
     else:
         _github_criar_arquivo('stats_analises.json', novo_conteudo,
             "feat: cria stats_analises.json com contador inicial de rejeitadas")
-_TIPOS_VALIDOS = ['bidirecional', 'retorno_controlado', 'premio', 'simples']
-_ORIGENS_VALIDAS = ['customizada', 'pronta']
+_TIPOS_VALIDOS = ['bidirecional', 'retorno_controlado', 'premio', 'simples', 'fii']
+_ORIGENS_VALIDAS = ['customizada', 'pronta', 'screening_fiis']
 
 def _validar_analise(item):
     erros = []
