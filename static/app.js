@@ -103,9 +103,19 @@ function sw(t,el){
 // ao trocar de aba) -- scraping de 560 FIIs e mais pesado que as outras
 // abas, usuario decide quando vale rodar de novo.
 let _fiisData=[];
+let _fiisTodosData=[];
+let _fiisEscopoAtivo='criterio';  // 'todos' ou 'criterio'
 let _fiisSegmentoAtivo='todos';
 let _fiisRiscoAtivo='todos';
+let _fiisBuscaTexto='';
 
+const _FII_ESCOPO_LABEL={
+  todos:'Todos (universo bruto)', criterio:'Critério (liquidez + DY)'
+};
+const _FII_ESCOPO_TITLE={
+  todos:'Todos os FIIs tradicionais encontrados no Fundamentus, SEM nenhum filtro -- inclui os que ficariam fora do critério padrão (liquidez baixa, DY zerado). Esses aparecem com marcador vermelho e sem classificação de segmento/risco.',
+  criterio:'Apenas FIIs que passam no critério padrão (liquidez ≥ R$50k/dia, DY > 0%) -- classificados por segmento e nível de risco.',
+};
 const _FII_SEGMENTO_LABEL={
   todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', fof:'Fundo de Fundos', outros:'Outros'
 };
@@ -129,7 +139,8 @@ async function loadFiis(){
     const r=await fetch(B+'/fiis',{signal:ctrl.signal,cache:'no-store'});
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
-    _fiisData=d.fiis||[];
+    _fiisData=d.fiis||[];          // so os classificados (visao Criterio)
+    _fiisTodosData=d.fiis_todos||d.fiis||[];  // classificados + fora_criterio (visao Todos)
     renderFiisFiltro();
     renderFiis();
   }catch(e){
@@ -139,42 +150,71 @@ async function loadFiis(){
   }
 }
 
+// Adicionado 26/06/2026 -- estrutura em ARVORE pedida pelo usuario:
+// 1. Busca por texto (sempre visivel, no topo)
+// 2. Escopo: Todos (560 brutos) vs Criterio (so validos) -- nivel 1
+// 3. Segmento e Risco -- nivel 2, SO aparecem quando Criterio esta ativo
+//    (FIIs fora do criterio nao tem segmento/risco classificados, entao
+//    esses filtros nao fazem sentido na visao Todos)
 function renderFiisFiltro(){
   const area=document.getElementById('fiis-segmento-filtro');
   if(!area)return;
-  const contagensSeg={todos:_fiisData.length};
-  const contagensRisco={todos:_fiisData.length};
-  _fiisData.forEach(f=>{
-    contagensSeg[f.segmento]=(contagensSeg[f.segmento]||0)+1;
-    contagensRisco[f.nivel_risco]=(contagensRisco[f.nivel_risco]||0)+1;
-  });
-  const segs=['todos','papel','tijolo','hibrido','fof','outros'];
-  const riscos=['todos','high_grade','middle_risk','high_yield'];
-  const linhaSeg=segs.map(s=>{
-    const ativo=s===_fiisSegmentoAtivo;
-    const n=contagensSeg[s]||0;
-    return `<button onclick="setFiisSegmento('${s}')" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_SEGMENTO_LABEL[s]} (${n})</button>`;
+  const dadosBase=_fiisEscopoAtivo==='todos'?_fiisTodosData:_fiisData;
+
+  const escopos=['criterio','todos'];
+  const linhaEscopo=escopos.map(e=>{
+    const ativo=e===_fiisEscopoAtivo;
+    const n=e==='todos'?_fiisTodosData.length:_fiisData.length;
+    return `<button onclick="setFiisEscopo('${e}')" title="${_FII_ESCOPO_TITLE[e]}" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:4px">${_FII_ESCOPO_LABEL[e]} (${n})</button>`;
   }).join('');
-  const linhaRisco=riscos.map(r=>{
-    const ativo=r===_fiisRiscoAtivo;
-    const n=contagensRisco[r]||0;
-    const title=_FII_RISCO_TITLE[r]?` title="${_FII_RISCO_TITLE[r]}"`:'';
-    return `<button onclick="setFiisRisco('${r}')"${title} style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_RISCO_LABEL[r]} (${n})</button>`;
-  }).join('');
-  // Adicionado 26/06/2026 -- usuario pediu campo de busca por texto
-  // embaixo dos filtros, para nao depender de Ctrl+F do navegador numa
-  // lista longa. Filtra em tempo real (oninput) por ticker OU nome do
-  // fundo, mantendo o valor digitado entre re-renders (value="...").
-  const buscaHtml=`<div style="margin-top:8px"><input type="text" id="fiis-busca-input" placeholder="Buscar ticker ou nome do fundo..." value="${_fiisBuscaTexto||''}" oninput="setFiisBusca(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;font-size:12px;font-family:inherit;border-radius:4px"></div>`;
-  area.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${linhaSeg}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>${buscaHtml}`;
+
+  let filtrosSegRisco='';
+  if(_fiisEscopoAtivo==='criterio'){
+    const contagensSeg={todos:_fiisData.length};
+    const contagensRisco={todos:_fiisData.length};
+    _fiisData.forEach(f=>{
+      contagensSeg[f.segmento]=(contagensSeg[f.segmento]||0)+1;
+      contagensRisco[f.nivel_risco]=(contagensRisco[f.nivel_risco]||0)+1;
+    });
+    const segs=['todos','papel','tijolo','hibrido','fof','outros'];
+    const riscos=['todos','high_grade','middle_risk','high_yield'];
+    const linhaSeg=segs.map(s=>{
+      const ativo=s===_fiisSegmentoAtivo;
+      const n=contagensSeg[s]||0;
+      return `<button onclick="setFiisSegmento('${s}')" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_SEGMENTO_LABEL[s]} (${n})</button>`;
+    }).join('');
+    const linhaRisco=riscos.map(r=>{
+      const ativo=r===_fiisRiscoAtivo;
+      const n=contagensRisco[r]||0;
+      const title=_FII_RISCO_TITLE[r]?` title="${_FII_RISCO_TITLE[r]}"`:'';
+      return `<button onclick="setFiisRisco('${r}')"${title} style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_RISCO_LABEL[r]} (${n})</button>`;
+    }).join('');
+    filtrosSegRisco=`
+    <div style="margin-left:16px;margin-top:8px;padding-left:10px;border-left:2px solid var(--border)">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Segmento</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${linhaSeg}</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Nível de risco</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>
+    </div>`;
+  }
+
+  const buscaHtml=`<div style="margin-bottom:10px"><input type="text" id="fiis-busca-input" placeholder="Buscar ticker ou nome do fundo..." value="${_fiisBuscaTexto||''}" oninput="setFiisBusca(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;font-size:12px;font-family:inherit;border-radius:4px"></div>`;
+  const escopoHtml=`<div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Escopo</div><div style="display:flex;gap:6px;flex-wrap:wrap">${linhaEscopo}</div>`;
+
+  area.innerHTML=buscaHtml+escopoHtml+filtrosSegRisco;
 }
 
-let _fiisBuscaTexto='';
 function setFiisBusca(texto){
   _fiisBuscaTexto=texto;
   renderFiis();  // NAO chama renderFiisFiltro aqui -- evitaria perder o foco do input a cada tecla digitada
 }
-
+function setFiisEscopo(escopo){
+  _fiisEscopoAtivo=escopo;
+  _fiisSegmentoAtivo='todos';  // reseta os filtros de nivel 2 ao trocar de escopo
+  _fiisRiscoAtivo='todos';
+  renderFiisFiltro();
+  renderFiis();
+}
 function setFiisSegmento(seg){
   _fiisSegmentoAtivo=seg;
   renderFiisFiltro();
@@ -189,8 +229,11 @@ function setFiisRisco(risco){
 function renderFiis(){
   const cont=document.getElementById('fiis-container');
   if(!cont)return;
-  let lista=_fiisSegmentoAtivo==='todos'?_fiisData:_fiisData.filter(f=>f.segmento===_fiisSegmentoAtivo);
-  if(_fiisRiscoAtivo!=='todos')lista=lista.filter(f=>f.nivel_risco===_fiisRiscoAtivo);
+  let lista=_fiisEscopoAtivo==='todos'?_fiisTodosData:_fiisData;
+  if(_fiisEscopoAtivo==='criterio'){
+    if(_fiisSegmentoAtivo!=='todos')lista=lista.filter(f=>f.segmento===_fiisSegmentoAtivo);
+    if(_fiisRiscoAtivo!=='todos')lista=lista.filter(f=>f.nivel_risco===_fiisRiscoAtivo);
+  }
   if(_fiisBuscaTexto&&_fiisBuscaTexto.trim()){
     const termo=_fiisBuscaTexto.trim().toUpperCase();
     lista=lista.filter(f=>f.ticker.toUpperCase().includes(termo)||(f.nome_fundo||'').toUpperCase().includes(termo));
@@ -204,7 +247,23 @@ function renderFiis(){
     middle_risk:'<span style="background:rgba(255,204,0,.15);color:#ffcc00;border:1px solid rgba(255,204,0,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🟡 MR</span>',
     high_yield:'<span style="background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🔴 HY</span>',
   };
+  const FORA_CRITERIO_BADGE='<span style="background:rgba(255,59,48,.15);color:#ff3b30;border:1px solid rgba(255,59,48,.4);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">⚠ FORA</span>';
   const rows=lista.map(f=>{
+    // FII fora do criterio: linha simplificada, sem classificacao --
+    // usuario pediu explicitamente "fica vazio, nao recebe classificacao
+    // nenhuma, so o nome" + marcador vermelho.
+    if(f.fora_criterio){
+      return `<tr id="fii-row-${f.ticker}" style="opacity:.7">
+        <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FORA_CRITERIO_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
+        <td style="padding:6px 8px;text-align:right">R$${(f.cotacao||0).toFixed(2)}</td>
+        <td style="padding:6px 8px;text-align:right">${f.p_vp!=null?f.p_vp.toFixed(2):'—'}</td>
+        <td style="padding:6px 8px;text-align:right">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
+        <td colspan="4" style="padding:6px 8px;color:var(--muted);font-size:10px" title="${f.motivo_fora_criterio||''}">${f.motivo_fora_criterio||'fora do critério'}</td>
+        <td style="padding:6px 8px;text-align:right;white-space:nowrap">
+          <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise mesmo assim (você assume o risco de estar fora do critério padrão)" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">+ Em Análise</button>
+        </td>
+      </tr>`;
+    }
     const dyCor=f.dy_pct>=8?'var(--green)':'var(--muted)';
     const pvpCor=f.p_vp<1?'var(--green)':'var(--muted)';
     const vac=f.vacancia_pct!=null&&f.vacancia_pct>0?f.vacancia_pct.toFixed(1)+'%':'—';
@@ -257,16 +316,21 @@ function renderFiis(){
 // simplificacao aceita explicitamente pelo usuario: "pega foto de como se
 // eu tivesse comprando no momento da selecao").
 async function aprovarFiiParaAnalise(ticker){
-  const f=_fiisData.find(x=>x.ticker===ticker);
+  // CORRIGIDO 26/06/2026 -- busca em AMBAS as listas (Criterio + Todos),
+  // ja que o botao "+ Em Analise" agora tambem aparece para FIIs
+  // fora_criterio (visao Todos) -- antes so buscava em _fiisData
+  // (so Criterio), e o clique nao fazia nada para FIIs fora do criterio.
+  const f=_fiisData.find(x=>x.ticker===ticker)||_fiisTodosData.find(x=>x.ticker===ticker);
   if(!f)return;
-  const ok=confirm(`Adicionar ${ticker} a "Em Análise"? Isso grava no repositório com o preço de hoje (R$${f.cotacao.toFixed(2)}) como referência.`);
+  const avisoFora=f.fora_criterio?`\n\n⚠ Este FII está FORA do critério padrão (${f.motivo_fora_criterio}). Você está assumindo esse risco conscientemente.`:'';
+  const ok=confirm(`Adicionar ${ticker} a "Em Análise"? Isso grava no repositório com o preço de hoje (R$${(f.cotacao||0).toFixed(2)}) como referência.${avisoFora}`);
   if(!ok)return;
   const linha=document.getElementById('fii-row-'+ticker);
   try{
     const hoje=new Date().toISOString().slice(0,10);
     const body={
       ticker: ticker+'.SA',
-      nome: `${ticker} - FII ${f.segmento_fundamentus}`,
+      nome: `${ticker} - FII ${f.segmento_fundamentus||'(sem classificação)'}`,
       data_foto: hoje,
       preco_foto: f.cotacao,
       tipo_estrutura: 'fii',
