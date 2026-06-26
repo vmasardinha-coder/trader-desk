@@ -786,6 +786,7 @@ async function loadEvolucaoPosicao(id){
     if(p.meta_pct!=null)body.meta_pct=p.meta_pct;
     if(p.alavancagem!=null)body.alavancagem=p.alavancagem;
     if(p.teto_retorno_pct!=null)body.teto_retorno_pct=p.teto_retorno_pct;
+    if(p.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=p.ganho_prefixado_pct;
     const r=await fetch(B+'/montecarlo/posicao_ativa',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
