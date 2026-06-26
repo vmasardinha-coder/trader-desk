@@ -373,5 +373,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-26. P/VP=1.05, DY=13.33%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1782478410"
+  },
+  {
+    "ticker": "ITRI11.SA",
+    "nome": "ITRI11 - FII Outros",
+    "data_foto": "2026-06-26",
+    "preco_foto": 80.45,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 12.93,
+    "p_vp": 0.86,
+    "liquidez": 1304500,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-06-26. P/VP=0.86, DY=12.93%, segmento=Outros, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1782478441"
   }
 ]
