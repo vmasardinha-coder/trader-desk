@@ -1994,3 +1994,98 @@ x3, segurança, carteira de FIIs). Se uma nova sessão for aberta, este
 arquivo (PROMPT_NOVA_SESSAO_v2.md) tem TODO o histórico necessário --
 ler do início desta sessão (parte 1) até aqui para reconstituir o
 contexto completo antes de continuar qualquer trabalho.
+
+---
+
+# Sessão 25-26/06/2026 (parte 9) — BUG CRÍTICO corrigido: FII travava o ranking
+
+## SHAs finais desta parte
+- proxy.py: b4b39ec37ab204813c4e4c085b2a0b8fa2ce6d60
+- analises.json: c98ac983253b804528f9a1519c7f23cefcb07da6 (limpo, 21 registros, sem FII)
+- carteira_fiis.json: 60e574aaf6cf33385ac19f81f89dac8ef268f30a (2 FIIs ativos)
+
+## 🐛 BUG CRÍTICO encontrado em produção real: ranking travava com 502/503/JSON cortado
+Usuário testou o fluxo completo e ativou 2 FIIs (KNCR11, ITRI11) via botão
+"+ Em Análise" do screening. Depois, ao rodar o ranking de estruturadas,
+recebeu sequência de erros: 502 (Bad Gateway), depois 503 (Service
+Unavailable), depois "Unexpected end of JSON input" -- persistente mesmo
+após múltiplas tentativas/recarregamentos.
+
+**Causa raiz real (não era cold start, como suspeitado inicialmente):**
+`/analises/ranking` filtrava só por `status=='em_analise'`, SEM excluir
+`tipo_estrutura=='fii'`. Os 2 FIIs entraram no loop de cálculo do ranking,
+que roda Monte Carlo com `n_sim=20000` × `prazo_dias`. FIIs usam a
+convenção `prazo_dias=9999` (documentada como "sem vencimento, perpétuo"),
+então o ranking tentou simular **9999 dias** de Monte Carlo (vs 14-89 dias
+normais de uma análise real) -- custo computacional ~100x maior só para
+esses 2 registros, suficiente para travar o processo no Render (memória/
+tempo), causando os 502/503 e a resposta JSON cortada no meio.
+
+**Diagnóstico foi feito PELO USUÁRIO**, não por Claude inicialmente --
+usuário notou que "ontem funcionou, hoje não" e que ele tinha acabado de
+adicionar um FII via "Em Análise" pouco antes do erro aparecer, e
+deduziu corretamente que os dois fatos estavam conectados ("você botou em
+análise do lote... essa é exclusiva de estruturas... tem que ter um em
+análise exclusivo dos FIIs"). Lição: o usuário tem bom instinto de
+correlacionar eventos recentes com sintomas, e isso deve ser tratado como
+pista forte de investigação, não descartado.
+
+**Correção implementada:**
+```python
+em_analise_total = [a for a in lista if a.get('status') == 'em_analise'
+              and a.get('tipo_estrutura') != 'fii']
+```
+FII NUNCA deve entrar no ranking de probabilidades -- tem fluxo próprio
+(screening → Em Análise visualmente misturado, mas com botões próprios →
+Carteira via /carteira-fiis, JÁ EXISTENTE desde a parte 8 desta sessão).
+
+## Recuperação dos 2 FIIs presos
+KNCR11 e ITRI11 ficaram "presos" em analises.json com `status=em_analise`
+(nunca migraram para carteira_fiis.json, porque o usuário clicou "+ Em
+Análise" do screening, que só faz o PRIMEIRO passo -- o segundo passo,
+"Ativar na Carteira", precisa ser clicado dentro do card de Em Análise,
+não no screening). Usuário confirmou que queria ativá-los direto na
+Carteira (já tinha decidido por eles). Migração manual feita:
+- KNCR11: papel, high_grade, P/VP=1.05, DY=13.33%, preço ativação R$107.70
+- ITRI11: papel, high_grade, P/VP=0.86, DY=12.93%, preço ativação R$80.45
+Ambos `status: 'ativa'` em carteira_fiis.json. Removidos de analises.json.
+
+## Também implementado nesta correção (não testado ainda): paginação no ranking
+Adicionado suporte a `offset`/`limit` em `/analises/ranking` (query
+params opcionais, comportamento original mantido se omitidos). Usuário
+sugeriu processamento em fases (ex: 5 por vez) como proteção estrutural
+contra timeout/crash conforme o lote crescer no futuro -- MAS usuário
+decidiu (corretamente) testar primeiro só a correção do bug real antes de
+adicionar a complexidade do faseamento no frontend. Backend já aceita os
+parâmetros; FALTA implementar a lógica de chamadas em loop no frontend
+(`loadRankingAnalises` ainda faz uma chamada só, sem usar offset/limit) --
+não fazer isso ainda, só quando o usuário confirmar que quer.
+
+## ⭐ Bugs/melhorias adicionais identificados pelo usuário, REGISTRADOS, NÃO corrigidos ainda
+1. **Aba "Em Análise" mistura estruturadas e FIIs na mesma lista**, sem
+   separação visual (`renderAnalises()` hoje filtra só por status, sem
+   distinguir tipo_estrutura). Usuário quer simplificar a fonte de
+   confusão visual -- precisa de uma seção/divisão clara entre os dois
+   tipos dentro da mesma aba, ou uma aba própria só para "FII em análise"
+   (a decidir qual abordagem).
+2. **Sem controle de duplicidade**: se o usuário voltar no screening de
+   FIIs e clicar "+ Em Análise" de novo num ticker que já está em
+   Em Análise OU já está na Carteira, hoje nada impede de criar um
+   registro duplicado. Usuário quer um "flag" visual no screening
+   indicando "já está em análise" / "já está na carteira" para esse
+   ticker.
+3. **Pergunta aberta, registrada para pensar depois (palavras do
+   usuário: "deixa aí também pra pensar depois")**: se o usuário REMOVER
+   um FII da carteira (status='encerrada'), ele deveria voltar a aparecer
+   disponível para nova análise no screening, ou ficar marcado/bloqueado
+   como "já passou por aqui antes"? Não decidido ainda.
+
+## Estado do backlog ao final desta parte
+- BUG CRÍTICO do ranking: ✅ CORRIGIDO E CONFIRMADO (usuário vai
+  testar de novo após esta correção)
+- 2 FIIs recuperados manualmente para a carteira: ✅ FEITO
+- Faseamento do ranking: parcialmente pronto (backend aceita params),
+  frontend NÃO implementado -- aguardando confirmação do usuário após
+  testar que o bug real já foi resolvido sem precisar de faseamento.
+- 3 bugs/melhorias de UX do fluxo FII (separação visual, duplicidade,
+  comportamento ao remover da carteira): registrados, sem ação ainda.
