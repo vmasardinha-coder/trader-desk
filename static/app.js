@@ -752,7 +752,7 @@ function tplBarreiraSimples(p){
     </div>
     <div class="sig">
       <div class="sgt">🎲 Monte Carlo — Cenário barreira simples (só KDO)</div>
-      <div style="color:var(--muted);font-size:12px">⏳ Simulação Monte Carlo para este tipo de estrutura (retorno controlado, sem teto de alta) ainda não foi implementada no app -- backlog futuro. Acompanhe a distância até o KDO acima por enquanto.</div>
+      <div style="color:var(--muted);font-size:12px">📈 Clique em "Ver evolução desde a entrada" abaixo para calcular o fan chart e as probabilidades (vol. histórica simples, calculada a partir do histórico real do ativo).</div>
     </div>
     ${p.data_entrada?`
     <div style="margin-top:14px">
