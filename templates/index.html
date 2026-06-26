@@ -310,6 +310,7 @@
   </div>
   <div id="cal-st" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
   <div id="cal-area"><p style="color:var(--muted);padding:20px;text-align:center">Carregando...</p></div>
+</div>
 
 <!-- ══ AVISO LEGAL ══ -->
 <!-- Adicionado 25/06/2026. Modal exibido na primeira visita (controlado
@@ -317,7 +318,13 @@
      redigido com base em pratica real de mercado (BTG/Genial/Valora),
      mas usuario foi explicitamente avisado que isso NAO substitui
      validacao juridica antes de qualquer uso comercial -- por agora, sem
-     cobranca, e so transparencia/boa pratica. -->
+     cobranca, e so transparencia/boa pratica.
+     CORRIGIDO 26/06/2026: este div estava (por engano meu, na insercao
+     original) DENTRO de #tab-calendario (que nunca foi fechado antes
+     dele) -- a regra CSS .tab-content{display:none!important} vencia o
+     style="display:flex" inline, deixando o modal com width/height=0
+     mesmo com display:flex aparente no computed style. Adicionado o
+     </div> de fechamento de tab-calendario que faltava. -->
 <div id="disclaimer-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-width:560px;max-height:80vh;overflow-y:auto;padding:24px">
     <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:14px">⚠️ Aviso Importante — Leia antes de utilizar</div>
