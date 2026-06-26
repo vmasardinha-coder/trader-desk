@@ -3894,6 +3894,123 @@ def get_fiis():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ── CARTEIRA DE FIIs ───────────────────────────────────
+# Adicionado 25/06/2026. Decisao do usuario: FIIs ficam em arquivo PROPRIO
+# (carteira_fiis.json), separado de analises.json/positions.json -- FIIs
+# sao perpetuos (sem vencimento) e a metrica de sucesso e diferente das
+# estruturadas (dividendo acumulado desde a ativacao, nao ganho prefixado/
+# probabilidade de meta). Fluxo: screening (/fiis) -> Em Analise (POST
+# /analises, tipo_estrutura='fii', JA IMPLEMENTADO) -> Carteira (este
+# endpoint, ativa de fato). "Foto" tirada no MOMENTO da ativacao (nao
+# retroativa ao historico de compra real, se ja possuido antes -- usuario
+# aceitou essa simplificacao explicitamente).
+_CARTEIRA_FII_STATUS_VALIDOS = ['ativa', 'encerrada']
+
+@app.route('/carteira-fiis', methods=['GET'])
+def get_carteira_fiis():
+    """Le carteira_fiis.json do repo. Sempre retorna lista (vazia se nao
+    houver nenhum FII ativado ainda)."""
+    try:
+        conteudo_str, _ = _github_get_file('carteira_fiis.json')
+        carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
+        return jsonify({'carteira': carteira, 'total': len(carteira)})
+    except RuntimeError as e:
+        return jsonify({'error': str(e), 'carteira': []}), 500
+    except Exception as e:
+        return jsonify({'error': str(e), 'carteira': []}), 500
+
+@app.route('/carteira-fiis', methods=['POST'])
+@_requer_auth_escrita
+def ativar_fii_carteira():
+    """
+    Ativa um FII na carteira (migra de Em Analise para Ativa de fato).
+    Espera no body: ticker, nome_fundo, segmento, nivel_risco, preco_foto
+    (preco no momento da ativacao), dy_anual_pct, analise_id (opcional --
+    id da analise em analises.json que esta sendo migrada, para remove-la
+    de la apos a ativacao bem sucedida aqui).
+    """
+    try:
+        body = request.get_json() or {}
+        campos_obrig = ['ticker', 'nome_fundo', 'segmento', 'preco_foto']
+        faltando = [c for c in campos_obrig if not body.get(c)]
+        if faltando:
+            return jsonify({'error': f'campos obrigatorios faltando: {faltando}'}), 422
+
+        conteudo_str, sha = _github_get_file('carteira_fiis.json')
+        carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
+
+        import time as _time
+        novo = {
+            'id': f"fii_{int(_time.time())}",
+            'ticker': body['ticker'],
+            'nome_fundo': body['nome_fundo'],
+            'segmento': body['segmento'],
+            'nivel_risco': body.get('nivel_risco'),
+            'data_ativacao': _hoje_str(),
+            'preco_ativacao': float(body['preco_foto']),
+            'dy_anual_pct_ativacao': body.get('dy_anual_pct'),
+            'status': 'ativa',
+        }
+        carteira.append(novo)
+        novo_conteudo = json.dumps(carteira, indent=2, ensure_ascii=False)
+        _github_put_file('carteira_fiis.json', novo_conteudo, sha,
+            f"feat: ativa {novo['ticker']} na carteira de FIIs via app")
+
+        # Remove de analises.json se vier o id de origem (migracao completa,
+        # sem duplicar -- mesmo principio ja especificado para a migracao
+        # de estruturadas Em Analise -> Ativa).
+        analise_id_origem = body.get('analise_id')
+        if analise_id_origem:
+            try:
+                conteudo_an, sha_an = _github_get_file('analises.json')
+                lista_an = json.loads(conteudo_an) if conteudo_an.strip() else []
+                lista_an_filtrada = [a for a in lista_an if a.get('id') != analise_id_origem]
+                if len(lista_an_filtrada) != len(lista_an):
+                    novo_conteudo_an = json.dumps(lista_an_filtrada, indent=2, ensure_ascii=False)
+                    _github_put_file('analises.json', novo_conteudo_an, sha_an,
+                        f"feat: remove {analise_id_origem} de analises.json (migrado para carteira_fiis.json)")
+            except Exception:
+                pass  # nao falha a ativacao principal se a limpeza falhar
+
+        return jsonify(novo), 201
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/carteira-fiis/<fii_id>/status', methods=['PUT'])
+@_requer_auth_escrita
+def mudar_status_carteira_fii(fii_id):
+    """Move um FII da carteira para 'encerrada' (vendido). Espera
+    {'status': 'encerrada'} no body."""
+    try:
+        body = request.get_json() or {}
+        novo_status = body.get('status')
+        if novo_status not in _CARTEIRA_FII_STATUS_VALIDOS:
+            return jsonify({'error': f'status invalido: {novo_status!r}'}), 422
+
+        conteudo_str, sha = _github_get_file('carteira_fiis.json')
+        carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
+        encontrado = False
+        for item in carteira:
+            if item.get('id') == fii_id:
+                item['status'] = novo_status
+                if novo_status == 'encerrada':
+                    item['data_encerramento'] = _hoje_str()
+                encontrado = True
+                break
+        if not encontrado:
+            return jsonify({'error': f'FII {fii_id} nao encontrado na carteira'}), 404
+
+        novo_conteudo = json.dumps(carteira, indent=2, ensure_ascii=False)
+        _github_put_file('carteira_fiis.json', novo_conteudo, sha,
+            f"feat: FII {fii_id} -> status={novo_status} via app")
+        return jsonify({'id': fii_id, 'status': novo_status})
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/positions', methods=['GET'])
 def get_positions():
     """
