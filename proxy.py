@@ -168,6 +168,49 @@ import os as _os
 BRAPI_TOKEN = _os.environ.get('BRAPI_TOKEN', '47g4Z3SJELnK2wLwXgn1rw')
 BRAPI_HEADERS = {'User-Agent':'Mozilla/5.0', 'Authorization': f'Bearer {BRAPI_TOKEN}'}
 
+# ── AUTENTICACAO DAS ROTAS DE ESCRITA ──────────────────
+# Adicionado 25/06/2026 -- item de backlog levantado pelo usuario: hoje
+# qualquer pessoa que descobrisse a URL do app conseguia clicar em
+# Rejeitar/Aprovar em qualquer analise (POST /analises e PUT /analises/
+# <id>/status sao as DUAS UNICAS rotas que de fato escrevem em
+# analises.json -- confirmado via grep em todas as rotas POST/PUT/DELETE
+# do arquivo; /montecarlo/*, /btc/historico, /bs e /tv/* usam POST so para
+# receber parametros no corpo, nao escrevem nada).
+#
+# PRIMEIRA CAMADA DE PROTECAO (token unico, nao multi-usuario ainda):
+# token configurado via variavel de ambiente API_WRITE_TOKEN no Render
+# (mesmo padrao ja usado para BRAPI_TOKEN). Rotas de ESCRITA exigem header
+# 'Authorization: Bearer <token>' -- sem ele, 401. Rotas de LEITURA
+# continuam abertas por decisao explicita do usuario (proteger leitura
+# tambem fica para depois, se necessario).
+#
+# EVOLUCAO FUTURA (registrada, NAO implementada agora): se o app virar
+# produto multi-usuario de verdade, cada usuario precisaria de token/login
+# proprio, e os dados (analises.json/positions.json) precisariam ser POR
+# USUARIO, nao um arquivo unico compartilhado no repo -- mudanca maior de
+# arquitetura, fora do escopo desta correcao pontual.
+API_WRITE_TOKEN = _os.environ.get('API_WRITE_TOKEN')
+
+def _requer_auth_escrita(f):
+    """Decorator que exige 'Authorization: Bearer <API_WRITE_TOKEN>' no
+    header. Se API_WRITE_TOKEN nao estiver configurado no ambiente (Render),
+    a rota fica ABERTA (fail-open) -- isso e intencional para nao quebrar
+    o app caso a variavel de ambiente nao tenha sido configurada ainda,
+    mas significa que o token PRECISA ser configurado no Render para a
+    protecao funcionar de fato. Logar/avisar isso seria ideal numa
+    iteracao futura."""
+    from functools import wraps
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not API_WRITE_TOKEN:
+            return f(*args, **kwargs)  # fail-open se token nao configurado
+        auth_header = request.headers.get('Authorization', '')
+        token_recebido = auth_header.replace('Bearer ', '').strip()
+        if token_recebido != API_WRITE_TOKEN:
+            return jsonify({'error': 'Nao autorizado. Forneca o header Authorization: Bearer <token>.'}), 401
+        return f(*args, **kwargs)
+    return wrapper
+
 # ── SETORES ───────────────────────────────────────────
 SETORES = {
     'PETR4.SA': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
@@ -3164,6 +3207,7 @@ def get_analises_stats():
         return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
 @app.route('/analises', methods=['POST'])
+@_requer_auth_escrita
 def criar_analise():
     """
     Cria uma nova foto em Em Análise. Espera no body o objeto da análise
@@ -3194,6 +3238,7 @@ def criar_analise():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/analises/<analise_id>/status', methods=['PUT'])
+@_requer_auth_escrita
 def mudar_status_analise(analise_id):
     """
     Move uma analise entre estagios (em_analise -> ativa -> encerrada, ou
