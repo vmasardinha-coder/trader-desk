@@ -224,6 +224,7 @@ async function aprovarFiiParaAnalise(ticker){
       data_foto: hoje,
       preco_foto: f.cotacao,
       tipo_estrutura: 'fii',
+      prazo_dias: 9999,  // FIIs sao perpetuos, sem vencimento -- convencao documentada no backend
       dy_anual_pct: f.dy_pct,
       p_vp: f.p_vp,
       liquidez: f.liquidez,
