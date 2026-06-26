@@ -3386,6 +3386,7 @@ def _migrar_para_positions(item_analise):
     }
     if ganho_pct is not None:
         novo_registro['ganho_sem_barreira'] = f"{ganho_pct}% fixo"
+        novo_registro['ganho_prefixado_pct'] = ganho_pct  # campo numerico, usado por /montecarlo/posicao_ativa para calcular EV completo
     if tipo == 'bidirecional':
         kuo = item_analise.get('kuo')
         if kuo is not None:
