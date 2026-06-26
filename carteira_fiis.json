@@ -20,5 +20,16 @@
     "preco_ativacao": 80.45,
     "dy_anual_pct_ativacao": 12.93,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1782486404",
+    "ticker": "CLIN11",
+    "nome_fundo": "CLIN11 - FII Outros",
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "data_ativacao": "2026-06-26",
+    "preco_ativacao": 91.2,
+    "dy_anual_pct_ativacao": 12.83,
+    "status": "ativa"
   }
 ]
