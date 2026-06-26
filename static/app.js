@@ -270,6 +270,86 @@ async function aprovarFiiParaAnalise(ticker){
   }
 }
 
+// Adicionado 25/06/2026 -- aba Carteira FIIs, le carteira_fiis.json
+// (arquivo proprio, separado de analises.json/positions.json por decisao
+// do usuario). Mostra FIIs ativos com dias desde ativacao.
+async function loadCarteiraFiis(){
+  const cont=document.getElementById('carteirafiis-container');
+  const btn=document.getElementById('btn-carteirafiis-reload');
+  if(!cont)return;
+  cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Carregando carteira...</p>';
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const r=await fetch(B+'/carteira-fiis',{signal:ctrl.signal,cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    renderCarteiraFiis(d.carteira||[]);
+  }catch(e){
+    cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar carteira: '+e.message+'</p>';
+  }finally{
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
+function renderCarteiraFiis(carteira){
+  const cont=document.getElementById('carteirafiis-container');
+  if(!cont)return;
+  const ativos=carteira.filter(f=>f.status==='ativa');
+  const encerrados=carteira.filter(f=>f.status==='encerrada');
+  if(!ativos.length&&!encerrados.length){
+    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhum FII na carteira ainda. Ative algum em "Em Análise".</p>';
+    return;
+  }
+  const hoje=new Date();
+  const linhaAtivo=f=>{
+    const dataAtiv=new Date(f.data_ativacao);
+    const dias=Math.floor((hoje-dataAtiv)/86400000);
+    return `<tr id="cfii-row-${f.id}">
+      <td style="padding:6px 8px;font-weight:700">${f.ticker}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.nome_fundo||''}</span></td>
+      <td style="padding:6px 8px;text-align:right">R$${f.preco_ativacao.toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right">${f.dy_anual_pct_ativacao!=null?f.dy_anual_pct_ativacao.toFixed(2)+'%':'—'}</td>
+      <td style="padding:6px 8px;text-align:right">${f.data_ativacao}</td>
+      <td style="padding:6px 8px;text-align:right">${dias}d</td>
+      <td style="padding:6px 8px;text-align:right">
+        <button onclick="encerrarFiiCarteira('${f.id}')" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">Encerrar</button>
+      </td>
+    </tr>`;
+  };
+  cont.innerHTML=`
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${ativos.length} ativos${encerrados.length?' · '+encerrados.length+' encerrados':''}</div>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+      <th style="padding:6px 8px">Ticker</th>
+      <th style="padding:6px 8px;text-align:right">Preço ativ.</th>
+      <th style="padding:6px 8px;text-align:right">DY na ativ.</th>
+      <th style="padding:6px 8px;text-align:right">Data</th>
+      <th style="padding:6px 8px;text-align:right">Dias</th>
+      <th style="padding:6px 8px;text-align:right">Ação</th>
+    </tr></thead>
+    <tbody>${ativos.map(linhaAtivo).join('')}</tbody>
+  </table>
+  </div>`;
+}
+
+async function encerrarFiiCarteira(id){
+  const ok=confirm('Confirma ENCERRAR (vendeu) este FII da carteira?');
+  if(!ok)return;
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const r=await fetch(B+'/carteira-fiis/'+encodeURIComponent(id)+'/status',{
+      method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
+      body:JSON.stringify({status:'encerrada'})
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    await loadCarteiraFiis();
+  }catch(e){
+    alert('Erro ao encerrar: '+e.message);
+  }
+}
+
 function tg(id){
   const b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);
   if(!b)return;const op=b.style.display!=='block';
@@ -2212,6 +2292,20 @@ function tplAnaliseAcoes(a){
   // direto na linha ranqueada, em vez de duplicar a acao no card solto).
   // O card aqui so mantem "Encerrar operacao" para quem ja esta 'ativa' --
   // isso nao faz parte do fluxo de ranking (ranking e so para em_analise).
+  //
+  // EXCECAO (25/06/2026): FIIs (tipo_estrutura='fii') NUNCA aparecem no
+  // ranking de probabilidades -- ranking roda Monte Carlo, que nao se
+  // aplica a FII (sem barreira/meta/vencimento). Por isso o card de FII em
+  // em_analise mantem seu PROPRIO botao de acao aqui, indo direto para a
+  // Carteira (endpoint POST /carteira-fiis), em vez de para 'ativa' dentro
+  // de analises.json (FIIs ficam em arquivo proprio, carteira_fiis.json).
+  if(a.tipo_estrutura==='fii'&&a.status==='em_analise'){
+    return `
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="ativarFiiNaCarteira('${a.id}')" style="flex:1;background:var(--green);border:none;color:#06140c;padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">✓ Ativar na Carteira</button>
+      <button onclick="mudarStatusAnalise('${a.id}','encerrada','rejeitada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🚫 Rejeitar</button>
+    </div>`;
+  }
   if(a.status==='ativa'){
     return `
     <div style="display:flex;gap:8px;margin-top:14px">
@@ -2219,6 +2313,37 @@ function tplAnaliseAcoes(a){
     </div>`;
   }
   return '';
+}
+
+// Adicionado 25/06/2026 -- ativa um FII que esta em Em Analise para a
+// Carteira de fato (POST /carteira-fiis), e remove de analises.json apos
+// sucesso (passando analise_id no body -- backend faz a limpeza).
+async function ativarFiiNaCarteira(analiseId){
+  const a=_analiseData.find(x=>x.id===analiseId);
+  if(!a)return;
+  const ok=confirm(`Ativar ${a.ticker.replace('.SA','')} na Carteira de FIIs? Preço de referência: R$${a.preco_foto.toFixed(2)} (hoje). Essa ação grava no repositório.`);
+  if(!ok)return;
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const body={
+      ticker: a.ticker.replace('.SA',''),
+      nome_fundo: a.nome,
+      segmento: a.segmento,
+      nivel_risco: a.nivel_risco,
+      preco_foto: a.preco_foto,
+      dy_anual_pct: a.dy_anual_pct,
+      analise_id: a.id,
+    };
+    const r=await fetch(B+'/carteira-fiis',{
+      method:'POST',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    await loadAnalises();
+  }catch(e){
+    alert('Erro ao ativar na carteira: '+e.message);
+  }
 }
 
 // Adicionado 23/06/2026 -- ao encerrar uma analise que JA FOI ativa (nao
