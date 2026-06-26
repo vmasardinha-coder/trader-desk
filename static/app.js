@@ -719,6 +719,50 @@ function tplBarreira(p){
   </div>`;
 }
 
+// Adicionado 26/06/2026 -- tipo_posicao='barreira_simples' (estruturas
+// retorno_controlado: SO barreira de baixa KDO, SEM KUO/teto de alta --
+// diferente de 'barreira', que e bidirecional completo). Criado apos bug
+// real: BSLV39 (migrado automaticamente de Em Analise) caia no template
+// tplSimples por engano (so existiam 2 opcoes: barreira ou else), que
+// esperava campos de covered call (strike, tipo) que essa estrutura nao
+// tem -- causava "Cannot read properties of undefined (reading
+// 'toFixed')". vol_impl pode ser null (historico insuficiente para
+// calcular, ver _migrar_para_positions no backend) -- tratado como
+// opcional aqui, nunca quebra a renderizacao.
+function tplBarreiraSimples(p){
+  const id=p.id;
+  const volTxt=p.vol_impl!=null?(p.vol_impl*100).toFixed(1)+'%':'⚠ não calculado (complete manualmente)';
+  return `
+  <div class="pos-acc" id="card-${id}">
+    <div class="pos-acc-hdr" onclick="togPos('pos-${id}')">
+      <div><div class="pos-acc-tk">${p.ticker.replace('.SA','')}</div><div class="pos-acc-sub">${p.nome} · ${p.estrategia} · Venc ${fmtData(p.vencimento)}</div></div>
+      <div class="pos-acc-right">
+        <div><div class="pp loading" id="${id}-p">—</div><div class="pc2" id="${id}-c">—</div></div>
+        <span id="ar-pos-${id}" style="color:var(--muted)">▼</span>
+      </div>
+    </div>
+    <div class="pos-acc-body open" id="body-pos-${id}">
+    <div class="sb">
+      <div class="sr"><span class="sl">KDO (${p.kdo_pct})</span><span class="sv warn">R$ ${p.kdo.toFixed(2).replace('.',',')}</span></div>
+      ${p.ganho_sem_barreira?`<div class="sr"><span class="sl">Ganho s/ barreira</span><span class="sv ok">${p.ganho_sem_barreira}</span></div>`:''}
+      <div class="sr"><span class="sl">Vencimento</span><span class="sv">${fmtData(p.vencimento)} · <span id="${id}-dias">—</span></span></div>
+      <div class="sr"><span class="sl">Dist. KDO</span><span class="sv" id="${id}-kdo">—</span></div>
+      <div class="sr"><span class="sl">Situação</span><span class="sv" id="${id}-st">—</span></div>
+      <div class="sr" title="Volatilidade calculada via GARCH a partir do histórico real -- se não calculada, o histórico do ativo era insuficiente (baixa liquidez)"><span class="sl">Vol. implícita</span><span class="sv${p.vol_impl==null?' warn':''}">${volTxt}</span></div>
+    </div>
+    <div class="sig">
+      <div class="sgt">🎲 Monte Carlo — Cenário barreira simples (só KDO)</div>
+      <div style="color:var(--muted);font-size:12px">⏳ Simulação Monte Carlo para este tipo de estrutura (retorno controlado, sem teto de alta) ainda não foi implementada no app -- backlog futuro. Acompanhe a distância até o KDO acima por enquanto.</div>
+    </div>
+    ${p.data_entrada?`
+    <div style="margin-top:14px">
+      <button onclick="loadEvolucaoPosicao('${id}')" id="${id}-evo-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;letter-spacing:.3px;width:100%">📈 Ver evolução desde a entrada</button>
+      <div id="${id}-evo-area" style="display:none;margin-top:10px"></div>
+    </div>`:''}
+    </div>
+  </div>`;
+}
+
 // ── EVOLUÇÃO DE POSIÇÃO ATIVA (retroativo real + projeção) ──
 async function loadEvolucaoPosicao(id){
   const area=document.getElementById(id+'-evo-area');
@@ -848,6 +892,7 @@ function renderPositions(data){
   let html='';
   ativas.forEach(p=>{
     if(p.tipo_posicao==='barreira') html+=tplBarreira(p);
+    else if(p.tipo_posicao==='barreira_simples') html+=tplBarreiraSimples(p);
     else html+=tplSimples(p);
   });
   cont.innerHTML=html;
