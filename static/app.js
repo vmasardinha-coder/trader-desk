@@ -84,7 +84,7 @@ let _fiisData=[];
 let _fiisSegmentoAtivo='todos';
 
 const _FII_SEGMENTO_LABEL={
-  todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', outros:'Outros'
+  todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', fof:'Fundo de Fundos', outros:'Outros'
 };
 
 async function loadFiis(){
@@ -113,7 +113,7 @@ function renderFiisFiltro(){
   if(!area)return;
   const contagens={todos:_fiisData.length};
   _fiisData.forEach(f=>{contagens[f.segmento]=(contagens[f.segmento]||0)+1;});
-  const segs=['todos','papel','tijolo','hibrido','outros'];
+  const segs=['todos','papel','tijolo','hibrido','fof','outros'];
   area.innerHTML=segs.map(s=>{
     const ativo=s===_fiisSegmentoAtivo;
     const n=contagens[s]||0;
