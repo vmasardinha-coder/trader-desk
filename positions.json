@@ -108,21 +108,6 @@
       "data_entrada": "2026-06-03",
       "exercicio": "europeia",
       "meta_pct": 2.25
-    },
-    {
-      "id": "bslv39",
-      "ticker": "BSLV39.SA",
-      "nome": "BSLV39 - iShares Silver Trust BDR",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-08-22",
-      "entry": 96.68,
-      "kdo": 77.34,
-      "kdo_pct": "-20.0%",
-      "vol_impl": 0.35,
-      "data_entrada": "2026-06-25",
-      "exercicio": "europeia",
-      "ganho_sem_barreira": "8.3% fixo"
     }
   ],
   "encerradas": [
