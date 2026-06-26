@@ -23,6 +23,7 @@
 <div class="tabs">
   <div class="tab active" onclick="sw('cotacoes',this)">📊 Cotações</div>
   <div class="tab" onclick="sw('indicadores',this)">📈 Indicadores</div>
+  <div class="tab" onclick="sw('fiis',this)">🏢 FIIs</div>
   <div class="tab" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
   <div class="tab" onclick="sw('posicoes',this)">💼 Posições Ativas <span id="pos-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
   <div class="tab" onclick="sw('encerradas',this)">🗂 Encerradas</div>
@@ -221,11 +222,20 @@
   <div id="watchlist-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando ativos...</p></div>
 </div>
 
+<!-- ══ FIIs ══ -->
+<div id="tab-fiis" class="tab-content">
+  <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Screening de FIIs (Fundamentus)</span><button onclick="loadFiis()" id="btn-fiis-reload" style="background:var(--accent);border:none;color:#fff;padding:5px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Atualizar</button></div>
+  <div style="font-size:11px;color:var(--muted);padding:0 2px 12px;line-height:1.5">Critério: P/VP (1º filtro) → Dividend Yield (2º) → Liquidez (3º). Descarte automático: liquidez &lt;R$50k/dia, DY≤0%, P/VP fora de 0,5–3,0 (contra "yield trap"). Dados públicos do Fundamentus, atualizados a cada clique em "Atualizar".</div>
+  <div id="fiis-segmento-filtro" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+  <div id="fiis-container"><p style="color:var(--muted);padding:20px;text-align:center">Clique em "Atualizar" para carregar.</p></div>
+</div>
+
 <!-- ══ EM ANÁLISE ══ -->
 <div id="tab-emanalise" class="tab-content">
   <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Estudos &amp; Fotos Congeladas</span><button onclick="toggleAllAnalises()" id="btn-all-analise" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">− Recolher Todas</button></div>
   <div style="font-size:11px;color:var(--muted);padding:0 2px 12px;line-height:1.5">Fotos criadas em sessão de chat (Fase A → Fase B). Esta aba só lista, monitora e muda status — criação de nova foto continua sendo feita em sessão, conforme <span style="color:var(--accent)">FLUXO_FASE_A_FASE_B.md</span>.</div>
   <div id="analise-stats-rejeitadas" style="display:none;font-size:11px;color:#ff6b6b;padding:0 2px 10px"></div>
+
 
   <!-- Painel de Ranking em lote — adicionado 25/06/2026. Roda Monte Carlo
        de todas as em_analise de uma vez (GET /analises/ranking), mostra
