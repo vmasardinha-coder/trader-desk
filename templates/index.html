@@ -240,10 +240,12 @@
 
 <!-- ══ EM ANÁLISE ══ -->
 <div id="tab-emanalise" class="tab-content">
-  <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Estudos &amp; Fotos Congeladas</span><button onclick="toggleAllAnalises()" id="btn-all-analise" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">− Recolher Todas</button></div>
-  <div style="font-size:11px;color:var(--muted);padding:0 2px 12px;line-height:1.5">Fotos criadas em sessão de chat (Fase A → Fase B). Esta aba só lista, monitora e muda status — criação de nova foto continua sendo feita em sessão, conforme <span style="color:var(--accent)">FLUXO_FASE_A_FASE_B.md</span>.</div>
+  <div style="font-size:11px;color:var(--muted);padding:0 2px 12px;line-height:1.5">Fotos criadas em sessão de chat (Fase A → Fase B) ou via screening de FIIs. Esta aba só lista, monitora e muda status.</div>
   <div id="analise-stats-rejeitadas" style="display:none;font-size:11px;color:#ff6b6b;padding:0 2px 10px"></div>
 
+  <!-- ══ SEÇÃO: ESTRUTURAS EM ANÁLISE ══ -->
+  <div class="sec" style="justify-content:space-between;margin-top:10px"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Estruturas em Análise</span><button onclick="toggleAllAnalises()" id="btn-all-analise" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">− Recolher Todas</button></div>
+  <div style="font-size:10px;color:var(--muted);padding:0 2px 10px">Criação de nova foto continua sendo feita em sessão, conforme <span style="color:var(--accent)">FLUXO_FASE_A_FASE_B.md</span>.</div>
 
   <!-- Painel de Ranking em lote — adicionado 25/06/2026. Roda Monte Carlo
        de todas as em_analise de uma vez (GET /analises/ranking), mostra
@@ -259,6 +261,24 @@
   </div>
 
   <div id="analise-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando análises...</p></div>
+
+  <!-- ══ SEÇÃO: FIIs EM ANÁLISE ══ -->
+  <!-- Adicionado 26/06/2026 -- usuario pediu secao SEPARADA para FIIs em
+       analise, com RANKING PROPRIO (mesmos criterios da aba FIIs: P/VP->
+       DY->Liquidez->FFO->risco), rodando so sobre os FIIs que JA ESTAO em
+       em_analise (nao o universo completo de 560). Aprovar/Rejeitar dali
+       ja vai direto para Carteira FIIs ou Encerradas (unificado com
+       estruturadas em Encerradas, sem problema -- usuario confirmou). -->
+  <div class="sec" style="justify-content:space-between;margin-top:28px"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>FIIs em Análise</span></div>
+  <div style="font-size:10px;color:var(--muted);padding:0 2px 10px">FIIs adicionados via screening (aba FIIs). Ranking próprio, mesmo critério (P/VP → DY → Liquidez → FFO).</div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <span style="font-size:12px;font-weight:700;color:var(--accent)">🏢 Ranking de FIIs em Análise</span>
+      <button onclick="loadRankingFiisEmAnalise()" id="btn-ranking-fiis" style="background:var(--accent);border:none;color:#fff;padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Rodar ranking</button>
+    </div>
+    <div id="ranking-fiis-container" style="margin-top:10px;font-size:11px;color:var(--muted)"></div>
+  </div>
 </div>
 
 <!-- ══ POSIÇÕES ══ -->
