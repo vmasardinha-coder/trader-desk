@@ -2581,4 +2581,30 @@ function toggleAllAnalises(){
   if(btn)btn.textContent=anyOpen?'− Recolher Todas':'+ Expandir Todas';
 }
 
+// Adicionado 25/06/2026 -- modal de aviso legal (disclaimer CVM).
+// Exibido na PRIMEIRA visita deste navegador/dispositivo (controlado via
+// localStorage, mesmo padrao ja usado para o token de API). Decisao do
+// usuario: material e gratuito por agora (sem cobranca), entao o risco
+// regulatorio e menor, mas o disclaimer e boa pratica de transparencia
+// mesmo assim -- baseado em pratica real de mercado (BTG/Genial/Valora),
+// MAS usuario foi avisado explicitamente que isso NAO substitui validacao
+// juridica antes de qualquer uso comercial futuro.
+function showDisclaimerIfNeeded(){
+  const aceito=localStorage.getItem('disclaimer_aceito');
+  if(!aceito){
+    const ov=document.getElementById('disclaimer-overlay');
+    if(ov)ov.style.display='flex';
+  }
+}
+function aceitarDisclaimer(){
+  localStorage.setItem('disclaimer_aceito','1');
+  const ov=document.getElementById('disclaimer-overlay');
+  if(ov)ov.style.display='none';
+}
+function abrirDisclaimer(){
+  const ov=document.getElementById('disclaimer-overlay');
+  if(ov)ov.style.display='flex';
+}
+showDisclaimerIfNeeded();
+
 main();setInterval(main,120000);
