@@ -1727,6 +1727,50 @@ async function MCB(tk,en,kd,ku,dias,pfx){
     document.getElementById(pfx+'-mc-i').innerHTML='R$ '+d.preco_atual+' · KDO R$ '+d.kdo+' · KUO R$ '+d.kuo+cmpTxt;
   }catch(e){const el=document.getElementById(pfx+'-mc-l');if(el)el.textContent='Erro: '+(e.message||'timeout');}
 }
+
+// Adicionado 26/06/2026 -- preenche cotacao atual ('-p'), Dist. KDO
+// ('-kdo') e Situacao ('-st') para posicoes tipo_posicao='barreira_simples'
+// (retorno_controlado, so KDO sem KUO -- ex: BSLV39). Reaproveita
+// /montecarlo/posicao_ativa em vez de /montecarlo/barrier (que exige
+// KUO obrigatorio) -- mesmo endpoint ja confirmado funcionando para o
+// fan chart do botao "Ver evolucao desde a entrada".
+async function MCBSimples(p){
+  const id=p.id;
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const body={ticker:p.ticker,data_entrada:p.data_entrada,vencimento:p.vencimento,kdo:p.kdo};
+    if(p.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=p.ganho_prefixado_pct;
+    const r=await fetch(B+'/montecarlo/posicao_ativa',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    const pEl=document.getElementById(id+'-p');
+    if(pEl){pEl.textContent='R$ '+d.preco_atual.toFixed(2).replace('.',',');pEl.classList.remove('loading');}
+    const cEl=document.getElementById(id+'-c');
+    if(cEl){
+      const variacao=((d.preco_atual/d.preco_entrada-1)*100);
+      cEl.textContent=(variacao>=0?'+':'')+variacao.toFixed(2)+'% desde a entrada';
+    }
+    const kdoEl=document.getElementById(id+'-kdo');
+    if(kdoEl){
+      const distKdo=((d.preco_atual/p.kdo-1)*100);
+      kdoEl.textContent=distKdo.toFixed(1)+'% acima do KDO';
+      kdoEl.className='sv '+(distKdo<10?'itm':distKdo<25?'warn':'ok');
+    }
+    const stEl=document.getElementById(id+'-st');
+    if(stEl){
+      const tocouBarreira=d.preco_atual<=p.kdo;
+      stEl.textContent=tocouBarreira?'⚠ Barreira tocada':'✅ Dentro da faixa';
+      stEl.className='sv '+(tocouBarreira?'itm':'ok');
+    }
+  }catch(e){
+    const stEl=document.getElementById(id+'-st');
+    if(stEl)stEl.textContent='Erro: '+e.message;
+  }
+}
 async function MCR(tk,en,kd,dias,price){
   try{
     // CORRIGIDO 23/06/2026: timeout reduzido de 40000 para 25000 (igual MC) --
@@ -2005,6 +2049,20 @@ async function main(){
       // MCB barreira — AXIA3 A e B (ou quaisquer outras tipo 'barreira')
       _posData.ativas.filter(p=>p.tipo_posicao==='barreira').forEach(p=>{
         setTimeout(()=>MCB(p.ticker,p.entry,p.kdo,p.kuo,diasAte(p.vencimento),p.id),delay);
+        delay+=6000;
+      });
+
+      // MCBSimples — retorno_controlado (BSLV39 e outras tipo
+      // 'barreira_simples', so KDO sem KUO). Adicionado 26/06/2026:
+      // usuario notou que cotacao/Dist.KDO/Situacao ficavam vazios ('—')
+      // porque MCB (que preenche esses campos) so era chamado para
+      // tipo_posicao==='barreira', nunca para 'barreira_simples'.
+      // Reaproveita /montecarlo/posicao_ativa (mesmo endpoint ja testado
+      // e confirmado funcionando para o fan chart via botao "Ver
+      // evolucao") em vez de criar logica nova -- ele ja calcula
+      // preco_atual e prob_sem_barreira corretamente sem exigir KUO.
+      _posData.ativas.filter(p=>p.tipo_posicao==='barreira_simples').forEach(p=>{
+        setTimeout(()=>MCBSimples(p),delay);
         delay+=6000;
       });
 
