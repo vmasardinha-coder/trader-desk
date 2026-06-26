@@ -2485,3 +2485,97 @@ em si ainda.
    não por decisão, FI-Infra fica para o futuro)
 6. ETFs (item original do backlog) -- ainda sem ação, mas usuário já
    sinalizou que vai precisar do mesmo cuidado de mapeamento de universo
+
+---
+
+# Sessão 26/06/2026 (parte 14) — Migração automática Em Análise → Posições Ativas implementada
+
+## SHA final
+- proxy.py: e499c51266bab686da8a862de2a62d3994008819
+
+## ✅ BUG RESOLVIDO: BSLV39 ficava "ativa" mas nunca migrava para Posições Ativas
+Usuário reportou: aprovou BSLV39 no ranking, ficou com status='ativa' em
+analises.json, mas nunca apareceu na aba "Posições Ativas". Investigação
+confirmou: `positions.json` SEMPRE foi um arquivo de edição MANUAL
+("Edite aqui para abrir/encerrar posições... Não precisa tocar em HTML/
+JS", comentário no próprio arquivo) -- mudar status em analises.json
+NUNCA migrou automaticamente, por design original do projeto (item
+"Migração Em Análise → Ativa" estava no backlog desde sempre, fica por
+último por decisão do usuário -- mas usuário esperava esse comportamento
+automático ao ver visualmente que os botões pareciam fazer algo
+parecido).
+
+## Discussão importante sobre vol_impl -- ESCLARECIDA
+Claude inicialmente avaliou que `vol_impl` seria um campo "impossível de
+automatizar sem inventar dado". Usuário corrigiu: ele NUNCA esperou
+fornecer esse número manualmente -- o sistema JÁ TEM o motor de cálculo
+(GARCH 1,1, já usado em /montecarlo e outros endpoints) e deveria
+simplesmente RECALCULAR a volatilidade a partir do histórico real do
+ticker no momento da migração, exatamente como já faz em outros fluxos do
+app. "Eu só preciso do cálculo... ele já calcula tudo" -- não é
+input manual, é a rotina rodando de novo com o ticker e o preço da foto.
+
+**Confirmação semântica importante do usuário sobre o processo real**:
+quando ele aprova uma análise, ele sabe que a probabilidade pode estar
+"abaixo do P90, 80% de confiança" -- não 100% -- e ISSO é intencional:
+ele decide entrar mesmo com volatilidade/probabilidade imperfeita, e
+quer ver o comportamento real da "linha verde" (fan chart) dali para
+frente, recalculada a partir do momento real de entrada.
+
+## Implementação: migração automática para retorno_controlado/bidirecional
+Nova função `_migrar_para_positions()`, chamada automaticamente dentro de
+`mudar_status_analise()` quando `novo_status='ativa'`:
+1. Busca histórico real de 1 ano do ticker (Yahoo)
+2. Calcula `vol_impl` via GARCH(1,1) (mesma função `garch_11` já usada em
+   outros endpoints) -- fallback para vol_hist simples se GARCH falhar
+   por dados insuficientes, fallback final 0.35 se tudo falhar (nunca
+   bloqueia a migração por erro de cálculo)
+3. Monta o registro completo derivando TUDO do que já existe em
+   analises.json: entry=preco_foto, kdo=kdo, kdo_pct calculado,
+   vencimento=data_foto+prazo_dias, data_entrada=data_foto,
+   exercicio='europeia' por padrão (usuário corrige manualmente se for
+   exceção americana, igual já fez com ROXO34/ROXOG105 antes)
+4. Grava de fato em positions.json (campo 'ativas'), com proteção contra
+   duplicata (não migra se o ticker já estiver ativo lá)
+5. APENAS para tipo_estrutura in (retorno_controlado, bidirecional) --
+   'simples' (covered call) e 'fii' ficam de fora deste fluxo automático
+
+## ⭐ ESCOPO CONFIRMADO E FECHADO: por que 'simples' NUNCA passa por este fluxo
+Usuário esclareceu o processo real, fechando definitivamente esse ponto:
+operações tipo 'simples' (covered call -- código de opção, strike) são
+**decididas na PRÉ-ANÁLISE, em sessão de chat direto com Claude**,
+passando os campos-chave manualmente. Essas operações "já nascem
+analisadas" -- nunca passam pelo crivo automático do ranking de Em
+Análise, porque o que passa por esse fluxo é especificamente o que vem
+de PROPOSTA DE BANCO (retorno_controlado, bidirecional, e variações
+futuras que sigam o mesmo padrão sem exigir código de opção/strike).
+
+Isso significa: a implementação atual (so retorno_controlado/bidirecional
+migram automaticamente) **JÁ COBRE O ESCOPO COMPLETO REAL** -- não é uma
+lacuna a corrigir depois, é o desenho correto e definitivo do processo.
+
+## Arquitetura de navegação confirmada (sem mudanças necessárias)
+Usuário confirmou que a ordem/estrutura atual de abas já reflete o que
+ele quer: Cotações → Indicadores (ações) → FIIs (screening) → Carteira
+FIIs, com "FIIs em Análise" funcionando como uma sub-seção dentro de Em
+Análise (já implementado na parte 13). Estruturadas e FIIs continuam como
+"rotinas técnicas separadas" deliberadamente -- não é capricho visual, é
+separação real de motor de cálculo (Monte Carlo vs P/VP→DY→FFO).
+
+## Pendente: BSLV39 já estava "ativa" ANTES desta correção
+A correção age só em MUDANÇAS FUTURAS de status -- BSLV39 não migra
+retroativamente. Usuário precisa decidir: (a) Claude força a migração
+manual dele agora usando a mesma lógica, ou (b) usuário rejeita e aprova
+de novo pelo ranking, deixando o sistema fazer sozinho. NÃO DECIDIDO
+ainda ao final desta parte -- verificar na próxima sessão se BSLV39 já
+está em positions.json ou se essa ação ainda está pendente.
+
+## Estado do backlog (consolidado, sessão muito longa, 14 partes)
+1-13. Itens já fechados em partes anteriores (ver seções acima)
+14. ✅ Migração automática Em Análise → Posições Ativas (retorno_
+    controlado/bidirecional) -- IMPLEMENTADA, pendente teste real do
+    usuário em uma migração NOVA (não a retroativa do BSLV39)
+15. Pendente decisão: migrar BSLV39 retroativamente ou deixar usuário
+    re-fazer via ranking
+16. 'simples' (covered call) -- ESCOPO FECHADO: nunca precisa de migração
+    automática, decidido em sessão de chat e inserido direto como ativo
