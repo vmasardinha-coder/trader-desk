@@ -3975,8 +3975,20 @@ def get_fiis():
         # virou criterio de CATEGORIZACAO de risco (ver abaixo), nao de
         # exclusao. Usuario quer ver TUDO, organizado por nivel de risco,
         # para julgar com proprio notorio saber.
-        descartados = []
+        #
+        # ADICIONADO 26/06/2026 -- estrutura "Todos" vs "Criterio": usuario
+        # quer ver o universo BRUTO completo (560 FIIs) tambem, nao so os
+        # que passam no descarte. Em vez de excluir os descartados da
+        # resposta, agora eles SAO INCLUIDOS, mas marcados com
+        # `fora_criterio=true` e SEM segmento/risco/score classificados
+        # (usuario pediu explicitamente: "ele vai ficar vazio, nao recebe
+        # classificacao nenhuma, so o nome"). O frontend decide mostrar
+        # Todos (560, incluindo fora_criterio) ou Criterio (so os validos)
+        # filtrando localmente -- evita 2 chamadas separadas ao backend
+        # (scraping e pesado, ~560 linhas, nao vale duplicar o trabalho).
+        descartados_motivos = []
         candidatos = []
+        fora_criterio = []
         for f in fiis:
             motivo = None
             if f['liquidez'] is None or f['liquidez'] < liquidez_min:
@@ -3985,8 +3997,15 @@ def get_fiis():
                 motivo = 'DY zerado ou ausente'
 
             if motivo:
-                descartados.append({'ticker': f['ticker'], 'motivo': motivo})
+                descartados_motivos.append({'ticker': f['ticker'], 'motivo': motivo})
+                fora_criterio.append({
+                    **f,
+                    'fora_criterio': True,
+                    'motivo_fora_criterio': motivo,
+                    'segmento': None, 'nivel_risco': None, 'score': None,
+                })
             else:
+                f['fora_criterio'] = False
                 candidatos.append(f)
 
         # Mediana de DY por SEGMENTO (necessaria para _classificar_risco_fii
@@ -4017,12 +4036,22 @@ def get_fiis():
         ordem_risco = {'high_grade': 0, 'middle_risk': 1, 'high_yield': 2}
         candidatos.sort(key=lambda f: (ordem_risco.get(f['nivel_risco'], 1), -f['score']))
 
+        # Resposta final: 'fiis' = so os classificados (visao "Criterio",
+        # comportamento ORIGINAL preservado para nao quebrar nada que ja
+        # consome esse campo); 'fiis_todos' = classificados + fora_criterio
+        # juntos (visao "Todos", 560 brutos) -- ordenado com os validos
+        # primeiro, fora_criterio depois, ordenado por ticker dentro de
+        # cada grupo para facilitar leitura/busca.
+        fora_criterio.sort(key=lambda f: f['ticker'])
+        fiis_todos = candidatos + fora_criterio
+
         return jsonify({
             'total_brutos': len(fiis),
-            'total_descartados': len(descartados),
+            'total_descartados': len(descartados_motivos),
             'total_validos': len(candidatos),
-            'descartados': descartados,
+            'descartados': descartados_motivos,
             'fiis': candidatos,
+            'fiis_todos': fiis_todos,
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
