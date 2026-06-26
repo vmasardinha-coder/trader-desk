@@ -2195,6 +2195,127 @@ async function acaoRanking(id,acao){
   }
 }
 
+// Adicionado 26/06/2026 -- ranking PROPRIO para FIIs em Em Analise (secao
+// separada das estruturadas, mesmo criterio da aba FIIs: P/VP->DY->
+// Liquidez->FFO->risco, mas so para os tickers ja em em_analise).
+async function loadRankingFiisEmAnalise(){
+  const area=document.getElementById('ranking-fiis-container');
+  const btn=document.getElementById('btn-ranking-fiis');
+  if(!area)return;
+  area.innerHTML='Buscando dados atualizados do Fundamentus para os FIIs em análise...';
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),30000);
+    const r=await fetch(B+'/analises/ranking-fiis',{signal:ctrl.signal,cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    area.innerHTML=tplRankingFii(d);
+  }catch(e){
+    area.innerHTML='<p style="color:var(--red)">⚠ Erro ao rodar ranking de FIIs: '+e.message+'</p>';
+  }finally{
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
+function tplRankingFii(d){
+  const linhas=d.ranking||[];
+  if(!linhas.length)return '<p style="color:var(--muted)">Nenhum FII em_analise para ranquear.</p>';
+  const RISCO_BADGE={
+    high_grade:'<span style="background:rgba(76,217,100,.15);color:var(--green);border:1px solid rgba(76,217,100,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🟢 HG</span>',
+    middle_risk:'<span style="background:rgba(255,204,0,.15);color:#ffcc00;border:1px solid rgba(255,204,0,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🟡 MR</span>',
+    high_yield:'<span style="background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🔴 HY</span>',
+  };
+  const aviso=d.nao_encontrados&&d.nao_encontrados.length
+    ? `<p style="color:var(--red);font-size:10px;margin-bottom:8px">⚠ Não encontrados no Fundamentus (verifique): ${d.nao_encontrados.join(', ')}</p>` : '';
+  const rows=linhas.map(f=>{
+    const badge=RISCO_BADGE[f.nivel_risco]||'';
+    const dyCor=f.dy_pct>=8?'var(--green)':'var(--muted)';
+    let ffoHtml='—';
+    if(f.ffo_yield_pct!=null){
+      const sustentavel=f.ffo_yield_pct>=f.dy_pct;
+      ffoHtml=`<span style="color:${sustentavel?'var(--green)':'var(--red)'}">${f.ffo_yield_pct.toFixed(2)}% ${sustentavel?'▲':'▼'}</span>`;
+    }
+    return `<tr id="rkfii-row-${f.analise_id}">
+      <td style="padding:6px 8px;font-weight:700">${f.ticker} ${badge}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus}</span></td>
+      <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right">${f.p_vp.toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right">${ffoHtml}</td>
+      <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)">${f.score.toFixed(1)}</td>
+      <td style="padding:6px 8px;text-align:right;white-space:nowrap">
+        <button onclick="acaoRankingFii('${f.analise_id}','${f.ticker}','ativar',${f.cotacao},${f.dy_pct},'${f.segmento}','${f.nivel_risco}')" title="Ativar na Carteira" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
+        <button onclick="acaoRankingFii('${f.analise_id}','${f.ticker}','rejeitar')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">🚫</button>
+      </td>
+    </tr>`;
+  }).join('');
+  return `
+  ${aviso}
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${d.total_encontrados} de ${d.total_em_analise} FIIs em análise · mesmo critério da aba FIIs, ordenado por score</div>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+      <th style="padding:6px 8px">Ticker</th>
+      <th style="padding:6px 8px;text-align:right">Cotação</th>
+      <th style="padding:6px 8px;text-align:right">P/VP</th>
+      <th style="padding:6px 8px;text-align:right">DY</th>
+      <th style="padding:6px 8px;text-align:right">FFO</th>
+      <th style="padding:6px 8px;text-align:right">Liquidez</th>
+      <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right">Ação</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </div>`;
+}
+
+// acao: 'ativar' (vai para /carteira-fiis) ou 'rejeitar' (vai para
+// Encerradas via mudarStatusAnalise, UNIFICADO com estruturadas -- usuario
+// confirmou que pode ficar unificado em Encerradas, sem problema).
+async function acaoRankingFii(analiseId,ticker,acao,cotacao,dyPct,segmento,nivelRisco){
+  const linha=document.getElementById('rkfii-row-'+analiseId);
+  if(acao==='rejeitar'){
+    const ok=confirm(`Confirma REJEITAR ${ticker}? Sai de Em Análise e vai para Encerradas.`);
+    if(!ok)return;
+    try{
+      const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+      const r=await fetch(B+'/analises/'+encodeURIComponent(analiseId)+'/status',{
+        method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
+        body:JSON.stringify({status:'encerrada',motivo_encerramento:'rejeitada'})
+      });
+      const d=await r.json();
+      if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+      if(linha)linha.style.opacity='.4';
+    }catch(e){
+      alert('Erro ao rejeitar: '+e.message);
+    }
+    return;
+  }
+  // ativar
+  const btn=linha?linha.querySelector('button'):null;
+  if(btn&&btn.disabled)return;
+  const ok=confirm(`Ativar ${ticker} na Carteira de FIIs? Preço de referência: R$${cotacao.toFixed(2)} (hoje).`);
+  if(!ok)return;
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const body={
+      ticker: ticker, nome_fundo: ticker, segmento: segmento, nivel_risco: nivelRisco,
+      preco_foto: cotacao, dy_anual_pct: dyPct, analise_id: analiseId,
+    };
+    const r=await fetch(B+'/carteira-fiis',{
+      method:'POST',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    if(linha)linha.outerHTML='<tr><td colspan="8" style="padding:6px 8px;text-align:center;color:var(--green);font-size:11px;font-weight:700">✓ '+ticker+' migrado para Carteira</td></tr>';
+  }catch(e){
+    alert('Erro ao ativar: '+e.message);
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
 function renderAnalises(){
   const cont=document.getElementById('analise-container');
   if(!cont||!_analiseData)return;
