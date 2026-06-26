@@ -1,4 +1,26 @@
 const B='https://trader-desk.onrender.com';
+
+// ── AUTENTICACAO DAS ROTAS DE ESCRITA ──────────────────
+// Adicionado 25/06/2026. Backend agora exige header Authorization: Bearer
+// <token> nas rotas que gravam dados reais (POST /analises, PUT /analises/
+// <id>/status). Token salvo no localStorage DESTE DISPOSITIVO -- pedido
+// uma vez (prompt simples), nao precisa digitar de novo depois. NAO e
+// multi-usuario (token unico compartilhado entre quem tiver acesso ao
+// dispositivo) -- e a PRIMEIRA CAMADA de protecao contra acesso externo
+// pela URL publica, nao um sistema de contas por usuario.
+function _getApiToken(){
+  let t=localStorage.getItem('api_write_token');
+  if(!t){
+    t=prompt('Configure o token de acesso para gravar dados (Rejeitar/Aprovar análises). Cole aqui:');
+    if(t)localStorage.setItem('api_write_token',t.trim());
+  }
+  return t;
+}
+function _authHeaders(){
+  const t=_getApiToken();
+  return t?{'Authorization':'Bearer '+t}:{};
+}
+
 const SEG={
   fin:['ITUB4','BBDC4','BBAS3','SANB11','B3SA3','BPAC11','ITSA4','BRSR6','ABCB4','BMGB4'],
   pet:['PETR4','PETR3','PRIO3','BRAV3','VBBR3','CSAN3','RECV3','UGPA3','SEQL3','GGBR4'],
@@ -237,7 +259,7 @@ async function aprovarFiiParaAnalise(ticker){
     };
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
     const r=await fetch(B+'/analises',{
-      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      method:'POST',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
       body:JSON.stringify(body)
     });
     const d=await r.json();
@@ -1993,7 +2015,7 @@ async function acaoRanking(id,acao){
     const body={status:novoStatus};
     if(motivo)body.motivo_encerramento=motivo;
     const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
-      method:'PUT',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
       body:JSON.stringify(body)
     });
     const d=await r.json();
@@ -2227,7 +2249,7 @@ async function mudarStatusAnalise(id,novoStatus,motivo,resultado){
     if(motivo)body.motivo_encerramento=motivo;
     if(resultado)body.resultado=resultado;
     const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
-      method:'PUT',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
       body:JSON.stringify(body)
     });
     const d=await r.json();
