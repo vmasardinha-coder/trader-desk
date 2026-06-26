@@ -82,9 +82,18 @@ function sw(t,el){
 // abas, usuario decide quando vale rodar de novo.
 let _fiisData=[];
 let _fiisSegmentoAtivo='todos';
+let _fiisRiscoAtivo='todos';
 
 const _FII_SEGMENTO_LABEL={
   todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', fof:'Fundo de Fundos', outros:'Outros'
+};
+const _FII_RISCO_LABEL={
+  todos:'Todos', high_grade:'🟢 High Grade', middle_risk:'🟡 Middle Risk', high_yield:'🔴 High Yield'
+};
+const _FII_RISCO_TITLE={
+  high_grade:'DY próximo/abaixo da média do segmento, vacância baixa -- menor risco relativo',
+  middle_risk:'Risco intermediário, sem sinal claro de alerta nem de qualidade alta',
+  high_yield:'DY muito acima da média do segmento, fundo de desenvolvimento, Fiagro, ou vacância alta -- maior risco relativo. NÃO é exclusão automática -- listas organizadas para você julgar com seu próprio critério (alavancagem e concentração de devedores não são capturáveis de forma gratuita).'
 };
 
 async function loadFiis(){
@@ -111,14 +120,26 @@ async function loadFiis(){
 function renderFiisFiltro(){
   const area=document.getElementById('fiis-segmento-filtro');
   if(!area)return;
-  const contagens={todos:_fiisData.length};
-  _fiisData.forEach(f=>{contagens[f.segmento]=(contagens[f.segmento]||0)+1;});
+  const contagensSeg={todos:_fiisData.length};
+  const contagensRisco={todos:_fiisData.length};
+  _fiisData.forEach(f=>{
+    contagensSeg[f.segmento]=(contagensSeg[f.segmento]||0)+1;
+    contagensRisco[f.nivel_risco]=(contagensRisco[f.nivel_risco]||0)+1;
+  });
   const segs=['todos','papel','tijolo','hibrido','fof','outros'];
-  area.innerHTML=segs.map(s=>{
+  const riscos=['todos','high_grade','middle_risk','high_yield'];
+  const linhaSeg=segs.map(s=>{
     const ativo=s===_fiisSegmentoAtivo;
-    const n=contagens[s]||0;
+    const n=contagensSeg[s]||0;
     return `<button onclick="setFiisSegmento('${s}')" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_SEGMENTO_LABEL[s]} (${n})</button>`;
   }).join('');
+  const linhaRisco=riscos.map(r=>{
+    const ativo=r===_fiisRiscoAtivo;
+    const n=contagensRisco[r]||0;
+    const title=_FII_RISCO_TITLE[r]?` title="${_FII_RISCO_TITLE[r]}"`:'';
+    return `<button onclick="setFiisRisco('${r}')"${title} style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_RISCO_LABEL[r]} (${n})</button>`;
+  }).join('');
+  area.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${linhaSeg}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>`;
 }
 
 function setFiisSegmento(seg){
@@ -126,46 +147,106 @@ function setFiisSegmento(seg){
   renderFiisFiltro();
   renderFiis();
 }
+function setFiisRisco(risco){
+  _fiisRiscoAtivo=risco;
+  renderFiisFiltro();
+  renderFiis();
+}
 
 function renderFiis(){
   const cont=document.getElementById('fiis-container');
   if(!cont)return;
-  const lista=_fiisSegmentoAtivo==='todos'?_fiisData:_fiisData.filter(f=>f.segmento===_fiisSegmentoAtivo);
+  let lista=_fiisSegmentoAtivo==='todos'?_fiisData:_fiisData.filter(f=>f.segmento===_fiisSegmentoAtivo);
+  if(_fiisRiscoAtivo!=='todos')lista=lista.filter(f=>f.nivel_risco===_fiisRiscoAtivo);
   if(!lista.length){
-    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhum FII nesse segmento.</p>';
+    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhum FII nesse filtro.</p>';
     return;
   }
+  const RISCO_BADGE={
+    high_grade:'<span style="background:rgba(76,217,100,.15);color:var(--green);border:1px solid rgba(76,217,100,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🟢 HG</span>',
+    middle_risk:'<span style="background:rgba(255,204,0,.15);color:#ffcc00;border:1px solid rgba(255,204,0,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🟡 MR</span>',
+    high_yield:'<span style="background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🔴 HY</span>',
+  };
   const rows=lista.map(f=>{
     const dyCor=f.dy_pct>=8?'var(--green)':'var(--muted)';
     const pvpCor=f.p_vp<1?'var(--green)':'var(--muted)';
     const vac=f.vacancia_pct!=null&&f.vacancia_pct>0?f.vacancia_pct.toFixed(1)+'%':'—';
-    return `<tr>
-      <td style="padding:6px 8px;font-weight:700">${f.ticker}</td>
-      <td style="padding:6px 8px;font-size:10px;color:var(--muted)">${f.segmento_fundamentus}</td>
+    const badge=RISCO_BADGE[f.nivel_risco]||'';
+    return `<tr id="fii-row-${f.ticker}">
+      <td style="padding:6px 8px;font-weight:700">${f.ticker} ${badge}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus}</span></td>
       <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${pvpCor}">${f.p_vp.toFixed(2)}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct.toFixed(2)}%</td>
       <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
       <td style="padding:6px 8px;text-align:right">${vac}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score.toFixed(1)}</td>
+      <td style="padding:6px 8px;text-align:right;white-space:nowrap">
+        <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise" style="background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700">+ Em Análise</button>
+      </td>
     </tr>`;
   }).join('');
   cont.innerHTML=`
-  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${lista.length} FIIs neste segmento · ordenado por P/VP (menor primeiro) → DY → Liquidez</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${lista.length} FIIs neste filtro · agrupado por nível de risco, ordenado por score (DY×liquidez) dentro de cada grupo</div>
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
       <th style="padding:6px 8px">Ticker</th>
-      <th style="padding:6px 8px">Segmento</th>
       <th style="padding:6px 8px;text-align:right">Cotação</th>
       <th style="padding:6px 8px;text-align:right" title="Preço sobre Valor Patrimonial -- abaixo de 1,0 indica desconto">P/VP</th>
-      <th style="padding:6px 8px;text-align:right" title="Dividend Yield -- já filtrado para excluir yield trap (P/VP muito baixo)">DY</th>
-      <th style="padding:6px 8px;text-align:right" title="Volume financeiro médio negociado por dia -- filtro mínimo de R$50k/dia já aplicado">Liquidez</th>
+      <th style="padding:6px 8px;text-align:right" title="Dividend Yield anual">DY</th>
+      <th style="padding:6px 8px;text-align:right" title="Volume financeiro médio negociado por dia">Liquidez</th>
       <th style="padding:6px 8px;text-align:right" title="Vacância média dos imóveis (relevante para FIIs de tijolo)">Vacância</th>
+      <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
   </div>`;
 }
+
+// Adicionado 25/06/2026 -- migracao de FII selecionado para Em Analise.
+// Reaproveita o MESMO endpoint POST /analises ja usado para estruturadas
+// (Fase A/B) -- usuario decidiu que a "foto" do FII e tirada no MOMENTO da
+// selecao (nao retroativa, mesmo se o usuario ja possui o FII ha tempo --
+// simplificacao aceita explicitamente pelo usuario: "pega foto de como se
+// eu tivesse comprando no momento da selecao").
+async function aprovarFiiParaAnalise(ticker){
+  const f=_fiisData.find(x=>x.ticker===ticker);
+  if(!f)return;
+  const ok=confirm(`Adicionar ${ticker} a "Em Análise"? Isso grava no repositório com o preço de hoje (R$${f.cotacao.toFixed(2)}) como referência.`);
+  if(!ok)return;
+  const linha=document.getElementById('fii-row-'+ticker);
+  try{
+    const hoje=new Date().toISOString().slice(0,10);
+    const body={
+      ticker: ticker+'.SA',
+      nome: `${ticker} - FII ${f.segmento_fundamentus}`,
+      data_foto: hoje,
+      preco_foto: f.cotacao,
+      tipo_estrutura: 'fii',
+      dy_anual_pct: f.dy_pct,
+      p_vp: f.p_vp,
+      liquidez: f.liquidez,
+      segmento: f.segmento,
+      nivel_risco: f.nivel_risco,
+      origem: 'screening_fiis',
+      status: 'em_analise',
+      backtest: false,
+      observacao: `FII adicionado via screening em ${hoje}. P/VP=${f.p_vp.toFixed(2)}, DY=${f.dy_pct.toFixed(2)}%, segmento=${f.segmento_fundamentus}, nível de risco=${f.nivel_risco}. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).`
+    };
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const r=await fetch(B+'/analises',{
+      method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    if(linha){linha.style.opacity='.4';linha.querySelector('button').textContent='✓ Adicionado';linha.querySelector('button').disabled=true;}
+  }catch(e){
+    alert('Erro ao adicionar à análise: '+e.message);
+  }
+}
+
 function tg(id){
   const b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);
   if(!b)return;const op=b.style.display!=='block';
