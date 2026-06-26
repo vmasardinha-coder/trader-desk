@@ -2290,3 +2290,84 @@ organizados para você aplicar seu próprio julgamento ("notório saber").
 15. 3 melhorias de UX do fluxo FII (separação visual Em Análise,
     duplicidade, comportamento ao remover da carteira) -- backlog,
     registrado em detalhe na parte 9
+
+---
+
+# PONTO DE PAUSA — 25-26/06/2026 (fim da sessão, parte 12)
+
+## ⚠️ AVISO IMPORTANTE para a próxima sessão
+Usuário decidiu PARAR a sessão para validar manualmente, com calma, quais
+das muitas entregas desta sessão estão REALMENTE refletindo no app real
+-- não confiar apenas na confirmação via API Contents do GitHub (código
+presente e correto) como prova de que algo funciona de fato em produção.
+
+**Itens reportados como NÃO CONFIRMADOS funcionando, mesmo com código
+correto no GitHub:**
+1. Disclaimer CVM (modal de aviso legal) -- não apareceu em teste de aba
+   anônima, mesmo após múltiplas tentativas e confirmação de que o HTML/
+   JS estão corretos e propagados (testado via raw.githubusercontent.com
+   diretamente, sintaxe válida, função chamada na ordem certa).
+2. Correção do CPTS11/qtd_imoveis None -- aplicada mas não re-testada
+   pelo usuário ainda.
+3. Fator FFO Yield no score -- implementado mas não re-testado em
+   produção (testes só foram feitos isoladamente em sandbox local).
+4. Endpoint /fiis/buscar -- implementado mas não testado pelo usuário
+   ainda (pedido pra investigar VGIA11/KNCA11).
+5. Número de versão no rodapé estava igual desde o início da sessão
+   (v11.3) até ser notado pelo usuário e corrigido manualmente para v12.0
+   -- usuário usou isso como sinal de que "as entregas não estão
+   refletindo", o que é um alerta LEGÍTIMO mesmo que esse número
+   especificamente seja só cosmético (string fixa, não reflete deploy
+   real).
+
+## Lição crítica para a próxima sessão: "código no GitHub" ≠ "funcionando no app"
+Esta sessão confirmou MUITAS vezes via API Contents que o código estava
+correto/presente/sem mudanças concorrentes -- mas isso só prova que o
+COMMIT foi bem-sucedido, não que:
+(a) o Render já fez redeploy da versão mais nova,
+(b) o navegador do usuário não está servindo uma versão em cache,
+(c) a lógica realmente produz o resultado esperado quando executada de
+    verdade no ambiente de produção (vs. testada isoladamente em sandbox
+    com dados simulados).
+
+Pelo menos 2-3 vezes nesta sessão, Claude confirmou "código correto" via
+GitHub e o usuário reportou que ainda assim não funcionava na prática
+(ex: ranking travando mesmo após primeira correção, FII não migrando para
+carteira mesmo após primeiro deploy do fluxo, disclaimer não aparecendo).
+Isso sugere que a VALIDAÇÃO de "está funcionando" precisa SEMPRE incluir
+confirmação ATIVA do usuário testando no app real -- não é suficiente
+Claude dizer "está confirmado" só porque o GitHub mostra o código certo.
+
+## Recomendação para a próxima sessão
+1. NÃO assumir que nada desta sessão está funcionando até o usuário
+   confirmar individualmente, testando no app real.
+2. Ao retomar, pedir ao usuário para fazer uma rodada de testes
+   sistemática (idealmente com um checklist simples): abrir cada aba
+   nova/alterada, testar cada botão novo, confirmar visualmente cada
+   coluna/feature nova -- ANTES de implementar qualquer coisa nova.
+3. Se algo "não reflete" mesmo com código correto confirmado no GitHub,
+   investigar SEMPRE estas 3 causas possíveis, nesta ordem:
+   a. Render ainda não terminou o redeploy (esperar mais alguns minutos,
+      ou verificar status do deploy no painel do Render se possível)
+   b. Cache do navegador do usuário (hard refresh, aba anônima nova,
+      ou checar a versão do app.js carregada via
+      `document.querySelector('script[src*="app.js"]').src`)
+   c. Erro de execução real no momento de uso (abrir console do
+      navegador/Eruda e procurar por erros JS, não só assumir que "deve
+      estar tudo certo" porque a sintaxe validou no sandbox)
+4. Considerar pedir ao usuário acesso a algo que permita Claude verificar
+   o estado real do app diretamente (ex: screenshot do console do
+   navegador mostrando a versão carregada, ou confirmação explícita do
+   Render de que o deploy mais recente terminou) -- em vez de só inferir
+   pela ausência de erro de sintaxe.
+
+## Estado real ao final desta sessão (HONESTO -- não assumir "tudo funcionando")
+- Confirmado FUNCIONANDO pelo usuário, testado de verdade: ranking de
+  estruturadas (após fix do bug de FII), Carteira de FIIs (KNCR11/ITRI11
+  visíveis), classificação de risco geral (usuário validou com seu
+  próprio julgamento), token de autenticação (usuário configurou e
+  confirmou pedido de senha funcionando).
+- NÃO CONFIRMADO ainda: disclaimer, correção CPTS11, fator FFO no score,
+  endpoint /fiis/buscar, fix de Fiagro/Fiagros no mapeamento de segmento.
+- Sessão muito longa (12 partes) -- usuário decidiu pausar para validar
+  manualmente antes de continuar adicionando mais escopo.
