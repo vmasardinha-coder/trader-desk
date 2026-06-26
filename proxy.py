@@ -4072,6 +4072,16 @@ def ativar_fii_carteira():
         conteudo_str, sha = _github_get_file('carteira_fiis.json')
         carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
 
+        # CORRIGIDO 26/06/2026 -- usuario clicou no mesmo FII (CLIN11) duas
+        # vezes (provavelmente clique duplo rapido, sem feedback visual
+        # suficiente de que a 1a chamada ja estava em andamento -- corrigido
+        # tambem no frontend com desabilitar o botao). Esta checagem e a
+        # ULTIMA LINHA DE DEFESA no backend: se o ticker ja estiver ATIVO na
+        # carteira, recusa em vez de duplicar silenciosamente.
+        ja_ativo = next((f for f in carteira if f['ticker'] == body['ticker'] and f.get('status') == 'ativa'), None)
+        if ja_ativo:
+            return jsonify({'error': f"{body['ticker']} já está ativo na carteira (id={ja_ativo['id']}, desde {ja_ativo['data_ativacao']})"}), 409
+
         import time as _time
         novo = {
             'id': f"fii_{int(_time.time())}",
