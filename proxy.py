@@ -3713,7 +3713,7 @@ def _classificar_risco_fii(nome_completo, segmento_fundamentus, dy_pct, vacancia
 
     return 'middle_risk'
 
-def _score_fii(p_vp, dy_pct, liquidez):
+def _score_fii(p_vp, dy_pct, liquidez, ffo_yield_pct=None):
     """Sub-score para ORDENAR dentro de cada categoria de risco -- NAO e
     mais filtro de exclusao (decisao do usuario em 25/06/2026: 'nao e mais
     criterio de exclusao, e organizacao -- o que esta menos ruim primeiro').
@@ -3724,11 +3724,36 @@ def _score_fii(p_vp, dy_pct, liquidez):
     P/VP baixo sozinho (que seria so 'desconto', sem indicar oportunidade
     real sem a liquidez para sustentar a tese).
     Formula simples e auditavel: score = DY * fator_liquidez, onde
-    fator_liquidez penaliza liquidez muito baixa (dificil de operar)."""
+    fator_liquidez penaliza liquidez muito baixa (dificil de operar).
+
+    ADICIONADO 25/06/2026 -- fator de SUSTENTABILIDADE via FFO Yield vs DY.
+    Usuario investigou o caso real VEGA11 (FFO Yield 11,12% vs DY 4,5%) e
+    identificou que essa razao e um sinal de qualidade real: FFO > DY
+    significa que o fundo gera mais caixa operacional do que distribui
+    (sobra/margem de seguranca, sinal de qualidade); FFO < DY significa
+    que o fundo "esta consumindo o proprio patrimonio para manter o
+    dividendo, situacao insustentavel que eventualmente leva a corte"
+    (fonte: pratica de mercado, confirmado via pesquisa). Usuario decidiu
+    EXPLICITAMENTE que isso deve ser FATOR DE RANKING real, nao so coluna
+    informativa.
+    fator_ffo: BONUS se FFO Yield > DY (ate +30%), PENALIDADE se FFO Yield
+    < DY (ate -30%), NEUTRO (1.0, sem efeito) se o dado nao existir --
+    FFO Yield e um campo frequentemente vazio no Fundamentus, especialmente
+    para fundos de papel/CRI puro (FFO e mais relevante para fundos de
+    tijolo, com depreciacao de imoveis fisicos). Nao penalizar a AUSENCIA
+    do dado, so usar quando disponivel."""
     if p_vp is None or dy_pct is None or liquidez is None:
         return 0.0
     fator_liquidez = min(liquidez / 500000, 1.5)  # normaliza ~mediana do mercado, cap em 1.5x
-    return round(dy_pct * fator_liquidez, 3)
+
+    fator_ffo = 1.0  # neutro por padrao -- sem dado, sem efeito no score
+    if ffo_yield_pct is not None and dy_pct > 0:
+        razao_ffo_dy = ffo_yield_pct / dy_pct
+        # Limita o efeito a +-30% para nao deixar esse fator sozinho
+        # dominar o score sobre DY/liquidez -- e um AJUSTE, nao o criterio
+        # principal.
+        fator_ffo = max(0.7, min(1.3, razao_ffo_dy))
+    return round(dy_pct * fator_liquidez * fator_ffo, 3)
 
 # Filtro de P/VP minimo contra "yield trap" -- fechado com o usuario em
 # 25/06/2026 apos o primeiro teste real mostrar FIIs com P/VP muito baixo
@@ -3902,7 +3927,7 @@ def get_fiis():
                 f.get('nome_fundo', ''), f['segmento_fundamentus'],
                 f['dy_pct'], f['vacancia_pct'],
                 mediana_dy_segmento.get(f['segmento']))
-            f['score'] = _score_fii(f['p_vp'], f['dy_pct'], f['liquidez'])
+            f['score'] = _score_fii(f['p_vp'], f['dy_pct'], f['liquidez'], f.get('ffo_yield_pct'))
 
         if segmento_filtro:
             candidatos = [f for f in candidatos if f['segmento'] == segmento_filtro]
