@@ -4068,6 +4068,83 @@ def get_fiis():
 # aceitou essa simplificacao explicitamente).
 _CARTEIRA_FII_STATUS_VALIDOS = ['ativa', 'encerrada']
 
+# ── RANKING DE FIIs EM ANALISE ─────────────────────────
+# Adicionado 26/06/2026. Usuario pediu secao SEPARADA dentro de "Em
+# Analise": "FIIs em Analise" com RANKING PROPRIO, usando os MESMOS
+# criterios da aba FIIs (P/VP->DY->Liquidez->FFO->risco), mas rodando so
+# sobre os FIIs que JA ESTAO em em_analise (nao o universo completo de
+# 560). Estrategia: reaproveita scrape_fiis_fundamentus() (dados frescos
+# do Fundamentus) e CRUZA com os tickers presentes em analises.json
+# (tipo_estrutura='fii', status='em_analise') -- evita duplicar logica de
+# classificacao de risco/score, sempre usa dado atualizado do mercado
+# (nao o preco_foto congelado do momento da selecao).
+@app.route('/analises/ranking-fiis', methods=['GET'])
+def ranking_fiis_em_analise():
+    """
+    Roda o MESMO criterio de classificacao/score da aba FIIs (/fiis), mas
+    so para os tickers que estao em analises.json com tipo_estrutura='fii'
+    e status='em_analise'. Resolve o pedido do usuario de ter um ranking
+    proprio para FIIs em analise, separado do ranking de estruturadas
+    (que usa Monte Carlo, nao se aplica a FII).
+    """
+    try:
+        conteudo_str, _ = _github_get_file('analises.json')
+        lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+        fiis_em_analise = [a for a in lista if a.get('status') == 'em_analise'
+                           and a.get('tipo_estrutura') == 'fii']
+
+        if not fiis_em_analise:
+            return jsonify({'total_em_analise': 0, 'ranking': []})
+
+        tickers_em_analise = {a['ticker'].replace('.SA', '').upper() for a in fiis_em_analise}
+
+        fiis_brutos, erro = scrape_fiis_fundamentus()
+        if fiis_brutos is None:
+            return jsonify({'error': f'Scraping do Fundamentus falhou: {erro}', 'ranking': []}), 502
+
+        # Filtra so os tickers que estao em analise (cruzamento)
+        candidatos = [f for f in fiis_brutos if f['ticker'].upper() in tickers_em_analise]
+
+        # Mapa de analise_id por ticker, para o frontend poder
+        # aprovar/rejeitar direto da linha do ranking.
+        analise_id_por_ticker = {a['ticker'].replace('.SA', '').upper(): a['id'] for a in fiis_em_analise}
+
+        # Mesma logica de classificacao da aba FIIs (mediana de DY POR
+        # SEGMENTO calculada so dentro deste subconjunto -- pode diferir
+        # levemente da mediana do universo completo, mas e o subconjunto
+        # relevante para o usuario decidir agora).
+        from statistics import median
+        dy_por_segmento = {}
+        for f in candidatos:
+            dy_por_segmento.setdefault(f['segmento'], []).append(f['dy_pct'])
+        mediana_dy_segmento = {seg: median(vals) for seg, vals in dy_por_segmento.items() if vals}
+
+        for f in candidatos:
+            f['nivel_risco'] = _classificar_risco_fii(
+                f.get('nome_fundo', ''), f['segmento_fundamentus'],
+                f['dy_pct'], f['vacancia_pct'],
+                mediana_dy_segmento.get(f['segmento']))
+            f['score'] = _score_fii(f['p_vp'], f['dy_pct'], f['liquidez'], f.get('ffo_yield_pct'))
+            f['analise_id'] = analise_id_por_ticker.get(f['ticker'].upper())
+
+        ordem_risco = {'high_grade': 0, 'middle_risk': 1, 'high_yield': 2}
+        candidatos.sort(key=lambda f: (ordem_risco.get(f.get('nivel_risco'), 1), -(f.get('score') or 0)))
+
+        # Tickers em analise que NAO apareceram no scraping bruto (caso
+        # raro, mas possivel -- ex: fundo deslistado entre a selecao e
+        # agora) -- nunca esconder, mostrar com erro explicito.
+        tickers_encontrados = {f['ticker'].upper() for f in candidatos}
+        nao_encontrados = [t for t in tickers_em_analise if t not in tickers_encontrados]
+
+        return jsonify({
+            'total_em_analise': len(fiis_em_analise),
+            'total_encontrados': len(candidatos),
+            'nao_encontrados': nao_encontrados,
+            'ranking': candidatos,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/carteira-fiis', methods=['GET'])
 def get_carteira_fiis():
     """Le carteira_fiis.json do repo. Sempre retorna lista (vazia se nao
