@@ -2371,3 +2371,117 @@ Claude dizer "está confirmado" só porque o GitHub mostra o código certo.
   endpoint /fiis/buscar, fix de Fiagro/Fiagros no mapeamento de segmento.
 - Sessão muito longa (12 partes) -- usuário decidiu pausar para validar
   manualmente antes de continuar adicionando mais escopo.
+
+---
+
+# Sessão 26/06/2026 (parte 13) — Disclaimer corrigido + correções de duplicidade + escopo de universo FII confirmado
+
+## SHAs finais
+- templates/index.html: 31ed143783fe2d7e80e547dcf46e05c0b6df2b7d (fix disclaimer)
+- proxy.py: 69dd994dbfdf4bfdc3ca776727c55afcd4de5c09 (fix duplicidade backend)
+- static/app.js: 253b06c59b14421018ec87ff714335fb2bbf46c3 (fix duplo-clique + busca textual)
+
+## ✅ BUG CRÍTICO RESOLVIDO: disclaimer não aparecia
+Causa raiz encontrada via inspeção real do usuário no console (Eruda):
+`getBoundingClientRect()` mostrou `width:0, height:0` no elemento
+`#disclaimer-overlay`, mesmo com `display:flex` computado. Investigação
+revelou que o `<div id="tab-calendario">` nunca foi fechado antes do
+disclaimer ser inserido (erro de edição em sessão anterior) -- o
+disclaimer ficou DENTRO de `.tab-content`, e a regra CSS
+`.tab-content{display:none!important}` vencia o style inline sem
+`!important`. Corrigido adicionando o `</div>` que faltava.
+
+**Lição de processo CONFIRMADA**: a única forma de achar essa causa real
+foi pedir ao usuário para rodar comandos de inspeção no console do
+navegador dele (`getBoundingClientRect`, `getComputedStyle`,
+`elementFromPoint`) -- nenhuma quantidade de revisão do código-fonte via
+GitHub teria revelado isso sozinha, porque o HTML "parecia" 
+estruturalmente razoável à primeira vista (faltava só 1 `</div>` em
+quase 350 linhas).
+
+## ✅ Correção de duplicidade no fluxo Em Análise → Carteira FIIs
+Usuário relatou: clicou em "Ativar na Carteira" em sequência rápida para
+vários FIIs, um deu erro HTTP, e o card não desaparecia da tela
+imediatamente (dando impressão de "não fez nada", levando a clique
+duplicado). Confirmado: CLIN11 entrou DUPLICADO em analises.json (2
+registros com o mesmo ticker).
+
+**Corrigido em duas camadas:**
+1. Frontend: botão desabilita imediatamente ao clicar ("Ativando..."),
+   card desaparece da tela na hora (antes de esperar reload completo).
+2. Backend: `POST /carteira-fiis` agora recusa (HTTP 409) ativar um
+   ticker que já está `status='ativa'` na carteira -- última linha de
+   defesa mesmo se o frontend falhar.
+
+**Ainda existem 5-6 FIIs presos em analises.json de testes anteriores**
+(CLIN11 duplicado, BTHF11, VGIR11, RBVA11, KNCA11) -- usuário estava
+testando manualmente migrá-los um a um quando a sessão foi retomada.
+Status não confirmado ao final desta parte -- VERIFICAR estado real de
+analises.json/carteira_fiis.json na próxima sessão antes de assumir que
+estão resolvidos.
+
+## ✅ Campo de busca por texto adicionado na aba FIIs
+Usuário pediu campo de busca (ticker ou nome do fundo) embaixo dos
+filtros de segmento/risco, para não depender de Ctrl+F numa lista longa.
+Implementado: filtra em tempo real (oninput), mantém valor digitado entre
+re-renders, combina com os filtros de segmento/risco já existentes.
+
+## ⭐ Escopo do universo de FIIs CONFIRMADO E FECHADO com o usuário
+Usuário investigou pessoalmente por que CDII11 (e fundos parecidos) não
+apareciam na consulta, mesmo sendo dele. Investigação revelou: CDII11 é
+**FI-Infra** (Fundo de Investimento em Infraestrutura), uma categoria
+REGULATORIAMENTE SEPARADA de FII tradicional -- confirmado via múltiplas
+fontes (Investidor10 lista "Fundo de Infraestrutura (FI-Infra)" como
+segmento distinto de FII no próprio menu de categorias).
+
+**Mapeamento de categorias do mercado confirmado via pesquisa:**
+- FII tradicional (papel/tijolo/híbrido/FoF/Fiagro-FII) -- JÁ COBERTO via
+  Fundamentus (fii_resultado.php)
+- FI-Infra (ex: CDII11, SNID11) -- NÃO COBERTO, fonte/scraping diferente
+  necessária (Fundamentus provavelmente não lista esses)
+- FIP (Fundo de Participações) -- NÃO COBERTO, geralmente restrito a
+  investidor qualificado
+- FIDC (Direitos Creditórios) -- NÃO COBERTO, geralmente restrito a
+  investidor qualificado
+
+**DECISÃO FINAL do usuário (26/06/2026): FIP e FIDC ficam DE FORA por
+decisão deliberada** ("não me interessa também") -- não é lacuna a
+corrigir, é escopo intencional. **FI-Infra fica de fora por agora**
+("acho que ficou de fora mesmo, tá, é isso daí"), registrado como
+pendência FUTURA, sem prioridade imediata -- precisaria de fonte/scraping
+próprio se um dia for incluído.
+
+**Conexão importante feita pelo usuário**: o mesmo cuidado de mapear
+universo real / verificar se a fonte cobre tudo vai ser necessário quando
+chegar a vez do item ETFs (já no backlog original, ainda não iniciado) --
+não assumir que uma única fonte de screening cobre o universo completo
+sem confirmar antes.
+
+## ⏸️ AINDA NÃO IMPLEMENTADO: estrutura "Todos" vs "Critério" no screening de FIIs
+Usuário pediu (mas ainda NÃO implementado, ficou pendente após a
+investigação de escopo acima): nova estrutura de duas camadas na aba FIIs:
+- **"Todos"** = universo bruto completo SEM nenhum descarte (os ~560 FIIs
+  tradicionais que o Fundamentus retorna, antes de aplicar liquidez/DY)
+- **"Critério"** = renomear a visão atual (com descarte de liquidez/DY já
+  aplicado)
+- Dentro de "Todos": FIIs que NÃO passariam no critério padrão (liquidez
+  baixa ou DY zerado) ganham um marcador/asterisco vermelho visual,
+  indicando "fora do critério padrão, mas disponível para decisão
+  consciente do usuário".
+
+Esse item ainda PRECISA SER IMPLEMENTADO -- usuário pausou para investigar
+o caso do CDII11/FI-Infra antes, e a sessão não retomou a implementação
+em si ainda.
+
+## Estado do backlog ao final desta parte
+1. ✅ Disclaimer -- CORRIGIDO E PRESUMIVELMENTE CONFIRMADO (usuário disse
+   "foi validado" antes de seguir para os outros itens)
+2. ✅ Duplicidade no fluxo de carteira -- CORRIGIDO (frontend + backend),
+   mas FIIs presos de testes anteriores ainda precisam ser limpos/migrados
+3. ✅ Campo de busca textual -- IMPLEMENTADO, não confirmado testado pelo
+   usuário ainda
+4. ⏸️ "Todos" vs "Critério" -- AINDA NÃO IMPLEMENTADO, próximo item da fila
+5. Escopo do universo de FIIs -- FECHADO (FII tradicional sim, FIP/FIDC
+   não por decisão, FI-Infra fica para o futuro)
+6. ETFs (item original do backlog) -- ainda sem ação, mas usuário já
+   sinalizou que vai precisar do mesmo cuidado de mapeamento de universo
