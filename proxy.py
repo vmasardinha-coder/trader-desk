@@ -2996,6 +2996,14 @@ def _validar_positions(data):
 
     campos_base_simples = ['id','ticker','nome','tipo_posicao','estrategia','strike','vol_impl','tipo','vencimento']
     campos_base_barreira = ['id','ticker','nome','tipo_posicao','estrategia','vencimento','entry','kdo','kuo']
+    # ADICIONADO 26/06/2026: 'barreira_simples' para estruturas
+    # retorno_controlado -- tem SO barreira de baixa (KDO), SEM KUO/teto de
+    # alta (diferente de 'barreira', que e bidirecional completo com duas
+    # barreiras). Sem este tipo, BSLV39 (retorno_controlado real, vindo de
+    # migracao automatica) nao tinha como ser validado sem INVENTAR um KUO
+    # que a estrutura real do banco nao tem -- usuario rejeitou
+    # explicitamente qualquer dado inventado.
+    campos_base_barreira_simples = ['id','ticker','nome','tipo_posicao','estrategia','vencimento','entry','kdo']
     campos_encerrada = ['id','ticker','estrategia','status']
 
     for i, p in enumerate(data.get('ativas', [])):
@@ -3003,9 +3011,16 @@ def _validar_positions(data):
         if 'tipo_posicao' not in p:
             erros.append(f"ativas[{pid}]: falta campo 'tipo_posicao'")
             continue
-        campos = campos_base_simples if p['tipo_posicao']=='simples' else campos_base_barreira if p['tipo_posicao']=='barreira' else None
+        if p['tipo_posicao'] == 'simples':
+            campos = campos_base_simples
+        elif p['tipo_posicao'] == 'barreira':
+            campos = campos_base_barreira
+        elif p['tipo_posicao'] == 'barreira_simples':
+            campos = campos_base_barreira_simples
+        else:
+            campos = None
         if campos is None:
-            erros.append(f"ativas[{pid}]: tipo_posicao '{p['tipo_posicao']}' invalido (use 'simples' ou 'barreira')")
+            erros.append(f"ativas[{pid}]: tipo_posicao '{p['tipo_posicao']}' invalido (use 'simples', 'barreira' ou 'barreira_simples')")
             continue
         for campo in campos:
             if campo not in p or p[campo] is None:
