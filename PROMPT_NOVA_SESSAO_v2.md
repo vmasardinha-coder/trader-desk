@@ -2665,3 +2665,70 @@ Usuário mencionou estar perto do limite semanal de uso -- esta pode ser a
 última interação desta sessão. Próxima sessão deve começar lendo este
 arquivo do início (parte 1) até aqui para reconstituir o contexto
 completo antes de continuar qualquer trabalho novo.
+
+---
+
+# Sessão 26/06/2026 (parte 16, FINAL DEFINITIVA) — BSLV39 100% funcional confirmado
+
+## SHAs finais de toda a sessão
+- proxy.py: 107dcb4a27a75302406d37fab49607fb97a0de22
+- static/app.js: f61cef5ab90fea8967545336bf7a5435535a79a9
+- positions.json: 14656a0547350baad5573ad56bc8773c04fd9d4f
+
+## ✅ CONFIRMADO PELO USUÁRIO: BSLV39 100% funcional de ponta a ponta
+Usuário confirmou visualmente (3 screenshots) que TODAS as 4 seções do
+card de evolução estão renderizando corretamente:
+1. Probabilidades (preço entrada vs atual, dias decorridos/restantes)
+2. Simulação 100 ações (ganho prefixado +R$761,28 vs exposição -R$1.529,55)
+3. Faixas de retorno completas (Bate a meta ≥8,3%: 70,7%)
+4. Fan chart visual (linha verde P90, vermelha P10, trajetórias simuladas)
+
+## Cadeia de bugs reais encontrados e corrigidos nesta investigação (BSLV39)
+1. Validador de positions.json não conhecia tipo_posicao='barreira_simples'
+   (estrutura retorno_controlado, só KDO sem KUO) -- CORRIGIDO
+2. Frontend não tinha template para barreira_simples, caía em tplSimples
+   por engano, causando "Cannot read properties of undefined (reading
+   toFixed)" -- CORRIGIDO (novo template tplBarreiraSimples)
+3. vol_impl usava fallback fixo inventado (0.35) quando GARCH falhava --
+   CORRIGIDO para cascata real (GARCH→vol histórica com qualquer amostra
+   ≥5 pontos→null explícito se <5 pontos, NUNCA número inventado)
+4. ganho_prefixado_pct (campo numérico) não estava sendo enviado nem
+   salvo no registro -- impedia o backend de calcular EV completo/fan
+   chart para retorno_controlado, mesmo o endpoint já suportando esse
+   caso -- CORRIGIDO (adicionado ao payload E ao registro existente)
+5. **CAUSA RAIZ FINAL do "fica só pensando"**: estado `dataset.loaded='1'`
+   preso no DOM de uma tentativa anterior (antes das correções 1-4, quando
+   o fetch falhava silenciosamente) -- a função `loadEvolucaoPosicao` tem
+   guard `if(area.dataset.loaded){return;}` que impedia qualquer nova
+   tentativa de rodar, mesmo após hard refresh da página (o estado é do
+   elemento DOM recriado a cada render, então originalmente não devia
+   persistir -- mas como múltiplos cliques happened durante a janela de
+   bugs 1-4, pelo menos um ficou "meio marcado" antes de qualquer erro
+   visível). Resolvido limpando manualmente via console
+   (`area.dataset.loaded=''`) e clicando de novo no botão real.
+
+## Lição de debugging reforçada (relevante para futuros problemas parecidos)
+Quando "nada acontece" ao clicar um botão (sem erro visível), considerar:
+1. Testar a função diretamente via console PRIMEIRO (rápido, descarta
+   hipótese de erro JS real)
+2. Se a função "termina sem throw" mas a UI não mostra nada, suspeitar de
+   GUARDS internos baseados em estado (dataset, flags, variáveis globais)
+   que podem estar "presos" de uma execução anterior incompleta
+3. Diagnóstico real precisou de: teste via console (confirmou função OK)
+   → inspeção do código-fonte (achou o guard `dataset.loaded`) → comando
+   de limpeza manual → reteste via clique real (confirmou resolução)
+
+## ENCERRAMENTO DESTA SESSÃO (16 partes, extremamente longa e produtiva)
+Sessão cobriu: ranking EV completo, fix Minério de Ferro (3 iterações),
+módulo FIIs inteiro (screening, classificação de risco, FFO, busca,
+estrutura Todos/Critério, carteira), segurança via token, disclaimer
+CVM, separação Em Análise em 2 seções com rankings próprios, migração
+automática Em Análise→Posições Ativas com cálculo real de volatilidade
+(GARCH→histórica→null explícito, nunca dado inventado), e uma cadeia de
+5 bugs reais encontrados e corrigidos em sequência na migração do
+BSLV39 -- todos confirmados funcionando pelo usuário ao final.
+
+Próxima sessão deve ler este arquivo do início (parte 1) para reconstituir
+o contexto completo. Itens de backlog pendentes (ETFs, Renda Fixa, Análise
+de Papel, teto de análises por lote, visão multi-usuário, melhorias de UX
+do fluxo FII) continuam registrados nas partes anteriores, sem mudança.
