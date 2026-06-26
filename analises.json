@@ -445,5 +445,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-26. P/VP=0.88, DY=1.06%, segmento=Títulos e Val. Mob., nível de risco=high_yield. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1782485380"
+  },
+  {
+    "ticker": "CLIN11.SA",
+    "nome": "CLIN11 - FII Outros",
+    "data_foto": "2026-06-26",
+    "preco_foto": 91.2,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 12.83,
+    "p_vp": 0.92,
+    "liquidez": 3039200,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-06-26. P/VP=0.92, DY=12.83%, segmento=Outros, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1782486234"
   }
 ]
