@@ -3436,6 +3436,28 @@ def mudar_status_analise(analise_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Adicionado 26/06/2026 -- endpoint para forcar migracao RETROATIVA de
+# analises que ja estavam status='ativa' ANTES da correcao em
+# mudar_status_analise (ex: BSLV39, ficou ativa mas nunca migrou para
+# positions.json porque a logica de migracao automatica nao existia
+# ainda quando o usuario aprovou). Tambem serve como ferramenta geral
+# para qualquer caso futuro parecido.
+@app.route('/analises/<analise_id>/forcar-migracao', methods=['POST'])
+@_requer_auth_escrita
+def forcar_migracao_retroativa(analise_id):
+    try:
+        conteudo_str, _ = _github_get_file('analises.json')
+        lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+        item = next((a for a in lista if a.get('id') == analise_id), None)
+        if not item:
+            return jsonify({'error': f'analise {analise_id} nao encontrada'}), 404
+        if item.get('status') != 'ativa':
+            return jsonify({'error': f"analise {analise_id} nao esta com status='ativa' (status atual: {item.get('status')})"}), 422
+        sucesso, msg = _migrar_para_positions(item)
+        return jsonify({'id': analise_id, 'migrado_para_positions': sucesso, 'detalhe': msg})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ── RANKING EM LOTE (Fase A→decisao) ─────────────────────
 # Adicionado 25/06/2026. Resolve o problema de Victor ter que abrir analise
 # por analise em "Em Analise" e copiar numeros manualmente quando o lote
