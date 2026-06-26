@@ -2732,3 +2732,83 @@ Próxima sessão deve ler este arquivo do início (parte 1) para reconstituir
 o contexto completo. Itens de backlog pendentes (ETFs, Renda Fixa, Análise
 de Papel, teto de análises por lote, visão multi-usuário, melhorias de UX
 do fluxo FII) continuam registrados nas partes anteriores, sem mudança.
+
+---
+
+# Sessão 26/06/2026 (parte 17, FINAL DEFINITIVA) — Causa raiz da discrepância 82%/70% + decisão de processo
+
+## SHA final
+- analises.json: 6e3e855956ed594f44712e05d638748d6e96f89b (preco_foto BSLV39 corrigido)
+
+## ⭐ Causa raiz real da discrepância entre Em Análise (82%) e Posições Ativas (70%)
+Usuário notou diferença grande entre os dois cards para a MESMA posição
+(BSLV39) no MESMO dia. Investigação revelou: NÃO é diferença de lógica de
+cálculo (ambos usam n_sim=20000, baixa variância estatística) -- é que o
+`preco_foto` SALVO em analises.json (96.68, coletado via busca web manual
+em 25/06/2026 porque o Yahoo estava bloqueado no sandbox naquele momento)
+NÃO BATIA com o fechamento real do Yahoo no mesmo dia (91.72) -- diferença
+de ~5.4%, grave o suficiente para distorcer a probabilidade calculada.
+
+**Endpoint `/montecarlo/condicional`** (Em Análise) usa `preco_foto` direto
+do payload enviado -- por isso refletia o número errado (96.68 → 82%).
+**Endpoint `/montecarlo/posicao_ativa`** (Posições Ativas) extrai o preço
+real do HISTÓRICO do Yahoo no dia da entrada -- por isso mostrava o número
+correto (91.72 → 70%).
+
+**Corrigido**: `preco_foto` do BSLV39 atualizado de 96.68 para 91.72 em
+analises.json, com observação documentando a correção. KDO (77.34) e
+ganho_prefixado_pct (8.3) NÃO foram alterados -- são premissa fixa do
+banco, intocáveis pela regra já estabelecida.
+
+## Verificação rápida do restante do lote 24/06
+Usuário perguntou se esse erro poderia ter afetado as outras 13 análises
+do mesmo lote (mesma data_foto=2026-06-25). Verificação parcial via
+busca web: PETR4 (preco_foto=39.33) está PRÓXIMO do fechamento real
+(~38.29-38.45 conforme Yahoo) -- diferença pequena e normal (~2-3%), bem
+diferente da discrepância grave do BSLV39 (~5.4%). Hipótese: o erro foi
+mais provável em BDRs/ETFs de baixa liquidez (BSLV39 é iShares Silver
+Trust BDR, mesmo padrão de baixa liquidez já visto antes com Minério de
+Ferro) -- ações líquidas da B3 (PETR4, VALE3, etc.) têm fontes de preço
+mais abundantes e confiáveis via busca web.
+
+**Auditoria completa das outras 12 análises NÃO foi feita** -- usuário
+decidiu não ser necessário (ver decisão de processo abaixo).
+
+## ⭐ DECISÃO DE PROCESSO DO USUÁRIO (importante para o workflow futuro)
+Usuário estabeleceu uma prática operacional clara para esse tipo de risco,
+em vez de pedir auditoria/correção retroativa sistemática:
+
+**"Não precisa, já vejo o preço da foto, o modelo está bom. Quando eu ver
+que a cotação variou muito, tenho que pedir uma nova análise pro banco,
+aí eu rejeito e analiso novamente melhor assim. Enquanto isso, monitoro o
+resultado da foto com as curvas do Monte Carlo."**
+
+Ou seja: o usuário mesmo vai comparar visualmente `preco_foto` (salvo)
+vs. cotação real ao revisar cada análise em "Em Análise". Se a diferença
+for grande (como BSLV39), a ação correta NÃO é Claude corrigir o número
+retroativamente -- é REJEITAR aquela análise e pedir proposta nova e
+atualizada ao banco. O fan chart (curvas Monte Carlo) serve como
+monitoramento contínuo enquanto isso.
+
+**Implicação para sessões futuras**: NÃO é necessário implementar
+auditoria automática de preco_foto vs. fechamento real -- isso já tem
+solução de processo (humano + rejeitar/re-pedir), não precisa de
+ferramenta nova. Se o usuário pedir algo nesse sentido no futuro, lembrar
+que essa decisão já foi tomada conscientemente.
+
+## ENCERRAMENTO DEFINITIVO desta sessão (17 partes)
+Sessão das mais longas e produtivas até agora. Cobriu: ranking EV completo,
+fix Minério de Ferro, módulo FIIs inteiro, segurança via token, disclaimer
+CVM, separação Em Análise em 2 seções, migração automática com cálculo
+real de volatilidade, correção de 5 bugs em cascata na migração do BSLV39,
+e a descoberta + correção da causa raiz da discrepância de probabilidade
+(preço de foto impreciso). Usuário estabeleceu princípio definitivo:
+NUNCA inventar dados (vale para todo o projeto), e decisão de processo
+clara para lidar com preços de foto imprecisos (rejeitar e re-pedir, não
+corrigir retroativamente em massa).
+
+Próxima sessão: ler este arquivo do início (parte 1) para reconstituir
+contexto completo. Backlog pendente de partes anteriores continua válido
+sem alteração (ETFs, Renda Fixa, Análise de Papel, teto de análises por
+lote, visão multi-usuário, melhorias de UX do fluxo FII, item "Todos vs
+Critério" na aba FIIs que ainda não foi implementado de fato).
