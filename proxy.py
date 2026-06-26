@@ -3560,6 +3560,94 @@ def _classificar_segmento_fii(segmento_fundamentus, qtd_imoveis, nome_completo='
             return 'hibrido'
     return base
 
+# ── Classificacao de NIVEL DE RISCO (camada 2, cruza com segmento) ──
+# Adicionado 25/06/2026. Usuario pediu categorizacao por nivel de risco
+# (nao so tipo de negocio) para balizar julgamento por notorio saber.
+# Baseado em pesquisa de pratica de mercado real (classificacao High
+# Grade / Middle Risk / High Yield, importada do mercado americano, usada
+# por gestoras como Kinea/Empiricus/XP para FIIs e Fiagros).
+#
+# LIMITACAO HONESTA E DOCUMENTADA (usuario perguntou explicitamente sobre
+# isso, confirmado via pesquisa em 25/06/2026): ALAVANCAGEM (divida/
+# patrimonio) e CONCENTRACAO DE DEVEDORES/CRIs individuais NAO estao
+# disponiveis gratuitamente em nenhuma fonte de screening em massa --
+# so aparecem em relatorios gerenciais PDF de cada fundo individualmente,
+# ou em plataformas pagas (Suno Analitica, Clube FII Research, Status
+# Invest premium). Por isso esses dois fatores NAO entram na classificacao
+# automatica abaixo -- ela e deliberadamente mais simples que uma analise
+# completa, e serve como PONTO DE PARTIDA para o julgamento do usuario,
+# nao veredito final. Se o usuario quiser refinar com alavancagem/
+# concentracao no futuro, precisaria ser manual (relatorio por relatorio)
+# ou um scraping mais pesado fundo-a-fundo, nao implementado agora.
+#
+# Regra (ajustada apos correcao do usuario sobre Fiagro -- NAO classificar
+# automaticamente como High Yield so por ser agro, ja que depende da
+# composicao da carteira, que nao temos dado para avaliar -- Fiagro cai
+# em Middle Risk por padrao, sinalizando incerteza sem condenar):
+_FII_PALAVRAS_DESENVOLVIMENTO = ['DESENVOLVIMENTO', 'INCORPORAÇÃO', 'INCORPORACAO',
+                                  'URBANISMO', 'LOTEAMENTO']
+
+def _classificar_risco_fii(nome_completo, segmento_fundamentus, dy_pct, vacancia_pct,
+                             dy_mediana_segmento):
+    """Classifica em high_grade / middle_risk / high_yield usando apenas
+    dados gratuitos disponiveis (nome do fundo, segmento, DY relativo ao
+    segmento, vacancia). NAO avalia alavancagem nem concentracao de
+    devedores -- ver nota acima sobre limitacao de dados gratuitos."""
+    nome_upper = (nome_completo or '').upper()
+
+    # Sinal mais forte: fundo de DESENVOLVIMENTO (constroi e vende, nao
+    # aluga -- risco de execucao real, ex: TGAR11) -- sempre High Yield.
+    if any(p in nome_upper for p in _FII_PALAVRAS_DESENVOLVIMENTO):
+        return 'high_yield'
+
+    # Fiagro: DECISAO FINAL do usuario (25/06/2026, revertendo posicao
+    # anterior) -- vai para High Yield por padrao. Raciocinio do usuario:
+    # "a maioria e ruim, a minoria e boa, e como nao tenho como detectar
+    # isso de forma gratuita, e mais facil deixar no High Yield e organizar
+    # dentro dele o que esta menos ruim" -- nao e mais filtro de exclusao,
+    # e ORGANIZACAO em listas para o usuario julgar com notorio saber.
+    if 'FIAGRO' in nome_upper:
+        return 'high_yield'
+
+    # DY muito acima da mediana do PROPRIO segmento e sinal de premio de
+    # risco alto sendo cobrado pelo mercado (mercado nao da DY alto de
+    # graca -- ou ha risco real, ou e yield trap que o filtro de P/VP ja
+    # deveria ter pego antes desta funcao rodar).
+    if dy_mediana_segmento and dy_pct and dy_mediana_segmento > 0:
+        razao = dy_pct / dy_mediana_segmento
+        if razao > 1.5:
+            return 'high_yield'
+
+    # Vacancia alta (tijolo) e risco real de fluxo de caixa futuro.
+    if vacancia_pct is not None and vacancia_pct > 20:
+        return 'high_yield'
+
+    # High Grade: DY proximo/abaixo da mediana do segmento (sem premio de
+    # risco visivel) E vacancia baixa quando aplicavel.
+    if dy_mediana_segmento and dy_pct and dy_mediana_segmento > 0:
+        razao = dy_pct / dy_mediana_segmento
+        if razao <= 1.1 and (vacancia_pct is None or vacancia_pct < 10):
+            return 'high_grade'
+
+    return 'middle_risk'
+
+def _score_fii(p_vp, dy_pct, liquidez):
+    """Sub-score para ORDENAR dentro de cada categoria de risco -- NAO e
+    mais filtro de exclusao (decisao do usuario em 25/06/2026: 'nao e mais
+    criterio de exclusao, e organizacao -- o que esta menos ruim primeiro').
+    Logica do usuario: 'se o P/VP esta muito baixo, tem bode na historia
+    normalmente, mas se tem liquidez boa, vale a pena considerar entrar' --
+    ou seja, dentro do High Yield, o que importa e DY alto + liquidez boa
+    apesar do P/VP baixo (sinal de risco aceito conscientemente), nao o
+    P/VP baixo sozinho (que seria so 'desconto', sem indicar oportunidade
+    real sem a liquidez para sustentar a tese).
+    Formula simples e auditavel: score = DY * fator_liquidez, onde
+    fator_liquidez penaliza liquidez muito baixa (dificil de operar)."""
+    if p_vp is None or dy_pct is None or liquidez is None:
+        return 0.0
+    fator_liquidez = min(liquidez / 500000, 1.5)  # normaliza ~mediana do mercado, cap em 1.5x
+    return round(dy_pct * fator_liquidez, 3)
+
 # Filtro de P/VP minimo contra "yield trap" -- fechado com o usuario em
 # 25/06/2026 apos o primeiro teste real mostrar FIIs com P/VP muito baixo
 # (0.15-0.19) e DY muito alto (19-23%) no topo do ranking (HCTR11, DEVA11,
@@ -3688,6 +3776,7 @@ def get_fiis():
     try:
         liquidez_min = float(request.args.get('liquidez_min', 50000))
         segmento_filtro = request.args.get('segmento')
+        risco_filtro = request.args.get('risco')
 
         fiis, erro = scrape_fiis_fundamentus()
         if fiis is None:
@@ -3696,39 +3785,61 @@ def get_fiis():
                 'fiis': [],
             }), 502
 
-        # Descarte inicial -- fechado com o usuario em 25/06/2026
+        # Descarte inicial -- AJUSTADO 25/06/2026 (decisao final do
+        # usuario): so descarta o que e OPERACIONALMENTE inviavel
+        # (liquidez muito baixa) ou SEM RENDA (DY zerado/ausente -- fora
+        # do objetivo declarado do usuario). P/VP NAO descarta mais --
+        # virou criterio de CATEGORIZACAO de risco (ver abaixo), nao de
+        # exclusao. Usuario quer ver TUDO, organizado por nivel de risco,
+        # para julgar com proprio notorio saber.
         descartados = []
-        validos = []
+        candidatos = []
         for f in fiis:
             motivo = None
             if f['liquidez'] is None or f['liquidez'] < liquidez_min:
                 motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
             elif f['dy_pct'] is None or f['dy_pct'] <= 0:
                 motivo = 'DY zerado ou ausente'
-            elif f['p_vp'] is None or f['p_vp'] < _FII_PVP_MINIMO or f['p_vp'] > 3:
-                motivo = (f'P/VP fora da faixa segura ({f["p_vp"]}, mínimo {_FII_PVP_MINIMO} contra yield trap)'
-                          if f['p_vp'] is not None else 'P/VP ausente')
 
             if motivo:
                 descartados.append({'ticker': f['ticker'], 'motivo': motivo})
             else:
-                validos.append(f)
+                candidatos.append(f)
+
+        # Mediana de DY por SEGMENTO (necessaria para _classificar_risco_fii
+        # detectar premio de risco relativo -- DY alto so e suspeito quando
+        # muito acima da media do PROPRIO segmento, nao em termos absolutos)
+        from statistics import median
+        dy_por_segmento = {}
+        for f in candidatos:
+            dy_por_segmento.setdefault(f['segmento'], []).append(f['dy_pct'])
+        mediana_dy_segmento = {seg: median(vals) for seg, vals in dy_por_segmento.items()}
+
+        for f in candidatos:
+            f['nivel_risco'] = _classificar_risco_fii(
+                f.get('nome_fundo', ''), f['segmento_fundamentus'],
+                f['dy_pct'], f['vacancia_pct'],
+                mediana_dy_segmento.get(f['segmento']))
+            f['score'] = _score_fii(f['p_vp'], f['dy_pct'], f['liquidez'])
 
         if segmento_filtro:
-            validos = [f for f in validos if f['segmento'] == segmento_filtro]
+            candidatos = [f for f in candidatos if f['segmento'] == segmento_filtro]
+        if risco_filtro:
+            candidatos = [f for f in candidatos if f['nivel_risco'] == risco_filtro]
 
-        # Ordenacao: P/VP (menor/mais descontado primeiro) -> DY (maior
-        # primeiro) -> Liquidez (maior primeiro) -- ordem de prioridade
-        # fechada com o usuario (P/VP e o filtro PRINCIPAL, ao contrario
-        # do criterio de estruturadas onde DY e desempate terciario)
-        validos.sort(key=lambda f: (f['p_vp'], -f['dy_pct'], -f['liquidez']))
+        # Ordenacao: dentro de cada nivel de risco, por score (maior
+        # primeiro) -- score pondera DY x liquidez, nao mais so P/VP cru.
+        # Niveis de risco aparecem agrupados: high_grade -> middle_risk ->
+        # high_yield, e dentro de cada um, por score.
+        ordem_risco = {'high_grade': 0, 'middle_risk': 1, 'high_yield': 2}
+        candidatos.sort(key=lambda f: (ordem_risco.get(f['nivel_risco'], 1), -f['score']))
 
         return jsonify({
             'total_brutos': len(fiis),
             'total_descartados': len(descartados),
-            'total_validos': len(validos),
+            'total_validos': len(candidatos),
             'descartados': descartados,
-            'fiis': validos,
+            'fiis': candidatos,
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
