@@ -2089,3 +2089,87 @@ não fazer isso ainda, só quando o usuário confirmar que quer.
   testar que o bug real já foi resolvido sem precisar de faseamento.
 - 3 bugs/melhorias de UX do fluxo FII (separação visual, duplicidade,
   comportamento ao remover da carteira): registrados, sem ação ainda.
+
+---
+
+# Sessão 25-26/06/2026 (parte 10) — Limite real de memória do Render + visão de escala multi-usuário
+
+## Confirmação do plano e limite real
+Usuário confirmou: **Render free tier**, 512MB RAM / 0.1 vCPU, 750h/mês
+(usuário reportou ~614h restantes no mês). Render avisou explicitamente
+"atingiu a capacidade de memória disponível" e derrubou o serviço --
+confirma que o crash anterior (502/503/JSON cortado) não era só timeout,
+era memória real estourando.
+
+## Cálculo do teto seguro de análises por chamada do ranking
+Cada análise no `/analises/ranking` aloca 2 matrizes numpy de
+`(n_sim=20000, dias)` (float64, 8 bytes) -- uma para "daqui pra frente"
+outra para o EV completo (`prazo_dias` total). Para uma análise típica de
+estruturada (até 89 dias): ~27MB temporários por análise, no pior caso
+(sem garbage collection entre iterações do loop).
+
+Com 512MB totais (já compartilhados com Flask/Python/numpy/overhead),
+margem de segurança realista: **15-20 análises por chamada do ranking**.
+17 análises (estado atual antes do FII ter contaminado o cálculo) já
+estava praticamente no limite por si só, mesmo sem o bug.
+
+**Não fechado ainda qual teto exato usar** -- usuário não respondeu a
+pergunta de qual número usar (15 fixo, ~20 máximo, ou reduzir n_sim para
+abrir mais espaço) antes de mudar de assunto para a questão de escala
+multi-usuário (ver abaixo). Retomar essa decisão quando o usuário voltar
+ao assunto.
+
+## ⭐ Questão de arquitetura levantada pelo usuário: escala multi-usuário consome memória ADICIONALMENTE
+Usuário conectou dois pontos corretamente:
+1. O teto de "quantas análises por lote" é um problema de UMA pessoa só.
+2. Se isso virar produto vendável (mencionado antes nesta mesma sessão,
+   na parte sobre segurança/token), **múltiplos usuários rodando o
+   ranking SIMULTANEAMENTE multiplicam o consumo de memória** -- não é
+   só "lote grande de uma pessoa", é "N pessoas × seus lotes,
+   competindo pela mesma RAM de 512MB do processo único".
+
+Usuário também conectou isso à limitação de TOKEN já implementada nesta
+sessão (parte de segurança): hoje o token é uma senha única compartilhada
+por qualquer um com acesso -- não há cota/limite POR USUÁRIO. Para um
+cenário multi-usuário real, precisaria de:
+- Cada usuário com seu próprio token/login (já registrado como evolução
+  futura na parte de segurança desta sessão).
+- Algum mecanismo de RATE LIMITING ou fila por usuário, para o ranking
+  não processar lotes de múltiplos usuários ao mesmo tempo sem controle
+  (ex: enfileirar, ou limitar a 1 cálculo pesado por vez no processo
+  inteiro, não por usuário).
+- Possivelmente migrar para um plano pago do Render (mais RAM) se o
+  produto realmente crescer com múltiplos usuários reais.
+
+**Usuário pediu explicitamente para REGISTRAR NO BACKLOG, sem implementar
+nada agora** -- "deixa aí pra pensar tudo que eu estou falando no
+backlog". Isso é uma decisão de arquitetura de produto, não uma correção
+de bug -- merece discussão própria, mais aprofundada, quando o usuário
+decidir avançar de fato para multi-usuário.
+
+## Processo de trabalho confirmado pelo usuário (não é tarefa de código)
+Usuário confirmou explicitamente como vai operar daqui para frente,
+dado o limite de memória real descoberto: ele faz a PRÉ-ANÁLISE em chat
+PRIMEIRO (ex: trazer uma planilha de até 300 linhas), Claude ajuda a
+filtrar/reduzir para um lote pequeno e seguro (o teto a definir, ver
+acima) ANTES de subir qualquer coisa para o sistema via "tirar a foto".
+Isso já era o fluxo Fase A/B documentado desde o início do projeto, mas
+agora tem uma JUSTIFICATIVA TÉCNICA CONCRETA (limite real de memória do
+free tier) reforçando por que esse processo é necessário, não só
+preferência de workflow.
+
+## Backlog atualizado (ordem não definida, registrado para discussão futura)
+1. Fechar o teto exato de análises por chamada do ranking (15 fixo? ~20
+   máximo? reduzir n_sim para abrir mais espaço?) -- pergunta pendente,
+   usuário não respondeu ainda.
+2. Implementar de fato algum limite/aviso no backend quando o lote
+   exceder o teto definido (hoje não há proteção automática -- só o
+   conhecimento de que existe um limite real).
+3. Pensar em rate limiting / fila para cenário multi-usuário (médio/longo
+   prazo, só se o produto avançar para multi-usuário de verdade).
+4. Avaliar se vale migrar para plano pago do Render quando/se o uso
+   crescer (mais RAM resolveria boa parte do problema de raiz).
+5. Conectar com a evolução de token por usuário já registrada na parte
+   de segurança desta sessão -- as duas questões (memória e autenticação
+   multi-usuário) são facetas do mesmo problema maior ("isso vira produto
+   de verdade, como sustenta múltiplos usuários reais").
