@@ -391,9 +391,11 @@
     "segmento": "tijolo",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-26. P/VP=0.66, DY=10.14%, segmento=Residencial, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782490489"
+    "id": "an_1782490489",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-06-26"
   }
 ]
