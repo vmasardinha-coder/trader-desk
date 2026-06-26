@@ -194,21 +194,29 @@ function renderFiis(){
     const pvpCor=f.p_vp<1?'var(--green)':'var(--muted)';
     const vac=f.vacancia_pct!=null&&f.vacancia_pct>0?f.vacancia_pct.toFixed(1)+'%':'—';
     const badge=RISCO_BADGE[f.nivel_risco]||'';
+    let ffoHtml='—';
+    if(f.ffo_yield_pct!=null){
+      const sustentavel=f.ffo_yield_pct>=f.dy_pct;
+      const cor=sustentavel?'var(--green)':'var(--red)';
+      const seta=sustentavel?'▲':'▼';
+      ffoHtml=`<span style="color:${cor}" title="${sustentavel?'FFO cobre o dividendo pago -- sinal de sustentabilidade':'Fundo pode estar pagando mais que gera de caixa real -- risco de corte futuro'}">${f.ffo_yield_pct.toFixed(2)}% ${seta}</span>`;
+    }
     return `<tr id="fii-row-${f.ticker}">
       <td style="padding:6px 8px;font-weight:700">${f.ticker} ${badge}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus}</span></td>
       <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${pvpCor}">${f.p_vp.toFixed(2)}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right">${ffoHtml}</td>
       <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
       <td style="padding:6px 8px;text-align:right">${vac}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score.toFixed(1)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez × fator de sustentabilidade (FFO vs DY) -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score.toFixed(1)}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise" style="background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700">+ Em Análise</button>
       </td>
     </tr>`;
   }).join('');
   cont.innerHTML=`
-  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${lista.length} FIIs neste filtro · agrupado por nível de risco, ordenado por score (DY×liquidez) dentro de cada grupo</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${lista.length} FIIs neste filtro · agrupado por nível de risco, ordenado por score (DY×liquidez×sustentabilidade) dentro de cada grupo</div>
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
@@ -216,6 +224,7 @@ function renderFiis(){
       <th style="padding:6px 8px;text-align:right">Cotação</th>
       <th style="padding:6px 8px;text-align:right" title="Preço sobre Valor Patrimonial -- abaixo de 1,0 indica desconto">P/VP</th>
       <th style="padding:6px 8px;text-align:right" title="Dividend Yield anual">DY</th>
+      <th style="padding:6px 8px;text-align:right" title="FFO Yield -- caixa operacional real gerado pelo fundo, sem ganhos extraordinários. ▲ acima do DY = sustentável (sobra de caixa). ▼ abaixo do DY = fundo pode estar consumindo patrimônio para manter o dividendo">FFO ⓘ</th>
       <th style="padding:6px 8px;text-align:right" title="Volume financeiro médio negociado por dia">Liquidez</th>
       <th style="padding:6px 8px;text-align:right" title="Vacância média dos imóveis (relevante para FIIs de tijolo)">Vacância</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
