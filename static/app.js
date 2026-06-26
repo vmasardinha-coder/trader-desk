@@ -2310,8 +2310,8 @@ function tplAnaliseAcoes(a){
   // de analises.json (FIIs ficam em arquivo proprio, carteira_fiis.json).
   if(a.tipo_estrutura==='fii'&&a.status==='em_analise'){
     return `
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button onclick="ativarFiiNaCarteira('${a.id}')" style="flex:1;background:var(--green);border:none;color:#06140c;padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">✓ Ativar na Carteira</button>
+    <div style="display:flex;gap:8px;margin-top:14px" id="fii-acoes-${a.id}">
+      <button id="btn-ativar-${a.id}" onclick="ativarFiiNaCarteira('${a.id}')" style="flex:1;background:var(--green);border:none;color:#06140c;padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">✓ Ativar na Carteira</button>
       <button onclick="mudarStatusAnalise('${a.id}','encerrada','rejeitada')" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">🚫 Rejeitar</button>
     </div>`;
   }
@@ -2330,8 +2330,18 @@ function tplAnaliseAcoes(a){
 async function ativarFiiNaCarteira(analiseId){
   const a=_analiseData.find(x=>x.id===analiseId);
   if(!a)return;
+  const btn=document.getElementById('btn-ativar-'+analiseId);
+  // CORRIGIDO 26/06/2026 -- usuario relatou erro HTTP ao clicar em mais
+  // de um FII em sequencia rapida, e o card nao desaparecia imediatamente
+  // apos o clique (dando a impressao de "nao fez nada", levando a
+  // cliques duplicados). Causa real: sem protecao contra duplo-clique, 2
+  // requisicoes concorrentes para o MESMO analise_id podiam disparar --
+  // a 2a falha porque o registro ja foi removido de analises.json pela
+  // 1a (nao ha mais o que remover de novo).
+  if(btn&&btn.disabled)return;  // ja esta processando, ignora clique extra
   const ok=confirm(`Ativar ${a.ticker.replace('.SA','')} na Carteira de FIIs? Preço de referência: R$${a.preco_foto.toFixed(2)} (hoje). Essa ação grava no repositório.`);
   if(!ok)return;
+  if(btn){btn.disabled=true;btn.textContent='Ativando...';btn.style.opacity='.6';}
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
     const body={
@@ -2349,9 +2359,21 @@ async function ativarFiiNaCarteira(analiseId){
     });
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
-    await loadAnalises();
+    // Remove o card da tela IMEDIATAMENTE (sem esperar o full reload de
+    // loadAnalises, que pode demorar/falhar por cache do GitHub raw) --
+    // feedback visual instantaneo de que a acao funcionou.
+    const card=btn?.closest('[id^="analise-card-"]')||btn?.closest('.analise-card');
+    const acoesDiv=document.getElementById('fii-acoes-'+analiseId);
+    if(acoesDiv)acoesDiv.outerHTML='<div style="margin-top:14px;text-align:center;color:var(--green);font-size:11px;font-weight:700">✓ Migrado para Carteira</div>';
+    _analiseData=_analiseData.filter(x=>x.id!==analiseId);  // remove da lista em memoria tambem
+    setTimeout(()=>loadAnalises(),1500);  // confirma com o servidor um pouco depois, sem pressa
   }catch(e){
-    alert('Erro ao ativar na carteira: '+e.message);
+    // Erro mais claro quando a causa provavel e duplo-clique/duplicata
+    const msgAmigavel = e.message.includes('nao encontrada')||e.message.includes('404')
+      ? 'Esta análise já foi processada (provavelmente por um clique anterior). Atualize a lista.'
+      : e.message;
+    alert('Erro ao ativar na carteira: '+msgAmigavel);
+    if(btn){btn.disabled=false;btn.textContent='✓ Ativar na Carteira';btn.style.opacity='1';}
   }
 }
 
