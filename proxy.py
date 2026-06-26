@@ -3337,14 +3337,38 @@ def ranking_analises():
     uma vez e devolve uma tabela ja pronta para ranquear, com score de
     ORDENACAO (nunca filtro). Ver comentario acima desta funcao para a
     formula completa do score, fechada com o usuario em 25/06/2026.
+
+    PROCESSAMENTO EM FASES (adicionado 25/06/2026, pedido do usuario apos
+    timeout/crash em produção com 17 analises de uma vez): aceita query
+    params opcionais 'offset' e 'limit' para processar so um pedaco do
+    total por chamada (ex: 5 por vez). Sem esses params, processa TODAS
+    de uma vez (comportamento original, mantido por compatibilidade).
+    Resposta inclui 'total_geral' (quantas existem no total) para o
+    frontend saber quando parar de pedir mais paginas.
     """
     try:
         import numpy as np
         from datetime import datetime as _dt3
 
+        offset = int(request.args.get('offset', 0))
+        limit_str = request.args.get('limit')
+        limit = int(limit_str) if limit_str else None
+
         conteudo_str, _ = _github_get_file('analises.json')
         lista = json.loads(conteudo_str) if conteudo_str.strip() else []
-        em_analise = [a for a in lista if a.get('status') == 'em_analise']
+        # CORRIGIDO 25/06/2026: FII (tipo_estrutura='fii') NUNCA deve entrar
+        # no ranking de probabilidades -- usa Monte Carlo, que nao se
+        # aplica a FII (sem barreira/meta real). Causa raiz de um crash
+        # real em produção: FII tem prazo_dias=9999 (convencao "sem
+        # vencimento"), e o ranking tentou simular 9999 dias de Monte
+        # Carlo com n_sim=20000 -- custo computacional ~100x maior que uma
+        # analise normal (14-89 dias), travando o servidor (502/503,
+        # resposta JSON cortada). FII tem fluxo PROPRIO (ver /carteira-
+        # fiis), nao passa por aqui.
+        em_analise_total = [a for a in lista if a.get('status') == 'em_analise'
+                      and a.get('tipo_estrutura') != 'fii']
+        total_geral = len(em_analise_total)
+        em_analise = em_analise_total[offset:offset+limit] if limit else em_analise_total
 
         cdi_anual = get_cdi()
         cdi_mensal = cdi_anual / 12
@@ -3509,6 +3533,9 @@ def ranking_analises():
         return jsonify({
             'cdi_anual_pct': cdi_anual,
             'total_analises': len(em_analise),
+            'total_geral': total_geral,
+            'offset': offset,
+            'proxima_pagina_existe': bool(limit) and (offset + limit) < total_geral,
             'ranking': resultado,
         })
     except Exception as e:
