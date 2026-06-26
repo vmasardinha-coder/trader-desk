@@ -4512,15 +4512,16 @@ def scrape_fi_infra():
             return None, f'http_error_{r.status_code}'
         html = r.text
 
-        # Padrao da linha da tabela: link para /fiis/<ticker>/ seguido do
-        # nome, depois 5 colunas numericas (PL, P/VP, DY, DY medio, Liquidez)
-        # e o tipo de fundo. Regex tolerante a espacos/quebras de linha.
-        linhas = re.findall(
-            r'/fiis/([a-z0-9]+)/["\'][^>]*>.*?<.*?(\d[\d.,]*\s*[BMK]?)\s*</.*?'
-            r'(\d[\d.,]*)\s*</.*?(\d[\d.,]*%|-)\s*</.*?(\d[\d.,]*%|-)\s*</.*?'
-            r'(\d[\d.,]*\s*[BMK]?)\s*</.*?>([^<]+)<',
-            html, re.IGNORECASE | re.DOTALL)
-
+        # CORRIGIDO 26/06/2026: removido regex complexo nao-usado que
+        # tentava casar a linha completa da tabela (PL/PVP/DY/Liquidez) --
+        # esse padrao era so um resquicio de tentativa abandonada (o
+        # resultado nunca era usado depois), mas o ERRO 500 em producao
+        # (sem traceback Python visivel, pagina HTML generica de erro)
+        # sugere que ele pode ter causado catastrophic backtracking contra
+        # o HTML real da pagina (rico em menus/JS antes da tabela), algo
+        # que nao reproduzi em testes com HTML simulado simples. Removido
+        # por seguranca -- usa SO o padrao simples de ticker+nome abaixo,
+        # que e o que de fato alimenta o resultado.
         fundos = []
         tickers_vistos = set()
         for m in re.finditer(r'href="/fiis/([a-z0-9]{4,7})/"[^>]*title="([^"]+)"', html, re.IGNORECASE):
