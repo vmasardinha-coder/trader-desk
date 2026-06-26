@@ -1848,3 +1848,149 @@ dividendo desde data de ativação).
   revelou um problema de qualidade de critério (yield trap) que não
   apareceria em nenhum teste isolado com dados simulados, só com dados
   reais de mercado.
+
+---
+
+# Sessão 25/06/2026 (parte 8, FINAL) — Carteira de FIIs + Segurança (token de API)
+
+## SHAs finais
+- proxy.py: 88d4b8482e89a976319042c4decfca6d6b4cbb06
+- static/app.js: bbe89866dd492ec9e16d1356e7bb65e4595991ef
+- templates/index.html: d67a432aea36bb9dafaeedb3b024005c873cdaa2
+- carteira_fiis.json: criado (vazio, lista [])
+
+## ⭐ SEGURANÇA: app estava 100% público para escrita -- corrigido
+Usuário levantou (corretamente) que CORS estava aberto sem nenhuma
+restrição e NÃO HAVIA autenticação em nenhuma rota -- qualquer pessoa com
+a URL podia clicar Rejeitar/Aprovar em análises reais via POST /analises e
+PUT /analises/<id>/status (as ÚNICAS duas rotas que de fato escrevem;
+confirmado via grep que /montecarlo/*, /bs, /tv/* usam POST só para
+parâmetros de cálculo, não escrevem nada).
+
+**Implementado (primeira camada, NÃO multi-usuário ainda):**
+- Decorator `_requer_auth_escrita` no backend, exige header
+  `Authorization: Bearer <token>` nas duas rotas reais de escrita
+  (+ as 2 novas rotas de carteira_fiis, ver abaixo).
+- Token gerado com `secrets.token_urlsafe(32)`: 
+  `VGgw-CxB0c2ppkPyQ7YFDMu9pWu_N2IHLIMGqQ_weTk`
+- Configurado pelo usuário em **Render → Environment Variables →
+  API_WRITE_TOKEN** (mesmo painel onde já tinha GITHUB_WRITE_TOKEN, sem
+  precisar criar "environment group" novo).
+- **Comportamento fail-open**: se API_WRITE_TOKEN não estiver configurado
+  no Render, a rota fica ABERTA (não quebra o app, mas não protege nada
+  até a variável ser configurada). Usuário JÁ CONFIGUROU e confirmou
+  funcionando ("Funcionam aqui... a senha eu vi que já pediu").
+- Frontend: token pedido via `prompt()` uma única vez, salvo em
+  `localStorage` do dispositivo/navegador (função `_getApiToken()` +
+  `_authHeaders()`). Cada navegador/dispositivo novo pede de novo --
+  usuário confirmou que entendeu esse comportamento.
+
+**EVOLUÇÃO FUTURA registrada (não implementada)**: se virar produto
+multi-usuário, precisa de token/login POR USUÁRIO e dados (analises.json/
+positions.json/carteira_fiis.json) precisam ser POR USUÁRIO, não arquivo
+único compartilhado -- mudança de arquitetura maior, fora do escopo desta
+correção pontual.
+
+## ⭐ Carteira de FIIs implementada (completa o fluxo Screening → Em Análise → Carteira)
+Usuário testou o fluxo e descobriu a lacuna: screening → "+ Em Análise"
+funcionava, mas não existia segunda metade (Em Análise → Carteira/Ativa
+de fato) para FIIs. Implementado AGORA, na mesma sessão.
+
+**Decisão de arquitetura do usuário (importante, registrada
+explicitamente)**: FIIs ficam em **arquivo PRÓPRIO** `carteira_fiis.json`,
+SEPARADO de analises.json/positions.json. Raciocínio: FIIs são perpétuos
+(sem vencimento) e a métrica de sucesso é diferente das estruturadas
+(dividendo acumulado desde ativação, não ganho prefixado/probabilidade de
+meta) -- usuário rejeitou explicitamente a proposta alternativa de só
+filtrar analises.json por tipo='fii'.
+
+**Schema de carteira_fiis.json:**
+```json
+{
+  "id": "fii_<timestamp>",
+  "ticker": "MXRF11",
+  "nome_fundo": "...",
+  "segmento": "papel",
+  "nivel_risco": "middle_risk",
+  "data_ativacao": "2026-06-25",
+  "preco_ativacao": 10.50,
+  "dy_anual_pct_ativacao": 11.80,
+  "status": "ativa"
+}
+```
+
+**Endpoints novos:**
+- `GET /carteira-fiis` -- lista tudo (leitura, sem auth)
+- `POST /carteira-fiis` (com auth) -- ativa um FII, remove de
+  analises.json se vier `analise_id` no body (migração completa, sem
+  duplicar -- mesmo princípio já especificado para estruturadas)
+- `PUT /carteira-fiis/<id>/status` (com auth) -- encerra (vendeu)
+
+**Fluxo completo de ponta a ponta:**
+1. Aba FIIs (screening) → botão "+ Em Análise" → POST /analises
+   (tipo_estrutura='fii', JÁ EXISTIA)
+2. Card em "Em Análise" -- EXCEÇÃO criada no tplAnaliseAcoes: FIIs em
+   em_analise NUNCA aparecem no ranking de probabilidades (ranking roda
+   Monte Carlo, que não se aplica a FII sem barreira/meta/vencimento) --
+   por isso o card de FII mantém botões PRÓPRIOS direto nele: "✓ Ativar
+   na Carteira" e "🚫 Rejeitar" (este último reusa mudarStatusAnalise
+   normal, vai para encerrada/rejeitada dentro de analises.json mesmo).
+3. Clicar "Ativar na Carteira" → POST /carteira-fiis com analise_id →
+   grava em carteira_fiis.json + remove de analises.json.
+4. Nova aba "💰 Carteira FIIs" -- lista ativos com preço/DY de ativação,
+   data, dias desde ativação, botão "Encerrar" (se vendido).
+
+**"Foto" tirada no MOMENTO da ativação** (decisão explícita do usuário,
+mesmo se ele já possuir o FII há tempo antes de usar o app -- "pega foto
+de como se eu tivesse comprando no momento da seleção... não tem problema,
+porque eu tenho histórico do que eu já recebi em termos percentuais de
+dividendos" -- ver próximo item).
+
+## Próximo passo registrado (NÃO implementado): histórico de dividendos mês a mês
+Usuário quer, após ativação, acompanhar quanto de dividendo foi pago
+desde a data de ativação, atualizado quando o mês virar, com gráfico
+histórico. Fonte gratuita identificada via pesquisa: **Investidor10 tem
+uma "Agenda de Dividendos de FIIs"** (público, atualizado periodicamente,
+mostra datas de pagamento, valores, data-com). NÃO implementado ainda --
+ficaria para combinar com o histórico já acumulado em carteira_fiis.json
+(soma do que já foi pago desde data_ativacao até hoje, por ticker).
+
+## Visão de produto confirmada pelo usuário (não é tarefa de código, é alinhamento)
+- "Indicadores" continua sendo SÓ ações (Watchlist, Graham/4 métodos) --
+  usuário confirmou que produtos são diferentes (ação vs FII), não dá
+  para misturar a mesma mecânica.
+- "FIIs" vai crescer no futuro para ter a MESMA estrutura que já existe
+  hoje para estruturadas (Em Análise → Ativa/Carteira → Encerrada), só
+  que aplicada a fundos imobiliários -- abas paralelas, não fundidas.
+- Usuário enxerga essas "carteiras" (de estruturadas e de FIIs) como algo
+  que pode se tornar produto vendável no futuro -- reforça a importância
+  da correção de segurança feita nesta mesma parte da sessão.
+
+## Estado FINAL do backlog ao fim desta sessão (muito longa, múltiplas partes)
+1. ✅ Item 7 (EV completo no score do ranking de estruturadas) -- CONCLUÍDO
+2. ✅ Item 6 (Minério de Ferro, fonte TradingView FEF1!) -- CONCLUÍDO E
+   CONFIRMADO funcionando pelo usuário em produção real
+3. ✅ Item 1 (FIIs) -- CONCLUÍDO de ponta a ponta: pesquisa de fonte,
+   critério P/VP→DY→liquidez, classificação de risco (High Grade/Middle/
+   High Yield), screening completo, fluxo de Em Análise → Carteira.
+   Falta apenas: histórico de dividendos mês a mês (registrado acima,
+   próxima sessão).
+4. ✅ SEGURANÇA (item novo, levantado pelo usuário nesta sessão, fora do
+   backlog original) -- primeira camada de proteção implementada e
+   confirmada funcionando.
+5. Itens 2, 3, 4 restantes do backlog ORIGINAL (ETFs, Renda Fixa, "Análise
+   de Papel") -- ainda sem ação, próxima sessão.
+6. Item 5 do backlog original (Migração Em Análise→Ativa para
+   ESTRUTURADAS, não FIIs) -- ainda sem ação (FIIs ganharam o fluxo
+   próprio nesta sessão, mas estruturadas continuam usando o sistema
+   antigo via ranking + mudarStatusAnalise dentro de analises.json).
+7. Lote de 24/06 (estruturadas) -- usuário continua decidindo via
+   ranking; AXIA3 já rejeitada de verdade em teste real, resto em aberto.
+
+## Sessão MUITO longa -- lembrete de continuidade
+Esta sessão cobriu 8 partes distintas de trabalho real (ranking EV,
+Minério de Ferro x3 iterações, FIIs pesquisa+implementação+correções
+x3, segurança, carteira de FIIs). Se uma nova sessão for aberta, este
+arquivo (PROMPT_NOVA_SESSAO_v2.md) tem TODO o histórico necessário --
+ler do início desta sessão (parte 1) até aqui para reconstituir o
+contexto completo antes de continuar qualquer trabalho.
