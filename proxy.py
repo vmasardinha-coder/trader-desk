@@ -4475,6 +4475,91 @@ def mudar_status_carteira_fii(fii_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ── FI-Infra (Fundos de Investimento em Infraestrutura) ────
+# Adicionado 26/06/2026. Usuario percebeu que CDII11 (e outros FI-Infra)
+# nunca apareciam na busca/listagem de FIIs -- investigacao confirmou:
+# FI-Infra e categoria REGULATORIAMENTE SEPARADA de FII tradicional
+# (mesma raiz legal -- condominio fechado, isencao de IR -- mas registro
+# proprio na B3/CVM). O Fundamentus (fonte usada para FIIs tradicionais)
+# NAO lista FI-Infra. Fonte alternativa encontrada: Investidor10
+# (investidor10.com.br/fiis/segmento/fi-infra/), que lista os FI-Infra
+# DENTRO da mesma estrutura de navegacao de FIIs do site (~22 fundos
+# confirmados via inspecao manual em 26/06/2026, incluindo CDII11).
+#
+# RISCO DOCUMENTADO: pagina pode renderizar via JS (React), e um simples
+# requests.get() pode nao capturar o HTML completo -- mesma ressalva ja
+# dada para outras fontes nesta sessao. Sanity check rigoroso abaixo;
+# se falhar, retorna erro explicito (nunca dado parcial/inventado).
+_FII_INFRA_TIPO_MAP = {
+    'Outro': 'outro',
+    'Fundo de Papel': 'papel',
+    'Fundo Misto': 'misto',
+    'Fundo de Desenvolvimento': 'desenvolvimento',
+}
+
+def scrape_fi_infra():
+    """Scraping da lista de FI-Infra do Investidor10. Retorna lista de
+    dicts ou (None, motivo) se o sanity check falhar."""
+    try:
+        r = requests.get(
+            'https://investidor10.com.br/fiis/segmento/fi-infra/',
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language': 'pt-BR,pt;q=0.9',
+            },
+            timeout=15)
+        if not r.ok:
+            return None, f'http_error_{r.status_code}'
+        html = r.text
+
+        # Padrao da linha da tabela: link para /fiis/<ticker>/ seguido do
+        # nome, depois 5 colunas numericas (PL, P/VP, DY, DY medio, Liquidez)
+        # e o tipo de fundo. Regex tolerante a espacos/quebras de linha.
+        linhas = re.findall(
+            r'/fiis/([a-z0-9]+)/["\'][^>]*>.*?<.*?(\d[\d.,]*\s*[BMK]?)\s*</.*?'
+            r'(\d[\d.,]*)\s*</.*?(\d[\d.,]*%|-)\s*</.*?(\d[\d.,]*%|-)\s*</.*?'
+            r'(\d[\d.,]*\s*[BMK]?)\s*</.*?>([^<]+)<',
+            html, re.IGNORECASE | re.DOTALL)
+
+        fundos = []
+        tickers_vistos = set()
+        for m in re.finditer(r'href="/fiis/([a-z0-9]{4,7})/"[^>]*title="([^"]+)"', html, re.IGNORECASE):
+            ticker = m.group(1).upper()
+            nome = m.group(2)
+            if ticker in tickers_vistos or not re.match(r'^[A-Z]{4}11$', ticker):
+                continue
+            tickers_vistos.add(ticker)
+            fundos.append({'ticker': ticker, 'nome_fundo': nome})
+
+        if len(fundos) < 15:
+            return None, f'poucos_fundos_encontrados ({len(fundos)}, esperado 15+)'
+
+        return fundos, None
+    except Exception as e:
+        return None, str(e)
+
+@app.route('/fii-infra', methods=['GET'])
+def get_fii_infra():
+    """
+    Lista os FI-Infra encontrados (ticker + nome). Endpoint SIMPLIFICADO
+    -- so confirma existencia/nome do ticker (resolve o caso de usuario
+    nao achar CDII11 na busca). Dados financeiros completos (P/VP, DY,
+    liquidez) NAO sao extraidos ainda nesta versao -- o HTML da pagina
+    via requests.get() pode nao trazer a tabela completa renderizada via
+    JS, e extrair so ticker/nome via padrao de link e mais robusto que
+    tentar parsear a tabela inteira sem garantia de que veio completa.
+    """
+    try:
+        fundos, erro = scrape_fi_infra()
+        if fundos is None:
+            return jsonify({
+                'error': f'Scraping do Investidor10 falhou ou layout pode ter mudado, ou a pagina exige JS para carregar a tabela completa: {erro}',
+                'fundos': [],
+            }), 502
+        return jsonify({'total': len(fundos), 'fundos': fundos})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/positions', methods=['GET'])
 def get_positions():
     """
