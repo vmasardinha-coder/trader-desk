@@ -3594,6 +3594,16 @@ _FII_SEGMENTO_BASE = {
     'Varejo': 'tijolo',
     'Hospital': 'tijolo',
     'Hotel': 'tijolo',
+    # ADICIONADO 25/06/2026: usuario notou VGIA11 e KNCA11 (ambos Fiagro
+    # confirmado, CRA/agronegocio) ausentes do ranking. Nome exato do
+    # segmento no Fundamentus para esses fundos nao confirmado com certeza
+    # (pode ser "Fiagro" sem S -- nomenclatura "Fiagros" com S vista em
+    # outras fontes pode ser proprietaria de cada agregador, nao do
+    # Fundamentus). Adicionado ambas as grafias por seguranca, mapeadas
+    # para 'papel' (Fiagro = essencialmente CRA, equivalente a CRI mas do
+    # agro -- mesma natureza de fundo de papel).
+    'Fiagro': 'papel',
+    'Fiagros': 'papel',
     'Outros': 'outros',
 }
 
@@ -3861,6 +3871,72 @@ def scrape_fiis_fundamentus():
         return fiis, None
     except Exception as e:
         return None, str(e)
+
+@app.route('/fiis/buscar', methods=['GET'])
+def buscar_fii():
+    """
+    Adicionado 25/06/2026 -- usuario nao conseguia achar visualmente
+    alguns tickers seus (VGIA11, KNCA11) na lista filtrada de FIIs e
+    pediu uma forma de CONSULTAR diretamente um ticker especifico, para
+    julgar onde ele esta (universo bruto, descartado com motivo, ou
+    classificado com nivel de risco). Roda o MESMO scraping (cache nao
+    implementado ainda -- cada chamada busca de novo, aceitavel para uso
+    individual esporadico de consulta).
+
+    Query param obrigatorio: ticker (ex: ?ticker=VGIA11)
+    Resposta sempre diz qual dos 3 estagios o ticker atingiu:
+    - nao_encontrado: nao apareceu nem no scraping bruto (pode ser erro de
+      parsing, ticker baixa liquidez extrema sem listagem, ou nome errado)
+    - descartado: apareceu no bruto mas caiu no descarte inicial
+      (liquidez/DY) -- mostra o motivo exato
+    - classificado: passou o descarte, mostra segmento/risco/score
+    """
+    try:
+        ticker_busca = (request.args.get('ticker') or '').strip().upper()
+        if not ticker_busca:
+            return jsonify({'error': 'parametro ticker obrigatorio (ex: ?ticker=VGIA11)'}), 422
+
+        fiis, erro = scrape_fiis_fundamentus()
+        if fiis is None:
+            return jsonify({'error': f'Scraping falhou: {erro}'}), 502
+
+        encontrado_bruto = next((f for f in fiis if f['ticker'] == ticker_busca), None)
+        if not encontrado_bruto:
+            return jsonify({
+                'ticker': ticker_busca,
+                'estagio': 'nao_encontrado',
+                'mensagem': f'{ticker_busca} nao apareceu no scraping bruto do Fundamentus ({len(fiis)} FIIs totais). Verifique se o ticker esta correto, ou se o fundo pode ter sido deslistado/renomeado.',
+            })
+
+        liquidez_min = float(request.args.get('liquidez_min', 50000))
+        motivo_descarte = None
+        if encontrado_bruto['liquidez'] is None or encontrado_bruto['liquidez'] < liquidez_min:
+            motivo_descarte = f"liquidez baixa (R${encontrado_bruto['liquidez']:,.0f}/dia)" if encontrado_bruto['liquidez'] is not None else 'liquidez ausente'
+        elif encontrado_bruto['dy_pct'] is None or encontrado_bruto['dy_pct'] <= 0:
+            motivo_descarte = 'DY zerado ou ausente'
+
+        if motivo_descarte:
+            return jsonify({
+                'ticker': ticker_busca,
+                'estagio': 'descartado',
+                'motivo': motivo_descarte,
+                'dados_brutos': encontrado_bruto,
+            })
+
+        nivel_risco = _classificar_risco_fii(
+            encontrado_bruto.get('nome_fundo', ''), encontrado_bruto['segmento_fundamentus'],
+            encontrado_bruto['dy_pct'], encontrado_bruto['vacancia_pct'], None)
+        score = _score_fii(encontrado_bruto['p_vp'], encontrado_bruto['dy_pct'],
+                            encontrado_bruto['liquidez'], encontrado_bruto.get('ffo_yield_pct'))
+        return jsonify({
+            'ticker': ticker_busca,
+            'estagio': 'classificado',
+            'nivel_risco': nivel_risco,
+            'score': score,
+            'dados': {**encontrado_bruto, 'nivel_risco': nivel_risco, 'score': score},
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/fiis', methods=['GET'])
 def get_fiis():
