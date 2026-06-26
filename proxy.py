@@ -3295,8 +3295,23 @@ def _migrar_para_positions(item_analise):
         return False, f"erro ao calcular vencimento: {e}"
 
     # Busca historico real de 1 ano e calcula GARCH -- mesmo padrao ja
-    # usado em multiplos lugares do proxy.py (ex: /montecarlo/barrier)
-    vol_impl = 0.35  # fallback conservador se GARCH falhar
+    # usado em multiplos lugares do proxy.py (ex: /montecarlo/barrier).
+    #
+    # CORRIGIDO 26/06/2026: usuario descobriu que o fallback anterior
+    # (0.35 fixo) NAO e aceitavel -- "nao invente dados para eu decidir
+    # na analise... eu decidi hoje com base em X% de chance de ganho".
+    # PRINCIPIO: NUNCA usar numero fixo arbitrario quando existe QUALQUER
+    # calculo real possivel a partir do preco do ativo, mesmo que mais
+    # simples (vol historica com poucos pontos ainda e dado real; um
+    # fallback de 0.35 nao e). Cascata: GARCH (>=60 pontos, mais robusto)
+    # -> vol historica calculada manualmente com QUALQUER quantidade >=5
+    # pontos (sem o limite de 22 que vol_hist() teria, que tambem cai em
+    # 0.35 fixo) -- so se houver MENOS de 5 pontos validos no historico
+    # inteiro de 1 ano (caso extremo, praticamente sem negociacao) e que
+    # fica sem calculo real possivel, e o campo e marcado explicitamente
+    # como nao calculado (None), nunca com numero inventado escondido.
+    vol_impl = None
+    vol_impl_fonte = 'nao_calculado'  # sinaliza a ORIGEM do numero, para o usuario auditar
     try:
         for host in ['query1', 'query2']:
             try:
@@ -3311,13 +3326,28 @@ def _migrar_para_positions(item_analise):
                         garch_info = garch_11(cl, horizon_days=min(prazo_dias, 60))
                         if garch_info:
                             vol_impl = round(garch_info['vol_garch_projetada_pct'] / 100, 4)
+                            vol_impl_fonte = 'garch'
                         else:
                             vol_impl = round(vol_hist(cl), 4)
+                            vol_impl_fonte = 'vol_historica_22d'
+                    elif len(cl) >= 5:
+                        # Menos pontos do que o GARCH exige (60) -- calcula
+                        # vol historica manualmente com o que tiver
+                        # disponivel (real, nao inventado), em vez de cair
+                        # no limite de 22 dias do vol_hist() (que tambem
+                        # teria fallback fixo se nao alcancasse).
+                        n_pontos = len(cl)
+                        rets = [math.log(cl[i]/cl[i-1]) for i in range(1, n_pontos)]
+                        if rets:
+                            media = sum(rets) / len(rets)
+                            var = sum((r - media)**2 for r in rets) / len(rets)
+                            vol_impl = round(math.sqrt(var * 252), 4)
+                            vol_impl_fonte = f'vol_historica_{n_pontos}d_baixa_amostra'
                     break
             except Exception:
                 continue
     except Exception:
-        pass  # mantem fallback de 0.35 se tudo falhar -- nunca bloqueia a migracao por isso
+        pass  # vol_impl permanece None se a busca de rede falhar completamente
 
     kdo_pct = round((float(kdo) / preco_foto - 1) * 100, 2)
     ganho_pct = item_analise.get('ganho_prefixado_pct')
@@ -3334,7 +3364,8 @@ def _migrar_para_positions(item_analise):
         'entry': preco_foto,
         'kdo': float(kdo),
         'kdo_pct': f"{kdo_pct:.1f}%",
-        'vol_impl': vol_impl,
+        'vol_impl': vol_impl,  # pode ser None se nao houve dado suficiente -- NUNCA numero inventado
+        'vol_impl_fonte': vol_impl_fonte,  # 'garch' | 'vol_historica_22d' | 'vol_historica_Nd_baixa_amostra' | 'nao_calculado' -- para auditoria do usuario
         'data_entrada': item_analise['data_foto'][:10],
         'exercicio': 'europeia',  # default -- usuario corrige manualmente se for excecao
     }
@@ -3362,8 +3393,10 @@ def _migrar_para_positions(item_analise):
         dados_pos['ativas'].append(novo_registro)
         novo_conteudo_pos = json.dumps(dados_pos, indent=2, ensure_ascii=False)
         _github_put_file('positions.json', novo_conteudo_pos, sha_pos,
-            f"feat: migra {ticker} de Em Analise para Posicoes Ativas (vol_impl={vol_impl} via GARCH)")
-        return True, f"{ticker} migrado para positions.json com vol_impl={vol_impl} (GARCH)"
+            f"feat: migra {ticker} de Em Analise para Posicoes Ativas (vol_impl fonte={vol_impl_fonte})")
+        if vol_impl is None:
+            return True, f"{ticker} migrado, mas vol_impl NAO PUDE ser calculado (histórico insuficiente, <5 pontos válidos em 1 ano) -- complete manualmente em positions.json"
+        return True, f"{ticker} migrado para positions.json com vol_impl={vol_impl} (fonte: {vol_impl_fonte})"
     except Exception as e:
         return False, f"erro ao gravar positions.json: {e}"
 
