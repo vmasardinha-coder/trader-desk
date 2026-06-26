@@ -409,5 +409,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-26. P/VP=0.98, DY=15.70%, segmento=Multicategoria, nível de risco=middle_risk. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1782484445"
+  },
+  {
+    "ticker": "RBVA11.SA",
+    "nome": "RBVA11 - FII Varejo",
+    "data_foto": "2026-06-26",
+    "preco_foto": 8.9,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 12.01,
+    "p_vp": 0.83,
+    "liquidez": 2519830,
+    "segmento": "tijolo",
+    "nivel_risco": "middle_risk",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-06-26. P/VP=0.83, DY=12.01%, segmento=Varejo, nível de risco=middle_risk. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1782484459"
   }
 ]
