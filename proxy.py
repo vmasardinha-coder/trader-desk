@@ -3625,12 +3625,17 @@ def _classificar_segmento_fii(segmento_fundamentus, qtd_imoveis, nome_completo='
             return 'fof'
         if any(p in nome_upper for p in _FII_PALAVRAS_PAPEL):
             return 'papel'
-        if qtd_imoveis is not None and qtd_imoveis == 0:
-            # Zero imoveis fisicos e o sinal mais forte de que nao e
-            # tijolo de verdade -- mais provavel ser papel (CRI/recebiveis
-            # sem nome-chave explicito, ou FoF generico).
+        # CORRIGIDO 25/06/2026 (2a vez): tratar qtd_imoveis AUSENTE (None)
+        # da mesma forma que ZERO -- ambos significam "sem imovel fisico
+        # contabilizado", sinal forte de fundo de papel/CRI. Usuario
+        # encontrou caso real (CPTS11, fundo de CRI puro, confirmado via
+        # multiplas fontes externas) caindo em 'outros' -- provavel causa:
+        # qtd_imoveis vinha como None (nao 0) para esse fundo na pagina do
+        # Fundamentus, e a condicao anterior so tratava o caso ==0
+        # explicitamente, deixando None cair no fallback errado.
+        if qtd_imoveis is None or qtd_imoveis == 0:
             return 'papel'
-        if qtd_imoveis is not None and qtd_imoveis > 0:
+        if qtd_imoveis > 0:
             # Tem imovel fisico de verdade -- mantem como hibrido (mistura
             # de tipos de imovel, que e o sentido original de "Multicategoria"
             # quando aplicado a um fundo de tijolo de verdade).
