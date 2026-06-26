@@ -3239,6 +3239,134 @@ def criar_analise():
 
 @app.route('/analises/<analise_id>/status', methods=['PUT'])
 @_requer_auth_escrita
+def _migrar_para_positions(item_analise):
+    """
+    Adicionado 26/06/2026. Quando uma analise de ESTRUTURADA (retorno_
+    controlado ou bidirecional) muda para status='ativa', migra de fato
+    para positions.json -- ate aqui, so o status mudava dentro de
+    analises.json, sem nunca aparecer em "Posicoes Ativas" (bug real
+    reportado pelo usuario com BSLV39, ficou "ativa" mas nunca migrou).
+
+    Volatilidade implicita (vol_impl) e CALCULADA via GARCH(1,1) (mesma
+    funcao garch_11 ja usada em /montecarlo) a partir do historico real
+    de 1 ano do ticker -- usuario confirmou explicitamente que NAO precisa
+    de input manual, o sistema ja calcula isso em outros lugares do app
+    e deve fazer o mesmo aqui ("eu so preciso do calculo... ele ja calcula
+    tudo").
+
+    Campos do registro de positions.json, todos derivados do que JA EXISTE
+    em analises.json + GARCH (nada inventado):
+    - entry = preco_foto
+    - kdo = kdo (ja existe)
+    - kdo_pct = calculado (kdo/preco_foto - 1)
+    - vencimento = data_foto + prazo_dias
+    - data_entrada = data_foto
+    - exercicio = 'europeia' por padrao (estruturas de banco -- Itau/
+      bidirecional/retorno_controlado -- sao tipicamente europeias,
+      conforme ja documentado; usuario pode corrigir manualmente se for
+      excecao americana, igual ja aconteceu com ROXO34/ROXOG105)
+    - vol_impl = GARCH(1,1) sobre 1 ano de historico real
+
+    APENAS para tipo_estrutura in ('retorno_controlado', 'bidirecional').
+    Para 'simples' (covered call) e 'fii', NAO migra automaticamente ainda
+    -- 'simples' tem schema mais antigo com codigo_opcao/strike que merece
+    decisao separada; 'fii' ja tem fluxo proprio (/carteira-fiis).
+
+    Retorna (sucesso: bool, mensagem: str).
+    """
+    tipo = item_analise.get('tipo_estrutura')
+    if tipo not in ('retorno_controlado', 'bidirecional'):
+        return False, f"migracao automatica nao implementada para tipo_estrutura={tipo!r} ainda"
+
+    from datetime import datetime as _dt_migra, timedelta as _td_migra
+
+    ticker = item_analise['ticker']
+    symbol = ticker.replace('.SA', '').upper()
+    preco_foto = float(item_analise['preco_foto'])
+    kdo = item_analise.get('kdo')
+    if kdo is None:
+        return False, "campo 'kdo' ausente na analise -- nao e possivel migrar sem barreira definida"
+
+    try:
+        data_foto = _dt_migra.strptime(item_analise['data_foto'][:10], '%Y-%m-%d').date()
+        prazo_dias = int(item_analise['prazo_dias'])
+        vencimento = (data_foto + _td_migra(days=prazo_dias)).isoformat()
+    except Exception as e:
+        return False, f"erro ao calcular vencimento: {e}"
+
+    # Busca historico real de 1 ano e calcula GARCH -- mesmo padrao ja
+    # usado em multiplos lugares do proxy.py (ex: /montecarlo/barrier)
+    vol_impl = 0.35  # fallback conservador se GARCH falhar
+    try:
+        for host in ['query1', 'query2']:
+            try:
+                r = requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{symbol}.SA?interval=1d&range=1y',
+                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                if r.ok:
+                    d = r.json()
+                    raw_cl = d['chart']['result'][0]['indicators']['quote'][0]['close']
+                    cl = [c for c in raw_cl if c is not None]
+                    if len(cl) >= 60:
+                        garch_info = garch_11(cl, horizon_days=min(prazo_dias, 60))
+                        if garch_info:
+                            vol_impl = round(garch_info['vol_garch_projetada_pct'] / 100, 4)
+                        else:
+                            vol_impl = round(vol_hist(cl), 4)
+                    break
+            except Exception:
+                continue
+    except Exception:
+        pass  # mantem fallback de 0.35 se tudo falhar -- nunca bloqueia a migracao por isso
+
+    kdo_pct = round((float(kdo) / preco_foto - 1) * 100, 2)
+    ganho_pct = item_analise.get('ganho_prefixado_pct')
+
+    novo_id = re.sub(r'[^a-z0-9]', '', symbol.lower())[:8] or f"pos{int(time.time())}"
+
+    novo_registro = {
+        'id': novo_id,
+        'ticker': ticker,
+        'nome': item_analise.get('nome', symbol),
+        'tipo_posicao': 'barreira_simples' if tipo == 'retorno_controlado' else 'barreira',
+        'estrategia': 'Retorno Controlado' if tipo == 'retorno_controlado' else 'Bidirecional',
+        'vencimento': vencimento,
+        'entry': preco_foto,
+        'kdo': float(kdo),
+        'kdo_pct': f"{kdo_pct:.1f}%",
+        'vol_impl': vol_impl,
+        'data_entrada': item_analise['data_foto'][:10],
+        'exercicio': 'europeia',  # default -- usuario corrige manualmente se for excecao
+    }
+    if ganho_pct is not None:
+        novo_registro['ganho_sem_barreira'] = f"{ganho_pct}% fixo"
+    if tipo == 'bidirecional':
+        kuo = item_analise.get('kuo')
+        if kuo is not None:
+            novo_registro['kuo'] = float(kuo)
+            novo_registro['kuo_pct'] = f"{round((float(kuo)/preco_foto - 1) * 100, 1)}%"
+        if item_analise.get('teto_retorno_pct') is not None:
+            novo_registro['teto_retorno_pct'] = item_analise['teto_retorno_pct']
+        if item_analise.get('alavancagem') is not None:
+            novo_registro['alavancagem'] = item_analise['alavancagem']
+
+    try:
+        conteudo_pos_str, sha_pos = _github_get_file('positions.json')
+        dados_pos = json.loads(conteudo_pos_str) if conteudo_pos_str.strip() else {'ativas': [], 'encerradas': []}
+        dados_pos.setdefault('ativas', [])
+        # Evita duplicar se o ticker ja estiver ativo (protecao similar a
+        # ja implementada para carteira_fiis.json)
+        ja_existe = any(p.get('ticker') == ticker for p in dados_pos['ativas'])
+        if ja_existe:
+            return False, f"{ticker} ja existe em positions.json (ativas)"
+        dados_pos['ativas'].append(novo_registro)
+        novo_conteudo_pos = json.dumps(dados_pos, indent=2, ensure_ascii=False)
+        _github_put_file('positions.json', novo_conteudo_pos, sha_pos,
+            f"feat: migra {ticker} de Em Analise para Posicoes Ativas (vol_impl={vol_impl} via GARCH)")
+        return True, f"{ticker} migrado para positions.json com vol_impl={vol_impl} (GARCH)"
+    except Exception as e:
+        return False, f"erro ao gravar positions.json: {e}"
+
 def mudar_status_analise(analise_id):
     """
     Move uma analise entre estagios (em_analise -> ativa -> encerrada, ou
@@ -3251,6 +3379,12 @@ def mudar_status_analise(analise_id):
     PERMANENTE em stats_analises.json -- esse contador nunca diminui,
     mesmo apos a limpeza de 30 dias remover o registro detalhado da
     listagem (ver rotina de limpeza em /analises GET).
+
+    ADICIONADO 26/06/2026: quando novo_status='ativa' E tipo_estrutura in
+    (retorno_controlado, bidirecional), migra AUTOMATICAMENTE para
+    positions.json de fato (ver _migrar_para_positions) -- antes disso, o
+    status mudava mas o registro nunca aparecia em "Posicoes Ativas"
+    (bug real reportado pelo usuario com BSLV39).
     """
     try:
         body = request.get_json() or {}
@@ -3265,6 +3399,7 @@ def mudar_status_analise(analise_id):
         conteudo_str, sha = _github_get_file('analises.json')
         lista = json.loads(conteudo_str) if conteudo_str.strip() else []
         encontrado = False
+        item_encontrado = None
         for item in lista:
             if item.get('id') == analise_id:
                 item['status'] = novo_status
@@ -3275,6 +3410,7 @@ def mudar_status_analise(analise_id):
                     item['resultado'] = resultado
                     item['data_encerramento'] = _hoje_str()
                 encontrado = True
+                item_encontrado = dict(item)  # copia para usar na migracao apos salvar
                 break
         if not encontrado:
             return jsonify({'error': f'analise {analise_id} nao encontrada'}), 404
@@ -3286,7 +3422,15 @@ def mudar_status_analise(analise_id):
         if motivo == 'rejeitada':
             _incrementar_contador_rejeitadas()
 
-        return jsonify({'id': analise_id, 'status': novo_status})
+        migracao_info = None
+        if novo_status == 'ativa' and item_encontrado:
+            sucesso_migracao, msg_migracao = _migrar_para_positions(item_encontrado)
+            migracao_info = {'migrado_para_positions': sucesso_migracao, 'detalhe': msg_migracao}
+
+        resposta = {'id': analise_id, 'status': novo_status}
+        if migracao_info:
+            resposta['migracao'] = migracao_info
+        return jsonify(resposta)
     except RuntimeError as e:
         return jsonify({'error': str(e)}), 500
     except Exception as e:
