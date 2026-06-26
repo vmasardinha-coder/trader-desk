@@ -161,7 +161,18 @@ function renderFiisFiltro(){
     const title=_FII_RISCO_TITLE[r]?` title="${_FII_RISCO_TITLE[r]}"`:'';
     return `<button onclick="setFiisRisco('${r}')"${title} style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_RISCO_LABEL[r]} (${n})</button>`;
   }).join('');
-  area.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${linhaSeg}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>`;
+  // Adicionado 26/06/2026 -- usuario pediu campo de busca por texto
+  // embaixo dos filtros, para nao depender de Ctrl+F do navegador numa
+  // lista longa. Filtra em tempo real (oninput) por ticker OU nome do
+  // fundo, mantendo o valor digitado entre re-renders (value="...").
+  const buscaHtml=`<div style="margin-top:8px"><input type="text" id="fiis-busca-input" placeholder="Buscar ticker ou nome do fundo..." value="${_fiisBuscaTexto||''}" oninput="setFiisBusca(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;font-size:12px;font-family:inherit;border-radius:4px"></div>`;
+  area.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${linhaSeg}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>${buscaHtml}`;
+}
+
+let _fiisBuscaTexto='';
+function setFiisBusca(texto){
+  _fiisBuscaTexto=texto;
+  renderFiis();  // NAO chama renderFiisFiltro aqui -- evitaria perder o foco do input a cada tecla digitada
 }
 
 function setFiisSegmento(seg){
@@ -180,6 +191,10 @@ function renderFiis(){
   if(!cont)return;
   let lista=_fiisSegmentoAtivo==='todos'?_fiisData:_fiisData.filter(f=>f.segmento===_fiisSegmentoAtivo);
   if(_fiisRiscoAtivo!=='todos')lista=lista.filter(f=>f.nivel_risco===_fiisRiscoAtivo);
+  if(_fiisBuscaTexto&&_fiisBuscaTexto.trim()){
+    const termo=_fiisBuscaTexto.trim().toUpperCase();
+    lista=lista.filter(f=>f.ticker.toUpperCase().includes(termo)||(f.nome_fundo||'').toUpperCase().includes(termo));
+  }
   if(!lista.length){
     cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhum FII nesse filtro.</p>';
     return;
