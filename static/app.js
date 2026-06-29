@@ -117,7 +117,7 @@ const _FII_ESCOPO_TITLE={
   criterio:'Apenas FIIs que passam no critério padrão (liquidez ≥ R$50k/dia, DY > 0%) -- classificados por segmento e nível de risco.',
 };
 const _FII_SEGMENTO_LABEL={
-  todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', fof:'Fundo de Fundos', outros:'Outros'
+  todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', fof:'Fundo de Fundos', 'fi-infra':'FI-Infra', outros:'Outros'
 };
 const _FII_RISCO_LABEL={
   todos:'Todos', high_grade:'🟢 High Grade', middle_risk:'🟡 Middle Risk', high_yield:'🔴 High Yield'
@@ -176,7 +176,7 @@ function renderFiisFiltro(){
       contagensSeg[f.segmento]=(contagensSeg[f.segmento]||0)+1;
       contagensRisco[f.nivel_risco]=(contagensRisco[f.nivel_risco]||0)+1;
     });
-    const segs=['todos','papel','tijolo','hibrido','fof','outros'];
+    const segs=['todos','papel','tijolo','hibrido','fof','fi-infra','outros'];
     const riscos=['todos','high_grade','middle_risk','high_yield'];
     const linhaSeg=segs.map(s=>{
       const ativo=s===_fiisSegmentoAtivo;
@@ -248,7 +248,23 @@ function renderFiis(){
     high_yield:'<span style="background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.3);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">🔴 HY</span>',
   };
   const FORA_CRITERIO_BADGE='<span style="background:rgba(255,59,48,.15);color:#ff3b30;border:1px solid rgba(255,59,48,.4);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">⚠ FORA</span>';
+  const FI_INFRA_BADGE='<span style="background:rgba(0,180,216,.15);color:#00b4d8;border:1px solid rgba(0,180,216,.4);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">FI-INFRA</span>';
   const rows=lista.map(f=>{
+    // FI-Infra (adicionado 26/06/2026): categoria separada de FII
+    // tradicional, scraping ainda nao traz cotacao/DY/liquidez -- so
+    // confirma EXISTENCIA do ticker (resolve usuario nao achar CDII11).
+    // Linha simplificada, sem nenhum dado financeiro, so o ticker e o
+    // link para adicionar em analise (usuario decide manualmente, sem
+    // criterio automatico ainda).
+    if(f.sem_dados_financeiros){
+      return `<tr id="fii-row-${f.ticker}" style="opacity:.7">
+        <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
+        <td colspan="6" style="padding:6px 8px;color:var(--muted);font-size:10px">Dados financeiros (cotação, DY, liquidez) ainda não disponíveis para FI-Infra -- consulte a fonte diretamente antes de decidir.</td>
+        <td style="padding:6px 8px;text-align:right;white-space:nowrap">
+          <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise (sem dados financeiros automáticos -- você decide manualmente)" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">+ Em Análise</button>
+        </td>
+      </tr>`;
+    }
     // FII fora do criterio: linha simplificada, sem classificacao --
     // usuario pediu explicitamente "fica vazio, nao recebe classificacao
     // nenhuma, so o nome" + marcador vermelho.
@@ -322,8 +338,20 @@ async function aprovarFiiParaAnalise(ticker){
   // (so Criterio), e o clique nao fazia nada para FIIs fora do criterio.
   const f=_fiisData.find(x=>x.ticker===ticker)||_fiisTodosData.find(x=>x.ticker===ticker);
   if(!f)return;
+
+  // FI-Infra (adicionado 26/06/2026): sem dados financeiros automaticos
+  // ainda -- f.cotacao/f.dy_pct/f.p_vp sao todos null, .toFixed() quebraria.
+  // Pede o preco MANUALMENTE em vez de tentar usar dado que nao existe.
+  let precoFoto = f.cotacao;
+  if(f.sem_dados_financeiros){
+    const precoStr=prompt(`${ticker} é FI-Infra -- ainda não temos cotação automática.\n\nDigite o preço atual (consulte fiis.com.br/${ticker.toLowerCase()}/ ou seu home broker):`);
+    if(!precoStr)return;
+    precoFoto=parseFloat(precoStr.replace(',','.'));
+    if(isNaN(precoFoto)||precoFoto<=0){alert('Preço inválido.');return;}
+  }
+
   const avisoFora=f.fora_criterio?`\n\n⚠ Este FII está FORA do critério padrão (${f.motivo_fora_criterio}). Você está assumindo esse risco conscientemente.`:'';
-  const ok=confirm(`Adicionar ${ticker} a "Em Análise"? Isso grava no repositório com o preço de hoje (R$${(f.cotacao||0).toFixed(2)}) como referência.${avisoFora}`);
+  const ok=confirm(`Adicionar ${ticker} a "Em Análise"? Isso grava no repositório com preço de referência R$${precoFoto.toFixed(2)}.${avisoFora}`);
   if(!ok)return;
   const linha=document.getElementById('fii-row-'+ticker);
   try{
@@ -332,7 +360,7 @@ async function aprovarFiiParaAnalise(ticker){
       ticker: ticker+'.SA',
       nome: `${ticker} - FII ${f.segmento_fundamentus||'(sem classificação)'}`,
       data_foto: hoje,
-      preco_foto: f.cotacao,
+      preco_foto: precoFoto,
       tipo_estrutura: 'fii',
       prazo_dias: 9999,  // FIIs sao perpetuos, sem vencimento -- convencao documentada no backend
       dy_anual_pct: f.dy_pct,
@@ -343,7 +371,9 @@ async function aprovarFiiParaAnalise(ticker){
       origem: 'screening_fiis',
       status: 'em_analise',
       backtest: false,
-      observacao: `FII adicionado via screening em ${hoje}. P/VP=${f.p_vp.toFixed(2)}, DY=${f.dy_pct.toFixed(2)}%, segmento=${f.segmento_fundamentus}, nível de risco=${f.nivel_risco}. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).`
+      observacao: f.sem_dados_financeiros
+        ? `FI-Infra adicionado via screening em ${hoje}. Preço informado MANUALMENTE pelo usuário (R$${precoFoto.toFixed(2)}) -- dados financeiros automáticos (DY, P/VP, liquidez) ainda não disponíveis para esta categoria.`
+        : `FII adicionado via screening em ${hoje}. P/VP=${f.p_vp.toFixed(2)}, DY=${f.dy_pct.toFixed(2)}%, segmento=${f.segmento_fundamentus}, nível de risco=${f.nivel_risco}. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).`
     };
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
     const r=await fetch(B+'/analises',{
