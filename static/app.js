@@ -153,9 +153,11 @@ async function loadFiis(){
 // Adicionado 26/06/2026 -- estrutura em ARVORE pedida pelo usuario:
 // 1. Busca por texto (sempre visivel, no topo)
 // 2. Escopo: Todos (560 brutos) vs Criterio (so validos) -- nivel 1
-// 3. Segmento e Risco -- nivel 2, SO aparecem quando Criterio esta ativo
-//    (FIIs fora do criterio nao tem segmento/risco classificados, entao
-//    esses filtros nao fazem sentido na visao Todos)
+// 3. Segmento -- SEMPRE visivel (FI-Infra so existe na visao Todos, e
+//    precisa do filtro de segmento la tambem -- bug real reportado pelo
+//    usuario: filtro so existia/funcionava dentro de Criterio, FI-Infra
+//    aparecia 0 mesmo estando na lista). Risco -- SO em Criterio (FIIs
+//    fora do criterio/FI-Infra nao tem nivel_risco classificado).
 function renderFiisFiltro(){
   const area=document.getElementById('fiis-segmento-filtro');
   if(!area)return;
@@ -168,35 +170,41 @@ function renderFiisFiltro(){
     return `<button onclick="setFiisEscopo('${e}')" title="${_FII_ESCOPO_TITLE[e]}" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:7px 16px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:4px">${_FII_ESCOPO_LABEL[e]} (${n})</button>`;
   }).join('');
 
-  let filtrosSegRisco='';
+  // Segmento -- conta a partir de dadosBase (reflete o escopo atual: 560+22
+  // em Todos, ~249 em Criterio), SEMPRE renderizado independente do escopo.
+  const contagensSeg={todos:dadosBase.length};
+  dadosBase.forEach(f=>{contagensSeg[f.segmento]=(contagensSeg[f.segmento]||0)+1;});
+  const segs=['todos','papel','tijolo','hibrido','fof','fi-infra','outros'];
+  const linhaSeg=segs.map(s=>{
+    const ativo=s===_fiisSegmentoAtivo;
+    const n=contagensSeg[s]||0;
+    return `<button onclick="setFiisSegmento('${s}')" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_SEGMENTO_LABEL[s]} (${n})</button>`;
+  }).join('');
+
+  // Risco -- so faz sentido em Criterio (FI-Infra/fora_criterio nunca tem
+  // nivel_risco classificado, filtrar por risco neles nao daria nada).
+  let linhaRiscoHtml='';
   if(_fiisEscopoAtivo==='criterio'){
-    const contagensSeg={todos:_fiisData.length};
     const contagensRisco={todos:_fiisData.length};
-    _fiisData.forEach(f=>{
-      contagensSeg[f.segmento]=(contagensSeg[f.segmento]||0)+1;
-      contagensRisco[f.nivel_risco]=(contagensRisco[f.nivel_risco]||0)+1;
-    });
-    const segs=['todos','papel','tijolo','hibrido','fof','fi-infra','outros'];
+    _fiisData.forEach(f=>{contagensRisco[f.nivel_risco]=(contagensRisco[f.nivel_risco]||0)+1;});
     const riscos=['todos','high_grade','middle_risk','high_yield'];
-    const linhaSeg=segs.map(s=>{
-      const ativo=s===_fiisSegmentoAtivo;
-      const n=contagensSeg[s]||0;
-      return `<button onclick="setFiisSegmento('${s}')" style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_SEGMENTO_LABEL[s]} (${n})</button>`;
-    }).join('');
     const linhaRisco=riscos.map(r=>{
       const ativo=r===_fiisRiscoAtivo;
       const n=contagensRisco[r]||0;
       const title=_FII_RISCO_TITLE[r]?` title="${_FII_RISCO_TITLE[r]}"`:'';
       return `<button onclick="setFiisRisco('${r}')"${title} style="background:${ativo?'var(--accent)':'var(--bg3)'};border:1px solid ${ativo?'var(--accent)':'var(--border)'};color:${ativo?'#fff':'var(--muted)'};padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:${ativo?'700':'600'};border-radius:4px">${_FII_RISCO_LABEL[r]} (${n})</button>`;
     }).join('');
-    filtrosSegRisco=`
+    linhaRiscoHtml=`
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;margin-top:8px">Nível de risco</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>`;
+  }
+
+  const filtrosSegRisco=`
     <div style="margin-left:16px;margin-top:8px;padding-left:10px;border-left:2px solid var(--border)">
       <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Segmento</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${linhaSeg}</div>
-      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Nível de risco</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">${linhaRisco}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${linhaSeg}</div>
+      ${linhaRiscoHtml}
     </div>`;
-  }
 
   const buscaHtml=`<div style="margin-bottom:10px"><input type="text" id="fiis-busca-input" placeholder="Buscar ticker ou nome do fundo..." value="${_fiisBuscaTexto||''}" oninput="setFiisBusca(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;font-size:12px;font-family:inherit;border-radius:4px"></div>`;
   const escopoHtml=`<div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Escopo</div><div style="display:flex;gap:6px;flex-wrap:wrap">${linhaEscopo}</div>`;
@@ -230,10 +238,16 @@ function renderFiis(){
   const cont=document.getElementById('fiis-container');
   if(!cont)return;
   let lista=_fiisEscopoAtivo==='todos'?_fiisTodosData:_fiisData;
-  if(_fiisEscopoAtivo==='criterio'){
-    if(_fiisSegmentoAtivo!=='todos')lista=lista.filter(f=>f.segmento===_fiisSegmentoAtivo);
-    if(_fiisRiscoAtivo!=='todos')lista=lista.filter(f=>f.nivel_risco===_fiisRiscoAtivo);
-  }
+  // CORRIGIDO 26/06/2026: filtro de segmento agora funciona em AMBOS os
+  // escopos (Todos e Criterio), nao so em Criterio como antes -- bug real
+  // reportado pelo usuario: clicar no filtro "FI-Infra" nao mostrava nada,
+  // porque FI-Infra so existe na visao "Todos" (sem_dados_financeiros=true,
+  // nunca passa pelo criterio de liquidez/DY), mas o filtro de segmento
+  // so era aplicado quando _fiisEscopoAtivo==='criterio'. Filtro de RISCO
+  // continua so em Criterio (FI-Infra/fora_criterio nao tem nivel_risco
+  // classificado, filtrar por risco neles nao faz sentido).
+  if(_fiisSegmentoAtivo!=='todos')lista=lista.filter(f=>f.segmento===_fiisSegmentoAtivo);
+  if(_fiisEscopoAtivo==='criterio'&&_fiisRiscoAtivo!=='todos')lista=lista.filter(f=>f.nivel_risco===_fiisRiscoAtivo);
   if(_fiisBuscaTexto&&_fiisBuscaTexto.trim()){
     const termo=_fiisBuscaTexto.trim().toUpperCase();
     lista=lista.filter(f=>f.ticker.toUpperCase().includes(termo)||(f.nome_fundo||'').toUpperCase().includes(termo));
