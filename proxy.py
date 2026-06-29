@@ -4498,11 +4498,27 @@ _FII_INFRA_TIPO_MAP = {
 }
 
 def scrape_fi_infra():
-    """Scraping da lista de FI-Infra do Investidor10. Retorna lista de
-    dicts ou (None, motivo) se o sanity check falhar."""
+    """
+    Scraping da lista de FI-Infra via fiis.com.br/lista-de-fundos-
+    imobiliarios/ -- CORRIGIDO 26/06/2026 (2a fonte): a primeira tentativa
+    (Investidor10) deu erro 500 em producao real (suspeita de catastrophic
+    backtracking de regex contra HTML denso, ja removido, mas usuario
+    indicou fiis.com.br e statusinvest.com.br como alternativas).
+
+    fiis.com.br tem uma vantagem real: lista TODOS os fundos (FII
+    tradicional + FI-Infra) na MESMA pagina unica, com cada linha marcada
+    por categoria (ex: "Fi-infra: CDII11"). Confirmado via inspecao manual
+    em 26/06/2026: pelo menos 20 FI-Infra encontrados na mesma lista
+    (BDIF11, BIDB11, BINC11, BODB11, BRZD11, CDII11, IFRA11, IFRI11,
+    INFA11, INFB11, IRIF11, JMBI11, JURO11, KDIF11, NUIF11, OGIN11,
+    RBIF11, RIFF11, SNID11, VANG11), cada um com cotacao e valor de
+    mercado.
+
+    Retorna lista de dicts ou (None, motivo) se o sanity check falhar.
+    """
     try:
         r = requests.get(
-            'https://investidor10.com.br/fiis/segmento/fi-infra/',
+            'https://fiis.com.br/lista-de-fundos-imobiliarios/',
             headers={
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept-Language': 'pt-BR,pt;q=0.9',
@@ -4512,28 +4528,26 @@ def scrape_fi_infra():
             return None, f'http_error_{r.status_code}'
         html = r.text
 
-        # CORRIGIDO 26/06/2026: removido regex complexo nao-usado que
-        # tentava casar a linha completa da tabela (PL/PVP/DY/Liquidez) --
-        # esse padrao era so um resquicio de tentativa abandonada (o
-        # resultado nunca era usado depois), mas o ERRO 500 em producao
-        # (sem traceback Python visivel, pagina HTML generica de erro)
-        # sugere que ele pode ter causado catastrophic backtracking contra
-        # o HTML real da pagina (rico em menus/JS antes da tabela), algo
-        # que nao reproduzi em testes com HTML simulado simples. Removido
-        # por seguranca -- usa SO o padrao simples de ticker+nome abaixo,
-        # que e o que de fato alimenta o resultado.
+        # Padrao real: cada linha tem "Fi-infra:" seguido (com ou sem tag
+        # intermediaria) do link para /<ticker>/ com o ticker como texto,
+        # depois cotacao e valor de mercado. Regex tolerante a tags HTML
+        # entre os elementos (sem usar .*? encadeado multiplas vezes, que
+        # foi a causa do backtracking catastrofico na tentativa anterior --
+        # aqui cada grupo captura um trecho LIMITADO e especifico).
         fundos = []
         tickers_vistos = set()
-        for m in re.finditer(r'href="/fiis/([a-z0-9]{4,7})/"[^>]*title="([^"]+)"', html, re.IGNORECASE):
-            ticker = m.group(1).upper()
-            nome = m.group(2)
+        # Localiza o trecho "Fi-infra:" e o link/ticker que vem logo depois
+        # (ate 300 chars de distancia, suficiente para tags HTML mas longe
+        # de causar backtracking exponencial).
+        for m in re.finditer(r'Fi-infra:.{0,300}?/([a-z0-9]{4,7})/["\'][^>]{0,200}>\s*([A-Z0-9]{4,7})\s*<', html, re.IGNORECASE):
+            ticker = (m.group(2) or m.group(1)).upper()
             if ticker in tickers_vistos or not re.match(r'^[A-Z]{4}11$', ticker):
                 continue
             tickers_vistos.add(ticker)
-            fundos.append({'ticker': ticker, 'nome_fundo': nome})
+            fundos.append({'ticker': ticker, 'nome_fundo': ticker})
 
-        if len(fundos) < 15:
-            return None, f'poucos_fundos_encontrados ({len(fundos)}, esperado 15+)'
+        if len(fundos) < 10:
+            return None, f'poucos_fundos_encontrados ({len(fundos)}, esperado 10+)'
 
         return fundos, None
     except Exception as e:
@@ -4542,19 +4556,14 @@ def scrape_fi_infra():
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
     """
-    Lista os FI-Infra encontrados (ticker + nome). Endpoint SIMPLIFICADO
-    -- so confirma existencia/nome do ticker (resolve o caso de usuario
-    nao achar CDII11 na busca). Dados financeiros completos (P/VP, DY,
-    liquidez) NAO sao extraidos ainda nesta versao -- o HTML da pagina
-    via requests.get() pode nao trazer a tabela completa renderizada via
-    JS, e extrair so ticker/nome via padrao de link e mais robusto que
-    tentar parsear a tabela inteira sem garantia de que veio completa.
+    Lista os FI-Infra encontrados (ticker). Fonte: fiis.com.br (segunda
+    tentativa, apos Investidor10 ter dado erro 500 em producao).
     """
     try:
         fundos, erro = scrape_fi_infra()
         if fundos is None:
             return jsonify({
-                'error': f'Scraping do Investidor10 falhou ou layout pode ter mudado, ou a pagina exige JS para carregar a tabela completa: {erro}',
+                'error': f'Scraping do fiis.com.br falhou ou layout pode ter mudado: {erro}',
                 'fundos': [],
             }), 502
         return jsonify({'total': len(fundos), 'fundos': fundos})
