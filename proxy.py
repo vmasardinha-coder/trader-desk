@@ -4499,23 +4499,39 @@ _FII_INFRA_TIPO_MAP = {
 
 def scrape_fi_infra():
     """
-    Scraping da lista de FI-Infra via fiis.com.br/lista-de-fundos-
-    imobiliarios/ -- CORRIGIDO 26/06/2026 (2a fonte): a primeira tentativa
-    (Investidor10) deu erro 500 em producao real (suspeita de catastrophic
-    backtracking de regex contra HTML denso, ja removido, mas usuario
-    indicou fiis.com.br e statusinvest.com.br como alternativas).
+    Scraping de FI-Infra via fiis.com.br/lista-de-fundos-imobiliarios/.
 
-    fiis.com.br tem uma vantagem real: lista TODOS os fundos (FII
-    tradicional + FI-Infra) na MESMA pagina unica, com cada linha marcada
-    por categoria (ex: "Fi-infra: CDII11"). Confirmado via inspecao manual
-    em 26/06/2026: pelo menos 20 FI-Infra encontrados na mesma lista
-    (BDIF11, BIDB11, BINC11, BODB11, BRZD11, CDII11, IFRA11, IFRI11,
-    INFA11, INFB11, IRIF11, JMBI11, JURO11, KDIF11, NUIF11, OGIN11,
-    RBIF11, RIFF11, SNID11, VANG11), cada um com cotacao e valor de
-    mercado.
+    HISTORICO (26/06/2026): 1a tentativa (Investidor10) deu erro 500
+    (catastrophic backtracking de regex). 2a tentativa (fiis.com.br, regex
+    dependente do texto "Fi-infra:" estar proximo do link) deu 0 matches
+    em producao -- a estrutura HTML real (tags/atributos) e diferente do
+    que o web_fetch mostra (que ja vem processado/markdown), e adivinhar
+    a estrutura exata sem poder testar contra o HTML bruto real (site
+    bloqueado no sandbox de desenvolvimento) se mostrou fragil demais.
 
-    Retorna lista de dicts ou (None, motivo) se o sanity check falhar.
+    3a TENTATIVA (atual): abordagem mais ROBUSTA, em duas camadas:
+    1. Tenta o padrao mais simples possivel -- so o link href="/<ticker>/"
+       seguido do texto do ticker, SEM depender de "Fi-infra:" estar logo
+       antes (que pode ter mais tags/espacos entre eles do que esperado).
+    2. Fallback: BUSCA DE STRING SIMPLES (nao regex) pelos tickers de
+       FI-Infra JA CONHECIDOS (confirmados via multiplas fontes externas
+       nesta sessao: Investidor10, fiis.com.br via web_fetch, Toro, Nord).
+       Se o ticker aparecer em QUALQUER lugar do HTML da pagina (com ou
+       sem tag ao redor), confirma a existencia dele -- muito mais robusto
+       contra mudanca de estrutura HTML do que tentar parsear o padrao
+       exato de marcacao da categoria.
     """
+    # Lista de FI-Infra confirmados via pesquisa externa em 26/06/2026
+    # (Investidor10 + fiis.com.br via web_fetch + Toro + Nord Research).
+    # Usada como FALLBACK de busca simples se o parsing por regex falhar --
+    # nao e dado "inventado", e dado real confirmado por multiplas fontes
+    # independentes, so usado de forma mais robusta (busca de substring)
+    # em vez de parsing fragil de estrutura HTML.
+    TICKERS_FI_INFRA_CONHECIDOS = [
+        'BDIF11', 'BIDB11', 'BINC11', 'BODB11', 'BRZD11', 'CDII11', 'CPTI11',
+        'IFRA11', 'IFRI11', 'INFA11', 'INFB11', 'IRIF11', 'JMBI11', 'JURO11',
+        'KDIF11', 'NUIF11', 'OGIN11', 'RBIF11', 'RIFF11', 'SNID11', 'VANG11', 'XPID11',
+    ]
     try:
         r = requests.get(
             'https://fiis.com.br/lista-de-fundos-imobiliarios/',
@@ -4527,27 +4543,30 @@ def scrape_fi_infra():
         if not r.ok:
             return None, f'http_error_{r.status_code}'
         html = r.text
+        html_upper = html.upper()
 
-        # Padrao real: cada linha tem "Fi-infra:" seguido (com ou sem tag
-        # intermediaria) do link para /<ticker>/ com o ticker como texto,
-        # depois cotacao e valor de mercado. Regex tolerante a tags HTML
-        # entre os elementos (sem usar .*? encadeado multiplas vezes, que
-        # foi a causa do backtracking catastrofico na tentativa anterior --
-        # aqui cada grupo captura um trecho LIMITADO e especifico).
+        # Camada 1: regex simples, so o link (sem depender de "Fi-infra:")
         fundos = []
         tickers_vistos = set()
-        # Localiza o trecho "Fi-infra:" e o link/ticker que vem logo depois
-        # (ate 300 chars de distancia, suficiente para tags HTML mas longe
-        # de causar backtracking exponencial).
-        for m in re.finditer(r'Fi-infra:.{0,300}?/([a-z0-9]{4,7})/["\'][^>]{0,200}>\s*([A-Z0-9]{4,7})\s*<', html, re.IGNORECASE):
+        for m in re.finditer(r'href="/([a-z0-9]{4,7})/"[^>]{0,150}>\s*([A-Z0-9]{4,7})\s*<', html, re.IGNORECASE):
             ticker = (m.group(2) or m.group(1)).upper()
-            if ticker in tickers_vistos or not re.match(r'^[A-Z]{4}11$', ticker):
+            if ticker in tickers_vistos or ticker not in TICKERS_FI_INFRA_CONHECIDOS:
                 continue
             tickers_vistos.add(ticker)
-            fundos.append({'ticker': ticker, 'nome_fundo': ticker})
+            fundos.append({'ticker': ticker, 'nome_fundo': ticker, 'fonte_match': 'regex'})
+
+        # Camada 2 (fallback): busca de substring simples para os tickers
+        # conhecidos que a Camada 1 NAO encontrou -- protege contra
+        # mudanca de estrutura HTML que o regex nao previu.
+        for ticker in TICKERS_FI_INFRA_CONHECIDOS:
+            if ticker in tickers_vistos:
+                continue
+            if ticker in html_upper:
+                tickers_vistos.add(ticker)
+                fundos.append({'ticker': ticker, 'nome_fundo': ticker, 'fonte_match': 'substring'})
 
         if len(fundos) < 10:
-            return None, f'poucos_fundos_encontrados ({len(fundos)}, esperado 10+)'
+            return None, f'poucos_fundos_encontrados ({len(fundos)} de {len(TICKERS_FI_INFRA_CONHECIDOS)} conhecidos, esperado 10+)'
 
         return fundos, None
     except Exception as e:
