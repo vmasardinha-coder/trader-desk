@@ -2888,3 +2888,50 @@ ETFs, Renda Fixa, Análise de Papel, teto de análises por lote, visão
 multi-usuário, melhorias de UX do fluxo FII (separação visual Em Análise,
 controle de duplicidade no screening), evolução de FI-Infra para dados
 financeiros completos (se desejado).
+
+---
+
+# Sessão 29/06/2026 (retomada) — FI-Infra dados financeiros em andamento + BSLV39
+
+## Estado ao momento da pausa
+
+### FI-Infra -- dados financeiros AINDA COM BUG
+Endpoint /fii-infra busca dados individuais de cada ticker via
+fiis.com.br/<ticker>/ -- MAS extração retornou dy_pct=165.0 para TODOS
+os fundos (valor claramente errado, não é o DY real de nenhum FI-Infra).
+Cotacao=null e liquidez=null para todos.
+
+Causa raiz CONFIRMADA via inspeção do HTML real (web_fetch de bdif11/):
+- DY real do BDIF11 é 12,58% (não 165)
+- O número 165 vem provavelmente de CSS/JS do HTML bruto (ex: width:165px,
+  algum ID numérico, etc.) que o requests.get() recebe mas web_fetch
+  filtra. Meu regex "_extrai_numero_antes(label, html)" captura o último
+  número numa janela de 80 chars antes do label -- mas essa janela inclui
+  ruído numérico do HTML bruto
+- Padrão CORRETO confirmado via web_fetch do conteúdo real:
+  "**12,58** % \n\n Dividend Yield" -- número ANTES do %, depois do %
+  vem espaço e o label. Portanto o regex mais robusto é:
+  r'([\d.]+,\d+)\s*\**\s*%[^%]{0,60}?Dividend Yield' (busca número +
+  % + próximo a label, não "último número antes do label em janela X")
+- Cotação: padrão confirmado "R$ 77,09 ... Cotação atual de BDIF11"
+  com possível imagem/ícone no meio -- regex precisa tolerar isso
+- Liquidez: padrão confirmado "R$ **2,2 M** \n\n Liquidez média diária"
+  -- número ANTES do label, com ** de markdown bold em volta
+
+PRÓXIMA AÇÃO: corrigir scrape_fi_infra_dados() com regex mais específicos,
+TESTANDO CONTRA HTML REAL (o web_fetch de bdif11/ retornou o conteúdo
+completo confirmado acima) antes de subir qualquer código. NÃO usar
+"último número antes do label em janela genérica" -- isso captura ruído.
+
+### BSLV39 (prata) -- comportamentos normais confirmados pelo usuário
+- vol_impl=null: ESPERADO (histórico insuficiente no Yahoo para esse BDR)
+- Fan chart não apareceu ainda: provavelmente dataset.loaded preso (mesmo
+  bug que vimos antes), ou fundo aberto na sexta sem dias de mercado ainda
+- Linha verde (P50/mediana) não visível: pode ser que o fan chart não
+  tenha carregado ainda (ver acima)
+- Ainda aparece em Em Análise: comportamento atual esperado (backlog)
+- Em Análise mostra vol histórica que foi usada: correto
+
+## SHAs atuais (momento da pausa)
+- proxy.py: 7a5a01fafdfd907896dd62c5eccc8f705e9d774e
+- static/app.js: 627f4a4762ce3f650051923667a3f3131b2e66e5
