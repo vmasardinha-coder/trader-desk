@@ -4265,13 +4265,16 @@ def get_fiis():
         # Fundamentus, ver scrape_fi_infra) na MESMA resposta, como
         # segmento proprio 'fi-infra', para aparecer na busca/Todos da
         # aba FIIs sem precisar de tela separada (usuario confirmou
-        # preferencia por integracao na mesma tela). Endpoint /fii-infra
-        # so confirma EXISTENCIA do ticker ainda (sem cotacao/DY/liquidez
-        # -- scraping de dados financeiros completos para FI-Infra fica
-        # para evolucao futura) -- por isso marcados com
-        # `sem_dados_financeiros=True`, distinto de `fora_criterio`
-        # (que e usado para FII tradicional descartado por liquidez/DY,
-        # nao por falta de dado).
+        # preferencia por integracao na mesma tela).
+        #
+        # DELIBERADAMENTE leve aqui: so confirma EXISTENCIA do ticker
+        # (sem cotacao/DY/liquidez) -- buscar dados financeiros de cada
+        # FI-Infra individualmente (22 requisicoes HTTP extras, ver
+        # scrape_fi_infra_dados) tornaria ESTA chamada (que ja busca 560+
+        # FIIs do Fundamentus) muito mais lenta. Dados financeiros
+        # completos ficam EXCLUSIVOS do endpoint dedicado GET /fii-infra
+        # (mais lento, mas isolado -- nao afeta a velocidade da tela
+        # principal de FIIs).
         fii_infra_tickers, erro_fii_infra = scrape_fi_infra()
         if fii_infra_tickers:
             tickers_ja_presentes = {f['ticker'] for f in fiis_todos}
@@ -4607,11 +4610,89 @@ def scrape_fi_infra():
     except Exception as e:
         return None, str(e)
 
+# Adicionado 26/06/2026 -- busca dados financeiros (cotacao, DY, liquidez)
+# da pagina INDIVIDUAL de cada FI-Infra (ex: fiis.com.br/cdii11/), ja que
+# a listagem em massa nao traz esses dados. Confirmado via inspecao manual
+# que a pagina individual TEM dados reais (CDII11: DY=16.77%,
+# cotacao=R$104.36, liquidez=R$5.1M/dia), mas com RESSALVA IMPORTANTE:
+# alguns campos vem com "0,00" ou "-" que sao NA disfarcado, nao zero real
+# (ex: P/VP="0,00", Patrimonio Liquido="-" no mesmo CDII11) -- esses campos
+# sao tratados como ausentes (None), nunca usados como zero literal.
+def scrape_fi_infra_dados(ticker):
+    """Busca dados financeiros da pagina individual de um FI-Infra.
+    Retorna dict ou None se falhar/dado insuficiente. NUNCA inventa
+    numero -- campos suspeitos (0,00 quando deveria ser % ou R$) ficam
+    None explicitamente."""
+    try:
+        r = requests.get(
+            f'https://fiis.com.br/{ticker.lower()}/',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+            timeout=10)
+        if not r.ok:
+            return None
+        html = r.text
+
+        def _extrai_numero_antes(label, html_busca, max_dist=80):
+            """Busca um numero (pt-BR, virgula decimal) que aparece ANTES
+            do label -- CONFIRMADO via teste contra HTML real: padrao do
+            fiis.com.br e '16,77 % Dividend Yield' (numero ANTES), nao
+            'Dividend Yield: 16,77%' (numero depois, que era a suposicao
+            ERRADA da primeira versao desta funcao -- capturava numero
+            errado, ex: DY pegava o valor de 'Ultimo Rendimento' por
+            engano). Retorna None se o valor for 0 (tratado como NA
+            disfarcado, ja confirmado em campos como P/VP='0,00' nesta
+            mesma pagina)."""
+            idx_label = html_busca.lower().find(label.lower())
+            if idx_label == -1:
+                return None
+            trecho_antes = html_busca[max(0, idx_label-max_dist):idx_label]
+            matches = re.findall(r'([\d.]+,\d+|\d+)', trecho_antes)
+            if not matches:
+                return None
+            raw = matches[-1].replace('.', '').replace(',', '.')  # numero mais proximo do label
+            try:
+                val = float(raw)
+                return val if val != 0 else None  # 0,00 tratado como NA, nao zero real
+            except ValueError:
+                return None
+
+        dy_pct = _extrai_numero_antes('Dividend Yield', html)
+        cotacao = _extrai_numero_antes('Cotação atual', html)
+        liquidez = None
+        idx_liq = html.lower().find('liquidez média diária')
+        if idx_liq != -1:
+            trecho_liq = html[max(0, idx_liq-40):idx_liq]
+            matches_liq = re.findall(r'R\$\s*\**\s*([\d.,]+)\s*(M|K|B)?\s*\**', trecho_liq, re.IGNORECASE)
+            if matches_liq:
+                raw_liq, unidade = matches_liq[-1]  # match mais proximo do label
+                raw_liq = raw_liq.replace('.', '').replace(',', '.')
+                try:
+                    liquidez = float(raw_liq)
+                    unidade = unidade.upper()
+                    if unidade == 'M':
+                        liquidez *= 1_000_000
+                    elif unidade == 'B':
+                        liquidez *= 1_000_000_000
+                    elif unidade == 'K':
+                        liquidez *= 1_000
+                except ValueError:
+                    liquidez = None
+
+        if dy_pct is None and cotacao is None:
+            return None  # nada de util encontrado -- nao retorna dado parcial sem sentido
+
+        return {'ticker': ticker, 'dy_pct': dy_pct, 'cotacao': cotacao, 'liquidez': liquidez}
+    except Exception:
+        return None
+
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
     """
-    Lista os FI-Infra encontrados (ticker). Fonte: fiis.com.br (segunda
-    tentativa, apos Investidor10 ter dado erro 500 em producao).
+    Lista os FI-Infra encontrados, COM dados financeiros (cotacao, DY,
+    liquidez) buscados individualmente -- adicionado 26/06/2026. Cada
+    ticker exige uma requisicao separada (pagina individual), entao isso
+    e mais lento que o endpoint /fiis (que busca tudo de uma chamada) --
+    aceitavel pois sao so ~22 tickers.
     """
     try:
         fundos, erro = scrape_fi_infra()
@@ -4620,6 +4701,18 @@ def get_fii_infra():
                 'error': f'Scraping do fiis.com.br falhou ou layout pode ter mudado: {erro}',
                 'fundos': [],
             }), 502
+
+        for f in fundos:
+            dados = scrape_fi_infra_dados(f['ticker'])
+            if dados:
+                f.update(dados)
+                f['dados_disponiveis'] = True
+            else:
+                f['dy_pct'] = None
+                f['cotacao'] = None
+                f['liquidez'] = None
+                f['dados_disponiveis'] = False
+
         return jsonify({'total': len(fundos), 'fundos': fundos})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
