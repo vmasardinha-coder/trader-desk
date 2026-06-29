@@ -145,8 +145,38 @@ async function loadFiis(){
     renderFiis();
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao buscar FIIs: '+e.message+'</p>';
-  }finally{
     if(btn){btn.disabled=false;btn.style.opacity='1';}
+    return;
+  }
+  if(btn){btn.disabled=false;btn.style.opacity='1';}
+
+  // Adicionado 26/06/2026 -- busca dados financeiros do FI-Infra EM
+  // PARALELO, sem bloquear a tela principal (que ja carregou rapido com
+  // os 560 FIIs tradicionais). FI-Infra exige 22 requisicoes HTTP extras
+  // (pagina individual de cada ticker), por isso e mais lento -- a tela
+  // atualiza sozinha quando os dados chegarem, sem o usuario precisar
+  // esperar ou clicar de novo.
+  try{
+    const ctrl2=new AbortController();setTimeout(()=>ctrl2.abort(),45000);
+    const r2=await fetch(B+'/fii-infra',{signal:ctrl2.signal,cache:'no-store'});
+    const d2=await r2.json();
+    if(r2.ok&&!d2.error&&d2.fundos){
+      const dadosPorTicker={};
+      d2.fundos.forEach(f=>{dadosPorTicker[f.ticker]=f;});
+      _fiisTodosData=_fiisTodosData.map(f=>{
+        if(f.segmento==='fi-infra'&&dadosPorTicker[f.ticker]){
+          const dados=dadosPorTicker[f.ticker];
+          return {...f, cotacao:dados.cotacao, dy_pct:dados.dy_pct, liquidez:dados.liquidez,
+                   sem_dados_financeiros:!dados.dados_disponiveis};
+        }
+        return f;
+      });
+      renderFiisFiltro();
+      renderFiis();
+    }
+  }catch(e){
+    // Falha silenciosa -- FI-Infra continua mostrando "sem dados ainda",
+    // nao quebra a tela principal que ja carregou com sucesso.
   }
 }
 
@@ -270,10 +300,32 @@ function renderFiis(){
     // Linha simplificada, sem nenhum dado financeiro, so o ticker e o
     // link para adicionar em analise (usuario decide manualmente, sem
     // criterio automatico ainda).
+    // FI-Infra COM dados financeiros ja carregados (busca paralela em
+    // loadFiis ja completou) -- mostra normalmente, so com badge
+    // FI-INFRA em vez do badge de risco (FI-Infra nao tem classificacao
+    // de risco automatica ainda).
+    if(f.segmento==='fi-infra'&&!f.sem_dados_financeiros&&f.cotacao!=null){
+      const dyColor=f.dy_pct>=8?'var(--green)':'var(--muted)';
+      return `<tr id="fii-row-${f.ticker}">
+        <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
+        <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
+        <td style="padding:6px 8px;text-align:right">—</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyColor}">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right">—</td>
+        <td style="padding:6px 8px;text-align:right">${f.liquidez!=null?'R$'+(f.liquidez/1000).toFixed(0)+'k/dia':'—'}</td>
+        <td style="padding:6px 8px;text-align:right">—</td>
+        <td style="padding:6px 8px;text-align:right;white-space:nowrap">
+          <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise" style="background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700">+ Em Análise</button>
+        </td>
+      </tr>`;
+    }
+    // FI-Infra SEM dados financeiros ainda (busca paralela nao completou,
+    // ou falhou para esse ticker especifico) -- linha simplificada com
+    // mensagem generica, igual antes.
     if(f.sem_dados_financeiros){
       return `<tr id="fii-row-${f.ticker}" style="opacity:.7">
         <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
-        <td colspan="6" style="padding:6px 8px;color:var(--muted);font-size:10px">Dados financeiros (cotação, DY, liquidez) ainda não disponíveis para FI-Infra -- consulte a fonte diretamente antes de decidir.</td>
+        <td colspan="6" style="padding:6px 8px;color:var(--muted);font-size:10px">Buscando dados financeiros... (FI-Infra exige consulta individual, pode levar mais alguns segundos)</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
           <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise (sem dados financeiros automáticos -- você decide manualmente)" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">+ Em Análise</button>
         </td>
