@@ -4260,6 +4260,41 @@ def get_fiis():
         fora_criterio.sort(key=lambda f: f['ticker'])
         fiis_todos = candidatos + fora_criterio
 
+        # ADICIONADO 26/06/2026 -- integra FI-Infra (categoria
+        # regulatoriamente separada de FII tradicional, NAO coberta pelo
+        # Fundamentus, ver scrape_fi_infra) na MESMA resposta, como
+        # segmento proprio 'fi-infra', para aparecer na busca/Todos da
+        # aba FIIs sem precisar de tela separada (usuario confirmou
+        # preferencia por integracao na mesma tela). Endpoint /fii-infra
+        # so confirma EXISTENCIA do ticker ainda (sem cotacao/DY/liquidez
+        # -- scraping de dados financeiros completos para FI-Infra fica
+        # para evolucao futura) -- por isso marcados com
+        # `sem_dados_financeiros=True`, distinto de `fora_criterio`
+        # (que e usado para FII tradicional descartado por liquidez/DY,
+        # nao por falta de dado).
+        fii_infra_tickers, erro_fii_infra = scrape_fi_infra()
+        if fii_infra_tickers:
+            tickers_ja_presentes = {f['ticker'] for f in fiis_todos}
+            for fi in fii_infra_tickers:
+                if fi['ticker'] in tickers_ja_presentes:
+                    continue  # evita duplicar se por acaso ja vier do Fundamentus
+                fiis_todos.append({
+                    'ticker': fi['ticker'],
+                    'nome_fundo': fi['ticker'],
+                    'segmento_fundamentus': 'Fundo de Infraestrutura (FI-Infra)',
+                    'segmento': 'fi-infra',
+                    'cotacao': None, 'ffo_yield_pct': None, 'dy_pct': None,
+                    'p_vp': None, 'valor_mercado': None, 'liquidez': None,
+                    'qtd_imoveis': None, 'preco_m2': None, 'aluguel_m2': None,
+                    'cap_rate_pct': None, 'vacancia_pct': None, 'endereco': None,
+                    'fora_criterio': False, 'sem_dados_financeiros': True,
+                    'nivel_risco': None, 'score': None,
+                })
+        # erro_fii_infra (se houver) e silenciosamente ignorado aqui --
+        # FI-Infra e um EXTRA na lista, nao o foco principal do endpoint;
+        # se a fonte falhar, a lista de FII tradicional continua intacta
+        # e completa, so sem os FI-Infra adicionados desta vez.
+
         return jsonify({
             'total_brutos': len(fiis),
             'total_descartados': len(descartados_motivos),
