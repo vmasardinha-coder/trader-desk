@@ -4656,15 +4656,44 @@ def scrape_fi_infra_dados(ticker):
             except ValueError:
                 return None
 
-        dy_pct = _extrai_numero_antes('Dividend Yield', html)
-        cotacao = _extrai_numero_antes('Cotação atual', html)
+        # CORRIGIDO 29/06/2026: regex anteriores capturavam ruido do HTML
+        # bruto (CSS: width:165px, IDs numericos, etc.) porque buscavam
+        # "ultimo numero em janela generica antes do label". HTML real
+        # confirmado via inspecao manual (web_fetch bdif11/):
+        #   DY: "**12,58** % \n\n Dividend Yield" -- numero + % + label
+        #   Cotacao: "R$ 77,09 \n ... \n Cotacao atual de BDIF11"
+        #   Liquidez: "R$ **2,2 M** \n\n Liquidez media diaria"
+        # Regex novos buscam o PADRAO COMPLETO, nao so "ultimo numero".
+
+        # DY: numero + (asteriscos opcionais) + % + max 60 chars + label
+        m_dy = re.search(r'([\d.]+,\d+)\s*\**\s*%[^%]{0,60}?Dividend Yield', html, re.IGNORECASE | re.DOTALL)
+        dy_pct = None
+        if m_dy:
+            try:
+                val = float(m_dy.group(1).replace('.', '').replace(',', '.'))
+                dy_pct = val if val > 0 else None
+            except ValueError:
+                pass
+
+        # Cotacao: "R$ NUMERO ... Cotacao atual" (tolerante a icones/imagens entre)
+        m_cot = re.search(r'R\$\s*\**\s*([\d.]+,\d+)\s*\**[^%]{0,120}?Cota(?:ção|cao) atual', html, re.IGNORECASE | re.DOTALL)
+        cotacao = None
+        if m_cot:
+            try:
+                val = float(m_cot.group(1).replace('.', '').replace(',', '.'))
+                cotacao = val if val > 0 else None
+            except ValueError:
+                pass
+
         liquidez = None
         idx_liq = html.lower().find('liquidez média diária')
+        if idx_liq == -1:
+            idx_liq = html.lower().find('liquidez media diaria')
         if idx_liq != -1:
             trecho_liq = html[max(0, idx_liq-40):idx_liq]
             matches_liq = re.findall(r'R\$\s*\**\s*([\d.,]+)\s*(M|K|B)?\s*\**', trecho_liq, re.IGNORECASE)
             if matches_liq:
-                raw_liq, unidade = matches_liq[-1]  # match mais proximo do label
+                raw_liq, unidade = matches_liq[-1]
                 raw_liq = raw_liq.replace('.', '').replace(',', '.')
                 try:
                     liquidez = float(raw_liq)
