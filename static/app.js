@@ -375,6 +375,7 @@ function renderFiis(){
         <td style="padding:6px 8px;text-align:right">${f.liquidez!=null?'R$'+(f.liquidez/1000).toFixed(0)+'k/dia':'—'}</td>
         <td style="padding:6px 8px;text-align:right">—</td>
         <td style="padding:6px 8px;text-align:right">${f.score!=null?f.score.toFixed(1):'—'}</td>
+        <td id="prov-${f.ticker}" style="padding:6px 8px;text-align:right;color:var(--muted)">—</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
           ${botaoStatusFii(f.ticker,'Adicionar a Em Análise','background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700')}
         </td>
@@ -386,7 +387,7 @@ function renderFiis(){
     if(f.sem_dados_financeiros){
       return `<tr id="fii-row-${f.ticker}" style="opacity:.7">
         <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
-        <td colspan="6" style="padding:6px 8px;color:var(--muted);font-size:10px">Buscando dados financeiros... (FI-Infra exige consulta individual, pode levar mais alguns segundos)</td>
+        <td colspan="7" style="padding:6px 8px;color:var(--muted);font-size:10px">Buscando dados financeiros... (FI-Infra exige consulta individual, pode levar mais alguns segundos)</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
           ${botaoStatusFii(f.ticker,'Adicionar a Em Análise (sem dados financeiros automáticos -- você decide manualmente)','background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600')}
         </td>
@@ -401,7 +402,7 @@ function renderFiis(){
         <td style="padding:6px 8px;text-align:right">R$${(f.cotacao||0).toFixed(2)}</td>
         <td style="padding:6px 8px;text-align:right">${f.p_vp!=null?f.p_vp.toFixed(2):'—'}</td>
         <td style="padding:6px 8px;text-align:right">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
-        <td colspan="4" style="padding:6px 8px;color:var(--muted);font-size:10px" title="${f.motivo_fora_criterio||''}">${f.motivo_fora_criterio||'fora do critério'}</td>
+        <td colspan="5" style="padding:6px 8px;color:var(--muted);font-size:10px" title="${f.motivo_fora_criterio||''}">${f.motivo_fora_criterio||'fora do critério'}</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
           ${botaoStatusFii(f.ticker,'Adicionar a Em Análise mesmo assim (você assume o risco de estar fora do critério padrão)','background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600')}
         </td>
@@ -427,13 +428,26 @@ function renderFiis(){
       <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
       <td style="padding:6px 8px;text-align:right">${vac}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez × fator de sustentabilidade (FFO vs DY) -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score.toFixed(1)}</td>
+      <td id="prov-${f.ticker}" style="padding:6px 8px;text-align:right;color:var(--muted)">—</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         ${botaoStatusFii(f.ticker,'Adicionar a Em Análise','background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700')}
       </td>
     </tr>`;
   }).join('');
+  // ADICIONADO 30/06/2026 -- limite de auto-carregamento do ultimo
+  // provento: a lista Criterio pode ter ate ~249 FIIs, e cada provento
+  // exige 1 chamada ao StatusInvest -- buscar tudo de uma vez seria
+  // pesado/lento (risco de timeout no Render free tier, mesmo padrao ja
+  // visto com FI-Infra). So carrega automaticamente quando o filtro
+  // atual tem ate 30 itens (normal depois de filtrar por segmento/risco/
+  // busca); acima disso, mostra aviso pedindo para filtrar mais.
+  const LIMITE_AUTO_PROVENTO=30;
+  const avisoProvento = lista.length>LIMITE_AUTO_PROVENTO
+    ? `<div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:var(--bg3);border-radius:4px">ℹ Coluna "Últ. Prov." carrega automaticamente só com até ${LIMITE_AUTO_PROVENTO} itens no filtro (hoje: ${lista.length}). Filtre por segmento, risco ou busca para ver os proventos.</div>`
+    : '';
   cont.innerHTML=`
   <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${lista.length} FIIs neste filtro · agrupado por nível de risco, ordenado por score (DY×liquidez×sustentabilidade) dentro de cada grupo</div>
+  ${avisoProvento}
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
@@ -445,11 +459,26 @@ function renderFiis(){
       <th style="padding:6px 8px;text-align:right" title="Volume financeiro médio negociado por dia">Liquidez</th>
       <th style="padding:6px 8px;text-align:right" title="Vacância média dos imóveis (relevante para FIIs de tijolo)">Vacância</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest (carregado automaticamente só quando o filtro tem até 30 itens)">Últ. Prov.</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
   </div>`;
+
+  // Carrega o ultimo provento so se a lista estiver dentro do limite (ver
+  // LIMITE_AUTO_PROVENTO acima) -- escalonado para nao disparar tudo no
+  // mesmo instante. Pula linhas que nao tem celula de provento (FI-Infra
+  // ainda sem dados financeiros, por exemplo).
+  if(lista.length<=LIMITE_AUTO_PROVENTO){
+    let delayProv2=0;
+    lista.forEach(f=>{
+      if(document.getElementById('prov-'+f.ticker)){
+        setTimeout(()=>_buscarEPreencherProvento('prov-'+f.ticker, f.ticker, f.segmento), delayProv2);
+        delayProv2+=300;
+      }
+    });
+  }
 }
 
 // Adicionado 25/06/2026 -- migracao de FII selecionado para Em Analise.
@@ -615,13 +644,16 @@ function renderCarteiraFiis(carteira){
   });
 }
 
-async function carregarUltimoProventoCarteira(f){
-  const cel=document.getElementById('cfii-prov-'+f.id);
+// GENERALIZADO 30/06/2026 -- antes so existia para a Carteira de FIIs,
+// agora tambem usado pelo screening (renderFiis). Recebe o id do
+// elemento <td> alvo diretamente, em vez de assumir o padrao
+// 'cfii-prov-'+id (que so fazia sentido para a Carteira).
+async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento){
+  const cel=document.getElementById(idCelula);
   if(!cel)return;
   try{
-    const tickerLimpo=f.ticker.replace('.SA','');
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
-    const r=await fetch(B+'/fii-ultimo-provento?ticker='+encodeURIComponent(tickerLimpo)+'&segmento='+encodeURIComponent(f.segmento||''),{signal:ctrl.signal});
+    const r=await fetch(B+'/fii-ultimo-provento?ticker='+encodeURIComponent(tickerLimpo)+'&segmento='+encodeURIComponent(segmento||''),{signal:ctrl.signal});
     const d=await r.json();
     if(d.encontrado&&d.valor!=null){
       cel.textContent='R$'+d.valor.toFixed(2)+' ('+d.data_pagamento+')';
@@ -635,6 +667,9 @@ async function carregarUltimoProventoCarteira(f){
   }catch(e){
     if(cel){cel.textContent='—';cel.classList.remove('loading');}
   }
+}
+async function carregarUltimoProventoCarteira(f){
+  await _buscarEPreencherProvento('cfii-prov-'+f.id, f.ticker.replace('.SA',''), f.segmento);
 }
 
 async function encerrarFiiCarteira(id){
@@ -2487,6 +2522,7 @@ function tplRanking(d){
       <th style="padding:6px 8px;text-align:right">DY</th>
       <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest (carregado automaticamente só quando o filtro tem até 30 itens)">Últ. Prov.</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${rows}</tbody>
@@ -2597,6 +2633,7 @@ function tplRankingFii(d){
       <th style="padding:6px 8px;text-align:right">FFO</th>
       <th style="padding:6px 8px;text-align:right">Liquidez</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest (carregado automaticamente só quando o filtro tem até 30 itens)">Últ. Prov.</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${rows}</tbody>
