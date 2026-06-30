@@ -2452,22 +2452,26 @@ function tplRankingFii(d){
   };
   const aviso=d.nao_encontrados&&d.nao_encontrados.length
     ? `<p style="color:var(--red);font-size:10px;margin-bottom:8px">⚠ Não encontrados no Fundamentus (verifique): ${d.nao_encontrados.join(', ')}</p>` : '';
+  // CORRIGIDO 30/06/2026: campos podem vir null para FI-Infra em casos
+  // raros (ex: cotacao OU dy_pct ausente, mas nao ambos -- ja que o
+  // backend so inclui o candidato se pelo menos um dos dois existir).
+  // .toFixed() direto quebrava com "Cannot read properties of null".
   const rows=linhas.map(f=>{
-    const badge=RISCO_BADGE[f.nivel_risco]||'';
-    const dyCor=f.dy_pct>=8?'var(--green)':'var(--muted)';
+    const badge=RISCO_BADGE[f.nivel_risco]||(f.segmento==='fi-infra'?'<span style="background:rgba(0,180,216,.15);color:#00b4d8;border:1px solid rgba(0,180,216,.4);padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700">FI-INFRA</span>':'');
+    const dyCor=(f.dy_pct!=null&&f.dy_pct>=8)?'var(--green)':'var(--muted)';
     let ffoHtml='—';
-    if(f.ffo_yield_pct!=null){
+    if(f.ffo_yield_pct!=null&&f.dy_pct!=null){
       const sustentavel=f.ffo_yield_pct>=f.dy_pct;
       ffoHtml=`<span style="color:${sustentavel?'var(--green)':'var(--red)'}">${f.ffo_yield_pct.toFixed(2)}% ${sustentavel?'▲':'▼'}</span>`;
     }
     return `<tr id="rkfii-row-${f.analise_id}">
       <td style="padding:6px 8px;font-weight:700">${f.ticker} ${badge}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus}</span></td>
-      <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
-      <td style="padding:6px 8px;text-align:right">${f.p_vp.toFixed(2)}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right">${f.cotacao!=null?'R$'+f.cotacao.toFixed(2):'—'}</td>
+      <td style="padding:6px 8px;text-align:right">${f.p_vp!=null?f.p_vp.toFixed(2):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
       <td style="padding:6px 8px;text-align:right">${ffoHtml}</td>
-      <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)">${f.score.toFixed(1)}</td>
+      <td style="padding:6px 8px;text-align:right">${f.liquidez!=null?'R$'+(f.liquidez/1000).toFixed(0)+'k/dia':'—'}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)">${f.score!=null?f.score.toFixed(1):'—'}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         <button onclick="acaoRankingFii('${f.analise_id}','${f.ticker}','ativar',${f.cotacao},${f.dy_pct},'${f.segmento}','${f.nivel_risco}')" title="Ativar na Carteira" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
         <button onclick="acaoRankingFii('${f.analise_id}','${f.ticker}','rejeitar')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">🚫</button>
@@ -2554,10 +2558,19 @@ function renderAnalises(){
   // 'encerrada' (rejeitada ou encerramento real), ela MIGRA por completo
   // para a aba Encerradas (ver renderAnalisesEncerradas), nao fica mais
   // visivel aqui.
-  const ativas=_analiseData.filter(a=>a.status==='em_analise'||a.status==='ativa');
+  //
+  // CORRIGIDO 30/06/2026: FIIs (tipo_estrutura='fii') sao EXCLUIDOS daqui
+  // -- usuario pediu separacao visual completa, sem misturar com
+  // estruturadas. FIIs em_analise agora aparecem SO na secao dedicada
+  // "FIIs em Analise" mais abaixo (tabela propria com acao direto na
+  // linha, ver loadRankingFiisEmAnalise/tplRankingFii) -- nao tinham
+  // ranking Monte Carlo mesmo, entao nunca apareciam no painel de cima;
+  // o card solto aqui era so duplicata confusa do que ja existe na
+  // tabela de baixo.
+  const ativas=_analiseData.filter(a=>(a.status==='em_analise'||a.status==='ativa')&&a.tipo_estrutura!=='fii');
 
   if(!ativas.length){
-    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise em andamento.<br><span style="font-size:11px">Fotos são criadas em sessão de chat (Fase A → Fase B) e aparecem aqui automaticamente.</span></p>';
+    cont.innerHTML='<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma estrutura em andamento.<br><span style="font-size:11px">Fotos são criadas em sessão de chat (Fase A → Fase B) e aparecem aqui automaticamente. FIIs aparecem na seção própria abaixo.</span></p>';
     return;
   }
 
