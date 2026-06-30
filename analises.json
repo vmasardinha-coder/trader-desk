@@ -147,22 +147,6 @@
     "data_rejeicao": "2026-06-26"
   },
   {
-    "ticker": "BSLV39.SA",
-    "nome": "BSLV39 - iShares Silver Trust BDR",
-    "data_foto": "2026-06-25",
-    "preco_foto": 91.72,
-    "prazo_dias": 58,
-    "tipo_estrutura": "retorno_controlado",
-    "kdo": 77.34,
-    "ganho_prefixado_pct": 8.3,
-    "origem": "pronta",
-    "status": "ativa",
-    "lote": "2026-06-24",
-    "backtest": false,
-    "observacao": "Proposta REAL do banco (Itau, Material Publicitario 24/06/2026, vencimento 2026-08-21). Estrutura: Retorno Controlado, barreira unica KDO a -20.00% (R$77.34). Ganho PREFIXADO de 8.30% se NAO tocar a barreira em nenhum momento; se tocar, fica exposto a variacao real, SEM garantia de ganho. REGRA: numeros do banco aceitos como premissa fixa, sem reescalar. Lote de analise de 24/06/2026 (8 PDFs Itau + planilha 144 linhas). Preco de foto coletado via busca web em 25/06/2026 (Yahoo bloqueado no sandbox). [CORRIGIDO 26/06/2026: preco_foto original (96.68) estava errado -- nao batia com o fechamento real do Yahoo no dia 25/06 (91.72). Corrigido para refletir a fonte de preco consistente usada no resto do sistema.]",
-    "id": "an_1782394705"
-  },
-  {
     "ticker": "CYRE3.SA",
     "nome": "CYRE3 - Cyrela",
     "data_foto": "2026-06-25",
