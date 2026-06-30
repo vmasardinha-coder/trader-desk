@@ -4989,6 +4989,47 @@ def debug_statusinvest():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/debug-statusinvest-listagem', methods=['GET'])
+def debug_statusinvest_listagem():
+    """
+    DIAGNOSTICO (30/06/2026) -- valida se as 3 paginas de listagem em lote
+    do StatusInvest sao server-side renderizadas e qual o padrao de texto
+    real retornado por requests.get() para cada categoria:
+      - /fundos-imobiliarios  (FII tradicional)
+      - /fiinfras             (FI-Infra)
+      - /fip                  (FIP -- inclui FIP-IE tematico de infra)
+    Retorna: status_code, tamanho do HTML, primeiros 3000 chars do texto
+    limpo (sem tags HTML), e exemplos de tickers encontrados via regex simples.
+    """
+    _HEADERS_SI = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'pt-BR,pt;q=0.9',
+        'Referer': 'https://statusinvest.com.br/',
+    }
+    resultados = {}
+    for categoria, path in [('fii', 'fundos-imobiliarios'), ('fi_infra', 'fiinfras'), ('fip', 'fip')]:
+        try:
+            r = requests.get(
+                f'https://statusinvest.com.br/{path}',
+                headers=_HEADERS_SI, timeout=15)
+            html = r.text
+            texto = re.sub(r'<[^>]+>', ' ', html)
+            texto = re.sub(r'\s+', ' ', texto).strip()
+            # Tenta achar tickers (padrao: 4-6 letras maiusculas + 2 digitos + opcional 'F')
+            tickers_achados = list(dict.fromkeys(
+                re.findall(r'\b([A-Z]{4,6}[0-9]{2}F?\b)', html)
+            ))[:30]
+            resultados[categoria] = {
+                'status_code': r.status_code,
+                'html_len': len(html),
+                'texto_inicio': texto[:3000],
+                'tickers_achados': tickers_achados,
+                'tem_next_data': '__NEXT_DATA__' in html,
+            }
+        except Exception as e:
+            resultados[categoria] = {'error': str(e)}
+    return jsonify(resultados)
+
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
     """
