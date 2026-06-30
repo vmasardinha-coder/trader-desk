@@ -4773,9 +4773,60 @@ def get_fii_infra():
                 f['dy_pct'] = None
                 f['cotacao'] = None
                 f['liquidez'] = None
+                f['p_vp'] = None
                 f['dados_disponiveis'] = False
 
-        return jsonify({'total': len(fundos), 'fundos': fundos})
+        # ADICIONADO 29/06/2026 -- classificacao por criterio e nivel de
+        # risco, reaproveitando EXATAMENTE a mesma logica ja usada para
+        # FII tradicional (_classificar_risco_fii/_score_fii), agora que
+        # cotacao/DY/liquidez/P/VP existem de verdade para FI-Infra.
+        #
+        # Diferenca em relacao ao FII tradicional: nao ha "segmento" do
+        # Fundamentus para comparar DY relativo (FI-Infra nao e coberto
+        # por ele) -- a mediana de DY usada para detectar premio de risco
+        # e calculada AUTO-REFERENCIADA, so entre os proprios FI-Infra
+        # validos (mesma categoria regulatoria, comparacao justa).
+        liquidez_min = float(request.args.get('liquidez_min', 50000))
+        from statistics import median
+        validos_dy = [f['dy_pct'] for f in fundos
+                      if f.get('dados_disponiveis') and f.get('dy_pct') is not None]
+        mediana_dy_fi_infra = median(validos_dy) if validos_dy else None
+
+        for f in fundos:
+            if not f.get('dados_disponiveis'):
+                f['fora_criterio'] = True
+                f['motivo_fora_criterio'] = 'sem dados financeiros disponiveis'
+                f['nivel_risco'] = None
+                f['score'] = None
+                continue
+
+            motivo = None
+            if f['liquidez'] is None or f['liquidez'] < liquidez_min:
+                motivo = (f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)'
+                          if f['liquidez'] is not None else 'liquidez ausente')
+            elif f['dy_pct'] is None or f['dy_pct'] <= 0:
+                motivo = 'DY zerado ou ausente'
+
+            if motivo:
+                f['fora_criterio'] = True
+                f['motivo_fora_criterio'] = motivo
+                f['nivel_risco'] = None
+                f['score'] = None
+            else:
+                f['fora_criterio'] = False
+                f['nivel_risco'] = _classificar_risco_fii(
+                    f.get('nome_fundo', ''), 'Fundo de Infraestrutura (FI-Infra)',
+                    f['dy_pct'], None, mediana_dy_fi_infra)
+                f['score'] = _score_fii(f.get('p_vp'), f['dy_pct'], f['liquidez'])
+
+        ordem_risco = {'high_grade': 0, 'middle_risk': 1, 'high_yield': 2}
+        fundos.sort(key=lambda f: (
+            f.get('fora_criterio', True),
+            ordem_risco.get(f.get('nivel_risco'), 1),
+            -(f.get('score') or 0)
+        ))
+
+        return jsonify({'total': len(fundos), 'fundos': fundos, 'mediana_dy_categoria': mediana_dy_fi_infra})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
