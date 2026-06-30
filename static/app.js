@@ -228,34 +228,12 @@ async function loadFiis(){
     // nao quebra a tela principal que ja carregou com sucesso.
   }
 
-  // CHAMADA B (30/06/2026) -- universo complementar: tickers nao cobertos
-  // pelo Fundamentus (~140 FIIs tradicionais menores + FI-Infra + FIP-IE).
-  // Roda em background, sem bloquear a tela que ja carregou com os ~560.
-  try{
-    const tickersCobertos=_fiisTodosData.map(f=>f.ticker).join(',');
-    const ctrlB=new AbortController();
-    setTimeout(()=>ctrlB.abort(),60000);
-    const rB=await fetch(
-      B+'/fiis/universo-complementar?tickers_cobertos='+encodeURIComponent(tickersCobertos),
-      {signal:ctrlB.signal,cache:'no-store'});
-    const dB=await rB.json();
-    if(rB.ok&&!dB.error&&dB.fundos&&dB.fundos.length>0){
-      const jaPresentes=new Set(_fiisTodosData.map(f=>f.ticker));
-      const novos=dB.fundos.filter(f=>!jaPresentes.has(f.ticker));
-      if(novos.length>0){
-        const validos=novos.filter(f=>!f.fora_criterio);
-        const fora=novos.filter(f=>f.fora_criterio);
-        const todosValidos=_fiisTodosData.filter(f=>!f.fora_criterio);
-        const todosFora=_fiisTodosData.filter(f=>f.fora_criterio);
-        _fiisTodosData=[...todosValidos,...validos,...todosFora,...fora];
-        _fiisData=_fiisTodosData.filter(f=>!f.fora_criterio);
-        renderFiisFiltro();
-        renderFiis();
-      }
-    }
-  }catch(e){
-    // Falha silenciosa -- Chamada B e complemento, nao essencial.
-  }
+  // NOTA (30/06/2026): Chamada B (universo complementar via StatusInvest)
+  // foi cancelada -- StatusInvest nao renderiza DY nem liquidez server-side,
+  // entao nao acrescenta nada util alem do que o Fundamentus ja cobre.
+  // Os ~140 FIIs extras nao cobertos pelo Fundamentus tem liquidez tao baixa
+  // que morreriam no criterio de qualquer forma. FI-Infra e FIP-IE sao
+  // cobertos pelo /fii-infra (Investidor10 individual, ja implementado).
 }
 
 // Adicionado 26/06/2026 -- estrutura em ARVORE pedida pelo usuario:
