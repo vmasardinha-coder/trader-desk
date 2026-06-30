@@ -474,7 +474,7 @@ function renderFiis(){
     let delayProv2=0;
     lista.forEach(f=>{
       if(document.getElementById('prov-'+f.ticker)){
-        setTimeout(()=>_buscarEPreencherProvento('prov-'+f.ticker, f.ticker, f.segmento), delayProv2);
+        setTimeout(()=>_buscarEPreencherProvento('prov-'+f.ticker, f.ticker, f.segmento, f.cotacao), delayProv2);
         delayProv2+=300;
       }
     });
@@ -648,7 +648,7 @@ function renderCarteiraFiis(carteira){
 // agora tambem usado pelo screening (renderFiis). Recebe o id do
 // elemento <td> alvo diretamente, em vez de assumir o padrao
 // 'cfii-prov-'+id (que so fazia sentido para a Carteira).
-async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento){
+async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento,cotacao){
   const cel=document.getElementById(idCelula);
   if(!cel)return;
   try{
@@ -656,8 +656,17 @@ async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento){
     const r=await fetch(B+'/fii-ultimo-provento?ticker='+encodeURIComponent(tickerLimpo)+'&segmento='+encodeURIComponent(segmento||''),{signal:ctrl.signal});
     const d=await r.json();
     if(d.encontrado&&d.valor!=null){
-      cel.textContent='R$'+d.valor.toFixed(2)+' ('+d.data_pagamento+')';
-      cel.title='Fonte: StatusInvest';
+      // ADICIONADO 30/06/2026 -- percentual mensal calculado em cima do
+      // que ja temos na propria linha (provento/cotacao), sem precisar de
+      // chamada nova ao backend. DY anual ja existe em coluna separada
+      // (Critério); isso completa com o "quanto pagou no mes" pedido.
+      let sufixoPct='';
+      if(cotacao!=null&&cotacao>0){
+        const pctMes=(d.valor/cotacao)*100;
+        sufixoPct=` <span style="color:var(--green);font-weight:700">(${pctMes.toFixed(2)}%/mês)</span>`;
+      }
+      cel.innerHTML='R$'+d.valor.toFixed(2)+' ('+d.data_pagamento+')'+sufixoPct;
+      cel.title='Fonte: StatusInvest. %/mês = último provento ÷ cotação atual';
       cel.classList.remove('loading');
       cel.style.color='var(--text)';
     }else{
@@ -669,7 +678,7 @@ async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento){
   }
 }
 async function carregarUltimoProventoCarteira(f){
-  await _buscarEPreencherProvento('cfii-prov-'+f.id, f.ticker.replace('.SA',''), f.segmento);
+  await _buscarEPreencherProvento('cfii-prov-'+f.id, f.ticker.replace('.SA',''), f.segmento, f.preco_ativacao);
 }
 
 async function encerrarFiiCarteira(id){
