@@ -310,14 +310,26 @@ function renderFiis(){
     // de risco automatica ainda).
     if(f.segmento==='fi-infra'&&!f.sem_dados_financeiros&&f.cotacao!=null){
       const dyColor=f.dy_pct>=8?'var(--green)':'var(--muted)';
+      // CORRIGIDO 29/06/2026: agora que FI-Infra tem P/VP, nivel_risco e
+      // score reais (classificacao adicionada no backend), mostra o
+      // badge de risco de verdade (igual ao FII tradicional) em vez do
+      // badge fixo "FI-INFRA", preenche a celula de P/VP que antes era
+      // sempre "—", e adiciona a celula de Score que faltava (a linha
+      // tinha so 7 <td> de dado contra 9 colunas no cabecalho,
+      // desalinhando a tabela -- Vacancia continua "—" pois nao se
+      // aplica a FI-Infra, que nao tem imoveis fisicos).
+      const badgeRisco = f.fora_criterio
+        ? FORA_CRITERIO_BADGE
+        : (RISCO_BADGE[f.nivel_risco] || FI_INFRA_BADGE);
       return `<tr id="fii-row-${f.ticker}">
-        <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
+        <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE} ${badgeRisco}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.fora_criterio?f.motivo_fora_criterio:(f.segmento_fundamentus||'')}</span></td>
         <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
-        <td style="padding:6px 8px;text-align:right">—</td>
+        <td style="padding:6px 8px;text-align:right">${f.p_vp!=null?f.p_vp.toFixed(2):'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyColor}">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right">—</td>
         <td style="padding:6px 8px;text-align:right">${f.liquidez!=null?'R$'+(f.liquidez/1000).toFixed(0)+'k/dia':'—'}</td>
         <td style="padding:6px 8px;text-align:right">—</td>
+        <td style="padding:6px 8px;text-align:right">${f.score!=null?f.score.toFixed(1):'—'}</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
           <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise" style="background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700">+ Em Análise</button>
         </td>
