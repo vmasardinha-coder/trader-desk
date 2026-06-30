@@ -4620,16 +4620,29 @@ def scrape_fi_infra():
 # sao tratados como ausentes (None), nunca usados como zero literal.
 def scrape_fi_infra_dados(ticker, debug=False):
     """Busca dados financeiros da pagina individual de um FI-Infra.
+    FONTE TROCADA 29/06/2026: fiis.com.br abandonado -- confirmado via
+    modo debug que os numeros visiveis (DY/cotacao/liquidez) NAO existem
+    como texto no HTML bruto recebido por requests.get() (provavelmente
+    renderizados via JS/componente apos hidratacao) -- a primeira
+    ocorrencia de "Dividend Yield" no HTML bruto era inclusive um texto
+    de ajuda/tooltip serializado (PHP serialize, 's:165:...'), que ja
+    tinha causado o bug antigo do "165%".
+
+    Nova fonte: investidor10.com.br/fiis/<ticker>/ -- usa a secao
+    "Duvidas comuns" (FAQ), que e texto SEO server-side renderizado, com
+    padrao estavel tipo:
+      "A cotação hoje de BDIF11 é de R$ 76,10, com uma variação..."
+      "...distribuiu um total de R$ 9,70 por cota... O Dividend Yield
+       no período foi de 12,75%."
+    Mais robusto que widgets de dashboard (que podem ser JS-only).
+
     Retorna dict ou None se falhar/dado insuficiente. NUNCA inventa
-    numero -- campos suspeitos (0,00 quando deveria ser % ou R$) ficam
-    None explicitamente.
-    Se debug=True, em caso de falha retorna um dict {'_debug': {...}}
-    com status_code/snippet do HTML, em vez de None puro -- usado pelo
-    endpoint /fii-infra?debug=1 para diagnostico temporario (29/06/2026,
-    investigando falha total de extracao em producao)."""
+    numero. Se debug=True, em caso de falha retorna {'_debug': {...}}
+    com status_code/contexto do HTML, em vez de None puro -- usado pelo
+    endpoint /fii-infra?debug=1 para diagnostico."""
     try:
         r = requests.get(
-            f'https://fiis.com.br/{ticker.lower()}/',
+            f'https://investidor10.com.br/fiis/{ticker.lower()}/',
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
             timeout=10)
         if not r.ok:
@@ -4638,51 +4651,19 @@ def scrape_fi_infra_dados(ticker, debug=False):
             return None
         html = r.text
 
-        def _extrai_numero_antes(label, html_busca, max_dist=80):
-            """Busca um numero (pt-BR, virgula decimal) que aparece ANTES
-            do label -- CONFIRMADO via teste contra HTML real: padrao do
-            fiis.com.br e '16,77 % Dividend Yield' (numero ANTES), nao
-            'Dividend Yield: 16,77%' (numero depois, que era a suposicao
-            ERRADA da primeira versao desta funcao -- capturava numero
-            errado, ex: DY pegava o valor de 'Ultimo Rendimento' por
-            engano). Retorna None se o valor for 0 (tratado como NA
-            disfarcado, ja confirmado em campos como P/VP='0,00' nesta
-            mesma pagina)."""
-            idx_label = html_busca.lower().find(label.lower())
-            if idx_label == -1:
-                return None
-            trecho_antes = html_busca[max(0, idx_label-max_dist):idx_label]
-            matches = re.findall(r'([\d.]+,\d+|\d+)', trecho_antes)
-            if not matches:
-                return None
-            raw = matches[-1].replace('.', '').replace(',', '.')  # numero mais proximo do label
-            try:
-                val = float(raw)
-                return val if val != 0 else None  # 0,00 tratado como NA, nao zero real
-            except ValueError:
-                return None
+        # CORRIGIDO: o HTML real usa tags (<strong>/<b>/etc), nao markdown
+        # (**texto**) -- a primeira tentativa desta funcao foi escrita
+        # contra a versao markdown que a ferramenta de leitura mostra,
+        # nao contra o HTML bruto real. Solucao robusta: remover TODAS
+        # as tags HTML antes de rodar os regex, trabalhando so com texto
+        # puro -- assim funciona independente de qual tag for usada.
+        texto = re.sub(r'<[^>]+>', ' ', html)
+        texto = re.sub(r'\s+', ' ', texto)  # colapsa espacos/quebras de linha
 
-        # CORRIGIDO 29/06/2026: regex anteriores capturavam ruido do HTML
-        # bruto (CSS: width:165px, IDs numericos, etc.) porque buscavam
-        # "ultimo numero em janela generica antes do label". HTML real
-        # confirmado via inspecao manual (web_fetch bdif11/):
-        #   DY: "**12,58** % \n\n Dividend Yield" -- numero + % + label
-        #   Cotacao: "R$ 77,09 \n ... \n Cotacao atual de BDIF11"
-        #   Liquidez: "R$ **2,2 M** \n\n Liquidez media diaria"
-        # Regex novos buscam o PADRAO COMPLETO, nao so "ultimo numero".
-
-        # DY: numero + (asteriscos opcionais) + % + max 60 chars + label
-        m_dy = re.search(r'([\d.]+,\d+)\s*\**\s*%[^%]{0,60}?Dividend Yield', html, re.IGNORECASE | re.DOTALL)
-        dy_pct = None
-        if m_dy:
-            try:
-                val = float(m_dy.group(1).replace('.', '').replace(',', '.'))
-                dy_pct = val if val > 0 else None
-            except ValueError:
-                pass
-
-        # Cotacao: "R$ NUMERO ... Cotacao atual" (tolerante a icones/imagens entre)
-        m_cot = re.search(r'R\$\s*\**\s*([\d.]+,\d+)\s*\**[^%]{0,120}?Cota(?:ção|cao) atual', html, re.IGNORECASE | re.DOTALL)
+        # Cotacao: "A cotação hoje de TICKER é de R$ NUMERO"
+        m_cot = re.search(
+            r'cota[çc][ãa]o hoje de\s*' + re.escape(ticker) + r'\s*[ée]\s*de\s*R\$\s*([\d.]+,\d+)',
+            texto, re.IGNORECASE)
         cotacao = None
         if m_cot:
             try:
@@ -4691,38 +4672,50 @@ def scrape_fi_infra_dados(ticker, debug=False):
             except ValueError:
                 pass
 
+        # DY: "O Dividend Yield no período foi de NUMERO%"
+        m_dy = re.search(
+            r'Dividend Yield no per[íi]odo foi de\s*([\d.]+,\d+)\s*%',
+            texto, re.IGNORECASE)
+        dy_pct = None
+        if m_dy:
+            try:
+                val = float(m_dy.group(1).replace('.', '').replace(',', '.'))
+                dy_pct = val if val > 0 else None
+            except ValueError:
+                pass
+
+        # Liquidez: widget do topo "Liquidez Diária R$ NUMERO M"
         liquidez = None
-        idx_liq = html.lower().find('liquidez média diária')
-        if idx_liq == -1:
-            idx_liq = html.lower().find('liquidez media diaria')
-        if idx_liq != -1:
-            trecho_liq = html[max(0, idx_liq-40):idx_liq]
-            matches_liq = re.findall(r'R\$\s*\**\s*([\d.,]+)\s*(M|K|B)?\s*\**', trecho_liq, re.IGNORECASE)
-            if matches_liq:
-                raw_liq, unidade = matches_liq[-1]
-                raw_liq = raw_liq.replace('.', '').replace(',', '.')
-                try:
-                    liquidez = float(raw_liq)
-                    unidade = unidade.upper()
-                    if unidade == 'M':
-                        liquidez *= 1_000_000
-                    elif unidade == 'B':
-                        liquidez *= 1_000_000_000
-                    elif unidade == 'K':
-                        liquidez *= 1_000
-                except ValueError:
-                    liquidez = None
+        m_liq = re.search(
+            r'Liquidez Di[áa]ria\s*R\$\s*([\d.,]+)\s*(M|K|B|Mil|Milh[õo]es|Bilh[õo]es)?',
+            texto, re.IGNORECASE)
+        if m_liq:
+            raw_liq, unidade = m_liq.group(1), (m_liq.group(2) or '')
+            raw_liq = raw_liq.replace('.', '').replace(',', '.')
+            try:
+                liquidez = float(raw_liq)
+                unidade = unidade.upper()
+                if unidade in ('M', 'MILH', 'MILHÕES', 'MILHOES'):
+                    liquidez *= 1_000_000
+                elif unidade in ('B', 'BILH', 'BILHÕES', 'BILHOES'):
+                    liquidez *= 1_000_000_000
+                elif unidade in ('K', 'MIL'):
+                    liquidez *= 1_000
+            except ValueError:
+                liquidez = None
 
         if dy_pct is None and cotacao is None:
             if debug:
-                idx_dy_raw = html.lower().find('dividend yield')
-                idx_cot_raw = html.lower().find('cota')
-                ctx_dy = html[max(0,idx_dy_raw-300):idx_dy_raw+100] if idx_dy_raw != -1 else 'TEXTO "dividend yield" NAO ENCONTRADO NO HTML'
+                idx_dy_raw = texto.lower().find('dividend yield')
+                idx_cot_raw = texto.lower().find('cotação hoje')
+                ctx_dy = texto[max(0,idx_dy_raw-100):idx_dy_raw+150] if idx_dy_raw != -1 else 'TEXTO "dividend yield" NAO ENCONTRADO'
+                ctx_cot = texto[max(0,idx_cot_raw-50):idx_cot_raw+200] if idx_cot_raw != -1 else 'TEXTO "cotação hoje" NAO ENCONTRADO'
                 return {'_debug': {
                     'status_code': r.status_code,
                     'html_len': len(html),
-                    'achou_texto_dividend_yield': idx_dy_raw != -1,
-                    'contexto_ao_redor_dy': ctx_dy,
+                    'texto_len': len(texto),
+                    'contexto_dy': ctx_dy,
+                    'contexto_cotacao': ctx_cot,
                 }}
             return None  # nada de util encontrado -- nao retorna dado parcial sem sentido
 
