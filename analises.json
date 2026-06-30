@@ -399,5 +399,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=0.87, DY=13.58%, segmento=Fundo de Infraestrutura (FI-Infra), nível de risco=N/A. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1782796358"
+  },
+  {
+    "ticker": "ICRI11.SA",
+    "nome": "ICRI11 - FII Outros",
+    "data_foto": "2026-06-30",
+    "preco_foto": 95.03,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 12.43,
+    "p_vp": 0.93,
+    "liquidez": 748577,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-06-30. P/VP=0.93, DY=12.43%, segmento=Outros, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1782818224"
   }
 ]
