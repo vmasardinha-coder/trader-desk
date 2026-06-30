@@ -3302,8 +3302,6 @@ def criar_analise():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/analises/<analise_id>/status', methods=['PUT'])
-@_requer_auth_escrita
 def _migrar_para_positions(item_analise):
     """
     Adicionado 26/06/2026. Quando uma analise de ESTRUTURADA (retorno_
@@ -3466,6 +3464,8 @@ def _migrar_para_positions(item_analise):
     except Exception as e:
         return False, f"erro ao gravar positions.json: {e}"
 
+@app.route('/analises/<analise_id>/status', methods=['PUT'])
+@_requer_auth_escrita
 def mudar_status_analise(analise_id):
     """
     Move uma analise entre estagios (em_analise -> ativa -> encerrada, ou
@@ -3525,6 +3525,29 @@ def mudar_status_analise(analise_id):
         if novo_status == 'ativa' and item_encontrado:
             sucesso_migracao, msg_migracao = _migrar_para_positions(item_encontrado)
             migracao_info = {'migrado_para_positions': sucesso_migracao, 'detalhe': msg_migracao}
+
+            # ADICIONADO 30/06/2026 (REAPLICADO -- versao anterior se
+            # perdeu por cache do raw.githubusercontent.com num deploy
+            # anterior desta mesma sessao). Uma vez migrada de verdade
+            # para positions.json (posicao ativa real), o registro NAO
+            # deve continuar em analises.json para sempre -- mesmo
+            # principio ja usado na migracao de FIIs -> carteira_fiis.json.
+            # So remove se a migracao realmente deu certo -- se falhou, o
+            # registro fica em analises.json status=ativa mesmo, para o
+            # usuario poder tentar de novo depois (nao perde silenciosamente).
+            if sucesso_migracao:
+                try:
+                    conteudo_an2, sha_an2 = _github_get_file('analises.json')
+                    lista_an2 = json.loads(conteudo_an2) if conteudo_an2.strip() else []
+                    lista_an2_filtrada = [a for a in lista_an2 if a.get('id') != analise_id]
+                    if len(lista_an2_filtrada) != len(lista_an2):
+                        novo_conteudo_an2 = json.dumps(lista_an2_filtrada, indent=2, ensure_ascii=False)
+                        _github_put_file('analises.json', novo_conteudo_an2, sha_an2,
+                            f"feat: remove {analise_id} de analises.json (migrado para positions.json)")
+                        migracao_info['removido_de_analises'] = True
+                except Exception as e_remove:
+                    migracao_info['removido_de_analises'] = False
+                    migracao_info['erro_remocao'] = str(e_remove)
 
         resposta = {'id': analise_id, 'status': novo_status}
         if migracao_info:
@@ -4860,7 +4883,15 @@ def scrape_statusinvest_ultimo_provento(ticker, segmento=None):
     Retorna dict {'data_pagamento': 'DD/MM/AA', 'valor': float} ou None.
     """
     import html as _html_mod
-    bases = ['fundos-imobiliarios', 'fiinfras'] if segmento != 'fi-infra' else ['fiinfras', 'fundos-imobiliarios']
+    # CORRIGIDO 30/06/2026: KNCA11 (Kinea Credito Agro) retornava "nao
+    # encontrado" porque StatusInvest classifica Fiagros numa URL
+    # SEPARADA (/fiagros/), nao em /fundos-imobiliarios/ nem /fiinfras/ --
+    # mesmo com nosso campo interno 'segmento' dizendo 'papel' (categorias
+    # internas nossas nao mapeiam 1:1 com as do StatusInvest). Tenta as 3
+    # bases sempre, no lugar de confiar no 'segmento' para decidir.
+    bases = ['fundos-imobiliarios', 'fiinfras', 'fiagros']
+    if segmento == 'fi-infra':
+        bases = ['fiinfras', 'fundos-imobiliarios', 'fiagros']
     for base in bases:
         try:
             r = requests.get(
