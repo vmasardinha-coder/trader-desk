@@ -5359,7 +5359,11 @@ def get_fii_infra():
             dados_debug = scrape_fi_infra_dados(primeiro['ticker'], debug=True)
             return jsonify({'debug_ticker': primeiro['ticker'], 'resultado': dados_debug})
 
-        for f in fundos:
+        # Busca dados individuais em PARALELO (antes era serial -- com ~30
+        # tickers cada um fazendo 1 request HTTP, serial = 30x timeout em serie,
+        # facil de estourar o worker do Render free tier).
+        # max_workers=8: equilibrio entre velocidade e uso de memoria/conexoes.
+        def _buscar_dados_fi(f):
             dados = scrape_fi_infra_dados(f['ticker'])
             if dados:
                 f.update(dados)
@@ -5370,6 +5374,10 @@ def get_fii_infra():
                 f['liquidez'] = None
                 f['p_vp'] = None
                 f['dados_disponiveis'] = False
+            return f
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            fundos = list(executor.map(_buscar_dados_fi, fundos))
 
         # ADICIONADO 29/06/2026 -- classificacao por criterio e nivel de
         # risco, reaproveitando EXATAMENTE a mesma logica ja usada para
