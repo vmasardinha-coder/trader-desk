@@ -73,8 +73,10 @@
     "nivel_risco": "high_yield",
     "data_ativacao": "2026-06-26",
     "preco_ativacao": 90.2,
-    "dy_anual_pct_ativacao": 1.06,
-    "status": "ativa"
+    "dy_anual_pct_ativacao": 14.54,
+    "status": "ativa",
+    "dy_anual_pct_ativacao_original_suspeito": 1.06,
+    "observacao": "CORRIGIDO 30/06/2026: dy_anual_pct_ativacao original (1.06%) era claramente um bug de scraping no momento da ativacao (26/06) -- StatusInvest/Investidor10 confirmam DY real na faixa de 14-14.5% para este fundo (Fiagro Kinea Credito Agro). Valor original preservado em dy_anual_pct_ativacao_original_suspeito para auditoria."
   },
   {
     "id": "fii_1782797894",
