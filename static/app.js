@@ -166,8 +166,12 @@ async function loadFiis(){
       _fiisTodosData=_fiisTodosData.map(f=>{
         if(f.segmento==='fi-infra'&&dadosPorTicker[f.ticker]){
           const dados=dadosPorTicker[f.ticker];
+          // ADICIONADO 29/06/2026: p_vp agora tambem vem do /fii-infra
+          // (antes so cotacao/dy_pct/liquidez) -- necessario para o
+          // bloco "+ Em Analise" nao quebrar com null.toFixed() quando
+          // dados_disponiveis=true mas p_vp ainda nao existia.
           return {...f, cotacao:dados.cotacao, dy_pct:dados.dy_pct, liquidez:dados.liquidez,
-                   sem_dados_financeiros:!dados.dados_disponiveis};
+                   p_vp:dados.p_vp, sem_dados_financeiros:!dados.dados_disponiveis};
         }
         return f;
       });
@@ -410,7 +414,7 @@ async function aprovarFiiParaAnalise(ticker){
   // Pede o preco MANUALMENTE em vez de tentar usar dado que nao existe.
   let precoFoto = f.cotacao;
   if(f.sem_dados_financeiros){
-    const precoStr=prompt(`${ticker} é FI-Infra -- ainda não temos cotação automática.\n\nDigite o preço atual (consulte fiis.com.br/${ticker.toLowerCase()}/ ou seu home broker):`);
+    const precoStr=prompt(`${ticker} é FI-Infra -- ainda não temos cotação automática.\n\nDigite o preço atual (consulte investidor10.com.br/fiis/${ticker.toLowerCase()}/ ou seu home broker):`);
     if(!precoStr)return;
     precoFoto=parseFloat(precoStr.replace(',','.'));
     if(isNaN(precoFoto)||precoFoto<=0){alert('Preço inválido.');return;}
@@ -437,9 +441,14 @@ async function aprovarFiiParaAnalise(ticker){
       origem: 'screening_fiis',
       status: 'em_analise',
       backtest: false,
+      // CORRIGIDO 29/06/2026: f.p_vp pode ser null mesmo com
+      // sem_dados_financeiros=false (FI-Infra tem P/VP, mas FII
+      // tradicional do Fundamentus tambem pode vir sem ele em casos
+      // raros) -- f.p_vp.toFixed(2) direto quebrava com
+      // "Cannot read properties of null". Usa fallback textual.
       observacao: f.sem_dados_financeiros
         ? `FI-Infra adicionado via screening em ${hoje}. Preço informado MANUALMENTE pelo usuário (R$${precoFoto.toFixed(2)}) -- dados financeiros automáticos (DY, P/VP, liquidez) ainda não disponíveis para esta categoria.`
-        : `FII adicionado via screening em ${hoje}. P/VP=${f.p_vp.toFixed(2)}, DY=${f.dy_pct.toFixed(2)}%, segmento=${f.segmento_fundamentus}, nível de risco=${f.nivel_risco}. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).`
+        : `FII adicionado via screening em ${hoje}. P/VP=${f.p_vp!=null?f.p_vp.toFixed(2):'N/D'}, DY=${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'N/D'}, segmento=${f.segmento_fundamentus||f.segmento}, nível de risco=${f.nivel_risco||'N/A'}. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).`
     };
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
     const r=await fetch(B+'/analises',{
