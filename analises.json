@@ -381,23 +381,5 @@
     "id": "an_1782490489",
     "motivo_encerramento": "rejeitada",
     "data_rejeicao": "2026-06-26"
-  },
-  {
-    "ticker": "BDIF11.SA",
-    "nome": "BDIF11 - FII Fundo de Infraestrutura (FI-Infra)",
-    "data_foto": "2026-06-30",
-    "preco_foto": 70.3,
-    "tipo_estrutura": "fii",
-    "prazo_dias": 9999,
-    "dy_anual_pct": 13.58,
-    "p_vp": 0.87,
-    "liquidez": 2530000,
-    "segmento": "fi-infra",
-    "nivel_risco": null,
-    "origem": "screening_fiis",
-    "status": "em_analise",
-    "backtest": false,
-    "observacao": "FII adicionado via screening em 2026-06-30. P/VP=0.87, DY=13.58%, segmento=Fundo de Infraestrutura (FI-Infra), nível de risco=N/A. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782796358"
   }
 ]
