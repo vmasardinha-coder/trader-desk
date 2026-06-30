@@ -4704,6 +4704,17 @@ def scrape_fi_infra_dados(ticker, debug=False):
             except ValueError:
                 liquidez = None
 
+        # P/VP: ADICIONADO 29/06/2026 -- padrao estavel da FAQ
+        # "Hoje, o fundo tem um patrimônio de R$ X e P/VP de NUMERO,"
+        p_vp = None
+        m_pvp = re.search(r'e P/VP de\s*([\d]+,\d+)', texto, re.IGNORECASE)
+        if m_pvp:
+            try:
+                val = float(m_pvp.group(1).replace(',', '.'))
+                p_vp = val if val > 0 else None
+            except ValueError:
+                pass
+
         if dy_pct is None and cotacao is None:
             if debug:
                 idx_dy_raw = texto.lower().find('dividend yield')
@@ -4719,7 +4730,7 @@ def scrape_fi_infra_dados(ticker, debug=False):
                 }}
             return None  # nada de util encontrado -- nao retorna dado parcial sem sentido
 
-        return {'ticker': ticker, 'dy_pct': dy_pct, 'cotacao': cotacao, 'liquidez': liquidez}
+        return {'ticker': ticker, 'dy_pct': dy_pct, 'cotacao': cotacao, 'liquidez': liquidez, 'p_vp': p_vp}
     except Exception as e:
         if debug:
             return {'_debug': {'exception': str(e)}}
