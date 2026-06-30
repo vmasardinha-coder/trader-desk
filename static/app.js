@@ -908,6 +908,13 @@ async function loadEvolucaoPosicao(id){
     if(p.alavancagem!=null)body.alavancagem=p.alavancagem;
     if(p.teto_retorno_pct!=null)body.teto_retorno_pct=p.teto_retorno_pct;
     if(p.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=p.ganho_prefixado_pct;
+    // ADICIONADO 30/06/2026 -- envia o preco de entrada REAL (positions.json,
+    // confirmado pelo usuario via nota de corretagem) como prioritario sobre
+    // a extracao automatica do historico do Yahoo, que pode estar errada
+    // para ativos de baixissima liquidez (ex: BSLV39, onde o Yahoo so tem
+    // 1 ponto no periodo e a extracao acabava usando o preco ATUAL como se
+    // fosse o de entrada).
+    if(p.entry!=null)body.entry=p.entry;
     const r=await fetch(B+'/montecarlo/posicao_ativa',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -1861,6 +1868,10 @@ async function MCBSimples(p){
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const body={ticker:p.ticker,data_entrada:p.data_entrada,vencimento:p.vencimento,kdo:p.kdo};
     if(p.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=p.ganho_prefixado_pct;
+    // ADICIONADO 30/06/2026 -- mesmo motivo da outra chamada a este endpoint
+    // (ver loadEvolucaoPosicao): preco de entrada real tem prioridade sobre
+    // extracao do Yahoo, que falha para ativos iliquidos como BSLV39.
+    if(p.entry!=null)body.entry=p.entry;
     const r=await fetch(B+'/montecarlo/posicao_ativa',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
