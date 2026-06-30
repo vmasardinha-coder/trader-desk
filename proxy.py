@@ -3476,35 +3476,6 @@ def mudar_status_analise(analise_id):
             sucesso_migracao, msg_migracao = _migrar_para_positions(item_encontrado)
             migracao_info = {'migrado_para_positions': sucesso_migracao, 'detalhe': msg_migracao}
 
-            # ADICIONADO 30/06/2026 -- usuario pediu: uma vez migrada de
-            # verdade para positions.json (posicao ativa real), o registro
-            # NAO deve continuar em analises.json para sempre. Antes disso,
-            # status='ativa' so trocava o campo aqui mesmo, ficando
-            # duplicado entre analises.json e positions.json indefinidamente
-            # (BSLV39 ficou assim ate ser notado). Mesmo principio ja usado
-            # na migracao de FIIs -> carteira_fiis.json (remove de
-            # analises.json apos sucesso, sem duplicar fonte de verdade).
-            # So remove se a migracao realmente deu certo -- se falhou (ex:
-            # Yahoo fora do ar), o registro fica em analises.json status=
-            # ativa mesmo, para o usuario poder tentar de novo depois (nao
-            # perde o registro silenciosamente).
-            if sucesso_migracao:
-                try:
-                    conteudo_an2, sha_an2 = _github_get_file('analises.json')
-                    lista_an2 = json.loads(conteudo_an2) if conteudo_an2.strip() else []
-                    lista_an2_filtrada = [a for a in lista_an2 if a.get('id') != analise_id]
-                    if len(lista_an2_filtrada) != len(lista_an2):
-                        novo_conteudo_an2 = json.dumps(lista_an2_filtrada, indent=2, ensure_ascii=False)
-                        _github_put_file('analises.json', novo_conteudo_an2, sha_an2,
-                            f"feat: remove {analise_id} de analises.json (migrado para positions.json)")
-                        migracao_info['removido_de_analises'] = True
-                except Exception as e_remove:
-                    # Nao falha a resposta principal se essa limpeza falhar
-                    # (migracao para positions.json ja aconteceu com sucesso,
-                    # o que importa) -- so registra que nao limpou.
-                    migracao_info['removido_de_analises'] = False
-                    migracao_info['erro_remocao'] = str(e_remove)
-
         resposta = {'id': analise_id, 'status': novo_status}
         if migracao_info:
             resposta['migracao'] = migracao_info
@@ -4806,6 +4777,44 @@ def scrape_fi_infra_dados(ticker, debug=False):
         if debug:
             return {'_debug': {'exception': str(e)}}
         return None
+
+@app.route('/debug-statusinvest', methods=['GET'])
+def debug_statusinvest():
+    """
+    DIAGNOSTICO TEMPORARIO (30/06/2026) -- investigando se
+    statusinvest.com.br e viavel como fonte alternativa de cotacao para
+    BDRs de baixa liquidez (BSLV39 nao tem historico suficiente no Yahoo).
+    Busca a pagina real e expoe status_code, tamanho, e se existe um
+    bloco __NEXT_DATA__ (JSON embutido server-side, comum em apps
+    Next.js -- se existir, e uma fonte MUITO mais confiavel que regex em
+    texto visivel, igual usado para FI-Infra). Remover depois de decidir
+    a abordagem definitiva.
+    """
+    ticker = request.args.get('ticker', 'BSLV39').lower()
+    try:
+        r = requests.get(
+            f'https://statusinvest.com.br/bdrs/{ticker}',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+            timeout=10)
+        html = r.text
+        tem_next_data = '__NEXT_DATA__' in html
+        idx_next = html.find('__NEXT_DATA__')
+        snippet_next = html[idx_next:idx_next+800] if idx_next != -1 else None
+
+        # Procura tambem por padrao de preco visivel simples, tipo fallback
+        texto = re.sub(r'<[^>]+>', ' ', html)
+        texto = re.sub(r'\s+', ' ', texto)
+        idx_preco = texto.find('R$')
+
+        return jsonify({
+            'status_code': r.status_code,
+            'html_len': len(html),
+            'tem_next_data_json': tem_next_data,
+            'snippet_next_data': snippet_next,
+            'snippet_texto_inicio_RS': texto[max(0,idx_preco-50):idx_preco+200] if idx_preco != -1 else 'R$ NAO ENCONTRADO NO TEXTO',
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
