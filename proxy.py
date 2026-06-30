@@ -4989,6 +4989,266 @@ def debug_statusinvest():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+_SI_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept-Language': 'pt-BR,pt;q=0.9',
+    'Referer': 'https://statusinvest.com.br/',
+}
+
+def scrape_statusinvest_tickers_listagem(path):
+    """
+    Extrai lista de tickers de uma pagina de listagem do StatusInvest.
+    Paths conhecidos: 'fundos-imobiliarios', 'fiinfras', 'fip'.
+    Retorna lista de dicts {'ticker', 'nome_fundo', 'cotacao', 'categoria_si'}
+    ou (None, erro).
+
+    O HTML dessas paginas e server-side renderizado e contem blocos como:
+      TICKER  NOME COMPLETO  arrow_upward X,XX %  R$ YYY,YY  arrow_right
+    Estrategia: regex no HTML bruto para capturar ticker + nome + cotacao
+    que aparecem juntos em cada item da lista.
+    """
+    try:
+        r = requests.get(
+            f'https://statusinvest.com.br/{path}',
+            headers=_SI_HEADERS, timeout=20)
+        if not r.ok:
+            return None, f'http_{r.status_code}'
+        html = r.text
+        # Extrai tickers via padrao: href="/fundos-imobiliarios/TICKER" ou
+        # href="/fiinfras/TICKER" -- o ticker aparece no href da pagina individual
+        tickers = list(dict.fromkeys(
+            re.findall(
+                r'href="/' + re.escape(path) + r'/([a-z0-9]{4,7})/"',
+                html, re.IGNORECASE)
+        ))
+        tickers = [t.upper() for t in tickers if re.match(r'^[A-Z]{4,6}[0-9]{2}$', t.upper())]
+        # Fallback: regex no texto (padrao que vimos no debug: TICKER no HTML como texto)
+        if not tickers:
+            texto = re.sub(r'<[^>]+>', ' ', html)
+            tickers = list(dict.fromkeys(
+                re.findall(r'\b([A-Z]{4,6}[0-9]{2})\b', texto)
+            ))
+        return tickers, None
+    except Exception as e:
+        return None, str(e)
+
+
+def scrape_statusinvest_fundo_dados(ticker, path_categoria):
+    """
+    Busca dados financeiros de um fundo individual via StatusInvest.
+    path_categoria: 'fundos-imobiliarios' | 'fiinfras' | 'fip'
+
+    Retorna dict com ticker/cotacao/dy_pct/p_vp/liquidez ou None se falhar.
+    NUNCA inventa numero -- campos ausentes ficam None.
+
+    Reutiliza o mesmo padrao ja validado em scrape_statusinvest_ultimo_provento:
+    StatusInvest e server-side renderizado, texto puro acessivel via requests.get().
+    """
+    try:
+        r = requests.get(
+            f'https://statusinvest.com.br/{path_categoria}/{ticker.lower()}',
+            headers=_SI_HEADERS, timeout=10)
+        if not r.ok:
+            return None
+        html = r.text
+        import html as html_lib
+        texto = html_lib.unescape(re.sub(r'<[^>]+>', ' ', html))
+        texto = re.sub(r'\s+', ' ', texto)
+
+        def _parse_num(s):
+            try:
+                return float(s.replace('.', '').replace(',', '.'))
+            except Exception:
+                return None
+
+        # Cotacao atual -- padrao: "Valor atual R$ X,XX" ou "R$ X,XX" proximo de "Valor atual"
+        cotacao = None
+        m = re.search(r'Valor atual\s*R\$\s*([\d.]+,\d+)', texto, re.IGNORECASE)
+        if not m:
+            m = re.search(r'R\$\s*([\d.]+,\d+)', texto)
+        if m:
+            cotacao = _parse_num(m.group(1))
+            if cotacao and cotacao <= 0:
+                cotacao = None
+
+        # DY -- padrao: "X,XX%" proximo de "Dividend Yield" ou "DY"
+        dy_pct = None
+        m = re.search(r'Dividend Yield[^%]{0,60}?([\d]+,\d+)\s*%', texto, re.IGNORECASE)
+        if not m:
+            m = re.search(r'([\d]+,\d+)\s*%[^%]{0,30}?Dividend Yield', texto, re.IGNORECASE)
+        if m:
+            dy_pct = _parse_num(m.group(1))
+            if dy_pct and (dy_pct <= 0 or dy_pct > 100):
+                dy_pct = None
+
+        # P/VP
+        p_vp = None
+        m = re.search(r'P[/\\.]VP[^0-9]{0,20}?([\d]+,\d+)', texto, re.IGNORECASE)
+        if m:
+            p_vp = _parse_num(m.group(1))
+            if p_vp and (p_vp <= 0 or p_vp > 20):
+                p_vp = None
+
+        # Liquidez diaria
+        liquidez = None
+        m = re.search(
+            r'Liquidez[^R]{0,20}?R\$\s*([\d.,]+)\s*(M|K|B|Mil|Milh[õo]es|Bilh[õo]es)?',
+            texto, re.IGNORECASE)
+        if m:
+            raw, un = m.group(1), (m.group(2) or '').upper()
+            liquidez = _parse_num(raw)
+            if liquidez is not None:
+                if un in ('M', 'MILH', 'MILHÕES', 'MILHOES'):
+                    liquidez *= 1_000_000
+                elif un in ('B', 'BILH', 'BILHÕES', 'BILHOES'):
+                    liquidez *= 1_000_000_000
+                elif un in ('K', 'MIL'):
+                    liquidez *= 1_000
+                if liquidez <= 0:
+                    liquidez = None
+
+        if dy_pct is None and cotacao is None:
+            return None  # sem nenhum dado util, nao retorna entrada vazia
+        return {
+            'ticker': ticker.upper(),
+            'cotacao': cotacao,
+            'dy_pct': dy_pct,
+            'p_vp': p_vp,
+            'liquidez': liquidez,
+        }
+    except Exception:
+        return None
+
+
+@app.route('/fiis/universo-complementar', methods=['GET'])
+def fiis_universo_complementar():
+    """
+    Busca os tickers NAO cobertos pelo Fundamentus (FII tradicionais
+    menos conhecidos + FI-Infra + FIP-Infra) via StatusInvest, e retorna
+    dados financeiros de cada um.
+
+    Fluxo:
+    1. Busca tickers das 3 paginas de listagem do StatusInvest
+       (fundos-imobiliarios, fiinfras, fip)
+    2. Recebe lista de tickers_ja_cobertos via query param (enviados
+       pelo frontend apos a Chamada A do Fundamentus), filtra os que
+       ja tem dado completo
+    3. Busca dados individuais dos tickers restantes em paralelo via
+       ThreadPoolExecutor, em lotes para nao estourar memoria do Render
+    4. Aplica mesmo criterio de descarte (liquidez >= 50k, DY > 0)
+    5. Retorna lista pronta para merge no frontend
+
+    Query params:
+    - tickers_cobertos: string separada por virgula dos tickers que o
+      Fundamentus ja cobriu (para nao duplicar)
+    - incluir_fip: 1|0 (default 1) -- se inclui FIP-IE de infra
+    - liquidez_min: default 50000
+    """
+    try:
+        liquidez_min = float(request.args.get('liquidez_min', 50000))
+        incluir_fip = request.args.get('incluir_fip', '1') == '1'
+        tickers_cobertos_str = request.args.get('tickers_cobertos', '')
+        tickers_cobertos = set(t.strip().upper() for t in tickers_cobertos_str.split(',') if t.strip())
+
+        # Passo 1: coletar tickers das listagens do StatusInvest
+        categorias = [
+            ('fiinfras', 'fi-infra'),
+        ]
+        if incluir_fip:
+            categorias.append(('fip', 'fi-infra'))  # FIP-IE vai para categoria 'fi-infra'
+
+        # Para FII tradicional, tambem buscamos listagem do StatusInvest
+        # para pegar os ~140 nao cobertos pelo Fundamentus
+        categorias.insert(0, ('fundos-imobiliarios', 'fii'))
+
+        todos_tickers = []  # lista de (ticker, path_si, segmento_app)
+        tickers_vistos = set(tickers_cobertos)
+
+        for path_si, segmento_app in categorias:
+            tickers_lista, erro = scrape_statusinvest_tickers_listagem(path_si)
+            if not tickers_lista:
+                continue
+            for t in tickers_lista:
+                if t in tickers_vistos:
+                    continue
+                tickers_vistos.add(t)
+                todos_tickers.append((t, path_si, segmento_app))
+
+        if not todos_tickers:
+            return jsonify({'fundos': [], 'total': 0, 'aviso': 'nenhum ticker novo encontrado'})
+
+        # Passo 2: buscar dados individuais em paralelo, lotes de 10
+        # para nao estourar memoria do Render free tier
+        resultados = []
+        LOTE = 10
+
+        def _buscar(args):
+            ticker, path_si, segmento_app = args
+            dados = scrape_statusinvest_fundo_dados(ticker, path_si)
+            if dados is None:
+                return None
+            dados['segmento'] = segmento_app
+            dados['segmento_fundamentus'] = (
+                'Fundo de Infraestrutura (FI-Infra)' if segmento_app == 'fi-infra'
+                else 'Fundo de Participações (FIP)' if segmento_app == 'fip'
+                else 'FII Tradicional'
+            )
+            dados['fonte'] = 'statusinvest'
+            return dados
+
+        for i in range(0, len(todos_tickers), LOTE):
+            lote = todos_tickers[i:i+LOTE]
+            with ThreadPoolExecutor(max_workers=LOTE) as ex:
+                parcial = list(ex.map(_buscar, lote))
+            resultados.extend([d for d in parcial if d is not None])
+
+        # Passo 3: aplicar criterio e classificar risco
+        from statistics import median
+        fundos_validos = []
+        fundos_fora = []
+
+        dy_vals = [f['dy_pct'] for f in resultados if f.get('dy_pct')]
+        mediana_dy_global = median(dy_vals) if dy_vals else 10.0
+
+        for f in resultados:
+            motivo = None
+            liq = f.get('liquidez')
+            dy = f.get('dy_pct')
+            if liq is None or liq < liquidez_min:
+                motivo = f'liquidez baixa' if liq is not None else 'liquidez ausente'
+            elif dy is None or dy <= 0:
+                motivo = 'DY zerado ou ausente'
+
+            if motivo:
+                f['fora_criterio'] = True
+                f['motivo_fora_criterio'] = motivo
+                f['nivel_risco'] = None
+                f['score'] = None
+                fundos_fora.append(f)
+            else:
+                f['fora_criterio'] = False
+                f['nivel_risco'] = _classificar_risco_fii(
+                    f.get('nome_fundo', f['ticker']),
+                    f.get('segmento_fundamentus', ''),
+                    dy, None, mediana_dy_global)
+                f['score'] = _score_fii(f.get('p_vp'), dy, liq, None)
+                fundos_validos.append(f)
+
+        ordem_risco = {'high_grade': 0, 'middle_risk': 1, 'high_yield': 2}
+        fundos_validos.sort(key=lambda f: (ordem_risco.get(f['nivel_risco'], 1), -(f['score'] or 0)))
+        fundos_fora.sort(key=lambda f: f['ticker'])
+
+        todos = fundos_validos + fundos_fora
+        return jsonify({
+            'total': len(todos),
+            'total_validos': len(fundos_validos),
+            'total_fora_criterio': len(fundos_fora),
+            'fundos': todos,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/debug-statusinvest-listagem', methods=['GET'])
 def debug_statusinvest_listagem():
     """
