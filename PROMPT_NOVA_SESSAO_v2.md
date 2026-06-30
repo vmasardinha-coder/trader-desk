@@ -3366,3 +3366,29 @@ Usuário testou encerrar KNDI11 da carteira: saiu da carteira corretamente, volt
 - **StatusInvest não renderiza dados financeiros (DY/liquidez) server-side** — só cotação e P/VP chegam via `requests.get()`. Qualquer campo que seja widget JS (`{field_F}`) não vem. Não tentar usar StatusInvest para dados financeiros em lote de FIIs.
 - **Tickers novos no merge do /fii-infra precisam ser INSERIDOS, não só atualizados** — FIP-IE nunca estavam em `_fiisTodosData` para começar, então o `.map()` que só atualizava registros existentes era invisível para eles.
 - **ThreadPoolExecutor essencial para múltiplos requests HTTP** — 30+ requests sequenciais em série é suficiente para travar o worker do Render free tier e gerar 502/503.
+
+---
+
+# Correção de backlog — 30/06/2026 (final de sessão)
+
+## Itens removidos do backlog (já implementados, estavam registrados erroneamente como pendentes)
+- **Cotações Europa/Ásia** — JÁ EXISTE no app, implementado em sessão anterior
+- **Nasdaq-100 na métrica de concentração** — JÁ EXISTE (semi/m7/software já implementados)
+
+## Backlog corrigido e atualizado (ordem de prioridade para próxima sessão)
+
+1. **Yields de títulos soberanos** — nova seção em Cotações, junto ao DXY/VIX:
+   - EUA: 2 anos, 10 anos, 20 anos (tickers Yahoo: `^IRX`, `^TNX`, `^TYX`)
+   - Japão: 10 anos
+   - Brasil: curva curta (Selic/pré) e longa (NTN-B/IPCA+)
+   - USD/JPY adicionado ao câmbio existente
+   Objetivo: acompanhar a curva de juros global e sinal de risk-off/risk-on
+
+2. Histórico de dividendos mês a mês na Carteira FIIs (hoje só "último provento")
+3. "Análise de Papel" (3 fotos fixas 21/60/90d para ativo puro sem opção)
+4. Separação visual Em Análise: estruturadas vs FIIs (cards misturados)
+5. Encerradas para FIIs (backlog longo prazo, comportamento ainda não definido)
+6. Teto de análises por lote do ranking (15-20, não fechado)
+7. ETFs (mapear universo com cuidado, lição do FI-Infra)
+8. Visão multi-usuário (só se virar produto)
+9. Renda fixa (só registro, sem ação)
