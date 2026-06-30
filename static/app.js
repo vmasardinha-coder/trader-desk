@@ -437,6 +437,25 @@ async function aprovarFiiParaAnalise(ticker){
   }
 
   const avisoFora=f.fora_criterio?`\n\n⚠ Este FII está FORA do critério padrão (${f.motivo_fora_criterio}). Você está assumindo esse risco conscientemente.`:'';
+
+  // ADICIONADO 30/06/2026 -- controle de duplicidade: antes nao havia
+  // nenhuma checagem, entao clicar 2x no mesmo ticker (ou clicar de
+  // novo dias depois sem perceber que ja estava em analise) criava
+  // registros duplicados em analises.json. Verifica se ja existe uma
+  // analise ATIVA (em_analise ou ativa) para este ticker antes de
+  // permitir adicionar de novo.
+  if(_analiseData){
+    const tickerCompleto = ticker+'.SA';
+    const jaExiste = _analiseData.find(a =>
+      (a.ticker===tickerCompleto || a.ticker===ticker) &&
+      (a.status==='em_analise' || a.status==='ativa')
+    );
+    if(jaExiste){
+      alert(`${ticker} já está em "${jaExiste.status==='ativa'?'Ativa (posição real)':'Em Análise'}" (id: ${jaExiste.id}).\n\nNão é possível adicionar de novo enquanto a análise anterior estiver em aberto. Rejeite ou encerre a análise existente primeiro, se quiser registrar uma nova.`);
+      return;
+    }
+  }
+
   const ok=confirm(`Adicionar ${ticker} a "Em Análise"? Isso grava no repositório com preço de referência R$${precoFoto.toFixed(2)}.${avisoFora}`);
   if(!ok)return;
   const linha=document.getElementById('fii-row-'+ticker);
