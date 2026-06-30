@@ -3287,3 +3287,82 @@ sentido.
   ao expandir o universo, decidir se a mediana de DY de referência muda).
 - `/fii-ultimo-provento` (StatusInvest) continua funcionando como está,
   independente dessa reconstrução -- não precisa mexer.
+
+---
+
+# Sessão 30/06/2026 (continuação) — Universo FIIs expandido + FIP-IE + correções
+
+## SHAs finais desta parte
+- proxy.py: 19324f5b9d851635d74c00842033d0f2bd0a247e
+- static/app.js: b5a445a9da225a6841ee8101615eaa689daa51bc
+
+## ✅ Universo FII expandido — CONCLUÍDO E VALIDADO
+
+**Investigação de fontes:**
+- `investidor10.com.br/fiis/all2/` é JS-dependente (tabela não carrega via `requests.get()`) — descartado
+- StatusInvest tem páginas server-side para `/fundos-imobiliarios`, `/fiinfras`, `/fip` — todas retornam 200 com tickers visíveis no HTML bruto
+- StatusInvest NÃO renderiza DY nem liquidez server-side (ficam em widgets JS tipo `{liquidezMediaDiaria_F}`) — inviável como fonte de dados financeiros em lote
+
+**Decisão final (confirmada pelo usuário):**
+- Fundamentus continua sendo a fonte principal para FII tradicional (~560, 1 chamada, dados completos)
+- Os ~140 FIIs não cobertos pelo Fundamentus têm liquidez tão baixa que morrem no critério de qualquer forma — não vale buscar
+- Chamada B (universo-complementar via StatusInvest) foi cancelada — gerava erro 400 (URL longa demais) e não acrescentava nada útil
+- FI-Infra (~21 tickers) e FIP-IE (~10 tickers) cobertos via Investidor10 individualmente (já implementado em `/fii-infra`)
+
+**Universo final validado: 591 fundos** (560 Fundamentus + 31 FI-Infra/FIP-IE)
+
+## ✅ FIP-IE integrado ao /fii-infra — CONCLUÍDO E VALIDADO
+
+Lista `TICKERS_FIP_IE` adicionada em `get_fii_infra()`:
+KNDI11, BDIV11, XPIE11, DIVS11, VIGT11, BRZP11, ENDD11, GTIS11, PICE11, PPEI11
+
+Todos buscam dados via `scrape_fi_infra_dados()` (Investidor10/FAQ), mesmo padrão já validado para FI-Infra puro. Agrupados como categoria `fi-infra` no app (agrupamento temático, não regulatório — decisão do usuário).
+
+**Resultados validados pelo usuário:**
+- KNDI11: DY 14.85%, liquidez R$1.67M/dia, P/VP 1.03 → high_grade ✅
+- XPIE11: DY 14.78%, liquidez R$923k/dia, P/VP 0.62 → high_grade ✅
+- BDIV11: DY 17.29%, liquidez R$244k/dia, P/VP 0.95 → middle_risk ✅
+- DIVS11: DY 14.21%, liquidez R$1.14M/dia, P/VP 1.04 → high_grade ✅
+
+**Loop serial → paralelo:** `/fii-infra` agora usa `ThreadPoolExecutor(max_workers=8)` para buscar os ~31 tickers em paralelo em vez de série — evita timeout no Render free tier.
+
+**Merge no frontend corrigido:** o merge do `/fii-infra` agora também INSERE fundos novos (FIP-IE) que não existem em `_fiisTodosData`, além de atualizar os já existentes. Antes só atualizava, deixando FIP-IE invisível na lista.
+
+## KNDI11 sem último provento — comportamento esperado, não bug
+
+StatusInvest não tem histórico de proventos para KNDI11 em nenhuma base (`/fip/`, `/fiinfras/`, `/fundos-imobiliarios/`, `/fiagros/`) — provavelmente fundo recente sem pagamentos registrados. Exibe "—" na coluna, correto.
+
+`/fip/` adicionado como base de busca em `scrape_statusinvest_ultimo_provento()` para cobrir FIP-IE em geral — não ajudou para KNDI11 especificamente mas é a coisa certa para outros FIP-IE que já tenham histórico.
+
+## Comportamento de Encerradas para FIIs — backlog futuro
+
+Usuário testou encerrar KNDI11 da carteira: saiu da carteira corretamente, voltou disponível na base, pode ser mandado de volta para Em Análise. ✅
+
+**Decisão:** FIIs encerrados NÃO vão para a aba "Encerradas" por enquanto — o fluxo de sucesso/fracasso faz sentido para estruturadas (ganho/perda prefixada), mas para FII é mais ambíguo (vendeu por quê? crise? lucro? rebalanceamento?). Fica como backlog sem prioridade definida.
+
+## Backlog atualizado
+
+**Itens concluídos nesta sessão:**
+- ✅ Universo FII expandido (591 fundos, Fundamentus + FI-Infra/FIP-IE)
+- ✅ FIP-IE integrado (KNDI11/BDIV11/XPIE11/DIVS11 com dados reais)
+- ✅ Loop serial → paralelo no /fii-infra
+- ✅ Merge frontend corrigido (insere novos + atualiza existentes)
+
+**Backlog pendente (sem mudança de prioridade):**
+1. Cotações Europa/Ásia
+2. Nasdaq-100 na métrica de concentração
+3. ETFs (mapear universo com cuidado — lição do FI-Infra)
+4. Histórico de dividendos mês a mês na Carteira de FIIs (hoje só "último provento")
+5. Encerradas para FIIs (backlog longo prazo, sem prioridade)
+6. "Análise de Papel" (3 fotos fixas 21/60/90d)
+7. Separação visual Em Análise: estruturadas vs FIIs (cards misturados)
+8. Teto de análises por chamada do ranking (15-20)
+9. Migração Em Análise → Ativa para estruturadas (já implementada, mas fluxo de encerradas de FII ainda não definido)
+10. Visão multi-usuário (só se virar produto)
+11. Renda fixa (só registro)
+
+## Lições desta sessão
+
+- **StatusInvest não renderiza dados financeiros (DY/liquidez) server-side** — só cotação e P/VP chegam via `requests.get()`. Qualquer campo que seja widget JS (`{field_F}`) não vem. Não tentar usar StatusInvest para dados financeiros em lote de FIIs.
+- **Tickers novos no merge do /fii-infra precisam ser INSERIDOS, não só atualizados** — FIP-IE nunca estavam em `_fiisTodosData` para começar, então o `.map()` que só atualizava registros existentes era invisível para eles.
+- **ThreadPoolExecutor essencial para múltiplos requests HTTP** — 30+ requests sequenciais em série é suficiente para travar o worker do Render free tier e gerar 502/503.
