@@ -2935,3 +2935,104 @@ completo confirmado acima) antes de subir qualquer código. NÃO usar
 ## SHAs atuais (momento da pausa)
 - proxy.py: 7a5a01fafdfd907896dd62c5eccc8f705e9d774e
 - static/app.js: 627f4a4762ce3f650051923667a3f3131b2e66e5
+
+---
+
+# 🔄 TRANSIÇÃO DE SESSÃO — 29/06/2026 (sessão ficou muito longa, continuar em nova sessão)
+
+## ⚡ LEIA ISTO PRIMEIRO numa nova sessão
+Esta sessão (iniciada 26/06, retomada 29/06) ficou extremamente longa.
+Usuário pediu para preparar transição completa e continuar em sessão nova.
+Próxima sessão: ler este arquivo do TOPO até aqui para reconstituir
+contexto. As últimas ~18 partes (buscar "## ✅" e "# Sessão" no arquivo)
+cobrem tudo que foi feito recentemente.
+
+## SHAs ATUAIS (confirmar sempre via raw.githubusercontent.com, nunca assumir)
+- proxy.py: verificar -- última correção foi regex de DY/cotação/liquidez
+  do FI-Infra (29/06)
+- static/app.js: 627f4a4762ce3f650051923667a3f3131b2e66e5
+- positions.json: 7 posições ativas confirmadas:
+  PETR4, VALE3, AXIA3(A), AXIA3(B), ROXO34, BBAS3, BSLV39
+- analises.json: 10 registros em_analise confirmados (todos
+  retorno_controlado, do lote mais recente): CYRE3, ROXO34(2a análise,
+  diferente do ativo), TSLA34, ALOS3, DIRR3 (x2 -- possível duplicata),
+  CMIN3 (x2 -- possível duplicata), PETR4 (x2 -- possível duplicata,
+  diferente do ativo já em positions.json)
+
+## 🔴 TAREFA ATIVA AGORA MESMO (interrompida pela transição)
+**FI-Infra -- dados financeiros (cotação, DY, liquidez)**
+- Bug encontrado: extração inicial retornava dy_pct=165.0 para TODOS os
+  22 fundos (claramente errado -- era ruído de CSS/JS do HTML bruto,
+  tipo "width:165px", não dado real)
+- CORRIGIDO (mas usuário ainda não confirmou teste real): regex reescrito
+  para padrão específico confirmado via HTML real (inspeção manual de
+  fiis.com.br/bdif11/):
+  - DY: r'([\d.]+,\d+)\s*\**\s*%[^%]{0,60}?Dividend Yield' (número + % + label)
+  - Cotação: r'R\$\s*\**\s*([\d.]+,\d+)\s*\**[^%]{0,120}?Cota(?:ção|cao) atual'
+  - Liquidez: busca "R$ **2,2 M**" antes de "Liquidez média diária"
+- Testado isoladamente com sucesso (DY=12.58, Cotação=77.09 para BDIF11,
+  exatamente os valores reais confirmados via web_fetch)
+- ÚLTIMA AÇÃO: subido para produção, usuário ainda não testou o resultado
+  real via console
+- PRÓXIMO PASSO: pedir para o usuário rodar:
+  `fetch("https://trader-desk.onrender.com/fii-infra").then(r=>r.json()).then(d=>console.log(d.fundos.slice(0,3)))`
+  e confirmar se os valores agora batem com a realidade (não mais 165.0
+  para todos)
+
+## 🟡 Pendências menores não resolvidas
+
+### Duplicatas suspeitas em analises.json (em_analise)
+DIRR3, CMIN3, e PETR4 aparecem 2x cada na lista de em_analise. Não
+investigado se é duplicata real de clique (como aconteceu antes com
+CLIN11/FIIs) ou se são análises genuinamente diferentes (preços/datas
+diferentes). VERIFICAR antes de aprovar qualquer uma dessas.
+
+### BSLV39 (prata) em Posições Ativas -- comportamentos reportados pelo
+usuário, prováveis causas já identificadas mas NÃO CONFIRMADAS:
+- Fan chart / linha verde (P50) ainda não visível: usuário relatou.
+  Causa provável A: mesmo bug de `dataset.loaded` preso no DOM (já visto
+  e resolvido uma vez antes nesta sessão para o mesmo BSLV39 -- pode ter
+  acontecido de novo). Causa provável B: posição "fechada na sexta" tem
+  poucos dias de mercado reais ainda, gráfico pode parecer vazio/achatado
+  até acumular mais histórico real.
+- vol_impl=null: CONFIRMADO esperado (histórico do BDR insuficiente no
+  Yahoo, <5 pontos válidos). Não é bug, é limitação documentada.
+- Ainda aparece em "Em Análise" também: CONFIRMADO comportamento atual
+  esperado (usuário decidiu manter assim por enquanto, ver decisão de
+  processo registrada em parte anterior desta sessão).
+
+### Próximos passos sugeridos para FI-Infra (depois de confirmar o fix de DY)
+1. Confirmar com usuário se os 22 FI-Infra mostram dados reais agora
+2. Se sim: considerar adicionar classificação de risco/score para
+   FI-Infra também (hoje só mostra dados brutos, não rankeia)
+3. Se não: investigar mais -- pode ser que nem todos os 22 tickers
+   sigam exatamente o mesmo padrão de HTML (alguns podem ter layout
+   levemente diferente)
+
+## 📋 Backlog geral (sem mudança, válido desde partes anteriores)
+- ETFs (mapear universo com cuidado, lição do FI-Infra)
+- Renda Fixa (só registro, sem ação)
+- "Análise de Papel" (fotos fixas 21/60/90d)
+- Separar visualmente Em Análise: estruturadas vs FIIs (já tem ranking
+  próprio, mas card ainda misturado visualmente na mesma lista)
+- Controle de duplicidade no screening de FIIs (clicar 2x no mesmo ticker)
+- Comportamento ao remover FII da carteira: volta disponível ou fica marcado?
+- Link direto da tabela de FIIs para o Fundamentus
+- Teto de análises por chamada do ranking (15-20, não fechado)
+- Faseamento real no frontend (backend já aceita offset/limit)
+- Visão multi-usuário (só se virar produto)
+- Histórico de dividendos mês a mês na Carteira de FIIs
+- Valorização 12 meses como coluna em FIIs
+
+## ⭐ Princípios e decisões de processo já fechados (não precisam de nova ação)
+- NUNCA inventar dados (vol_impl null explícito, nunca fallback fixo tipo
+  0.35; DY/cotação null explícito se extração falhar, nunca número de
+  ruído HTML)
+- Preço de foto impreciso: usuário compara visualmente e rejeita/repete
+  ao banco se a diferença for grande -- não precisa de auditoria automática
+- FIP/FIDC fora do escopo de FIIs por decisão deliberada
+- Tipo "simples" (covered call) nunca passa pela migração automática --
+  decidido em sessão de chat, "nasce já analisado"
+- FI-Infra fica integrado na mesma tela de FIIs (não aba separada)
+- Migração Em Análise → Posições Ativas (retorno_controlado/bidirecional)
+  é automática, calcula vol_impl via GARCH real ou marca null explícito
