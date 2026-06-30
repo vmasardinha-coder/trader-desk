@@ -4887,11 +4887,12 @@ def scrape_statusinvest_ultimo_provento(ticker, segmento=None):
     # encontrado" porque StatusInvest classifica Fiagros numa URL
     # SEPARADA (/fiagros/), nao em /fundos-imobiliarios/ nem /fiinfras/ --
     # mesmo com nosso campo interno 'segmento' dizendo 'papel' (categorias
-    # internas nossas nao mapeiam 1:1 com as do StatusInvest). Tenta as 3
+    # internas nossas nao mapeiam 1:1 com as do StatusInvest). Tenta as 4
     # bases sempre, no lugar de confiar no 'segmento' para decidir.
-    bases = ['fundos-imobiliarios', 'fiinfras', 'fiagros']
+    # /fip/ adicionado 30/06/2026 para cobrir FIP-IE (KNDI11, BDIV11, etc)
+    bases = ['fundos-imobiliarios', 'fiinfras', 'fiagros', 'fip']
     if segmento == 'fi-infra':
-        bases = ['fiinfras', 'fundos-imobiliarios', 'fiagros']
+        bases = ['fiinfras', 'fip', 'fundos-imobiliarios', 'fiagros']
     for base in bases:
         try:
             r = requests.get(
@@ -5327,6 +5328,7 @@ def get_fii_infra():
         'KNDI11',  # Kinea Estrategia Infra
         'BDIV11',  # BTG Pactual Infraestrutura Dividendos
         'XPIE11',  # XP Infra Energia
+        'DIVS11',  # Sparta Infra Inflacao Longa -- confirmado FI-Infra pelo Investidor10
         'VIGT11',  # Vinci Energia
         'BRZP11',  # BRZ Infra Portos
         'ENDD11',  # Endurance Debt Infra
