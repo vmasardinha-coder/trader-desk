@@ -5006,29 +5006,44 @@ def debug_statusinvest_listagem():
         'Accept-Language': 'pt-BR,pt;q=0.9',
         'Referer': 'https://statusinvest.com.br/',
     }
-    resultados = {}
-    for categoria, path in [('fii', 'fundos-imobiliarios'), ('fi_infra', 'fiinfras'), ('fip', 'fip')]:
-        try:
-            r = requests.get(
-                f'https://statusinvest.com.br/{path}',
-                headers=_HEADERS_SI, timeout=15)
-            html = r.text
-            texto = re.sub(r'<[^>]+>', ' ', html)
-            texto = re.sub(r'\s+', ' ', texto).strip()
-            # Tenta achar tickers (padrao: 4-6 letras maiusculas + 2 digitos + opcional 'F')
-            tickers_achados = list(dict.fromkeys(
-                re.findall(r'\b([A-Z]{4,6}[0-9]{2}F?\b)', html)
-            ))[:30]
-            resultados[categoria] = {
-                'status_code': r.status_code,
-                'html_len': len(html),
-                'texto_inicio': texto[:3000],
-                'tickers_achados': tickers_achados,
-                'tem_next_data': '__NEXT_DATA__' in html,
-            }
-        except Exception as e:
-            resultados[categoria] = {'error': str(e)}
-    return jsonify(resultados)
+    categoria = request.args.get('categoria', 'fi_infra')
+    _PATH_MAP = {'fii': 'fundos-imobiliarios', 'fi_infra': 'fiinfras', 'fip': 'fip'}
+    path = _PATH_MAP.get(categoria, 'fiinfras')
+    try:
+        r = requests.get(
+            f'https://statusinvest.com.br/{path}',
+            headers=_HEADERS_SI, timeout=20)
+        html = r.text
+        texto = re.sub(r'<[^>]+>', ' ', html)
+        texto = re.sub(r'\s+', ' ', texto).strip()
+        # Acha tickers no HTML bruto
+        tickers_achados = list(dict.fromkeys(
+            re.findall(r'\b([A-Z]{4,6}[0-9]{2}F?\b)', html)
+        ))[:50]
+        # Pega trecho em volta do primeiro ticker encontrado (dados reais)
+        snippet_ticker = ''
+        if tickers_achados:
+            idx = texto.find(tickers_achados[0])
+            if idx != -1:
+                snippet_ticker = texto[max(0,idx-100):idx+500]
+        # Pega trecho onde aparece primeiro numero financeiro tipo "R$" ou "%"
+        idx_rs = texto.find('R$')
+        snippet_rs = texto[max(0,idx_rs-50):idx_rs+800] if idx_rs != -1 else ''
+        # Pega trecho do meio do texto (onde geralmente ficam os cards de fundos)
+        meio = len(texto)//2
+        snippet_meio = texto[meio:meio+2000]
+        return jsonify({
+            'status_code': r.status_code,
+            'html_len': len(html),
+            'texto_len': len(texto),
+            'tem_next_data': '__NEXT_DATA__' in html,
+            'tickers_achados': tickers_achados,
+            'snippet_em_volta_ticker1': snippet_ticker,
+            'snippet_primeiro_rs': snippet_rs,
+            'snippet_meio_texto': snippet_meio,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
