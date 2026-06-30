@@ -121,5 +121,16 @@
     "preco_ativacao": 103.6,
     "dy_anual_pct_ativacao": 14.85,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1782858120",
+    "ticker": "DIVS11",
+    "nome_fundo": "DIVS11",
+    "segmento": "fi-infra",
+    "nivel_risco": "high_grade",
+    "data_ativacao": "2026-06-30",
+    "preco_ativacao": 101.34,
+    "dy_anual_pct_ativacao": 14.21,
+    "status": "ativa"
   }
 ]
