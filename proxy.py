@@ -4828,6 +4828,79 @@ def scrape_fi_infra_dados(ticker, debug=False):
             return {'_debug': {'exception': str(e)}}
         return None
 
+def scrape_statusinvest_ultimo_provento(ticker, segmento=None):
+    """
+    Busca o ULTIMO provento/rendimento pago de um FII ou FI-Infra via
+    statusinvest.com.br -- adicionado 30/06/2026, fonte confirmada
+    server-side renderizada (texto puro, sem JS, sem bloqueio).
+
+    URL difere por categoria: FI-Infra usa /fiinfras/, FII tradicional
+    usa /fundos-imobiliarios/ -- se 'segmento' nao for passado, tenta
+    fundos-imobiliarios primeiro (mais comum) e cai para fiinfras se
+    404.
+
+    CORRIGIDO 30/06/2026 (2a tentativa): o HTML real tem DUAS ocorrencias
+    do texto "ultimo provento" -- a PRIMEIRA e so o label de um widget
+    Vue/JS nao renderizado (literal "{ultimoProvento_F}" no HTML bruto,
+    placeholder nunca substituido por requests.get()); a SEGUNDA, mais
+    adiante, e a frase SEO completa de verdade ("O ultimo provento pago
+    do BDIF11 foi um rendimento de R$0,8500..."), mas com o acento "u"
+    codificado como entidade HTML (&#xFA;) em vez de "u" literal --
+    re.sub de tags nao decodifica entidades, entao precisa de
+    html.unescape() ANTES do regex, ou o "u" da entidade nunca bate com
+    o "[uu]" do padrao. Por isso a 1a versao desta funcao retornava
+    sempre None em producao mesmo com o padrao certo.
+
+    NAO e historico completo mes a mes (isso exigiria investigar a
+    secao separada "Proventos (semestral, ult. 5 anos)", que pode ser
+    grafico/JS -- nao confirmado ainda). Retorna so o ULTIMO pagamento
+    (data + valor), util para mostrar na Carteira de FIIs enquanto o
+    historico completo nao e implementado.
+
+    Retorna dict {'data_pagamento': 'DD/MM/AA', 'valor': float} ou None.
+    """
+    import html as _html_mod
+    bases = ['fundos-imobiliarios', 'fiinfras'] if segmento != 'fi-infra' else ['fiinfras', 'fundos-imobiliarios']
+    for base in bases:
+        try:
+            r = requests.get(
+                f'https://statusinvest.com.br/{base}/{ticker.lower()}',
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+                timeout=10)
+            if not r.ok:
+                continue
+            texto = re.sub(r'<[^>]+>', ' ', r.text)
+            texto = _html_mod.unescape(texto)  # decodifica &#xFA; -> u, &nbsp; -> espaco, etc.
+            texto = re.sub(r'\s+', ' ', texto)
+            # Procura TODAS as ocorrencias e usa a PRIMEIRA que tem o
+            # padrao completo (numero + data) -- ignora a do widget JS
+            # (que nao tem numero/data reais, so o nome do placeholder)
+            for m in re.finditer(
+                r'[uú]ltimo (?:provento pago do|rendimento do)\s*\w*\s*foi (?:um rendimento de|de)\s*R\$\s*([\d.,]+)\s*por (?:papel|cota)\s*no dia\s*(\d{2}/\d{2}/\d{2,4})',
+                texto, re.IGNORECASE):
+                valor = float(m.group(1).replace('.', '').replace(',', '.'))
+                return {'data_pagamento': m.group(2), 'valor': valor if valor > 0 else None}
+        except Exception:
+            continue
+    return None
+
+@app.route('/fii-ultimo-provento', methods=['GET'])
+def get_fii_ultimo_provento():
+    """
+    GET /fii-ultimo-provento?ticker=BDIF11&segmento=fi-infra
+    Retorna o ultimo provento pago (data + valor por cota) via
+    StatusInvest. Usado na Carteira de FIIs para mostrar o ultimo
+    pagamento recebido sem precisar de historico completo ainda.
+    """
+    ticker = request.args.get('ticker', '').strip()
+    if not ticker:
+        return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
+    segmento = request.args.get('segmento')
+    dados = scrape_statusinvest_ultimo_provento(ticker, segmento)
+    if dados is None:
+        return jsonify({'ticker': ticker, 'encontrado': False, 'data_pagamento': None, 'valor': None})
+    return jsonify({'ticker': ticker, 'encontrado': True, **dados})
+
 @app.route('/debug-statusinvest', methods=['GET'])
 def debug_statusinvest():
     """
