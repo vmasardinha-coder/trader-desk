@@ -75,5 +75,16 @@
     "preco_ativacao": 90.2,
     "dy_anual_pct_ativacao": 1.06,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1782797894",
+    "ticker": "BDIF11",
+    "nome_fundo": "BDIF11",
+    "segmento": "fi-infra",
+    "nivel_risco": "high_grade",
+    "data_ativacao": "2026-06-30",
+    "preco_ativacao": 70.3,
+    "dy_anual_pct_ativacao": 13.58,
+    "status": "ativa"
   }
 ]
