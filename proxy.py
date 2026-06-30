@@ -4860,6 +4860,19 @@ def debug_statusinvest():
         if idx_provento == -1:
             idx_provento = texto.lower().find('ltimo rendimento')
 
+        # ADICIONADO -- lista TODAS as ocorrencias (a primeira pode ser
+        # so o label do widget JS, sem o valor real; a frase completa
+        # tipo SEO costuma vir mais adiante no HTML)
+        todas_ocorrencias = []
+        for padrao_busca in ['ltimo provento', 'ltimo rendimento']:
+            start = 0
+            while True:
+                idx = texto.lower().find(padrao_busca, start)
+                if idx == -1:
+                    break
+                todas_ocorrencias.append(texto[max(0,idx-20):idx+200])
+                start = idx + 1
+
         return jsonify({
             'status_code': r.status_code,
             'html_len': len(html),
@@ -4867,6 +4880,7 @@ def debug_statusinvest():
             'snippet_next_data': snippet_next,
             'snippet_texto_inicio_RS': texto[max(0,idx_preco-50):idx_preco+200] if idx_preco != -1 else 'R$ NAO ENCONTRADO NO TEXTO',
             'snippet_provento': texto[max(0,idx_provento-30):idx_provento+250] if idx_provento != -1 else 'TEXTO "ultimo provento/rendimento" NAO ENCONTRADO',
+            'todas_ocorrencias_provento': todas_ocorrencias,
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
