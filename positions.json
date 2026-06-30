@@ -125,7 +125,7 @@
       "exercicio": "europeia",
       "ganho_sem_barreira": "8.3% fixo",
       "ganho_prefixado_pct": 8.3,
-      "observacao": "CORRIGIDO 30/06/2026: entry/kdo/vencimento atualizados com dado REAL da corretora (boleto de negociacao: PUT/CALL R$99,42, KDO R$73,28, venc. 24/08/2026). Valores antigos: entry=96.68, kdo=77.34, vencimento=2026-08-22 (estimados/imprecisos, fonte busca web). PENDENCIA: premio real (R$5,04/cota sobre R$99,42 = ~5,07%) diverge do ganho_prefixado_pct gravado (8.3%, premissa do PDF original do banco) -- usuario decidiu MANTER 8.3% por enquanto (acordo fechado foi esse), mas quer revisar essa diferenca numa proxima sessao."
+      "observacao": "CORRIGIDO 30/06/2026: entry/kdo/vencimento atualizados com dado REAL da corretora (boleto: PUT/CALL R$99,42, KDO R$73,28, venc. 24/08/2026). PENDENCIA RESOLVIDA 30/06/2026: a 'divergencia' entre premio (R$5,04/perna) e ganho_prefixado_pct (8.3%) NAO e erro -- BSLV39 e estrutura Retorno Controlado (PUT comprada + CALL vendida com KDO), R$5,04 e o premio de CADA perna individual, nao o resultado liquido da estrutura. 8.3% e o retorno combinado calculado pelo banco juntando as 2 pernas + financiamento embutido -- nao comparavel a premio/preco (calculo valido so para venda coberta simples)."
     }
   ],
   "encerradas": [
