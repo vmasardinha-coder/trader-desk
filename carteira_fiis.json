@@ -86,5 +86,16 @@
     "preco_ativacao": 70.3,
     "dy_anual_pct_ativacao": 13.58,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1782818431",
+    "ticker": "ICRI11",
+    "nome_fundo": "ICRI11",
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "data_ativacao": "2026-06-30",
+    "preco_ativacao": 95.03,
+    "dy_anual_pct_ativacao": 12.43,
+    "status": "ativa"
   }
 ]
