@@ -395,9 +395,11 @@
     "segmento": "hibrido",
     "nivel_risco": "middle_risk",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=0.69, DY=12.87%, segmento=Multicategoria, nível de risco=middle_risk. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782819092"
+    "id": "an_1782819092",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-06-30"
   }
 ]
