@@ -1579,6 +1579,24 @@ def run_montecarlo_posicao_ativa():
             idx_entrada = 0
             preco_entrada = cl[0] if cl else S
 
+        # ADICIONADO 30/06/2026 -- ativos de baixissima liquidez (ex: BSLV39)
+        # tem historico do Yahoo tao esparso que a extracao acima pode
+        # devolver um preco_entrada ERRADO (ex: usa o proprio preco ATUAL
+        # como "entrada" porque nao existe nenhum ponto historico real no
+        # meio). Quando o payload traz um 'entry' explicito (preco REAL
+        # confirmado pelo usuario via boleto/nota de corretagem -- fonte
+        # mais confiavel que extracao do Yahoo para esses casos), ele tem
+        # PRIORIDADE sobre o valor extraido do historico. Mantem o indice
+        # idx_entrada (usado so para fatiar a janela de precos_reais), mas
+        # o preco usado como base da simulacao e do calculo de retorno e o
+        # informado, nao o do Yahoo.
+        entry_explicito = data.get('entry')
+        if entry_explicito is not None:
+            try:
+                preco_entrada = float(entry_explicito)
+            except (TypeError, ValueError):
+                pass
+
         res = {
             'ticker': ticker, 'preco_entrada': round(preco_entrada, 2),
             'preco_atual': round(S, 2), 'dias_passados': dias_passados,
@@ -1662,6 +1680,17 @@ def run_montecarlo_posicao_ativa():
             # atual) ja reflete negociacao real mais recente.
             if precos_reais_fan and round(float(S), 2) != precos_reais_fan[-1]:
                 precos_reais_fan.append(round(float(S), 2))
+            # ADICIONADO 30/06/2026 -- quando 'entry' explicito foi usado (ver
+            # acima), o dia 0 do fan chart (banda de percentis) comeca em
+            # preco_entrada, mas a linha real (precos_reais_fan) ainda
+            # comecava do que o Yahoo tinha (que pode ser bem diferente,
+            # criando um salto visual estranho no grafico). Ancora a linha
+            # real no preco de entrada REAL como primeiro ponto, para bater
+            # com o dia 0 da banda de projecao.
+            if entry_explicito is not None:
+                preco_entrada_arredondado = round(preco_entrada, 2)
+                if not precos_reais_fan or precos_reais_fan[0] != preco_entrada_arredondado:
+                    precos_reais_fan = [preco_entrada_arredondado] + precos_reais_fan
             res['fan_chart'] = {
                 'dias': list(range(prazo_dias+1)), 'percentis': percentis_fan,
                 'trajetorias': trajetorias_fan, 'precos_reais': precos_reais_fan,
