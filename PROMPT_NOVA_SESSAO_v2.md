@@ -3198,3 +3198,92 @@ diagnóstico reutilizável).
 - `raw.githubusercontent.com` nunca deve ser a fonte de leitura quando o
   arquivo foi editado recentemente NA MESMA sessão — usar API do GitHub.
 
+
+# 🎯 PRÓXIMA TAREFA PRIORITÁRIA (fila para a próxima sessão) — Reconstrução do universo de FIIs/FI-Infra
+
+## Contexto -- por que isso ficou para a próxima sessão
+Levantado ao final da sessão 30/06/2026, depois de uma sessão já muito longa
+(FI-Infra completo + fix critico de rota + StatusInvest + 2 colunas novas
+no screening). Decisão deliberada de NÃO começar essa reconstrução com o
+contexto já pesado da sessão atual -- é trabalho do mesmo tipo iterativo
+(testar fonte real, achar bug de regex, corrigir, repetir) só que numa
+escala maior (~700 fundos vs ~22), merece sessão fresca e focada.
+
+## O que o usuário pediu, especificamente
+1. **Universo total**: usuário quer ver TODOS os ~700+ FIIs existentes na
+   B3 (não só os que já passam em algum critério), independente de já
+   estarem na carteira dele ou não -- "preciso porque tenho o papel aqui,
+   é fator de decisão".
+2. **FI-Infra (incluindo FIP-IE temático) deve passar pelo MESMO critério**
+   padrão (liquidez ≥ R$50k/dia, DY > 0) que o FII tradicional -- hoje
+   FI-Infra é uma lista fixa de ~22 tickers que NUNCA é filtrada por
+   critério (sempre aparece inteira em "Todos", nunca em "Critério").
+   Quando o usuário clicar no universo total, o resultado esperado é que a
+   visão "FI-Infra" FIQUE MENOR depois do filtro de critério (hoje fica
+   sempre do mesmo tamanho, ~21-22, porque nunca é filtrada).
+3. **Categoria FIP-IE (Fundo de Investimentos em Participações --
+   Infraestrutura)** -- tickers como KNDI11 (Kinea Estratégia Infra) e
+   BDIV11 (BTG Pactual Infraestrutura Dividendos) -- usuário pediu
+   EXPLICITAMENTE para colocar dentro da categoria "Infra" mesmo sendo
+   tecnicamente uma subcategoria regulatória diferente (o próprio
+   Investidor10 classifica FIP-IE como segmento "Fundo de Investimentos em
+   Participações (FIP)", DIFERENTE de "Fundo de Infraestrutura (FI-Infra)"
+   -- usuário quer fundir os dois no nosso sistema por critério temático,
+   não regulatório).
+
+## Gaps confirmados na investigação desta sessão (não corrigidos ainda)
+- **DIVS11** (Sparta Infra Inflação Longa FIC FI-Infra) -- confirmado pelo
+  próprio Investidor10 como segmento "Fundo de Infraestrutura (FI-Infra)",
+  mas NÃO aparece na nossa lista de ~22 tickers de FI-Infra (gerada por
+  `scrape_fi_infra()` em proxy.py, fonte: fiis.com.br -- lista
+  desatualizada/incompleta).
+- **KNDI11** (Kinea Estratégia Infra) -- segmento FIP pelo Investidor10,
+  não aparece em lugar nenhum do sistema (nem Fundamentus cobre FIPs, nem
+  nossa lista de FI-Infra).
+- **BDIV11** (BTG Pactual Infraestrutura Dividendos) -- mesma situação de
+  KNDI11, segmento FIP.
+- Usuário relatou "deve ter mais alguns" fora do radar -- provavelmente
+  mais FIP-IE temáticos de infraestrutura ainda não identificados.
+
+## Fonte candidata para unificar/substituir (investigar primeiro antes de decidir)
+`investidor10.com.br/fiis/all2/?page=N` -- página "Todos os FIIs",
+paginada. Confirmado via busca que cada linha já vem com: ticker, nome,
+Patrimônio Líquido, P/VP, Dividend Yield, DY médio 5 anos, Liquidez
+Diária, Tipo de Fundo (Papel/Tijolo/Híbrido/Outro/Desenvolvimento),
+Segmento (inclusive "Fundo de Infraestrutura (FI-Infra)" e "Fundo de
+Investimentos em Participações (FIP)" como valores distintos), Variação
+12m/24m/5 anos -- TUDO em uma fonte só, por fundo, sem precisar de scraping
+individual por ticker (que é o que FI-Infra exige hoje, 1 requisição por
+ticker, lento).
+
+**Antes de implementar, validar (mesmo workflow já usado com sucesso para
+investidor10/FAQ e StatusInvest nesta sessão):**
+1. Confirmar se a página é server-side renderizada (texto puro acessível
+   via `requests.get()`) ou se exige JS -- usar `/debug-statusinvest`-style
+   endpoint temporário primeiro, adaptado para essa URL.
+2. Descobrir o padrão real de paginação (quantos fundos por página,
+   quantas páginas no total, se existe parâmetro de "todos numa página só")
+3. Mapear o padrão de texto/HTML real para extrair os campos via regex
+   (mesma lição: NUNCA confiar no texto que a ferramenta de leitura mostra
+   como representando o HTML bruto real -- testar contra produção).
+
+## Decisão de arquitetura ainda em aberto (perguntar ao usuário no início da próxima sessão)
+Usuário disse explicitamente: "se você quer unificar, você me diz o que é
+melhor pra trabalhar, aí você deixa um e o outro de backup". Ou seja, ele
+delega a decisão técnica final, mas quer ter certeza que NADA do que já
+funciona hoje (Fundamentus para tradicional, scrape_fi_infra_dados via
+investidor10/FAQ para os 22 atuais, classificação de risco/score) seja
+perdido no processo -- qualquer fonte nova deve ser validada A FUNDO antes
+de substituir, e a fonte antiga pode ficar como fallback/backup se fizer
+sentido.
+
+## Resumo do que NÃO mudar (já validado e funcionando, não mexer sem necessidade)
+- Fundamentus continua sendo a fonte para FII tradicional (Papel/Tijolo/
+  Híbrido/FOF) -- só FI-Infra (e a nova categoria FIP-temático-infra)
+  precisam de fonte nova/expandida.
+- `_classificar_risco_fii`/`_score_fii` continuam sendo reaproveitados --
+  só precisam ser aplicados também à categoria FI-Infra (hoje só geram
+  nivel_risco/score para FI-Infra de forma isolada, auto-referenciada;
+  ao expandir o universo, decidir se a mediana de DY de referência muda).
+- `/fii-ultimo-provento` (StatusInvest) continua funcionando como está,
+  independente dessa reconstrução -- não precisa mexer.
