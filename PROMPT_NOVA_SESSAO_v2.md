@@ -3036,3 +3036,165 @@ usuário, prováveis causas já identificadas mas NÃO CONFIRMADAS:
 - FI-Infra fica integrado na mesma tela de FIIs (não aba separada)
 - Migração Em Análise → Posições Ativas (retorno_controlado/bidirecional)
   é automática, calcula vol_impl via GARCH real ou marca null explícito
+
+# Sessão 30/06/2026 — FI-Infra completo, fixes críticos, StatusInvest
+
+## SHAs ao final desta sessão
+- proxy.py: df148f1f381cdee5b264b03ec5df1c05cbb1a19e
+- static/app.js: 48615040aeb843c8bdd999c95c8f8e06b74f839b
+- analises.json: bfb7b70fcbeab1a95aae2844c83682bf51ec6d58 (22 registros)
+- carteira_fiis.json: 7cac5d8262a2ad419783f7f03ccad198ba905243
+- positions.json: 8abde67a3dc6d59be1b9586dd23f05abf9fb95eb
+
+## ⚠️ Lição de processo CRÍTICA desta sessão — cache do raw.githubusercontent.com
+`raw.githubusercontent.com` tem cache de CDN. Buscar o arquivo logo após um
+deploy recente (mesma sessão) pode trazer uma versão DESATUALIZADA, e editar
+em cima dela ao subir de novo REVERTE silenciosamente a mudança anterior.
+Isso causou DOIS incidentes reais nesta sessão (perda da função
+`scrape_statusinvest_ultimo_provento`/rota `/fii-ultimo-provento`, e perda
+da correção "remove de analises.json após migração" + corrupção da própria
+estrutura da rota `/analises/<id>/status`, ver abaixo). **Regra daqui pra
+frente: usar a API do GitHub (`api.github.com/repos/.../contents/...`) em
+vez de `raw.githubusercontent.com` para buscar conteúdo que será editado
+na MESMA sessão em que foi recém-modificado** (raw ainda serve bem para
+leitura pontual sem edição subsequente).
+
+## 🔴 Bug crítico corrigido — rota /analises/<id>/status estava quebrada
+A função `mudar_status_analise(analise_id)` (handler real da rota
+`PUT /analises/<id>/status`, usada tanto para "rejeitar" quanto "ativar"
+QUALQUER análise, estruturada ou FII) perdeu seu decorador `@app.route` num
+incidente de cache (ver acima) — o decorador ficou grudado, por engano, na
+função auxiliar `_migrar_para_positions(item_analise)` logo acima dela no
+arquivo, cuja assinatura não bate com o parâmetro de rota `<analise_id>`.
+Isso quebrava QUALQUER chamada a essa rota com erro 500 (sintoma reportado
+pelo usuário: "rejeitar" deu erro num FII já travado em Em Análise).
+Corrigido: decoradores movidos para `mudar_status_analise`, que volta a ser
+o handler real; `_migrar_para_positions` volta a ser função auxiliar pura
+(chamada de dentro de `mudar_status_analise`, não registrada como rota).
+A correção "remove de analises.json após migração bem-sucedida" (que tinha
+sido implementada antes nesta mesma sessão) também tinha se perdido junto
+no mesmo incidente — REAPLICADA.
+
+## ✅ FI-Infra — pipeline financeiro completo (item grande da sessão)
+- **Fonte trocada**: `fiis.com.br` nunca funcionou em produção (números
+  visíveis só existem após JS rodar no navegador; `requests.get()` nunca
+  via eles — a 1ª ocorrência de "Dividend Yield" no HTML bruto era
+  inclusive um tooltip serializado em PHP, raiz do bug antigo do "165%").
+  Trocado para `investidor10.com.br/fiis/<ticker>/`, usando a seção FAQ
+  ("Dúvidas comuns"), texto SEO server-side renderizado e estável.
+- Extração: cotação, DY, liquidez E P/VP (adicionado depois), via regex
+  contra TEXTO PURO (HTML stripado de tags antes do regex — lição: a
+  ferramenta de leitura mostra markdown `**negrito**`, mas o HTML real usa
+  tags `<strong>`, então regex contra markdown nunca bate contra produção).
+- Classificação de risco (high_grade/middle_risk/high_yield) e critério
+  (liquidez≥R$50k/dia, DY>0) implementada para FI-Infra, reaproveitando
+  `_classificar_risco_fii`/`_score_fii` já usados para FII tradicional —
+  mediana de DY usada como referência é AUTO-REFERENCIADA (calculada só
+  entre os próprios FI-Infra válidos da mesma chamada), já que o
+  Fundamentus não cobre essa categoria para comparação externa.
+  **Decisão do usuário: FI-Infra ranqueia só dentro do próprio universo,
+  nunca misturado com o ranking geral de FII tradicional** (fonte de
+  dado diferente, categoria regulatória diferente).
+- `/analises/ranking-fiis` (tabela "FIIs em Análise") estendido: agora
+  tenta a fonte de FI-Infra como fallback para tickers que não aparecem
+  no Fundamentus (antes, FI-Infra sempre caía em "não encontrado").
+- Frontend: linha de FI-Infra na tabela "Todos" corrigida — antes tinha só
+  7 células de dado contra 9 colunas do cabeçalho (faltava Score,
+  desalinhava a tabela); badge fixo "FI-INFRA" trocado por badge de risco
+  real quando classificado.
+
+## ✅ Separação visual Em Análise: estruturadas vs FIIs (concluído)
+FIIs (`tipo_estrutura='fii'`, inclusive FI-Infra) saíram completamente do
+container principal de cards (`analise-container`, que mostra só
+estruturadas agora) — ficam só na seção dedicada "FIIs em Análise"
+(tabela com ranking + ação direto na linha). Resolve confusão relatada
+pelo usuário ("aparecia junto com as estruturadas").
+
+## ✅ Migração Em Análise → Ativa não duplica mais (estruturadas E FIIs)
+Antes, ao mudar status para 'ativa', o registro ficava em `analises.json`
+PARA SEMPRE (só mudava o status), duplicado com `positions.json`/
+`carteira_fiis.json`. Agora remove de `analises.json` automaticamente após
+sucesso (mesmo princípio nos dois fluxos). BSLV39 e BDIF11 tinham resíduos
+órfãos desse bug antigo — limpos manualmente.
+
+## ✅ Controle de duplicidade no screening de FIIs (backlog #4, concluído)
+Botão "+ Em Análise" agora reflete o estado real, calculado a partir de
+`_carteiraFiisTickers` (carregado em paralelo ao screening) e `_analiseData`:
+- Já ativo na carteira → "✓ Em Carteira" (desabilitado, verde)
+- Já em análise pendente → "Em Análise" (desabilitado, amarelo)
+- Disponível → "+ Em Análise" (clicável, como antes)
+Backend (`POST /carteira-fiis`) já tinha proteção contra duplicata desde
+26/06 como última linha de defesa; agora o frontend evita nem oferecer a
+ação quando já não faz sentido.
+
+## ✅ StatusInvest como 2ª fonte (cotação BDR ilíquida + último provento)
+Confirmado viável: `statusinvest.com.br` é server-side renderizado, sem
+bloqueio, acessível via `requests.get()` simples — testado e validado em
+produção (`/debug-statusinvest`, mantido no código como ferramenta de
+diagnóstico reutilizável).
+- **Endpoint novo `/fii-ultimo-provento?ticker=X&segmento=Y`**: retorna
+  data + valor do ÚLTIMO rendimento pago (não é histórico completo mês a
+  mês ainda — isso exigiria investigar a seção separada "Proventos
+  (semestral, últ. 5 anos)", possivelmente gráfico/JS, não confirmado).
+  Tenta 3 bases de URL em sequência: `/fundos-imobiliarios/`,
+  `/fiinfras/`, `/fiagros/` (Fiagros, ex: KNCA11, é categoria separada no
+  StatusInvest — nosso campo interno `segmento` não mapeia 1:1).
+  **Lição de regex**: o HTML real tem a frase "último provento" DUAS
+  vezes — a 1ª é só o label de um widget Vue/JS não-renderizado (literal
+  `{ultimoProvento_F}` no HTML bruto), a 2ª é a frase SEO completa de
+  verdade, mas com o "ú" como entidade HTML (`&#xFA;`) — `html.unescape()`
+  é OBRIGATÓRIO antes do regex, ou o acento nunca bate.
+- Integrado na Carteira de FIIs: nova coluna "Últ. Provento", carregada
+  de forma assíncrona/escalonada por linha (não trava a tabela).
+
+## 🐛 Correções pontuais de dados (não-sistêmicas)
+- **BSLV39** (Posições Ativas): `entry`/`kdo`/`vencimento` corrigidos com
+  dado real da corretora (boleto: R$99,42 / R$73,28 / 24/08/2026, vs.
+  estimativas antigas imprecisas de busca web). `ganho_prefixado_pct`
+  mantido em 8.3% por decisão do usuário (acordo fechado com o banco) —
+  a aparente divergência com o prêmio observado (R$5,04/perna ≈ 5,07%)
+  **não é erro**: BSLV39 é Retorno Controlado (PUT comprada + CALL
+  vendida), R$5,04 é o prêmio de CADA PERNA individual, não o resultado
+  líquido combinado da estrutura (que é o que o ganho_prefixado_pct
+  representa).
+  `/montecarlo/posicao_ativa` e `/montecarlo/condicional` agora aceitam
+  `entry` explícito no payload, com PRIORIDADE sobre a extração automática
+  do histórico do Yahoo — necessário porque BDRs ilíquidas como essa têm
+  histórico tão esparso que a extração podia devolver o preço ATUAL como
+  se fosse o de entrada (mascarando a variação real). Linha real do fan
+  chart também ancorada no `entry` explícito quando informado.
+- **KNCA11** (Carteira de FIIs): `dy_anual_pct_ativacao` original (1.06%)
+  era bug de scraping no momento da ativação (26/06) — corrigido para
+  ~14.54% (valor real confirmado via StatusInvest/Investidor10), original
+  preservado em `dy_anual_pct_ativacao_original_suspeito` para auditoria.
+
+## 📋 Backlog pendente (atualizado)
+- Duas colunas extras no screening de FIIs (Critério): último provento +
+  percentual do mês/12 meses — usuário quer usar como critério futuro
+  ("1% ao mês"), ainda não implementado, só existe na Carteira por
+  enquanto.
+- Histórico de dividendos mês a mês completo (hoje só "último provento") —
+  precisa investigar a seção "Proventos (semestral, últ. 5 anos)" do
+  StatusInvest, possivelmente JS/gráfico.
+- Link direto da tabela de FIIs para a página fonte (Investidor10/
+  Fundamentus)
+- Comportamento ao remover FII da carteira: volta disponível ou fica
+  marcado?
+- Teto de análises por chamada do ranking (15-20, não fechado) +
+  faseamento real no frontend
+- Cotações Europa/Ásia, Nasdaq-100 na métrica de concentração, ETFs
+- Renda Fixa (só registro, sem ação)
+- "Análise de Papel" (fotos fixas 21/60/90d)
+- Visão multi-usuário (só se virar produto)
+
+## ⭐ Princípios e decisões de processo confirmados/novos nesta sessão
+- FI-Infra ranqueia SÓ dentro do próprio universo, nunca junto do ranking
+  geral de FII tradicional (fonte de dado e categoria regulatória
+  diferentes) — decisão explícita do usuário.
+- Ao investigar fontes de scraping novas, sempre validar a estrutura real
+  via endpoint de debug ANTES de implementar a versão final (workflow já
+  repetido com sucesso para fiis.com.br→investidor10.com.br e para
+  StatusInvest) — economiza ciclos de erro-correção às cegas.
+- `raw.githubusercontent.com` nunca deve ser a fonte de leitura quando o
+  arquivo foi editado recentemente NA MESMA sessão — usar API do GitHub.
+
