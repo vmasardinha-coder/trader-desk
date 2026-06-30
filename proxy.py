@@ -1223,6 +1223,20 @@ def run_montecarlo_condicional():
                     # pregoes reais decorridos, sem contar dias sem pregao.
                     janela_real = cl[idx_inicio:]
                     precos_reais_fan = [round(float(p), 2) for p in janela_real]
+                    # ADICIONADO 30/06/2026 -- BDRs/ativos de baixissima
+                    # liquidez (ex: BSLV39) podem ter so 1 ponto no historico
+                    # diario desde a foto, mesmo com varios dias passados e
+                    # negociacao real (confirmado pelo usuario via TradingView/
+                    # StatusInvest) -- o Yahoo so atualiza o array de
+                    # fechamentos diarios quando ha pregao "fechado"
+                    # registrado, mas 'S' (preco atual, ja buscado acima via
+                    # meta.regularMarketPrice) costuma estar mais atualizado.
+                    # Garante pelo menos 2 pontos (foto + hoje) sempre que S
+                    # for diferente do ultimo ponto historico, para a linha
+                    # real conseguir aparecer no grafico em vez de ficar
+                    # "presa" com 1 ponto so.
+                    if precos_reais_fan and round(float(S), 2) != precos_reais_fan[-1]:
+                        precos_reais_fan.append(round(float(S), 2))
 
             res['fan_chart'] = {
                 'dias': list(range(prazo_dias + 1)),
@@ -1641,6 +1655,13 @@ def run_montecarlo_posicao_ativa():
             # decorridos, sem contar dias sem pregao. Mesma correcao aplicada
             # em /montecarlo/condicional (ver linha ~1040).
             precos_reais_fan = [round(float(p), 2) for p in cl[idx_entrada:]]
+            # ADICIONADO 30/06/2026 -- mesma correcao do /montecarlo/condicional:
+            # garante pelo menos 2 pontos (entrada + hoje) quando o array de
+            # fechamentos diarios do Yahoo nao capturou pregao novo desde a
+            # entrada (comum em BDRs ilíquidas como BSLV39), mas 'S' (preco
+            # atual) ja reflete negociacao real mais recente.
+            if precos_reais_fan and round(float(S), 2) != precos_reais_fan[-1]:
+                precos_reais_fan.append(round(float(S), 2))
             res['fan_chart'] = {
                 'dias': list(range(prazo_dias+1)), 'percentis': percentis_fan,
                 'trajetorias': trajetorias_fan, 'precos_reais': precos_reais_fan,
