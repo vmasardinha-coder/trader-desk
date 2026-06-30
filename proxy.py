@@ -4618,17 +4618,23 @@ def scrape_fi_infra():
 # alguns campos vem com "0,00" ou "-" que sao NA disfarcado, nao zero real
 # (ex: P/VP="0,00", Patrimonio Liquido="-" no mesmo CDII11) -- esses campos
 # sao tratados como ausentes (None), nunca usados como zero literal.
-def scrape_fi_infra_dados(ticker):
+def scrape_fi_infra_dados(ticker, debug=False):
     """Busca dados financeiros da pagina individual de um FI-Infra.
     Retorna dict ou None se falhar/dado insuficiente. NUNCA inventa
     numero -- campos suspeitos (0,00 quando deveria ser % ou R$) ficam
-    None explicitamente."""
+    None explicitamente.
+    Se debug=True, em caso de falha retorna um dict {'_debug': {...}}
+    com status_code/snippet do HTML, em vez de None puro -- usado pelo
+    endpoint /fii-infra?debug=1 para diagnostico temporario (29/06/2026,
+    investigando falha total de extracao em producao)."""
     try:
         r = requests.get(
             f'https://fiis.com.br/{ticker.lower()}/',
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
             timeout=10)
         if not r.ok:
+            if debug:
+                return {'_debug': {'status_code': r.status_code, 'snippet': r.text[:500]}}
             return None
         html = r.text
 
@@ -4708,10 +4714,14 @@ def scrape_fi_infra_dados(ticker):
                     liquidez = None
 
         if dy_pct is None and cotacao is None:
+            if debug:
+                return {'_debug': {'status_code': r.status_code, 'html_len': len(html), 'snippet': html[:2000]}}
             return None  # nada de util encontrado -- nao retorna dado parcial sem sentido
 
         return {'ticker': ticker, 'dy_pct': dy_pct, 'cotacao': cotacao, 'liquidez': liquidez}
-    except Exception:
+    except Exception as e:
+        if debug:
+            return {'_debug': {'exception': str(e)}}
         return None
 
 @app.route('/fii-infra', methods=['GET'])
@@ -4722,6 +4732,12 @@ def get_fii_infra():
     ticker exige uma requisicao separada (pagina individual), entao isso
     e mais lento que o endpoint /fiis (que busca tudo de uma chamada) --
     aceitavel pois sao so ~22 tickers.
+
+    ?debug=1 -- modo diagnostico TEMPORARIO (29/06/2026): roda so o
+    PRIMEIRO ticker com debug=True, expondo status_code/snippet do HTML
+    real recebido em producao, para investigar por que todos os 22
+    tickers retornaram dados_disponiveis=false. Remover depois que a
+    causa for confirmada e corrigida.
     """
     try:
         fundos, erro = scrape_fi_infra()
@@ -4730,6 +4746,11 @@ def get_fii_infra():
                 'error': f'Scraping do fiis.com.br falhou ou layout pode ter mudado: {erro}',
                 'fundos': [],
             }), 502
+
+        if request.args.get('debug') == '1' and fundos:
+            primeiro = fundos[0]
+            dados_debug = scrape_fi_infra_dados(primeiro['ticker'], debug=True)
+            return jsonify({'debug_ticker': primeiro['ticker'], 'resultado': dados_debug})
 
         for f in fundos:
             dados = scrape_fi_infra_dados(f['ticker'])
