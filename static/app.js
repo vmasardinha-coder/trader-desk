@@ -204,15 +204,10 @@ async function loadFiis(){
     if(r2.ok&&!d2.error&&d2.fundos){
       const dadosPorTicker={};
       d2.fundos.forEach(f=>{dadosPorTicker[f.ticker]=f;});
+      // Passo 1: atualiza FI-Infra que ja existem em _fiisTodosData
       _fiisTodosData=_fiisTodosData.map(f=>{
         if(f.segmento==='fi-infra'&&dadosPorTicker[f.ticker]){
           const dados=dadosPorTicker[f.ticker];
-          // CORRIGIDO 29/06/2026: faltava trazer nivel_risco/score/
-          // fora_criterio/motivo_fora_criterio do /fii-infra -- o
-          // backend ja calcula tudo isso, mas o merge so pegava
-          // cotacao/dy_pct/liquidez/p_vp, fazendo a linha cair sempre
-          // no fallback (badge "FI-INFRA" duplicado em vez do badge de
-          // risco real, e Score sempre vazio).
           return {...f, cotacao:dados.cotacao, dy_pct:dados.dy_pct, liquidez:dados.liquidez,
                    p_vp:dados.p_vp, nivel_risco:dados.nivel_risco, score:dados.score,
                    fora_criterio:dados.fora_criterio, motivo_fora_criterio:dados.motivo_fora_criterio,
@@ -220,6 +215,26 @@ async function loadFiis(){
         }
         return f;
       });
+      // Passo 2: insere fundos novos que vieram do /fii-infra mas NAO
+      // existem ainda em _fiisTodosData (ex: FIP-IE como KNDI11/BDIV11/
+      // XPIE11 que nao sao cobertos pelo Fundamentus)
+      const tickersJaPresentes=new Set(_fiisTodosData.map(f=>f.ticker));
+      const novosInfra=d2.fundos.filter(f=>!tickersJaPresentes.has(f.ticker)).map(f=>({
+        ...f,
+        segmento: 'fi-infra',
+        segmento_fundamentus: f.categoria_display==='FIP-IE'
+          ? 'Fundo de Investimentos em Participacoes (FIP-IE)' : 'Fundo de Infraestrutura (FI-Infra)',
+        sem_dados_financeiros: !f.dados_disponiveis,
+      }));
+      if(novosInfra.length>0){
+        // Insere antes dos fora_criterio, depois dos validos ja existentes
+        const validos=_fiisTodosData.filter(f=>!f.fora_criterio);
+        const fora=_fiisTodosData.filter(f=>f.fora_criterio);
+        const novosValidos=novosInfra.filter(f=>!f.fora_criterio);
+        const novosFora=novosInfra.filter(f=>f.fora_criterio);
+        _fiisTodosData=[...validos,...novosValidos,...fora,...novosFora];
+      }
+      _fiisData=_fiisTodosData.filter(f=>!f.fora_criterio);
       renderFiisFiltro();
       renderFiis();
     }
