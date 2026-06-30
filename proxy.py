@@ -4715,7 +4715,15 @@ def scrape_fi_infra_dados(ticker, debug=False):
 
         if dy_pct is None and cotacao is None:
             if debug:
-                return {'_debug': {'status_code': r.status_code, 'html_len': len(html), 'snippet': html[:2000]}}
+                idx_dy_raw = html.lower().find('dividend yield')
+                idx_cot_raw = html.lower().find('cota')
+                ctx_dy = html[max(0,idx_dy_raw-300):idx_dy_raw+100] if idx_dy_raw != -1 else 'TEXTO "dividend yield" NAO ENCONTRADO NO HTML'
+                return {'_debug': {
+                    'status_code': r.status_code,
+                    'html_len': len(html),
+                    'achou_texto_dividend_yield': idx_dy_raw != -1,
+                    'contexto_ao_redor_dy': ctx_dy,
+                }}
             return None  # nada de util encontrado -- nao retorna dado parcial sem sentido
 
         return {'ticker': ticker, 'dy_pct': dy_pct, 'cotacao': cotacao, 'liquidez': liquidez}
