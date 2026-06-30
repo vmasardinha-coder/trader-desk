@@ -115,16 +115,17 @@
       "nome": "BSLV39 - iShares Silver Trust BDR",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-08-22",
-      "entry": 96.68,
-      "kdo": 77.34,
-      "kdo_pct": "-20.0%",
+      "vencimento": "2026-08-24",
+      "entry": 99.42,
+      "kdo": 73.28,
+      "kdo_pct": "-26.3%",
       "vol_impl": null,
       "vol_impl_fonte": "nao_calculado",
       "data_entrada": "2026-06-25",
       "exercicio": "europeia",
       "ganho_sem_barreira": "8.3% fixo",
-      "ganho_prefixado_pct": 8.3
+      "ganho_prefixado_pct": 8.3,
+      "observacao": "CORRIGIDO 30/06/2026: entry/kdo/vencimento atualizados com dado REAL da corretora (boleto de negociacao: PUT/CALL R$99,42, KDO R$73,28, venc. 24/08/2026). Valores antigos: entry=96.68, kdo=77.34, vencimento=2026-08-22 (estimados/imprecisos, fonte busca web). PENDENCIA: premio real (R$5,04/cota sobre R$99,42 = ~5,07%) diverge do ganho_prefixado_pct gravado (8.3%, premissa do PDF original do banco) -- usuario decidiu MANTER 8.3% por enquanto (acordo fechado foi esse), mas quer revisar essa diferenca numa proxima sessao."
     }
   ],
   "encerradas": [
