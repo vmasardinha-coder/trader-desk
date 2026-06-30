@@ -4841,9 +4841,10 @@ def debug_statusinvest():
     a abordagem definitiva.
     """
     ticker = request.args.get('ticker', 'BSLV39').lower()
+    base = request.args.get('base', 'bdrs')
     try:
         r = requests.get(
-            f'https://statusinvest.com.br/bdrs/{ticker}',
+            f'https://statusinvest.com.br/{base}/{ticker}',
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
             timeout=10)
         html = r.text
@@ -4855,6 +4856,9 @@ def debug_statusinvest():
         texto = re.sub(r'<[^>]+>', ' ', html)
         texto = re.sub(r'\s+', ' ', texto)
         idx_preco = texto.find('R$')
+        idx_provento = texto.lower().find('ltimo provento')
+        if idx_provento == -1:
+            idx_provento = texto.lower().find('ltimo rendimento')
 
         return jsonify({
             'status_code': r.status_code,
@@ -4862,66 +4866,10 @@ def debug_statusinvest():
             'tem_next_data_json': tem_next_data,
             'snippet_next_data': snippet_next,
             'snippet_texto_inicio_RS': texto[max(0,idx_preco-50):idx_preco+200] if idx_preco != -1 else 'R$ NAO ENCONTRADO NO TEXTO',
+            'snippet_provento': texto[max(0,idx_provento-30):idx_provento+250] if idx_provento != -1 else 'TEXTO "ultimo provento/rendimento" NAO ENCONTRADO',
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-def scrape_statusinvest_ultimo_provento(ticker, segmento=None):
-    """
-    Busca o ULTIMO provento/rendimento pago de um FII ou FI-Infra via
-    statusinvest.com.br -- adicionado 30/06/2026, fonte confirmada
-    server-side renderizada (texto puro, sem JS, sem bloqueio).
-
-    URL difere por categoria: FI-Infra usa /fiinfras/, FII tradicional
-    usa /fundos-imobiliarios/ -- se 'segmento' nao for passado, tenta
-    fundos-imobiliarios primeiro (mais comum) e cai para fiinfras se
-    404.
-
-    NAO e historico completo mes a mes (isso exigiria investigar a
-    secao separada "Proventos (semestral, ult. 5 anos)", que pode ser
-    grafico/JS -- nao confirmado ainda). Retorna so o ULTIMO pagamento
-    (data + valor), util para mostrar na Carteira de FIIs enquanto o
-    historico completo nao e implementado.
-
-    Retorna dict {'data_pagamento': 'DD/MM/AA', 'valor': float} ou None.
-    """
-    bases = ['fundos-imobiliarios', 'fiinfras'] if segmento != 'fi-infra' else ['fiinfras', 'fundos-imobiliarios']
-    for base in bases:
-        try:
-            r = requests.get(
-                f'https://statusinvest.com.br/{base}/{ticker.lower()}',
-                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
-                timeout=10)
-            if not r.ok:
-                continue
-            texto = re.sub(r'<[^>]+>', ' ', r.text)
-            texto = re.sub(r'\s+', ' ', texto)
-            m = re.search(
-                r'[uú]ltimo (?:provento pago do|rendimento do)\s*\w*\s*foi (?:um rendimento de|de)\s*R\$\s*([\d.,]+)\s*por (?:papel|cota)\s*no dia\s*(\d{2}/\d{2}/\d{2,4})',
-                texto, re.IGNORECASE)
-            if m:
-                valor = float(m.group(1).replace('.', '').replace(',', '.'))
-                return {'data_pagamento': m.group(2), 'valor': valor if valor > 0 else None}
-        except Exception:
-            continue
-    return None
-
-@app.route('/fii-ultimo-provento', methods=['GET'])
-def get_fii_ultimo_provento():
-    """
-    GET /fii-ultimo-provento?ticker=BDIF11&segmento=fi-infra
-    Retorna o ultimo provento pago (data + valor por cota) via
-    StatusInvest. Usado na Carteira de FIIs para mostrar o ultimo
-    pagamento recebido sem precisar de historico completo ainda.
-    """
-    ticker = request.args.get('ticker', '').strip()
-    if not ticker:
-        return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
-    segmento = request.args.get('segmento')
-    dados = scrape_statusinvest_ultimo_provento(ticker, segmento)
-    if dados is None:
-        return jsonify({'ticker': ticker, 'encontrado': False, 'data_pagamento': None, 'valor': None})
-    return jsonify({'ticker': ticker, 'encontrado': True, **dados})
 
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
