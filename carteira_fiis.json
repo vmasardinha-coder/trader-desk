@@ -99,5 +99,16 @@
     "preco_ativacao": 95.03,
     "dy_anual_pct_ativacao": 12.43,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1782822990",
+    "ticker": "CDII11",
+    "nome_fundo": "CDII11",
+    "segmento": "fi-infra",
+    "nivel_risco": "middle_risk",
+    "data_ativacao": "2026-06-30",
+    "preco_ativacao": 100.8,
+    "dy_anual_pct_ativacao": 17.07,
+    "status": "ativa"
   }
 ]
