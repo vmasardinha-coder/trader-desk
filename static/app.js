@@ -108,6 +108,26 @@ let _fiisEscopoAtivo='criterio';  // 'todos' ou 'criterio'
 let _fiisSegmentoAtivo='todos';
 let _fiisRiscoAtivo='todos';
 let _fiisBuscaTexto='';
+// ADICIONADO 30/06/2026 -- set com tickers ja ATIVOS na carteira de FIIs,
+// usado para o botao "+ Em Analise" virar "✓ Em Carteira" (desabilitado)
+// no screening, em vez de continuar oferecendo a acao para algo que ja
+// foi decidido. Populado em loadFiis() (fetch paralelo e silencioso).
+let _carteiraFiisTickers=new Set();
+
+// Decide o estado do botao de acao na linha do FII/FI-Infra do
+// screening, considerando 3 estados possiveis: ja na carteira (ativa),
+// ja em analise (em_analise/ativa em analises.json), ou disponivel.
+function botaoStatusFii(ticker, tituloDisponivel, estiloDisponivel){
+  const tickerCompleto=ticker+'.SA';
+  if(_carteiraFiisTickers.has(tickerCompleto)||_carteiraFiisTickers.has(ticker)){
+    return `<button disabled title="Já está ativo na sua Carteira de FIIs" style="background:rgba(76,217,100,.12);border:1px solid rgba(76,217,100,.3);color:var(--green);padding:5px 9px;font-size:10px;font-family:inherit;font-weight:700;cursor:default">✓ Em Carteira</button>`;
+  }
+  const jaEmAnalise=_analiseData&&_analiseData.find(a=>(a.ticker===tickerCompleto||a.ticker===ticker)&&(a.status==='em_analise'||a.status==='ativa'));
+  if(jaEmAnalise){
+    return `<button disabled title="Já está em Em Análise (id: ${jaEmAnalise.id})" style="background:rgba(255,204,0,.12);border:1px solid rgba(255,204,0,.3);color:#ffcc00;padding:5px 9px;font-size:10px;font-family:inherit;font-weight:700;cursor:default">Em Análise</button>`;
+  }
+  return `<button onclick="aprovarFiiParaAnalise('${ticker}')" title="${tituloDisponivel}" style="${estiloDisponivel}">+ Em Análise</button>`;
+}
 
 const _FII_ESCOPO_LABEL={
   todos:'Todos (universo bruto)', criterio:'Critério (liquidez + DY)'
@@ -143,6 +163,27 @@ async function loadFiis(){
     _fiisTodosData=d.fiis_todos||d.fiis||[];  // classificados + fora_criterio (visao Todos)
     renderFiisFiltro();
     renderFiis();
+
+    // ADICIONADO 30/06/2026 -- busca silenciosa (paralela, nao bloqueia o
+    // render acima) da carteira de FIIs, so para saber QUAIS tickers ja
+    // estao ativos -- usado por botaoStatusFii() para trocar "+ Em
+    // Analise" por "✓ Em Carteira". Falha silenciosa (nao impede uso do
+    // screening se a carteira nao carregar por algum motivo).
+    fetch(B+'/carteira-fiis',{cache:'no-store'}).then(r2=>r2.json()).then(d2=>{
+      _carteiraFiisTickers=new Set((d2.carteira||[]).filter(f=>f.status==='ativa').map(f=>f.ticker));
+      renderFiis();  // re-renderiza so os botoes com o estado correto, sem re-buscar nada
+    }).catch(()=>{});
+
+    // Mesma logica para _analiseData (usado no estado "Em Analise" do
+    // botao) -- se ainda nao foi carregado nesta sessao (usuario foi
+    // direto para a aba FIIs sem passar por Em Analise antes), busca
+    // agora tambem, silenciosamente.
+    if(!_analiseData){
+      fetch(B+'/analises',{cache:'no-store'}).then(r3=>r3.json()).then(d3=>{
+        _analiseData=Array.isArray(d3)?d3:[];
+        renderFiis();
+      }).catch(()=>{});
+    }
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao buscar FIIs: '+e.message+'</p>';
     if(btn){btn.disabled=false;btn.style.opacity='1';}
@@ -335,7 +376,7 @@ function renderFiis(){
         <td style="padding:6px 8px;text-align:right">—</td>
         <td style="padding:6px 8px;text-align:right">${f.score!=null?f.score.toFixed(1):'—'}</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
-          <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise" style="background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700">+ Em Análise</button>
+          ${botaoStatusFii(f.ticker,'Adicionar a Em Análise','background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700')}
         </td>
       </tr>`;
     }
@@ -347,7 +388,7 @@ function renderFiis(){
         <td style="padding:6px 8px;font-weight:700">${f.ticker} ${FI_INFRA_BADGE}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus||''}</span></td>
         <td colspan="6" style="padding:6px 8px;color:var(--muted);font-size:10px">Buscando dados financeiros... (FI-Infra exige consulta individual, pode levar mais alguns segundos)</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
-          <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise (sem dados financeiros automáticos -- você decide manualmente)" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">+ Em Análise</button>
+          ${botaoStatusFii(f.ticker,'Adicionar a Em Análise (sem dados financeiros automáticos -- você decide manualmente)','background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600')}
         </td>
       </tr>`;
     }
@@ -362,7 +403,7 @@ function renderFiis(){
         <td style="padding:6px 8px;text-align:right">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
         <td colspan="4" style="padding:6px 8px;color:var(--muted);font-size:10px" title="${f.motivo_fora_criterio||''}">${f.motivo_fora_criterio||'fora do critério'}</td>
         <td style="padding:6px 8px;text-align:right;white-space:nowrap">
-          <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise mesmo assim (você assume o risco de estar fora do critério padrão)" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">+ Em Análise</button>
+          ${botaoStatusFii(f.ticker,'Adicionar a Em Análise mesmo assim (você assume o risco de estar fora do critério padrão)','background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600')}
         </td>
       </tr>`;
     }
@@ -387,7 +428,7 @@ function renderFiis(){
       <td style="padding:6px 8px;text-align:right">${vac}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez × fator de sustentabilidade (FFO vs DY) -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score.toFixed(1)}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
-        <button onclick="aprovarFiiParaAnalise('${f.ticker}')" title="Adicionar a Em Análise" style="background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700">+ Em Análise</button>
+        ${botaoStatusFii(f.ticker,'Adicionar a Em Análise','background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700')}
       </td>
     </tr>`;
   }).join('');
@@ -539,6 +580,7 @@ function renderCarteiraFiis(carteira){
       <td style="padding:6px 8px;text-align:right">${f.dy_anual_pct_ativacao!=null?f.dy_anual_pct_ativacao.toFixed(2)+'%':'—'}</td>
       <td style="padding:6px 8px;text-align:right">${f.data_ativacao}</td>
       <td style="padding:6px 8px;text-align:right">${dias}d</td>
+      <td id="cfii-prov-${f.id}" style="padding:6px 8px;text-align:right;color:var(--muted)" class="loading">...</td>
       <td style="padding:6px 8px;text-align:right">
         <button onclick="encerrarFiiCarteira('${f.id}')" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">Encerrar</button>
       </td>
@@ -554,11 +596,45 @@ function renderCarteiraFiis(carteira){
       <th style="padding:6px 8px;text-align:right">DY na ativ.</th>
       <th style="padding:6px 8px;text-align:right">Data</th>
       <th style="padding:6px 8px;text-align:right">Dias</th>
+      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest">Últ. Provento</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${ativos.map(linhaAtivo).join('')}</tbody>
   </table>
   </div>`;
+
+  // ADICIONADO 30/06/2026 -- busca o ultimo provento de cada FII ativo,
+  // EM PARALELO mas com pequeno escalonamento (delay incremental) para
+  // nao disparar todas as chamadas ao StatusInvest no mesmo instante.
+  // Preenche a celula assim que cada resposta chega, em vez de bloquear
+  // a tabela inteira esperando todas.
+  let delayProv=0;
+  ativos.forEach(f=>{
+    setTimeout(()=>carregarUltimoProventoCarteira(f), delayProv);
+    delayProv+=400;
+  });
+}
+
+async function carregarUltimoProventoCarteira(f){
+  const cel=document.getElementById('cfii-prov-'+f.id);
+  if(!cel)return;
+  try{
+    const tickerLimpo=f.ticker.replace('.SA','');
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
+    const r=await fetch(B+'/fii-ultimo-provento?ticker='+encodeURIComponent(tickerLimpo)+'&segmento='+encodeURIComponent(f.segmento||''),{signal:ctrl.signal});
+    const d=await r.json();
+    if(d.encontrado&&d.valor!=null){
+      cel.textContent='R$'+d.valor.toFixed(2)+' ('+d.data_pagamento+')';
+      cel.title='Fonte: StatusInvest';
+      cel.classList.remove('loading');
+      cel.style.color='var(--text)';
+    }else{
+      cel.textContent='—';
+      cel.classList.remove('loading');
+    }
+  }catch(e){
+    if(cel){cel.textContent='—';cel.classList.remove('loading');}
+  }
 }
 
 async function encerrarFiiCarteira(id){
