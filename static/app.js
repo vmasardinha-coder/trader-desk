@@ -166,12 +166,16 @@ async function loadFiis(){
       _fiisTodosData=_fiisTodosData.map(f=>{
         if(f.segmento==='fi-infra'&&dadosPorTicker[f.ticker]){
           const dados=dadosPorTicker[f.ticker];
-          // ADICIONADO 29/06/2026: p_vp agora tambem vem do /fii-infra
-          // (antes so cotacao/dy_pct/liquidez) -- necessario para o
-          // bloco "+ Em Analise" nao quebrar com null.toFixed() quando
-          // dados_disponiveis=true mas p_vp ainda nao existia.
+          // CORRIGIDO 29/06/2026: faltava trazer nivel_risco/score/
+          // fora_criterio/motivo_fora_criterio do /fii-infra -- o
+          // backend ja calcula tudo isso, mas o merge so pegava
+          // cotacao/dy_pct/liquidez/p_vp, fazendo a linha cair sempre
+          // no fallback (badge "FI-INFRA" duplicado em vez do badge de
+          // risco real, e Score sempre vazio).
           return {...f, cotacao:dados.cotacao, dy_pct:dados.dy_pct, liquidez:dados.liquidez,
-                   p_vp:dados.p_vp, sem_dados_financeiros:!dados.dados_disponiveis};
+                   p_vp:dados.p_vp, nivel_risco:dados.nivel_risco, score:dados.score,
+                   fora_criterio:dados.fora_criterio, motivo_fora_criterio:dados.motivo_fora_criterio,
+                   sem_dados_financeiros:!dados.dados_disponiveis};
         }
         return f;
       });
