@@ -120,7 +120,8 @@
     "data_ativacao": "2026-06-30",
     "preco_ativacao": 103.6,
     "dy_anual_pct_ativacao": 14.85,
-    "status": "ativa"
+    "status": "encerrada",
+    "data_encerramento": "2026-06-30"
   },
   {
     "id": "fii_1782858120",
