@@ -5308,18 +5308,33 @@ def debug_statusinvest_listagem():
 @app.route('/fii-infra', methods=['GET'])
 def get_fii_infra():
     """
-    Lista os FI-Infra encontrados, COM dados financeiros (cotacao, DY,
-    liquidez) buscados individualmente -- adicionado 26/06/2026. Cada
-    ticker exige uma requisicao separada (pagina individual), entao isso
-    e mais lento que o endpoint /fiis (que busca tudo de uma chamada) --
-    aceitavel pois sao so ~22 tickers.
+    Lista FI-Infra + FIP-IE (Fundo de Investimentos em Participacoes de
+    Infraestrutura tematico) com dados financeiros completos via Investidor10.
 
-    ?debug=1 -- modo diagnostico TEMPORARIO (29/06/2026): roda so o
-    PRIMEIRO ticker com debug=True, expondo status_code/snippet do HTML
-    real recebido em producao, para investigar por que todos os 22
-    tickers retornaram dados_disponiveis=false. Remover depois que a
-    causa for confirmada e corrigida.
+    ATUALIZADO 30/06/2026: FIP-IE (ex: KNDI11, BDIV11, XPIE11) adicionados
+    como categoria 'fi-infra' por decisao do usuario -- agrupamento TEMATICO
+    (infraestrutura), nao regulatorio. Usa o mesmo scrape_fi_infra_dados()
+    (Investidor10/FAQ) que ja funciona para FI-Infra puro.
+
+    ?debug=1 -- modo diagnostico: roda so o primeiro ticker com debug=True.
     """
+    # FIP-IE conhecidos (Fundo de Investimentos em Participacoes de
+    # Infraestrutura) -- agrupados com FI-Infra por decisao do usuario
+    # (30/06/2026). Lista baseada nos tickers encontrados via StatusInvest
+    # /fip confirmados como tematica de infraestrutura (energia/portos/etc),
+    # nao FIP de outros setores (imobiliario, etc).
+    TICKERS_FIP_IE = [
+        'KNDI11',  # Kinea Estrategia Infra
+        'BDIV11',  # BTG Pactual Infraestrutura Dividendos
+        'XPIE11',  # XP Infra Energia
+        'VIGT11',  # Vinci Energia
+        'BRZP11',  # BRZ Infra Portos
+        'ENDD11',  # Endurance Debt Infra
+        'GTIS11',  # GTIS Energia
+        'PICE11',  # Primoris Capital Infra
+        'PPEI11',  # PP Energia Infra
+    ]
+
     try:
         fundos, erro = scrape_fi_infra()
         if fundos is None:
@@ -5327,6 +5342,17 @@ def get_fii_infra():
                 'error': f'Scraping do fiis.com.br falhou ou layout pode ter mudado: {erro}',
                 'fundos': [],
             }), 502
+
+        # Adiciona FIP-IE a lista, marcando categoria separada para display
+        tickers_ja_presentes = {f['ticker'] for f in fundos}
+        for ticker in TICKERS_FIP_IE:
+            if ticker not in tickers_ja_presentes:
+                fundos.append({
+                    'ticker': ticker,
+                    'nome_fundo': ticker,
+                    'fonte_match': 'fip_ie_lista_conhecida',
+                    'categoria_display': 'FIP-IE',  # badge diferente no frontend
+                })
 
         if request.args.get('debug') == '1' and fundos:
             primeiro = fundos[0]
