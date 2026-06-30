@@ -4389,10 +4389,52 @@ def ranking_fiis_em_analise():
         tickers_encontrados = {f['ticker'].upper() for f in candidatos}
         nao_encontrados = [t for t in tickers_em_analise if t not in tickers_encontrados]
 
+        # ADICIONADO 30/06/2026 -- FI-Infra (BDIF11, etc.) NUNCA aparece no
+        # Fundamentus (categoria regulatoria separada, ver /fii-infra),
+        # entao sempre caia em nao_encontrados ate aqui. Para os tickers
+        # que sobraram, tenta a fonte de FI-Infra (investidor10.com.br)
+        # antes de desistir -- mesma classificacao de risco/score, com
+        # mediana de DY AUTO-REFERENCIADA so entre os FI-Infra encontrados
+        # nesta chamada (mesmo principio do endpoint /fii-infra).
+        candidatos_fi_infra = []
+        ainda_nao_encontrados = []
+        for t in nao_encontrados:
+            dados = scrape_fi_infra_dados(t)
+            if dados and (dados.get('cotacao') is not None or dados.get('dy_pct') is not None):
+                candidatos_fi_infra.append({
+                    'ticker': t,
+                    'nome_fundo': t,
+                    'segmento_fundamentus': 'Fundo de Infraestrutura (FI-Infra)',
+                    'segmento': 'fi-infra',
+                    'cotacao': dados.get('cotacao'),
+                    'p_vp': dados.get('p_vp'),
+                    'dy_pct': dados.get('dy_pct'),
+                    'liquidez': dados.get('liquidez'),
+                    'vacancia_pct': None,
+                    'ffo_yield_pct': None,
+                    'analise_id': analise_id_por_ticker.get(t),
+                })
+            else:
+                ainda_nao_encontrados.append(t)
+
+        if candidatos_fi_infra:
+            dy_validos_fi = [f['dy_pct'] for f in candidatos_fi_infra if f['dy_pct'] is not None]
+            mediana_dy_fi = median(dy_validos_fi) if dy_validos_fi else None
+            for f in candidatos_fi_infra:
+                if f['liquidez'] is None or f['dy_pct'] is None or f['dy_pct'] <= 0:
+                    f['nivel_risco'] = None
+                    f['score'] = None
+                else:
+                    f['nivel_risco'] = _classificar_risco_fii(
+                        f['nome_fundo'], f['segmento_fundamentus'], f['dy_pct'], None, mediana_dy_fi)
+                    f['score'] = _score_fii(f.get('p_vp'), f['dy_pct'], f['liquidez'])
+            candidatos.extend(candidatos_fi_infra)
+            candidatos.sort(key=lambda f: (ordem_risco.get(f.get('nivel_risco'), 1), -(f.get('score') or 0)))
+
         return jsonify({
             'total_em_analise': len(fiis_em_analise),
             'total_encontrados': len(candidatos),
-            'nao_encontrados': nao_encontrados,
+            'nao_encontrados': ainda_nao_encontrados,
             'ranking': candidatos,
         })
     except Exception as e:
