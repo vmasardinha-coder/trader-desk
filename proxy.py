@@ -692,6 +692,84 @@ def get_futures():
                      'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas})
 
+# ── YIELDS DE TÍTULOS SOBERANOS ───────────────────────────────────────────────
+# Adicionado 30/06/2026 -- backlog item 1.
+# Curva de juros global: EUA (2y/10y/30y), Japão (10y), USD/JPY, Brasil (SELIC efetiva).
+# EUA + USD/JPY: yquote() Yahoo -- mesmo padrão já usado para todos os outros tickers
+# do app, provado estável (v8/finance/chart). Yields do Yahoo vêm em % anual diretamente
+# (ex: ^TNX retorna 4.28 = 4.28% a.a.).
+# Japão 10y: ^JGBS via Yahoo -- fallback TradingView scanner (FRED:JGBS10) se Yahoo falhar.
+# Brasil SELIC: get_cdi() já existente (Bacen SGS 4389 anualizado) -- sem fonte adicional.
+# Brasil NTN-B (IPCA+): TradingView scanner tentativa -- null explícito se falhar
+#   (não há API pública gratuita confiável para precificação de NTN-B em tempo real;
+#   ANBIMA publica dados mas via site não adequado para scraping confiável).
+@app.route('/yields', methods=['GET'])
+def get_yields():
+    # ── EUA ──────────────────────────────────────────────
+    # ^IRX = T-Bill 13 semanas (proxy do juro curto, ~3 meses)
+    # ^FVX = T-Note 5 anos
+    # ^TNX = T-Note 10 anos (benchmark global principal)
+    # ^TYX = T-Bond 30 anos
+    us_3m  = yquote('%5EIRX')   # ^IRX
+    us_10y = yquote('%5ETNX')   # ^TNX
+    us_30y = yquote('%5ETYX')   # ^TYX
+
+    # ── USD/JPY ───────────────────────────────────────────
+    usdjpy = yquote('USDJPY%3DX')  # USDJPY=X
+
+    # ── JAPÃO 10y ─────────────────────────────────────────
+    # ^JGBS no Yahoo = JGB 10 anos. Liquidez menor que os Treasuries EUA,
+    # mas historicamente funciona no mesmo endpoint v8/finance/chart.
+    jp_10y = yquote('%5EJGBS')  # ^JGBS
+
+    # Fallback: TradingView scanner (FRED:JGBS10) se Yahoo não retornar
+    if not jp_10y:
+        try:
+            r_jgb = requests.post(
+                'https://scanner.tradingview.com/global/scan',
+                json={"symbols":{"tickers":["FRED:JGBS10"]},"columns":["close","change_abs"]},
+                timeout=6)
+            if r_jgb.ok:
+                items = r_jgb.json().get('data',[])
+                if items and items[0].get('d') and items[0]['d'][0]:
+                    d2 = items[0]['d']
+                    close = round(float(d2[0]),3)
+                    chg = float(d2[1]) if len(d2)>1 and d2[1] else 0
+                    jp_10y = {'price':close,'prev':round(close-chg,3),'source':'tradingview'}
+        except: pass
+
+    # ── BRASIL ───────────────────────────────────────────
+    # SELIC efetiva anualizada -- já temos get_cdi() (Bacen SGS 4389)
+    # Não é uma "yield de título" stricto sensu, mas é o piso da curva brasileira
+    selic = get_cdi()  # retorna float (% a.a.) ou 14.40 como fallback
+
+    # NTN-B 2035 (IPCA+ longo) -- TradingView scanner tentativa
+    # Retorna null se falhar -- não há fonte pública gratuita confiável para NTN-B em tempo real
+    ntnb_10y = None
+    try:
+        r_ntnb = requests.post(
+            'https://scanner.tradingview.com/brazil/scan',
+            json={"symbols":{"tickers":["BMFBOVESPA:NTNB350101"]},"columns":["close","change_abs"]},
+            timeout=6)
+        if r_ntnb.ok:
+            items = r_ntnb.json().get('data',[])
+            if items and items[0].get('d') and items[0]['d'][0] and float(items[0]['d'][0]) > 0:
+                d3 = items[0]['d']
+                close = round(float(d3[0]),3)
+                chg = float(d3[1]) if len(d3)>1 and d3[1] else 0
+                ntnb_10y = {'price':close,'prev':round(close-chg,3),'source':'tradingview'}
+    except: pass
+
+    return jsonify({
+        'us_3m':  us_3m,   # T-Bill 3 meses (^IRX)
+        'us_10y': us_10y,  # T-Note 10 anos (^TNX)
+        'us_30y': us_30y,  # T-Bond 30 anos (^TYX)
+        'usdjpy': usdjpy,  # USD/JPY
+        'jp_10y': jp_10y,  # JGB 10 anos (^JGBS)
+        'br_selic': {'price': selic, 'prev': None, 'label': 'SELIC efetiva a.a.'},
+        'br_ntnb':  ntnb_10y,  # NTN-B ~10y (IPCA+) -- null se fonte indisponível
+    })
+
 @app.route('/dji', methods=['GET'])
 def get_dji():
     d=yquote('%5EDJI')
