@@ -614,9 +614,11 @@
     "kdo": 12.7327,
     "ganho_prefixado_pct": 2.61,
     "origem": "customizada",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
-    "observacao": "Lote 01/07/2026 (Fase A em chat). KO=91.8% (proteção 8.2%). Delta original planilha: 47.88%. Retorno mensalizado no filtro: 5.29%/mês. Preço de referência buscado via web search (não Yahoo) em 01/07/2026 -- revalidar visualmente contra a cotação real antes de confiar 100%. Sem bandas_congeladas (endpoint /analises via Flask não acessível deste ambiente)."
+    "observacao": "Lote 01/07/2026 (Fase A em chat). KO=91.8% (proteção 8.2%). Delta original planilha: 47.88%. Retorno mensalizado no filtro: 5.29%/mês. Preço de referência buscado via web search (não Yahoo) em 01/07/2026 -- revalidar visualmente contra a cotação real antes de confiar 100%. Sem bandas_congeladas (endpoint /analises via Flask não acessível deste ambiente).",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-01"
   },
   {
     "id": "an_1782935664_roxo34",
