@@ -262,11 +262,13 @@
     "kdo": 3.79,
     "ganho_prefixado_pct": 13.61,
     "origem": "pronta",
-    "status": "em_analise",
+    "status": "encerrada",
     "lote": "2026-06-24",
     "backtest": false,
     "observacao": "Proposta REAL via planilha do banco (Index/Fixing/Strike/KO/Delta, 144 linhas, fixing 2026-09-21). Estrutura: Retorno Controlado, barreira KDO em 88.00% do valor inicial (queda tolerada de 12.00%, R$3.79). Ganho prefixado de 13.61% se nao tocar a barreira. REGRA: numeros do banco aceitos como premissa fixa, sem reescalar. Lote de analise de 24/06/2026. Preco de foto coletado via busca web em 25/06/2026 (Yahoo bloqueado no sandbox).",
-    "id": "an_1782394712"
+    "id": "an_1782394712",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-01"
   },
   {
     "ticker": "CMIN3.SA",
