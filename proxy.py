@@ -5202,6 +5202,297 @@ def get_carteira_fiis_proventos():
         'ultimo_provento': hist['ultimo_provento'],
     })
 
+
+# ── FOTO DE PAPEL (ANÁLISE DE ASSERTIVIDADE MONTE CARLO) ─────────────────────
+# Adicionado 30/06/2026 -- backlog item 3.
+# "Tirar uma foto" = congelar o preco atual e as bandas GARCH Monte Carlo para
+# os 3 horizontes (21/60/90d) num dado dia, e acompanhar se o preco real
+# ficou dentro ou fora das bandas ao longo do tempo.
+#
+# A GARCH e recalculada cada vez que a foto e consultada (usando historico
+# atualizado), mas o PONTO DE PARTIDA (preco no dia da foto) fica congelado.
+# Ao completar 90 dias uteis, a foto expira automaticamente.
+#
+# Storage: fotos_papel.json no repo GitHub (mesmo padrao de analises.json).
+# Estrutura: { "PETR4.SA": { "ticker": ..., "data_foto": "2026-06-30",
+#   "preco_foto": 36.50, "periodos": [21,60,90],
+#   "bandas": { "21": {"p10":...,"p25":...,"p50":...,"p75":...,"p90":...},
+#               "60": {...}, "90": {...} } } }
+
+FOTOS_PATH = 'fotos_papel.json'
+GITHUB_FOTOS_SHA = {}  # cache de SHA para commits
+
+def _read_fotos():
+    """Le fotos_papel.json do repo. Retorna (dict, sha)."""
+    import urllib.request as _ur
+    TOKEN = os.environ.get('GITHUB_TOKEN', '')
+    REPO  = os.environ.get('GITHUB_REPO', 'vmasardinha-coder/trader-desk')
+    if not TOKEN:
+        return {}, None
+    try:
+        req = _ur.Request(
+            f'https://api.github.com/repos/{REPO}/contents/{FOTOS_PATH}',
+            headers={'Authorization': f'token {TOKEN}', 'Accept': 'application/vnd.github.v3+json'})
+        with _ur.urlopen(req, timeout=8) as resp:
+            d = json.loads(resp.read())
+            sha = d['sha']
+            data = json.loads(base64.b64decode(d['content']).decode())
+            GITHUB_FOTOS_SHA['sha'] = sha
+            return data, sha
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return {}, None
+        raise
+    except Exception:
+        return {}, None
+
+def _write_fotos(data, sha=None):
+    """Salva fotos_papel.json no repo. Cria se nao existir (sha=None)."""
+    import urllib.request as _ur
+    TOKEN = os.environ.get('GITHUB_TOKEN', '')
+    REPO  = os.environ.get('GITHUB_REPO', 'vmasardinha-coder/trader-desk')
+    if not TOKEN:
+        return False
+    payload = {'message': 'update: fotos_papel.json (auto)',
+               'content': base64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode()).decode()}
+    if sha:
+        payload['sha'] = sha
+    try:
+        req = _ur.Request(
+            f'https://api.github.com/repos/{REPO}/contents/{FOTOS_PATH}',
+            data=json.dumps(payload).encode(),
+            headers={'Authorization': f'token {TOKEN}', 'Content-Type': 'application/json'},
+            method='PUT')
+        with _ur.urlopen(req, timeout=10) as resp:
+            r = json.loads(resp.read())
+            GITHUB_FOTOS_SHA['sha'] = r['content']['sha']
+            return True
+    except Exception:
+        return False
+
+def _calc_bandas_foto(S, sigma, periodos=(21, 60, 90)):
+    """
+    Calcula bandas (p10/p25/p50/p75/p90) para cada periodo usando GBM.
+    Retorna dict: {"21": {"p10":..., "p25":..., "p50":..., "p75":..., "p90":...}, ...}
+    Cada valor e uma lista de floats (um por dia), tamanho = periodo+1 (dia 0 = S).
+    """
+    try:
+        import numpy as np
+        n_sim = 3000
+        dt = 1 / 252.0
+        drift = -0.5 * sigma**2 * dt
+        vol_step = sigma * math.sqrt(dt)
+        bandas = {}
+        for T in periodos:
+            z = np.random.standard_normal((n_sim, T))
+            log_ret = drift + vol_step * z
+            paths = S * np.exp(np.cumsum(log_ret, axis=1))
+            paths = np.hstack([np.full((n_sim, 1), S), paths])
+            bd = {}
+            for p in [10, 25, 50, 75, 90]:
+                bd[f'p{p}'] = np.percentile(paths, p, axis=0).round(4).tolist()
+            bandas[str(T)] = bd
+        return bandas
+    except Exception as e:
+        return {}
+
+def _fetch_closes_for_foto(ticker, from_date_str):
+    """
+    Busca closes diarios desde from_date_str (YYYY-MM-DD) ate hoje via Yahoo.
+    Retorna list de (date_str, close).
+    """
+    from datetime import datetime, timedelta
+    try:
+        dt_from = datetime.strptime(from_date_str, '%Y-%m-%d')
+        # Yahoo: periodo em Unix timestamps
+        t1 = int(dt_from.timestamp()) - 86400  # 1 dia antes para pegar o proprio dia
+        t2 = int(datetime.now().timestamp()) + 86400
+        for host in ['query1', 'query2']:
+            try:
+                r = requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}'
+                    f'?interval=1d&period1={t1}&period2={t2}',
+                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                if not r.ok:
+                    continue
+                d = r.json()
+                result = d['chart']['result'][0]
+                timestamps = result['timestamps']
+                closes = result['indicators']['quote'][0]['close']
+                pairs = []
+                for ts, cl in zip(timestamps, closes):
+                    if cl is None:
+                        continue
+                    dt = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
+                    if dt >= from_date_str:
+                        pairs.append({'data': dt, 'close': round(float(cl), 4)})
+                return pairs
+            except:
+                continue
+    except:
+        pass
+    return []
+
+def _dias_uteis_desde(data_str):
+    """Conta dias uteis (aprox) desde data_str ate hoje."""
+    from datetime import datetime, timedelta
+    try:
+        dt = datetime.strptime(data_str, '%Y-%m-%d').date()
+        hoje = datetime.now().date()
+        du = 0
+        cur = dt
+        while cur < hoje:
+            if cur.weekday() < 5:
+                du += 1
+            cur += timedelta(days=1)
+        return du
+    except:
+        return 0
+
+@app.route('/foto-papel', methods=['POST'])
+def post_foto_papel():
+    """
+    POST /foto-papel
+    Body JSON: { "ticker": "PETR4.SA" }
+    Tira a foto: busca preco atual + GARCH, calcula bandas para 21/60/90d,
+    salva em fotos_papel.json no repo.
+    Substitui foto anterior do mesmo ticker se existir.
+    """
+    try:
+        data = request.get_json() or {}
+        ticker = data.get('ticker', '').strip()
+        if not ticker:
+            return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
+
+        # Busca preco atual e historico para GARCH
+        S = None
+        closes = []
+        for host in ['query1', 'query2']:
+            try:
+                r = requests.get(
+                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                if r.ok:
+                    d = r.json()
+                    result = d['chart']['result'][0]
+                    meta = result['meta']
+                    raw_cl = result['indicators']['quote'][0]['close']
+                    closes = [c for c in raw_cl if c is not None]
+                    S = float(meta.get('regularMarketPrice', closes[-1] if closes else 0))
+                    break
+            except:
+                continue
+
+        if not S or S <= 0:
+            return jsonify({'error': f'Nao foi possivel obter preco de {ticker}'}), 500
+
+        # GARCH com historico atual (vol recalculada)
+        sigma = None
+        garch_info = None
+        if len(closes) >= 60:
+            try:
+                garch_info = garch_11(closes, horizon_days=60)
+                if garch_info:
+                    sigma = garch_info['vol_garch_projetada_pct'] / 100
+            except:
+                pass
+        if not sigma:
+            sigma = vol_hist(closes) if closes else 0.35
+
+        # Calcula bandas para os 3 periodos
+        bandas = _calc_bandas_foto(S, sigma, periodos=[21, 60, 90])
+
+        from datetime import datetime
+        foto = {
+            'ticker': ticker,
+            'data_foto': datetime.now().strftime('%Y-%m-%d'),
+            'preco_foto': round(S, 4),
+            'sigma_pct': round(sigma * 100, 2),
+            'garch': garch_info,
+            'periodos': [21, 60, 90],
+            'bandas': bandas,
+        }
+
+        # Lê, atualiza, salva
+        fotos, sha = _read_fotos()
+        fotos[ticker] = foto
+        ok = _write_fotos(fotos, sha)
+
+        return jsonify({'ok': ok, 'foto': foto})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/foto-papel', methods=['GET'])
+def get_foto_papel():
+    """
+    GET /foto-papel?ticker=PETR4.SA
+    Retorna a foto salva + preco real historico desde a data da foto
+    + score de assertividade (% do tempo dentro de cada banda).
+    Se a foto tiver >= 90 dias uteis, retorna campo 'expirada': true.
+    """
+    ticker = request.args.get('ticker', '').strip()
+    if not ticker:
+        return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
+
+    fotos, _ = _read_fotos()
+    if ticker not in fotos:
+        return jsonify({'encontrado': False, 'ticker': ticker})
+
+    foto = fotos[ticker]
+    dias_uteis = _dias_uteis_desde(foto['data_foto'])
+    expirada = dias_uteis >= 90
+
+    # Busca preco real historico desde a data da foto
+    historico_real = _fetch_closes_for_foto(ticker, foto['data_foto'])
+
+    # Score de assertividade: para cada dia real, verifica em qual banda caiu
+    # Usa o periodo 90d como referencia (maior horizonte)
+    score = None
+    if historico_real and foto.get('bandas', {}).get('90'):
+        bd90 = foto['bandas']['90']
+        dentro_p50 = 0; dentro_p75 = 0; dentro_p90 = 0; total = 0
+        for i, ponto in enumerate(historico_real):
+            if i == 0:
+                continue  # dia 0 = preco da foto, nao conta
+            idx = min(i, len(bd90['p10']) - 1)
+            cl = ponto['close']
+            total += 1
+            if bd90['p25'][idx] <= cl <= bd90['p75'][idx]:
+                dentro_p50 += 1
+            if bd90['p10'][idx] <= cl <= bd90['p90'][idx]:
+                dentro_p90 += 1
+        if total > 0:
+            score = {
+                'dias_observados': total,
+                'pct_dentro_p25_p75': round(dentro_p50 / total * 100, 1),
+                'pct_dentro_p10_p90': round(dentro_p90 / total * 100, 1),
+            }
+
+    return jsonify({
+        'encontrado': True,
+        'foto': foto,
+        'dias_uteis_decorridos': dias_uteis,
+        'expirada': expirada,
+        'historico_real': historico_real,
+        'score': score,
+    })
+
+@app.route('/foto-papel', methods=['DELETE'])
+def delete_foto_papel():
+    """
+    DELETE /foto-papel?ticker=PETR4.SA
+    Remove (reseta) a foto do ticker.
+    """
+    ticker = request.args.get('ticker', '').strip()
+    if not ticker:
+        return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
+    fotos, sha = _read_fotos()
+    if ticker not in fotos:
+        return jsonify({'ok': True, 'msg': 'nao encontrado, nada a remover'})
+    del fotos[ticker]
+    ok = _write_fotos(fotos, sha)
+    return jsonify({'ok': ok, 'ticker': ticker, 'msg': 'foto removida'})
+
 @app.route('/debug-statusinvest', methods=['GET'])
 def debug_statusinvest():
     """
