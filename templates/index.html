@@ -53,6 +53,25 @@
   </div>
 
   <div class="tbl-wrap">
+    <div class="tbl-hdr" onclick="togCot('yields')" style="cursor:pointer"><span class="tbl-hdr-title">📈 Juros Soberanos</span><span id="ar-cot-yields" style="color:var(--muted)">▼</span></div>
+    <div id="cot-yields-wrap" style="display:block">
+    <table class="tbl-mkt">
+      <colgroup><col style="width:42%"><col style="width:29%"><col style="width:29%"></colgroup>
+      <thead><tr><th>Título</th><th class="r">Yield (% a.a.)</th><th class="r">Variação</th></tr></thead>
+      <tbody>
+        <tr><td><div class="sym">🇺🇸 T-Bill 3M</div><div class="desc">EUA · curto prazo</div></td><td class="r"><span class="val loading" id="us3m-p">—</span></td><td class="r"><span class="chg" id="us3m-c">—</span></td></tr>
+        <tr><td><div class="sym">🇺🇸 T-Note 10Y</div><div class="desc">EUA · benchmark global</div></td><td class="r"><span class="val loading" id="us10y-p">—</span></td><td class="r"><span class="chg" id="us10y-c">—</span></td></tr>
+        <tr><td><div class="sym">🇺🇸 T-Bond 30Y</div><div class="desc">EUA · longo prazo</div></td><td class="r"><span class="val loading" id="us30y-p">—</span></td><td class="r"><span class="chg" id="us30y-c">—</span></td></tr>
+        <tr><td><div class="sym">🇯🇵 JGB 10Y</div><div class="desc">Japão · benchmark</div></td><td class="r"><span class="val loading" id="jp10y-p">—</span></td><td class="r"><span class="chg" id="jp10y-c">—</span></td></tr>
+        <tr><td><div class="sym">🇯🇵 USD/JPY</div><div class="desc">Câmbio iene</div></td><td class="r"><span class="val loading" id="usdjpy-p">—</span></td><td class="r"><span class="chg" id="usdjpy-c">—</span></td></tr>
+        <tr><td><div class="sym">🇧🇷 SELIC</div><div class="desc">Brasil · efetiva a.a.</div></td><td class="r"><span class="val loading" id="brselic-p">—</span></td><td class="r"><span class="chg" id="brselic-c" style="color:var(--muted);font-size:10px">meta Bacen</span></td></tr>
+        <tr><td><div class="sym">🇧🇷 NTN-B ~10Y</div><div class="desc">Brasil · IPCA+ longo</div></td><td class="r"><span class="val loading" id="brntnb-p">—</span></td><td class="r"><span class="chg" id="brntnb-c">—</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
     <div class="tbl-hdr" onclick="togCot('intl')" style="cursor:pointer"><span class="tbl-hdr-title">Europa &amp; Ásia</span><span id="ar-cot-intl" style="color:var(--muted)">▼</span></div>
     <div id="cot-intl-wrap" style="display:block">
     <table class="tbl-mkt">
