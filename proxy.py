@@ -718,16 +718,18 @@ def get_yields():
     usdjpy = yquote('USDJPY%3DX')  # USDJPY=X
 
     # ── JAPÃO 10y ─────────────────────────────────────────
-    # ^JGBS no Yahoo = JGB 10 anos. Liquidez menor que os Treasuries EUA,
-    # mas historicamente funciona no mesmo endpoint v8/finance/chart.
-    jp_10y = yquote('%5EJGBS')  # ^JGBS
-
-    # Fallback: TradingView scanner (FRED:JGBS10) se Yahoo não retornar
-    if not jp_10y:
+    # ^JGBS não existe no Yahoo Finance -- vai sempre direto para o fallback TradingView.
+    # TVC:JP10Y é o ticker padrão do TradingView para JGB 10 anos (yield soberano japonês).
+    # Tentativa anterior usava FRED:JGBS10 -- não retornava dado (fonte FRED via TV
+    # provavelmente sem cobertura nesse endpoint). TVC:JP10Y é o ticker usado nos charts
+    # públicos do TradingView para esse papel, mais provável de funcionar no scanner.
+    jp_10y = None
+    for tv_ticker in ['TVC:JP10Y', 'FRED:JGBS10']:
+        if jp_10y: break
         try:
             r_jgb = requests.post(
                 'https://scanner.tradingview.com/global/scan',
-                json={"symbols":{"tickers":["FRED:JGBS10"]},"columns":["close","change_abs"]},
+                json={"symbols":{"tickers":[tv_ticker]},"columns":["close","change_abs"]},
                 timeout=6)
             if r_jgb.ok:
                 items = r_jgb.json().get('data',[])
@@ -735,13 +737,27 @@ def get_yields():
                     d2 = items[0]['d']
                     close = round(float(d2[0]),3)
                     chg = float(d2[1]) if len(d2)>1 and d2[1] else 0
-                    jp_10y = {'price':close,'prev':round(close-chg,3),'source':'tradingview'}
+                    jp_10y = {'price':close,'prev':round(close-chg,3),'source':tv_ticker}
         except: pass
 
     # ── BRASIL ───────────────────────────────────────────
-    # SELIC efetiva anualizada -- já temos get_cdi() (Bacen SGS 4389)
-    # Não é uma "yield de título" stricto sensu, mas é o piso da curva brasileira
-    selic = get_cdi()  # retorna float (% a.a.) ou 14.40 como fallback
+    # SELIC meta: SGS 11 retorna % a.a. diretamente (decisão COPOM), sem conversão.
+    # Fonte primária preferida porque retorna o número exato do COPOM (ex: 13.75).
+    # get_cdi() (SGS 4389, CDI diário anualizado) fica como fallback -- valor quase
+    # idêntico à SELIC meta mas calculado a partir da taxa overnight, pode divergir
+    # levemente e tem o fallback hardcoded de 14.40 embutido.
+    selic = None
+    try:
+        r_selic = requests.get(
+            'https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados/ultimos/1?formato=json',
+            timeout=5)
+        if r_selic.ok:
+            val = float(r_selic.json()[0]['valor'])
+            if 5 <= val <= 25:  # sanity check: fora dessa faixa é dado suspeito
+                selic = round(val, 2)
+    except: pass
+    if selic is None:
+        selic = get_cdi()  # fallback: CDI anualizado (≈ SELIC efetiva) ou 14.40
 
     # NTN-B 2035 (IPCA+ longo) -- TradingView scanner tentativa
     # Retorna null se falhar -- não há fonte pública gratuita confiável para NTN-B em tempo real
