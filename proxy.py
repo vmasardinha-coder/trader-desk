@@ -5027,6 +5027,181 @@ def get_fii_ultimo_provento():
         return jsonify({'ticker': ticker, 'encontrado': False, 'data_pagamento': None, 'valor': None})
     return jsonify({'ticker': ticker, 'encontrado': True, **dados})
 
+
+# ── HISTÓRICO DE PROVENTOS (CARTEIRA DE FIIs) ─────────────────────────────────
+# Adicionado 30/06/2026 -- backlog item 2.
+# Busca totais semestrais de proventos do StatusInvest (server-side renderizado,
+# mesmo padrão já validado em scrape_statusinvest_ultimo_provento).
+# O HTML já expõe totais como:
+#   "dividendos recebidos entre 01/01/2026 e 30/06/2026 R$ 5,5500"
+# Soma os semestres para compor os últimos 12 meses, e filtra por data de
+# ativação para o acumulado desde que o usuário entrou no FII.
+def scrape_statusinvest_historico_proventos(ticker, segmento=None):
+    """
+    Retorna lista de pagamentos mensais e totais agregados via StatusInvest.
+    Estrutura retornada:
+    {
+      'ultimo_provento': {'data': 'DD/MM/AA', 'valor': float},
+      'semestres': [{'periodo': '01/01/2026 - 30/06/2026', 'total': float}, ...],
+      'total_12m': float,   # soma dos ultimos 2 semestres completos
+    }
+    Retorna None se nao conseguir extrair nada.
+    """
+    import html as _html_mod
+    from datetime import datetime, timedelta
+
+    bases = ['fundos-imobiliarios', 'fiinfras', 'fiagros', 'fip']
+    if segmento == 'fi-infra':
+        bases = ['fiinfras', 'fip', 'fundos-imobiliarios', 'fiagros']
+
+    for base in bases:
+        try:
+            r = requests.get(
+                f'https://statusinvest.com.br/{base}/{ticker.lower()}',
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+                timeout=12)
+            if not r.ok:
+                continue
+            texto = re.sub(r'<[^>]+>', ' ', r.text)
+            texto = _html_mod.unescape(texto)
+            texto = re.sub(r'\s+', ' ', texto)
+
+            # Extrai totais semestrais: "dividendos recebidos entre DD/MM/AAAA e DD/MM/AAAA R$ X,XX"
+            semestres = []
+            for m in re.finditer(
+                r'dividendos recebidos entre (\d{2}/\d{2}/\d{4}) e (\d{2}/\d{2}/\d{4})\s+R\$\s+([\d.,]+)',
+                texto, re.IGNORECASE):
+                try:
+                    total = float(m.group(3).replace('.', '').replace(',', '.'))
+                    semestres.append({
+                        'inicio': m.group(1),
+                        'fim': m.group(2),
+                        'periodo': f"{m.group(1)} - {m.group(2)}",
+                        'total': total
+                    })
+                except: pass
+
+            if not semestres:
+                continue
+
+            # Ordena por data de fim (mais recente primeiro)
+            def _parse_dt(s):
+                try: return datetime.strptime(s, '%d/%m/%Y')
+                except: return datetime.min
+            semestres.sort(key=lambda x: _parse_dt(x['fim']), reverse=True)
+
+            # Total 12 meses = soma dos 2 semestres mais recentes completos
+            # (exclui semestres futuros com total=0 que o StatusInvest as vezes inclui)
+            sems_validos = [s for s in semestres if s['total'] > 0]
+            total_12m = sum(s['total'] for s in sems_validos[:2])
+
+            # Ultimo provento (reusar funcao ja existente)
+            ultimo = scrape_statusinvest_ultimo_provento(ticker, segmento)
+
+            return {
+                'ticker': ticker,
+                'semestres': sems_validos,
+                'total_12m': round(total_12m, 4),
+                'ultimo_provento': ultimo,
+            }
+        except Exception:
+            continue
+    return None
+
+@app.route('/carteira-fiis/proventos', methods=['GET'])
+def get_carteira_fiis_proventos():
+    """
+    GET /carteira-fiis/proventos?ticker=KNCR11&data_ativacao=2026-06-26&preco_ativacao=107.70&segmento=papel
+    Retorna historico de proventos para 1 FII da carteira ativa:
+    - total_12m: soma dos ultimos 2 semestres (R$/cota)
+    - dy_12m_pct: total_12m / preco_ativacao * 100
+    - acumulado_ativacao: soma dos proventos pagos APOS a data de ativacao (best-effort)
+    - dy_ativacao_pct: acumulado_ativacao / preco_ativacao * 100
+    - semestres: lista de periodos com totais
+    - ultimo_provento: data + valor do ultimo pagamento
+    Apenas para FIIs com status='ativa' na carteira -- logica de filtro e feita no frontend.
+    """
+    ticker = request.args.get('ticker','').strip().upper()
+    if not ticker:
+        return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
+    segmento = request.args.get('segmento')
+    preco_raw = request.args.get('preco_ativacao','0')
+    data_ativ_raw = request.args.get('data_ativacao','')
+
+    try:
+        preco_ativacao = float(preco_raw)
+    except:
+        preco_ativacao = 0.0
+
+    try:
+        from datetime import datetime
+        data_ativ = datetime.strptime(data_ativ_raw, '%Y-%m-%d').date()
+    except:
+        data_ativ = None
+
+    hist = scrape_statusinvest_historico_proventos(ticker, segmento)
+    if not hist:
+        return jsonify({'ticker': ticker, 'encontrado': False,
+                        'total_12m': None, 'dy_12m_pct': None,
+                        'acumulado_ativacao': None, 'dy_ativacao_pct': None,
+                        'semestres': [], 'ultimo_provento': None})
+
+    total_12m = hist['total_12m']
+    dy_12m_pct = round(total_12m / preco_ativacao * 100, 2) if preco_ativacao > 0 else None
+
+    # Acumulado desde ativacao: soma dos semestres cujo FIM e apos data_ativacao
+    # Best-effort: se data_ativacao esta no meio de um semestre, conta o semestre
+    # inteiro (conservador -- pode superestimar levemente)
+    acumulado_ativacao = None
+    dy_ativacao_pct = None
+    if data_ativ and hist['semestres']:
+        from datetime import datetime
+        total_ativ = 0.0
+        for s in hist['semestres']:
+            try:
+                fim_sem = datetime.strptime(s['fim'], '%d/%m/%Y').date()
+                if fim_sem >= data_ativ:
+                    total_ativ += s['total']
+            except: pass
+        # Adiciona ultimo provento se for mais recente que o ultimo semestre
+        if hist['ultimo_provento'] and hist['ultimo_provento'].get('valor'):
+            try:
+                data_ult = hist['ultimo_provento']['data_pagamento']
+                # tenta DD/MM/AA e DD/MM/AAAA
+                for fmt in ('%d/%m/%y', '%d/%m/%Y'):
+                    try:
+                        dt_ult = datetime.strptime(data_ult, fmt).date()
+                        break
+                    except: dt_ult = None
+                # So adiciona se nao ja estiver contido num semestre computado
+                if dt_ult and dt_ult >= data_ativ:
+                    # Verifica se a data cai apos o fim do semestre mais recente
+                    fim_mais_recente = None
+                    for s in hist['semestres']:
+                        try:
+                            f = datetime.strptime(s['fim'], '%d/%m/%Y').date()
+                            if fim_mais_recente is None or f > fim_mais_recente:
+                                fim_mais_recente = f
+                        except: pass
+                    if fim_mais_recente and dt_ult > fim_mais_recente:
+                        total_ativ += hist['ultimo_provento']['valor']
+            except: pass
+        acumulado_ativacao = round(total_ativ, 4)
+        dy_ativacao_pct = round(total_ativ / preco_ativacao * 100, 2) if preco_ativacao > 0 else None
+
+    return jsonify({
+        'ticker': ticker,
+        'encontrado': True,
+        'total_12m': total_12m,
+        'dy_12m_pct': dy_12m_pct,
+        'acumulado_ativacao': acumulado_ativacao,
+        'dy_ativacao_pct': dy_ativacao_pct,
+        'preco_ativacao': preco_ativacao,
+        'data_ativacao': data_ativ_raw,
+        'semestres': hist['semestres'],
+        'ultimo_provento': hist['ultimo_provento'],
+    })
+
 @app.route('/debug-statusinvest', methods=['GET'])
 def debug_statusinvest():
     """
