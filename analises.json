@@ -174,11 +174,13 @@
     "kdo": 8.94,
     "ganho_prefixado_pct": 8.9,
     "origem": "pronta",
-    "status": "em_analise",
+    "status": "encerrada",
     "lote": "2026-06-24",
     "backtest": false,
     "observacao": "Proposta REAL do banco (Itau, Material Publicitario 24/06/2026, vencimento 2026-08-21). Estrutura: Retorno Controlado, barreira unica KDO a -18.40% (R$11.43). Ganho PREFIXADO de 8.90% se NAO tocar a barreira em nenhum momento; se tocar, fica exposto a variacao real, SEM garantia de ganho. REGRA: numeros do banco aceitos como premissa fixa, sem reescalar. Lote de analise de 24/06/2026 (8 PDFs Itau + planilha 144 linhas). Preco de foto coletado via busca web em 25/06/2026 (Yahoo bloqueado no sandbox). [CORRIGIDO 25/06/2026] preco_foto e kdo estavam errados (preco_foto=14.01 vinha de fonte desatualizada/incorreta na busca web inicial -- ROXO34 caiu bastante recentemente, rebaixamento BofA + saida do CFO Guilherme Lago. Preco real confirmado pelo usuario (~R$10,90) e por fonte adicional (Investidor10, R$10,96). KDO recalculado: R$8,94 (era R$11,43, que ja estava ABAIXO do preco atual real -- causava prob_meta=0,1% no ranking, simulacao partindo de um preco ja tecnicamente rompendo a barreira calculada errada).",
-    "id": "an_1782394707"
+    "id": "an_1782394707",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-01"
   },
   {
     "ticker": "TSLA34.SA",
