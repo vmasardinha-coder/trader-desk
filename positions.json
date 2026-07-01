@@ -78,22 +78,6 @@
       "alavancagem": 1.3
     },
     {
-      "id": "rx",
-      "ticker": "ROXO34.SA",
-      "nome": "ROXO34 · BDR Nubank",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "ROXOG105",
-      "strike": 10.5,
-      "vol_impl": 0.315,
-      "tipo": "call",
-      "vencimento": "2026-07-16",
-      "objetivo": "Fechar abaixo de R$ 10,50",
-      "data_entrada": "2026-06-03",
-      "exercicio": "americana",
-      "meta_pct": 2.25
-    },
-    {
       "id": "bb",
       "ticker": "BBAS3.SA",
       "nome": "Banco do Brasil ON",
@@ -159,6 +143,17 @@
       "data_encerramento": null,
       "status": "sucesso",
       "observacao": "80% do resultado em 70% do tempo"
+    },
+    {
+      "id": "cl-roxo-jul26",
+      "ticker": "ROXO34",
+      "estrategia": "Lançamento Coberto (ROXOG105)",
+      "codigo_opcao": "ROXOG105",
+      "strike": 10.5,
+      "data_encerramento": "2026-07-01",
+      "status": "fracasso",
+      "resultado_texto": "Objetivo era fechar abaixo de R$10,50 (opção americana, risco de exercício antecipado ITM). Estourou -- probabilidade de rompimento chegou a 100%. Encerrada via rolagem decidida por fora do app; prêmio gerado para pagar o prêmio ficou com o usuário, mas o objetivo original não foi atingido.",
+      "observacao": "Rolagem em 01/07/2026 -- nova estrutura a ser registrada como ATIVA diretamente (sem passar por Em Análise) assim que os detalhes forem confirmados pelo usuário."
     }
   ]
 }
