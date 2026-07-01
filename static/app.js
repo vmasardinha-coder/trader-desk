@@ -1497,9 +1497,14 @@ async function tirarFoto(ticker, id){
       body: JSON.stringify({ticker: ticker})
     });
     const d = await r.json();
-    if(d.ok && d.foto){
+    if(d.foto){
       _fotoData[id] = { foto: d.foto, historico_real: [], score: null };
       _atualizarStatusFoto(id, d.foto, 0, false, null);
+      if(!d.ok){
+        // Foto calculada mas nao persistida (GITHUB_TOKEN ausente no servidor)
+        const st = document.getElementById(id+'-foto-status');
+        if(st) st.innerHTML += ' <span style="color:var(--yellow);font-size:9px">[⚠ não salva — configure GITHUB_TOKEN no Render]</span>';
+      }
     } else {
       alert('Erro ao tirar foto: '+(d.error||'resposta inesperada'));
     }
