@@ -104,3 +104,29 @@ KNCR11, ITRI11, KNCA11, BDIF11, CDII11, e outros (verificar arquivo real).
 - **Próxima reunião COPOM**: 05/08/2026. SELIC meta atual: 14,25% (COPOM 17/06/2026). Atualizar fallback hardcoded em get_cdi() após cada decisão.
 - **Fundamentais hardcoded** (`FUND_DATA_REF` em proxy.py): ref. 22/05/2026. App mostra aviso visual automático após 90 dias. Quando usuário reportar esse aviso, atualizar via web search.
 
+
+## Fluxo de análise de lote com PDFs do banco (Fase A)
+
+### Como decodificar a planilha "Index/Fixing/Strike/KO/Delta"
+Propostas fechadas do banco (Retorno Controlado prontas). Colunas:
+- **Fixing**: data de VENCIMENTO
+- **Strike**: RETORNO da estrutura em % do valor inicial (ex: "101,02%" = retorno de 1,02%, subtrair 100)
+- **KO**: nível de PROTEÇÃO/barreira de baixa em % do valor inicial (ex: "82,00%" = proteção até cair 18%)
+- **Delta**: probabilidade de o cenário bom se realizar (informação secundária na decisão)
+
+### Ordem de critérios (aplicar nesta ordem)
+1. **Retorno mensal > 2%** (eliminatório): retorno_mensal = (Strike% - 100) / (dias_corridos_até_fixing / 30.4). Se não passa, descartado — não importa KO nem Delta.
+2. **KO** (proteção): quanto mais funda, melhor — só entra na decisão após passar no 1º filtro.
+3. **DY > 8%** (desempate): se barreira romper, usuário fica com o papel. DY alto = colchão enquanto espera recuperar. ADRs/BDRs sem dividendo (ROXO34/TSLA34/BSLV39/AMZO34/NVDC34) sempre DY=0%, é esperado.
+- **EV = retorno × Delta**: desempate entre combinações do mesmo ativo com fixing diferente.
+
+### PDFs do banco (Material Publicitário do Itaú) — REGRA ABSOLUTA
+- Aceitar todos os números como PREMISSA FIXA: ganho prefixado, barreira, teto, alavancagem. **NUNCA recalcular, NUNCA reescalar proporcionalmente ao tempo.**
+- A ÚNICA coisa que muda é o vencimento: (a) se ainda não passou → usa prazo restante real com os MESMOS números; (b) se já passou → simula o MESMO prazo total a partir de hoje com os MESMOS números.
+- Estrutura típica de bidirecional Itaú (3 pernas): 1 put com KDO (proporção 2x) + 1 call com KUI + 1 call com KUO. SEM desembolso de prêmio na largada — ganho embutido no payoff, realizado só no encerramento.
+
+### Entregável esperado
+Tabela completa com TODAS as linhas (inclusive as que não passam nos critérios), ordenada por retorno mensal decrescente. Colunas: origem, ativo, fixing, dias, meses, retorno%, retorno_mensal%, passa_retorno_2pct, KO%, proteção%, Delta%, DY%, passa_dy_8pct. Usuário filtra/decide por conta própria — Claude NÃO decide quais avançar para Fase B sem o usuário escolher explicitamente.
+
+### Bidirecionais — tratamento separado do ranking de Retorno Controlado
+Risco assimétrico diferente: sem piso garantido na queda se romper barreira baixa. Avaliar como ESTUDO SEPARADO do ranking principal.
