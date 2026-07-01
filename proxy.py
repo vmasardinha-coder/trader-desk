@@ -239,7 +239,7 @@ def get_cdi():
             if 5 <= cdi_anual <= 20:
                 return round(cdi_anual, 2)
     except: pass
-    return 14.40
+    return 14.25  # SELIC meta COPOM 17/06/2026 (proxima reuniao: 05/08/2026)
 
 # ── CALC TECNICO ──────────────────────────────────────
 def rsi(closes, p=14):
