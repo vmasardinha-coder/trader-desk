@@ -276,11 +276,13 @@
     "kdo": 3.96,
     "ganho_prefixado_pct": 2.0,
     "origem": "pronta",
-    "status": "em_analise",
+    "status": "encerrada",
     "lote": "2026-06-24",
     "backtest": false,
     "observacao": "Proposta REAL via planilha do banco (Index/Fixing/Strike/KO/Delta, 144 linhas, fixing 2026-07-08). Estrutura: Retorno Controlado, barreira KDO em 91.80% do valor inicial (queda tolerada de 8.20%, R$3.96). Ganho prefixado de 2.00% se nao tocar a barreira. REGRA: numeros do banco aceitos como premissa fixa, sem reescalar. Lote de analise de 24/06/2026. Preco de foto coletado via busca web em 25/06/2026 (Yahoo bloqueado no sandbox).",
-    "id": "an_1782394713"
+    "id": "an_1782394713",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-01"
   },
   {
     "ticker": "PETR4.SA",
