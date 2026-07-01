@@ -3384,6 +3384,14 @@ def criar_analise():
         if erros:
             return jsonify({'error': 'dados invalidos', 'detalhes': erros}), 422
 
+        # BACKLOG #4 (30/06/2026): congela bandas GARCH no momento da
+        # criacao (mesmo conceito da Foto do Papel), pra depois comparar
+        # o preco real contra o que o modelo projetava nesse dia. Nunca
+        # bloqueia a criacao se a busca de historico falhar.
+        bandas_congeladas = _congelar_bandas_analise(novo)
+        if bandas_congeladas:
+            novo['bandas_congeladas'] = bandas_congeladas
+
         conteudo_str, sha = _github_get_file('analises.json')
         lista = json.loads(conteudo_str) if conteudo_str.strip() else []
         lista.append(novo)
@@ -3393,6 +3401,48 @@ def criar_analise():
         return jsonify(novo), 201
     except RuntimeError as e:
         return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/analises/<id>/foto-bandas', methods=['GET'])
+def get_analise_foto_bandas(id):
+    """
+    BACKLOG #4 (30/06/2026): retorna as bandas congeladas no momento da
+    criacao da analise (id) + o caminho real do preco desde data_foto +
+    score de assertividade (mesmo conceito de GET /foto-papel, mas
+    referenciado por id de analise em vez de ticker solto -- assim o
+    congelamento fica atrelado ao prazo/estrutura real da negociacao,
+    nao a um "papel" generico da watchlist).
+    """
+    try:
+        r = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        if not r.ok:
+            return jsonify({'error': 'analises.json indisponivel'}), 500
+        lista = r.json()
+        item = next((a for a in lista if a.get('id') == id), None)
+        if not item:
+            return jsonify({'error': f'analise {id} nao encontrada'}), 404
+
+        bandas_congeladas = item.get('bandas_congeladas')
+        if not bandas_congeladas:
+            return jsonify({'encontrado': False, 'motivo': 'sem_bandas_congeladas', 'id': id})
+
+        historico_real = _fetch_closes_for_foto(item['ticker'], item['data_foto'])
+        periodo_ref = str(max(bandas_congeladas['periodos']))
+        score = _score_assertividade_bandas(historico_real, bandas_congeladas['bandas'].get(periodo_ref))
+
+        return jsonify({
+            'encontrado': True,
+            'id': id,
+            'ticker': item['ticker'],
+            'data_foto': item['data_foto'],
+            'preco_foto': item['preco_foto'],
+            'bandas_congeladas': bandas_congeladas,
+            'historico_real': historico_real,
+            'score': score,
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -5350,6 +5400,122 @@ def _dias_uteis_desde(data_str):
     except:
         return 0
 
+def _obter_preco_sigma_garch(ticker, range_hist='1y'):
+    """
+    Busca preco atual (ou ultimo close) + historico via Yahoo, e calcula
+    sigma via GARCH(1,1) (fallback vol historica se GARCH nao rodar).
+    Fatorado de post_foto_papel em 30/06/2026 para reuso em
+    _congelar_bandas_analise (foto automatica em Em Analise -- backlog #4).
+    Retorna (S, sigma, garch_info, closes) -- S e sigma podem ser None se
+    a busca falhar (NUNCA inventa fallback fixo, principio #6).
+    """
+    S = None
+    closes = []
+    for host in ['query1', 'query2']:
+        try:
+            r = requests.get(
+                f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range={range_hist}',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+            if r.ok:
+                d = r.json()
+                result = d['chart']['result'][0]
+                meta = result['meta']
+                raw_cl = result['indicators']['quote'][0]['close']
+                closes = [c for c in raw_cl if c is not None]
+                S = float(meta.get('regularMarketPrice', closes[-1] if closes else 0))
+                break
+        except:
+            continue
+
+    if not S or S <= 0:
+        return None, None, None, closes
+
+    sigma = None
+    garch_info = None
+    if len(closes) >= 60:
+        try:
+            garch_info = garch_11(closes, horizon_days=60)
+            if garch_info:
+                sigma = garch_info['vol_garch_projetada_pct'] / 100
+        except:
+            pass
+    if not sigma:
+        sigma = vol_hist(closes) if closes else None
+
+    return S, sigma, garch_info, closes
+
+
+def _score_assertividade_bandas(historico_real, bandas_periodo):
+    """
+    Calcula % do tempo que o preco real ficou dentro da banda central
+    (p25-p75) e da banda ampla (p10-p90), comparando dia a dia.
+    Fatorado de get_foto_papel em 30/06/2026 para reuso em
+    GET /analises/<id>/foto-bandas (backlog #4).
+    """
+    if not historico_real or not bandas_periodo:
+        return None
+    dentro_p50 = 0; dentro_p90 = 0; total = 0
+    for i, ponto in enumerate(historico_real):
+        if i == 0:
+            continue  # dia 0 = preco da foto, nao conta
+        idx = min(i, len(bandas_periodo['p10']) - 1)
+        cl = ponto['close']
+        total += 1
+        if bandas_periodo['p25'][idx] <= cl <= bandas_periodo['p75'][idx]:
+            dentro_p50 += 1
+        if bandas_periodo['p10'][idx] <= cl <= bandas_periodo['p90'][idx]:
+            dentro_p90 += 1
+    if total == 0:
+        return None
+    return {
+        'dias_observados': total,
+        'pct_dentro_p25_p75': round(dentro_p50 / total * 100, 1),
+        'pct_dentro_p10_p90': round(dentro_p90 / total * 100, 1),
+    }
+
+
+def _congelar_bandas_analise(novo):
+    """
+    Backlog #4 (30/06/2026): ao criar uma analise em Em Analise, congela
+    as bandas GARCH (mesmo conceito da Foto do Papel) usando o preco_foto
+    JA FECHADO da analise como ponto de partida (nao o preco ao vivo --
+    o preco_foto e a premissa fixa da negociacao). Isso permite depois
+    comparar o caminho real do preco contra o que o modelo projetava
+    naquele dia, pra ver se "deixou dinheiro na mesa".
+
+    Nunca bloqueia a criacao da analise se a busca de historico/GARCH
+    falhar -- retorna None nesse caso (principio #6: nunca inventar
+    dado). Pulado para tipo_estrutura='fii' (perpetuo, prazo_dias=9999).
+    """
+    if novo.get('tipo_estrutura') == 'fii':
+        return None
+    ticker = novo.get('ticker')
+    preco_foto = novo.get('preco_foto')
+    prazo_dias = novo.get('prazo_dias')
+    if not ticker or not preco_foto or not prazo_dias or prazo_dias >= 9999:
+        return None
+    try:
+        _, sigma, garch_info, _ = _obter_preco_sigma_garch(ticker)
+        if not sigma:
+            return None
+        periodos = sorted({p for p in (21, 60, 90) if p <= prazo_dias})
+        if not periodos:
+            periodos = [min(prazo_dias, 21)]
+        if prazo_dias not in periodos and prazo_dias <= 180:
+            periodos = sorted(set(periodos + [prazo_dias]))
+        bandas = _calc_bandas_foto(preco_foto, sigma, periodos=periodos)
+        if not bandas:
+            return None
+        return {
+            'sigma_pct': round(sigma * 100, 2),
+            'garch': garch_info,
+            'periodos': periodos,
+            'bandas': bandas,
+        }
+    except Exception:
+        return None
+
+
 @app.route('/foto-papel', methods=['POST'])
 def post_foto_papel():
     """
@@ -5365,40 +5531,11 @@ def post_foto_papel():
         if not ticker:
             return jsonify({'error': "parametro 'ticker' obrigatorio"}), 400
 
-        # Busca preco atual e historico para GARCH
-        S = None
-        closes = []
-        for host in ['query1', 'query2']:
-            try:
-                r = requests.get(
-                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
-                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
-                if r.ok:
-                    d = r.json()
-                    result = d['chart']['result'][0]
-                    meta = result['meta']
-                    raw_cl = result['indicators']['quote'][0]['close']
-                    closes = [c for c in raw_cl if c is not None]
-                    S = float(meta.get('regularMarketPrice', closes[-1] if closes else 0))
-                    break
-            except:
-                continue
-
-        if not S or S <= 0:
+        S, sigma, garch_info, closes = _obter_preco_sigma_garch(ticker)
+        if not S:
             return jsonify({'error': f'Nao foi possivel obter preco de {ticker}'}), 500
-
-        # GARCH com historico atual (vol recalculada)
-        sigma = None
-        garch_info = None
-        if len(closes) >= 60:
-            try:
-                garch_info = garch_11(closes, horizon_days=60)
-                if garch_info:
-                    sigma = garch_info['vol_garch_projetada_pct'] / 100
-            except:
-                pass
         if not sigma:
-            sigma = vol_hist(closes) if closes else 0.35
+            sigma = 0.35  # fallback final so aqui, mantido igual ao comportamento anterior
 
         # Calcula bandas para os 3 periodos
         bandas = _calc_bandas_foto(S, sigma, periodos=[21, 60, 90])
@@ -5448,26 +5585,7 @@ def get_foto_papel():
 
     # Score de assertividade: para cada dia real, verifica em qual banda caiu
     # Usa o periodo 90d como referencia (maior horizonte)
-    score = None
-    if historico_real and foto.get('bandas', {}).get('90'):
-        bd90 = foto['bandas']['90']
-        dentro_p50 = 0; dentro_p75 = 0; dentro_p90 = 0; total = 0
-        for i, ponto in enumerate(historico_real):
-            if i == 0:
-                continue  # dia 0 = preco da foto, nao conta
-            idx = min(i, len(bd90['p10']) - 1)
-            cl = ponto['close']
-            total += 1
-            if bd90['p25'][idx] <= cl <= bd90['p75'][idx]:
-                dentro_p50 += 1
-            if bd90['p10'][idx] <= cl <= bd90['p90'][idx]:
-                dentro_p90 += 1
-        if total > 0:
-            score = {
-                'dias_observados': total,
-                'pct_dentro_p25_p75': round(dentro_p50 / total * 100, 1),
-                'pct_dentro_p10_p90': round(dentro_p90 / total * 100, 1),
-            }
+    score = _score_assertividade_bandas(historico_real, foto.get('bandas', {}).get('90'))
 
     return jsonify({
         'encontrado': True,
