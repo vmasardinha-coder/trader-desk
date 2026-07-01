@@ -4206,6 +4206,12 @@ def _score_fii(p_vp, dy_pct, liquidez, ffo_yield_pct=None):
 # pechincha genuina -- usuario confirmou que quer esse filtro adicional.
 _FII_PVP_MINIMO = 0.5
 
+_FII_TICKERS_INATIVOS = {
+    'CBCV11',  # incorporado/renomeado -- reportado pelo usuario 01/07/2026,
+               # aparecia no topo do ranking com dado cacheado do Fundamentus
+               # mesmo ja nao sendo mais negociado sob esse ticker
+}
+
 def scrape_fiis_fundamentus():
     """Scraping da tabela completa de FIIs do Fundamentus. Retorna lista de
     dicts (um por FII) ou None se o sanity check falhar (layout mudou,
@@ -4290,6 +4296,15 @@ def scrape_fiis_fundamentus():
                 })
             except (ValueError, IndexError):
                 continue
+
+        # ── Exclusao manual: fundos que saíram de negociacao (fusao,
+        # incorporacao, troca de ticker) mas o Fundamentus ainda mantem na
+        # tabela com dado cacheado/desatualizado (liquidez sozinha nao e
+        # confiavel pra detectar isso, pode ficar com valor antigo).
+        # Adicionado 01/07/2026 apos usuario reportar CBCV11 no topo do
+        # ranking mesmo ja nao sendo mais negociado (virou outro fundo).
+        # Reportar novos casos aqui conforme aparecerem.
+        fiis = [f for f in fiis if f['ticker'] not in _FII_TICKERS_INATIVOS]
 
         # ── Sanity checks (NUNCA aceitar dado suspeito sem avisar) ──
         if len(fiis) < 300:
