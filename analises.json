@@ -541,5 +541,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-01. P/VP=0.60, DY=18.17%, segmento=Outros, nível de risco=high_yield. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1782923293"
+  },
+  {
+    "ticker": "KNSC11.SA",
+    "nome": "KNSC11 - FII Multicategoria",
+    "data_foto": "2026-07-01",
+    "preco_foto": 9.18,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 12.17,
+    "p_vp": 1.05,
+    "liquidez": 5344090,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-07-01. P/VP=1.05, DY=12.17%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1782923322"
   }
 ]
