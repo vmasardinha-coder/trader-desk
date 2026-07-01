@@ -780,5 +780,128 @@
     "observacao": "Lote 01/07/2026 (Fase A em chat). KO=87.8% (proteção 12.2%). Delta original planilha: 95.05%. Retorno mensalizado no filtro: 0.649%/mês. Preço de referência buscado via web search (não Yahoo) em 01/07/2026 -- revalidar visualmente contra a cotação real antes de confiar 100%. Sem bandas_congeladas (endpoint /analises via Flask não acessível deste ambiente).",
     "motivo_encerramento": "rejeitada",
     "data_rejeicao": "2026-07-01"
+  },
+  {
+    "id": "an_teste_bandas_1782942938343",
+    "ticker": "PETR4.SA",
+    "nome": "PETR4 - Teste foto automática (Lote 01/07/2026)",
+    "data_foto": "2026-07-01",
+    "preco_foto": 36.89,
+    "prazo_dias": 15,
+    "tipo_estrutura": "retorno_controlado",
+    "kdo": 33.87,
+    "ganho_prefixado_pct": 1.18,
+    "origem": "customizada",
+    "status": "em_analise",
+    "backtest": false,
+    "bandas_congeladas": {
+      "sigma_pct": 25.42,
+      "garch": {
+        "vol_garch_atual_pct": 25.83,
+        "vol_garch_projetada_pct": 25.42,
+        "vol_garch_longo_prazo_pct": 24.84,
+        "alpha": 0.02,
+        "beta": 0.96,
+        "persistencia": 0.98,
+        "horizon_days": 60
+      },
+      "periodos": [
+        15
+      ],
+      "bandas": {
+        "15": {
+          "p10": [
+            36.89,
+            36.152,
+            35.8531,
+            35.6482,
+            35.4048,
+            35.2476,
+            35.0979,
+            34.9226,
+            34.7533,
+            34.7253,
+            34.5873,
+            34.4792,
+            34.3621,
+            34.2521,
+            34.2416,
+            34.0626
+          ],
+          "p25": [
+            36.89,
+            36.4972,
+            36.3473,
+            36.2149,
+            36.1049,
+            36.0117,
+            35.9024,
+            35.8536,
+            35.7711,
+            35.6584,
+            35.6007,
+            35.5686,
+            35.5802,
+            35.5179,
+            35.45,
+            35.4058
+          ],
+          "p50": [
+            36.89,
+            36.8958,
+            36.9064,
+            36.8939,
+            36.8711,
+            36.9028,
+            36.8785,
+            36.8752,
+            36.8762,
+            36.8521,
+            36.858,
+            36.8817,
+            36.8784,
+            36.9055,
+            36.9019,
+            36.8755
+          ],
+          "p75": [
+            36.89,
+            37.2876,
+            37.482,
+            37.6025,
+            37.6918,
+            37.8143,
+            37.8621,
+            37.9161,
+            38.0289,
+            38.0863,
+            38.1282,
+            38.2018,
+            38.3006,
+            38.3224,
+            38.3691,
+            38.3919
+          ],
+          "p90": [
+            36.89,
+            37.6484,
+            37.9772,
+            38.2198,
+            38.4087,
+            38.6039,
+            38.8232,
+            38.9353,
+            39.0899,
+            39.2086,
+            39.3281,
+            39.43,
+            39.5348,
+            39.6365,
+            39.7637,
+            39.7753
+          ]
+        }
+      }
+    }
   }
 ]
