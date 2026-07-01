@@ -505,5 +505,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=1.03, DY=14.85%, segmento=Fundo de Investimentos em Participacoes (FIP-IE), nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1782858431"
+  },
+  {
+    "ticker": "KNIP11.SA",
+    "nome": "KNIP11 - FII Multicategoria",
+    "data_foto": "2026-07-01",
+    "preco_foto": 92.5,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 10.37,
+    "p_vp": 0.99,
+    "liquidez": 10131900,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-07-01. P/VP=0.99, DY=10.37%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1782923215"
   }
 ]
