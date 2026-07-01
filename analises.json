@@ -593,9 +593,11 @@
     "kdo": 55.638,
     "ganho_prefixado_pct": 7.9,
     "origem": "pronta",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
-    "observacao": "Lote 01/07/2026 (Fase A em chat). KO=90.0% (proteção 10.0%). Retorno mensalizado no filtro: 5.585%/mês. Preço de referência buscado via web search (não Yahoo) em 01/07/2026 -- revalidar visualmente contra a cotação real antes de confiar 100%. Sem bandas_congeladas (endpoint /analises via Flask não acessível deste ambiente)."
+    "observacao": "Lote 01/07/2026 (Fase A em chat). KO=90.0% (proteção 10.0%). Retorno mensalizado no filtro: 5.585%/mês. Preço de referência buscado via web search (não Yahoo) em 01/07/2026 -- revalidar visualmente contra a cotação real antes de confiar 100%. Sem bandas_congeladas (endpoint /analises via Flask não acessível deste ambiente).",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-01"
   },
   {
     "id": "an_1782935662_dirr3",
