@@ -1457,6 +1457,7 @@ function tplWatchAtivo(a, segNome){
               <button onclick="renderFotoChart('${a.id}',60)" class="cal-fb" id="${a.id}-fp-60">60 dias</button>
               <button onclick="renderFotoChart('${a.id}',90)" class="cal-fb" id="${a.id}-fp-90">90 dias</button>
             </div>
+            <div id="${a.id}-foto-confianca" style="font-size:11px;color:var(--text);line-height:1.5;margin-bottom:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);text-align:left"></div>
             <div style="position:relative;height:clamp(280px,34vh,440px);background:var(--bg2);border:1px solid var(--border);padding:8px">
               <canvas id="${a.id}-foto-canvas"></canvas>
             </div>
@@ -1640,6 +1641,25 @@ function renderFotoChart(id, periodo){
       ? '<em style="color:var(--muted)">Foto recém tirada — aguarde o próximo pregão para ver assertividade.</em>'
       : '<em style="color:var(--muted)">Score disponível após o primeiro pregão.</em>';
   }
+
+  // Legenda de confiança -- backlog #2 (30/06/2026): mesmo padrão de
+  // texto usado no fan chart de Monte Carlo ("com 80% de confiança..."),
+  // agora também na Foto do Papel, não só a mediana solta.
+  const confEl = document.getElementById(id+'-foto-confianca');
+  if(confEl){
+    const last = v => Array.isArray(v) ? v[v.length-1] : null;
+    const p10f = last(bandas.p10), p90f = last(bandas.p90);
+    const p25f = last(bandas.p25), p75f = last(bandas.p75), p50f = last(bandas.p50);
+    if(p10f!=null && p90f!=null){
+      confEl.innerHTML =
+        `📍 Com <b>80% de confiança</b>, o preço em <b>D+${T}</b> deve estar entre `+
+        `<b style="color:var(--red)">R$${p10f.toFixed(2)}</b> e <b style="color:var(--green)">R$${p90f.toFixed(2)}</b>. `+
+        (p25f!=null && p75f!=null ? `Com <b>50% de confiança</b>, entre <b style="color:var(--red)">R$${p25f.toFixed(2)}</b> e <b style="color:var(--green)">R$${p75f.toFixed(2)}</b>. ` : '')+
+        `Cenário mais provável (mediana): <b style="color:var(--accent)">R$${p50f?.toFixed(2)??'—'}</b>.`;
+    } else {
+      confEl.innerHTML = '';
+    }
+  }
 }
 
 async function resetarFoto(ticker, id){
@@ -1653,6 +1673,50 @@ async function resetarFoto(ticker, id){
     if(wrap) wrap.style.display='none';
     _atualizarStatusFoto(id, null, 0, false, null);
   } catch(e){ alert('Erro ao resetar foto'); }
+}
+
+// BULK FOTO -- backlog #3 (30/06/2026): tira a foto de todos os papéis da
+// watchlist de uma vez, um de cada vez (mesmo espaçamento de 200ms usado em
+// _carregarStatusFotos, pra não sobrecarregar o Render free tier). Sobrescreve
+// fotos já existentes (mesmo comportamento do botão individual).
+async function tirarFotoTodas(){
+  const btn = document.getElementById('btn-bulk-foto');
+  const status = document.getElementById('bulk-foto-status');
+  const pares = getWatchlistFlat();
+  if(!pares.length) return;
+  if(!confirm(`Tirar foto de todos os ${pares.length} papéis da watchlist? Isso substitui fotos já existentes e grava no repositório.`)) return;
+
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Processando...'; }
+  if(status){ status.style.display = 'block'; }
+
+  let ok = 0, falhas = [];
+  for(let i = 0; i < pares.length; i++){
+    const {ticker, id} = pares[i];
+    if(status) status.innerHTML = `📸 Tirando foto ${i+1}/${pares.length}: <b>${ticker}</b>... (${ok} ok, ${falhas.length} falhas)`;
+    try{
+      const r = await fetch(B+'/foto-papel', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ticker})
+      });
+      const d = await r.json();
+      if(d.foto && d.ok){
+        ok++;
+        _fotoData[id] = { foto: d.foto, historico_real: [], score: null };
+        _atualizarStatusFoto(id, d.foto, 0, false, null);
+      } else {
+        falhas.push(ticker);
+      }
+    } catch(e){
+      falhas.push(ticker);
+    }
+    await new Promise(res=>setTimeout(res,400)); // escalonado, GARCH+GitHub PUT por papel
+  }
+
+  if(status){
+    status.innerHTML = `📸 Concluído: <b style="color:var(--green)">${ok}</b> fotos tiradas` +
+      (falhas.length ? ` · <b style="color:var(--red)">${falhas.length} falharam</b>: ${falhas.join(', ')}` : '');
+  }
+  if(btn){ btn.disabled = false; btn.textContent = '📸 Tirar Foto de Todos'; }
 }
 
 // Carrega status de foto ao abrir a aba Indicadores (sem forçar render do gráfico)
@@ -2853,7 +2917,8 @@ function tplRanking(d){
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = EV mensal × peso de prazo, + bônus se colchão positivo">${r.score.toFixed(3)}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         <button onclick="acaoRanking('${r.id}','ativa')" title="Marcar como Ativa" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
-        <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">🚫</button>
+        <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;margin-right:4px">🚫</button>
+        <button onclick="verFotoAnalise('${r.id}')" title="Ver foto do modelo — bandas congeladas no dia da análise, pra ver se está deixando dinheiro na mesa" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">📸</button>
       </td>
     </tr>`;
   }).join('');
@@ -2877,6 +2942,108 @@ function tplRanking(d){
     <tbody>${rows}</tbody>
   </table>
   </div>`;
+}
+
+// FOTO DO MODELO EM "EM ANÁLISE" -- backlog #4 (30/06/2026): mesmo conceito
+// da Foto do Papel, mas atrelada ao id da análise (bandas congeladas no
+// momento da criação, server-side em POST /analises). Mostra se o preço
+// real está saindo das bandas que o modelo projetava -- "deixando dinheiro
+// na mesa" se rompeu pra cima da banda otimista, por exemplo.
+let _analiseFotoChart = null;
+
+async function verFotoAnalise(id){
+  const panel = document.getElementById('analise-foto-panel');
+  const titulo = document.getElementById('analise-foto-titulo');
+  const confEl = document.getElementById('analise-foto-confianca');
+  const scoreEl = document.getElementById('analise-foto-score');
+  if(!panel) return;
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  titulo.textContent = '📸 Carregando foto do modelo...';
+  confEl.innerHTML = ''; scoreEl.innerHTML = '';
+  try{
+    const r = await fetch(B+'/analises/'+encodeURIComponent(id)+'/foto-bandas',{cache:'no-store'});
+    const d = await r.json();
+    if(!r.ok || d.error) throw new Error(d.error || ('HTTP '+r.status));
+    if(!d.encontrado){
+      titulo.textContent = '📸 '+(d.ticker||'Análise');
+      confEl.innerHTML = '<em style="color:var(--muted)">Sem bandas congeladas para esta análise (foto anterior à implementação, ou histórico/GARCH indisponível no momento da criação).</em>';
+      return;
+    }
+    titulo.textContent = `📸 ${d.ticker.replace('.SA','')} — foto de ${d.data_foto} · Preço na foto: R$${d.preco_foto.toFixed(2)}`;
+
+    const bc = d.bandas_congeladas;
+    const periodo = Math.max(...bc.periodos);
+    const bandas = bc.bandas[String(periodo)];
+    const T = periodo;
+    const labels = Array.from({length: T+1}, (_,i) => `D+${i}`);
+    const histReal = (d.historico_real || []).slice(0, T+1);
+    const realData = labels.map((_, i) => i < histReal.length ? histReal[i].close : null);
+
+    const dsConfig = [
+      { label:'p90', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'p10', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'p75', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'p25', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'Mediana (p50)', data: bandas.p50, borderColor:'rgba(180,200,255,0.6)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
+      { label:'Preço real', data: realData, borderColor:'#f0c040', borderWidth:2.5, pointRadius:0, fill:false, spanGaps:false },
+    ];
+
+    const canvas = document.getElementById('analise-foto-canvas');
+    if(_analiseFotoChart){ _analiseFotoChart.destroy(); }
+    _analiseFotoChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels, datasets: dsConfig },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: { mode:'index', intersect:false },
+        plugins: {
+          legend: { display:true, labels:{ color:'#aaa', font:{size:10},
+            filter: item => !['p90','p10','p75','p25'].includes(item.text) } },
+          tooltip: { callbacks: { label: ctx => {
+            if(['p90','p10','p75','p25'].includes(ctx.dataset.label)) return null;
+            return `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2)??'—'}`;
+          }}}
+        },
+        scales: {
+          x: { ticks:{ color:'#666', maxTicksLimit:10, font:{size:9} }, grid:{color:'rgba(255,255,255,0.04)'} },
+          y: { ticks:{ color:'#aaa', font:{size:10}, callback: v => 'R$'+v.toFixed(2) }, grid:{color:'rgba(255,255,255,0.06)'} }
+        }
+      }
+    });
+
+    const p10f = bandas.p10[bandas.p10.length-1], p90f = bandas.p90[bandas.p90.length-1];
+    const p25f = bandas.p25[bandas.p25.length-1], p75f = bandas.p75[bandas.p75.length-1];
+    const p50f = bandas.p50[bandas.p50.length-1];
+    confEl.innerHTML =
+      `📍 Com <b>80% de confiança</b>, o preço em <b>D+${T}</b> deveria estar entre `+
+      `<b style="color:var(--red)">R$${p10f.toFixed(2)}</b> e <b style="color:var(--green)">R$${p90f.toFixed(2)}</b> `+
+      `(projeção congelada em ${d.data_foto}). Com <b>50% de confiança</b>, entre `+
+      `<b style="color:var(--red)">R$${p25f.toFixed(2)}</b> e <b style="color:var(--green)">R$${p75f.toFixed(2)}</b>. `+
+      `Mediana: <b style="color:var(--accent)">R$${p50f.toFixed(2)}</b>.`;
+
+    if(d.score){
+      const s = d.score;
+      const foraPraCima = histReal.length && histReal[histReal.length-1].close > p90f;
+      const alertaMesa = foraPraCima
+        ? ' <span style="color:var(--yellow)">⚠ preço real rompeu acima da banda p90 — possível "dinheiro deixado na mesa" se a estrutura tinha teto.</span>'
+        : '';
+      scoreEl.innerHTML = `<b>Assertividade</b> (${s.dias_observados} dias observados) — `+
+        `Dentro banda central (p25–p75): <b style="color:var(--green)">${s.pct_dentro_p25_p75}%</b> do tempo · `+
+        `Dentro banda ampla (p10–p90): <b style="color:var(--accent)">${s.pct_dentro_p10_p90}%</b> do tempo${alertaMesa}`;
+    } else {
+      scoreEl.innerHTML = '<em style="color:var(--muted)">Score disponível após o primeiro pregão desde a foto.</em>';
+    }
+  } catch(e){
+    titulo.textContent = '📸 Erro';
+    confEl.innerHTML = '<span style="color:var(--red)">Erro ao carregar foto do modelo: '+e.message+'</span>';
+  }
+}
+
+function fecharFotoAnalise(){
+  const panel = document.getElementById('analise-foto-panel');
+  if(panel) panel.style.display = 'none';
+  if(_analiseFotoChart){ _analiseFotoChart.destroy(); _analiseFotoChart = null; }
 }
 
 // Adicionado 25/06/2026 -- botoes Aprovar/Rejeitar direto na linha do
