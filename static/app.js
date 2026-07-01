@@ -1785,6 +1785,49 @@ async function fTV(){
   return out;
 }
 async function fFut(){try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),12000);const r=await fetch(B+'/futures',{signal:ctrl.signal});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+// Adicionado 30/06/2026 -- yields soberanos (EUA 3M/10Y/30Y, Japão 10Y, USD/JPY, SELIC, NTN-B)
+async function fYields(){try{const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);const r=await fetch(B+'/yields',{signal:ctrl.signal});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function doYields(y){
+  if(!y)return;
+  // Yields são em % a.a. -- exibidos com 2-3 casas decimais, sem prefixo de moeda
+  const afY=(idP,idC,data)=>{
+    if(!data||data.price==null)return;
+    const ep=document.getElementById(idP),ec=document.getElementById(idC);
+    if(ep){ep.textContent=Number(data.price).toFixed(2)+'%';ep.classList.remove('loading');}
+    if(ec&&data.prev!=null){
+      const d=data.price-data.prev,sg=d>=0?'+':'';
+      ec.textContent=sg+d.toFixed(3)+'pp'; // variação em pontos percentuais (basis points ÷ 100)
+      ec.classList.remove('chg-up','chg-dn','chg-fl');
+      ec.classList.add(d>0?'chg-up':d<0?'chg-dn':'chg-fl');
+    }
+  };
+  afY('us3m-p','us3m-c',y.us_3m);
+  afY('us10y-p','us10y-c',y.us_10y);
+  afY('us30y-p','us30y-c',y.us_30y);
+  afY('jp10y-p','jp10y-c',y.jp_10y);
+  // USD/JPY: não é yield, é câmbio -- exibe como número puro sem %
+  if(y.usdjpy?.price){
+    const ep=document.getElementById('usdjpy-p'),ec=document.getElementById('usdjpy-c');
+    if(ep){ep.textContent=Number(y.usdjpy.price).toFixed(2);ep.classList.remove('loading');}
+    if(ec&&y.usdjpy.prev!=null){
+      const d=y.usdjpy.price-y.usdjpy.prev,pc=(d/Math.abs(y.usdjpy.prev||1)*100).toFixed(2),sg=d>=0?'+':'';
+      ec.textContent=sg+pc+'%';
+      ec.classList.remove('chg-up','chg-dn','chg-fl');
+      ec.classList.add(d>0?'chg-up':d<0?'chg-dn':'chg-fl');
+    }
+  }
+  // SELIC: valor fixo de política monetária (Bacen) -- sem variação diária real
+  if(y.br_selic?.price!=null){
+    const ep=document.getElementById('brselic-p');
+    if(ep){ep.textContent=Number(y.br_selic.price).toFixed(2)+'%';ep.classList.remove('loading');}
+  }
+  afY('brntnb-p','brntnb-c',y.br_ntnb);
+  // NTN-B: se null, mostra "—" com tooltip explicando
+  if(!y.br_ntnb){
+    const ep=document.getElementById('brntnb-p');
+    if(ep){ep.textContent='—';ep.classList.remove('loading');ep.title='Fonte pública gratuita não disponível para NTN-B em tempo real';}
+  }
+}
 async function fFund(){
   try{const r=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');if(r.ok){const d=await r.json();E('btc-fund',(parseFloat(d.lastFundingRate||0)*100).toFixed(4)+'%');return;}}catch(e){}
   try{const r2=await fetch(B+'/binance/funding');if(!r2.ok)return;const d=await r2.json();if(d.lastFundingRate)E('btc-fund',(parseFloat(d.lastFundingRate)*100).toFixed(4)+'%');}catch(e){}
@@ -2325,6 +2368,8 @@ async function main(){
     E('last-update','↻ '+now);E('last-update-tbl',now);E('footer-time',now);
     window._lastTV=tv;doMacro(tv,ft);doPos(tv);
     setTimeout(fFund,3000);
+    // Yields soberanos em paralelo (endpoint separado, timeout próprio -- não bloqueia o carregamento principal)
+    setTimeout(async()=>{try{const y=await fYields();if(y)doYields(y);}catch(e){}},1000);
     setTimeout(async()=>{try{const[bi,bc]=await Promise.all([fBTCI(),fBTCC()]);if(bi)rndBTCI(bi);if(bc)rndBTCC(bc);fFG();}catch(e){}},5000);
 
     if(_posData&&_posData.ativas){
