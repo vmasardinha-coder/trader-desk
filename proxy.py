@@ -4297,6 +4297,18 @@ def scrape_fiis_fundamentus():
             except (ValueError, IndexError):
                 continue
 
+        # ── Filtro automatico de "fantasma": liquidez zerada/nula = fundo
+        # sem NENHUM negocio recente, sinal forte de ticker morto (fusao,
+        # incorporacao, deslistagem) mesmo que o Fundamentus ainda exiba
+        # cadastro/cotacao antiga em cache. Diferente de liquidez BAIXA
+        # (fundo pequeno mas ativo, que continua no universo normalmente --
+        # so entra como score baixo via _score_fii, nao e excluido aqui).
+        # Adicionado 01/07/2026 junto com _FII_TICKERS_INATIVOS (que cobre
+        # o caso raro de liquidez cacheada != 0 mesmo estando morto).
+        antes_liq = len(fiis)
+        fiis = [f for f in fiis if f['liquidez'] and f['liquidez'] > 0]
+        removidos_liq0 = antes_liq - len(fiis)
+
         # ── Exclusao manual: fundos que saíram de negociacao (fusao,
         # incorporacao, troca de ticker) mas o Fundamentus ainda mantem na
         # tabela com dado cacheado/desatualizado (liquidez sozinha nao e
