@@ -1440,14 +1440,14 @@ function tplWatchAtivo(a, segNome){
         <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
           <div id="${a.id}-foto-status" style="font-size:10px;color:var(--muted);margin-bottom:6px">📸 <em>Sem foto registrada</em></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button onclick="tirarFoto('${a.id}')" id="${a.id}-foto-btn"
+            <button onclick="tirarFoto('${a.ticker}','${a.id}')" id="${a.id}-foto-btn"
               style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">
               📸 Tirar Foto
             </button>
-            <button onclick="verFoto('${a.id}')" id="${a.id}-foto-ver-btn" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">
+            <button onclick="verFoto('${a.ticker}','${a.id}')" id="${a.id}-foto-ver-btn" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">
               📊 Ver Foto
             </button>
-            <button onclick="resetarFoto('${a.id}')" id="${a.id}-foto-reset-btn" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 10px;font-size:10px;cursor:pointer;font-family:inherit">
+            <button onclick="resetarFoto('${a.ticker}','${a.id}')" id="${a.id}-foto-reset-btn" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 10px;font-size:10px;cursor:pointer;font-family:inherit">
               ✕ Resetar
             </button>
           </div>
@@ -1486,14 +1486,15 @@ function renderWatchlist(){
 const _fotoData = {};   // cache: { [id]: { foto, historico_real, score, ... } }
 const _fotoCharts = {}; // instancias Chart.js por ativo
 
-async function tirarFoto(id){
+async function tirarFoto(ticker, id){
   const btn = document.getElementById(id+'-foto-btn');
+  if(!id) id=ticker;  // compatibilidade quando chamado sem id
   if(btn){ btn.textContent='⏳ Calculando...'; btn.disabled=true; }
   try{
     const r = await fetch(B+'/foto-papel', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ticker: id})
+      body: JSON.stringify({ticker: ticker})
     });
     const d = await r.json();
     if(d.ok && d.foto){
@@ -1509,7 +1510,8 @@ async function tirarFoto(id){
   }
 }
 
-async function verFoto(id){
+async function verFoto(ticker, id){
+  if(!id) id=ticker;
   const wrap = document.getElementById(id+'-foto-chart-wrap');
   if(!wrap) return;
   const aberto = wrap.style.display !== 'none';
@@ -1520,7 +1522,7 @@ async function verFoto(id){
     const statusEl = document.getElementById(id+'-foto-status');
     if(statusEl) statusEl.innerHTML = '⏳ Carregando foto...';
     try{
-      const r = await fetch(B+'/foto-papel?ticker='+encodeURIComponent(id));
+      const r = await fetch(B+'/foto-papel?ticker='+encodeURIComponent(ticker));
       const d = await r.json();
       if(!d.encontrado){ return; }
       _fotoData[id] = d;
@@ -1635,10 +1637,11 @@ function renderFotoChart(id, periodo){
   }
 }
 
-async function resetarFoto(id){
-  if(!confirm(`Resetar foto de ${id}? A foto atual será apagada.`)) return;
+async function resetarFoto(ticker, id){
+  if(!id) id=ticker;
+  if(!confirm(`Resetar foto de ${ticker}? A foto atual será apagada.`)) return;
   try{
-    await fetch(B+'/foto-papel?ticker='+encodeURIComponent(id), {method:'DELETE'});
+    await fetch(B+'/foto-papel?ticker='+encodeURIComponent(ticker), {method:'DELETE'});
     delete _fotoData[id];
     if(_fotoCharts[id]){ _fotoCharts[id].destroy(); delete _fotoCharts[id]; }
     const wrap = document.getElementById(id+'-foto-chart-wrap');
@@ -1648,6 +1651,19 @@ async function resetarFoto(id){
 }
 
 // Carrega status de foto ao abrir a aba Indicadores (sem forçar render do gráfico)
+async function _carregarStatusFotosPares(pares){
+  for(const {ticker,id} of pares){
+    try{
+      const r = await fetch(B+'/foto-papel?ticker='+encodeURIComponent(ticker));
+      const d = await r.json();
+      if(d.encontrado){
+        _fotoData[id] = d;
+        _atualizarStatusFoto(id, d.foto, d.dias_uteis_decorridos, d.expirada, d.score);
+      }
+    } catch(e){}
+    await new Promise(res=>setTimeout(res,200));
+  }
+}
 async function _carregarStatusFotos(ids){
   for(const id of ids){
     try{
@@ -2497,8 +2513,8 @@ async function loadInd(){
   // deixando o carregamento pesado mesmo sem o usuário pedir.
   // Carrega status de fotos (adicionado 30/06/2026) em background, escalonado.
   setTimeout(()=>{
-    const ids = getWatchlistFlat().map(a=>a.id);
-    _carregarStatusFotos(ids);
+    const atvsFlat = getWatchlistFlat(); const ids = atvsFlat.map(a=>({ticker:a.ticker,id:a.id}));
+    _carregarStatusFotosPares(ids);
   }, 1500);
 }
 async function rl(tk){
