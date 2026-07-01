@@ -632,6 +632,8 @@ function renderCarteiraFiis(carteira){
       <td style="padding:6px 8px;text-align:right">${f.data_ativacao}</td>
       <td style="padding:6px 8px;text-align:right">${dias}d</td>
       <td id="cfii-prov-${f.id}" style="padding:6px 8px;text-align:right;color:var(--muted)" class="loading">...</td>
+      <td id="cfii-12m-${f.id}" style="padding:6px 8px;text-align:right;color:var(--muted)" class="loading">...</td>
+      <td id="cfii-acum-${f.id}" style="padding:6px 8px;text-align:right;color:var(--muted)" class="loading">...</td>
       <td style="padding:6px 8px;text-align:right">
         <button onclick="encerrarFiiCarteira('${f.id}')" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">Encerrar</button>
       </td>
@@ -647,22 +649,22 @@ function renderCarteiraFiis(carteira){
       <th style="padding:6px 8px;text-align:right">DY na ativ.</th>
       <th style="padding:6px 8px;text-align:right">Data</th>
       <th style="padding:6px 8px;text-align:right">Dias</th>
-      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest">Últ. Provento</th>
+      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago (R$/cota) · StatusInvest">Últ. Prov.</th>
+      <th style="padding:6px 8px;text-align:right" title="Total de rendimentos pagos nos últimos 12 meses (R$/cota) · 2 semestres StatusInvest">12M (R$)</th>
+      <th style="padding:6px 8px;text-align:right" title="Total acumulado desde a data de ativação neste app (R$/cota)">Desde ativ.</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${ativos.map(linhaAtivo).join('')}</tbody>
   </table>
   </div>`;
 
-  // ADICIONADO 30/06/2026 -- busca o ultimo provento de cada FII ativo,
-  // EM PARALELO mas com pequeno escalonamento (delay incremental) para
-  // nao disparar todas as chamadas ao StatusInvest no mesmo instante.
-  // Preenche a celula assim que cada resposta chega, em vez de bloquear
-  // a tabela inteira esperando todas.
-  let delayProv=0;
+  // Busca histórico completo de proventos para cada FII ativo, escalonado
+  // para não disparar todas as chamadas ao StatusInvest simultaneamente.
+  // Endpoint novo: /carteira-fiis/proventos (retorna 12M + acumulado desde ativação).
+  let delay=0;
   ativos.forEach(f=>{
-    setTimeout(()=>carregarUltimoProventoCarteira(f), delayProv);
-    delayProv+=400;
+    setTimeout(()=>carregarProventosCarteira(f), delay);
+    delay+=500;
   });
 }
 
@@ -678,10 +680,6 @@ async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento,cotacao){
     const r=await fetch(B+'/fii-ultimo-provento?ticker='+encodeURIComponent(tickerLimpo)+'&segmento='+encodeURIComponent(segmento||''),{signal:ctrl.signal});
     const d=await r.json();
     if(d.encontrado&&d.valor!=null){
-      // ADICIONADO 30/06/2026 -- percentual mensal calculado em cima do
-      // que ja temos na propria linha (provento/cotacao), sem precisar de
-      // chamada nova ao backend. DY anual ja existe em coluna separada
-      // (Critério); isso completa com o "quanto pagou no mes" pedido.
       let sufixoPct='';
       if(cotacao!=null&&cotacao>0){
         const pctMes=(d.valor/cotacao)*100;
@@ -699,8 +697,56 @@ async function _buscarEPreencherProvento(idCelula,tickerLimpo,segmento,cotacao){
     if(cel){cel.textContent='—';cel.classList.remove('loading');}
   }
 }
+
+// Adicionado 30/06/2026 -- carrega histórico completo (12M + acumulado desde ativação)
+// para um FII ativo na carteira. Usa o novo endpoint /carteira-fiis/proventos.
+async function carregarProventosCarteira(f){
+  const celProv=document.getElementById('cfii-prov-'+f.id);
+  const cel12m=document.getElementById('cfii-12m-'+f.id);
+  const celAcum=document.getElementById('cfii-acum-'+f.id);
+  const limpar=(cel,txt)=>{if(cel){cel.textContent=txt||'—';cel.classList.remove('loading');cel.style.color='var(--muted)';}};
+  try{
+    const ticker=f.ticker.replace('.SA','');
+    const params=new URLSearchParams({
+      ticker,
+      segmento:f.segmento||'',
+      preco_ativacao:f.preco_ativacao||0,
+      data_ativacao:f.data_ativacao||''
+    });
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const r=await fetch(B+'/carteira-fiis/proventos?'+params,{signal:ctrl.signal});
+    const d=await r.json();
+    if(!d.encontrado){
+      limpar(celProv);limpar(cel12m);limpar(celAcum);
+      return;
+    }
+    // Último provento
+    if(celProv&&d.ultimo_provento?.valor!=null){
+      const pct=f.preco_ativacao>0?` <span style="color:var(--green);font-size:10px">(${(d.ultimo_provento.valor/f.preco_ativacao*100).toFixed(2)}%/mês)</span>`:'';
+      celProv.innerHTML=`R$${d.ultimo_provento.valor.toFixed(2)}<br><span style="font-size:9px;color:var(--muted)">${d.ultimo_provento.data_pagamento||''}</span>${pct}`;
+      celProv.classList.remove('loading');celProv.style.color='var(--text)';
+    } else limpar(celProv);
+    // Total 12M
+    if(cel12m&&d.total_12m!=null){
+      const dy=d.dy_12m_pct!=null?` <span style="color:var(--green);font-size:10px">(${d.dy_12m_pct.toFixed(1)}% a.a.)</span>`:'';
+      cel12m.innerHTML=`R$${d.total_12m.toFixed(2)}${dy}`;
+      cel12m.title='Soma dos 2 semestres mais recentes · StatusInvest';
+      cel12m.classList.remove('loading');cel12m.style.color='var(--text)';
+    } else limpar(cel12m);
+    // Acumulado desde ativação
+    if(celAcum&&d.acumulado_ativacao!=null){
+      const dy=d.dy_ativacao_pct!=null?` <span style="color:var(--green);font-size:10px">(${d.dy_ativacao_pct.toFixed(1)}%)</span>`:'';
+      celAcum.innerHTML=`R$${d.acumulado_ativacao.toFixed(2)}${dy}`;
+      celAcum.title=`Rendimentos pagos desde ${f.data_ativacao} · estimativa por semestre`;
+      celAcum.classList.remove('loading');celAcum.style.color='var(--text)';
+    } else limpar(celAcum);
+  }catch(e){
+    limpar(celProv);limpar(cel12m);limpar(celAcum);
+  }
+}
 async function carregarUltimoProventoCarteira(f){
-  await _buscarEPreencherProvento('cfii-prov-'+f.id, f.ticker.replace('.SA',''), f.segmento, f.preco_ativacao);
+  // Mantido para compatibilidade -- novo fluxo usa carregarProventosCarteira
+  await carregarProventosCarteira(f);
 }
 
 async function encerrarFiiCarteira(id){
