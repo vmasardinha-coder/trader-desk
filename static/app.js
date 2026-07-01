@@ -1436,6 +1436,33 @@ function tplWatchAtivo(a, segNome){
           </div>
           <div id="${a.id}-fc-info" style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center">Selecione um período para simular</div>
         </div>
+        <!-- FOTO DO PAPEL -- adicionado 30/06/2026 -->
+        <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+          <div id="${a.id}-foto-status" style="font-size:10px;color:var(--muted);margin-bottom:6px">📸 <em>Sem foto registrada</em></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button onclick="tirarFoto('${a.id}')" id="${a.id}-foto-btn"
+              style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">
+              📸 Tirar Foto
+            </button>
+            <button onclick="verFoto('${a.id}')" id="${a.id}-foto-ver-btn" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">
+              📊 Ver Foto
+            </button>
+            <button onclick="resetarFoto('${a.id}')" id="${a.id}-foto-reset-btn" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 10px;font-size:10px;cursor:pointer;font-family:inherit">
+              ✕ Resetar
+            </button>
+          </div>
+          <div id="${a.id}-foto-chart-wrap" style="display:none;margin-top:10px">
+            <div style="display:flex;gap:6px;margin-bottom:8px" id="${a.id}-foto-period-btns">
+              <button onclick="renderFotoChart('${a.id}',21)" class="cal-fb" id="${a.id}-fp-21">21 dias</button>
+              <button onclick="renderFotoChart('${a.id}',60)" class="cal-fb" id="${a.id}-fp-60">60 dias</button>
+              <button onclick="renderFotoChart('${a.id}',90)" class="cal-fb" id="${a.id}-fp-90">90 dias</button>
+            </div>
+            <div style="position:relative;height:clamp(280px,34vh,440px);background:var(--bg2);border:1px solid var(--border);padding:8px">
+              <canvas id="${a.id}-foto-canvas"></canvas>
+            </div>
+            <div id="${a.id}-foto-score" style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:var(--bg2);border:1px solid var(--border)"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>`;
@@ -1452,7 +1479,190 @@ function renderWatchlist(){
   cont.innerHTML=html;
 }
 
-// ── FAN CHART — cenários futuros Monte Carlo (watchlist) ──
+// ── FOTO DO PAPEL — assertividade Monte Carlo (30/06/2026) ──────────────────
+// "Tirar uma foto" = congelar preco atual + bandas GARCH nos 3 horizontes.
+// Acompanha se o preco real ficou dentro das bandas ao longo do tempo.
+// Storage: fotos_papel.json no repo (via /foto-papel endpoints).
+const _fotoData = {};   // cache: { [id]: { foto, historico_real, score, ... } }
+const _fotoCharts = {}; // instancias Chart.js por ativo
+
+async function tirarFoto(id){
+  const btn = document.getElementById(id+'-foto-btn');
+  if(btn){ btn.textContent='⏳ Calculando...'; btn.disabled=true; }
+  try{
+    const r = await fetch(B+'/foto-papel', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ticker: id})
+    });
+    const d = await r.json();
+    if(d.ok && d.foto){
+      _fotoData[id] = { foto: d.foto, historico_real: [], score: null };
+      _atualizarStatusFoto(id, d.foto, 0, false, null);
+    } else {
+      alert('Erro ao tirar foto: '+(d.error||'resposta inesperada'));
+    }
+  } catch(e){
+    alert('Erro de rede ao tirar foto');
+  } finally {
+    if(btn){ btn.textContent='📸 Tirar Foto'; btn.disabled=false; }
+  }
+}
+
+async function verFoto(id){
+  const wrap = document.getElementById(id+'-foto-chart-wrap');
+  if(!wrap) return;
+  const aberto = wrap.style.display !== 'none';
+  if(aberto){ wrap.style.display='none'; return; }
+
+  // Busca dados (com historico real e score) se ainda nao tiver
+  if(!_fotoData[id] || !_fotoData[id].historico_real?.length){
+    const statusEl = document.getElementById(id+'-foto-status');
+    if(statusEl) statusEl.innerHTML = '⏳ Carregando foto...';
+    try{
+      const r = await fetch(B+'/foto-papel?ticker='+encodeURIComponent(id));
+      const d = await r.json();
+      if(!d.encontrado){ return; }
+      _fotoData[id] = d;
+      _atualizarStatusFoto(id, d.foto, d.dias_uteis_decorridos, d.expirada, d.score);
+    } catch(e){ return; }
+  }
+
+  wrap.style.display = 'block';
+  // Renderiza o periodo mais longo disponivel por padrão
+  const hist = _fotoData[id]?.historico_real || [];
+  const periodo = hist.length > 60 ? 90 : hist.length > 21 ? 60 : 21;
+  renderFotoChart(id, periodo);
+}
+
+function _atualizarStatusFoto(id, foto, diasUteis, expirada, score){
+  const statusEl = document.getElementById(id+'-foto-status');
+  const verBtn   = document.getElementById(id+'-foto-ver-btn');
+  const resetBtn = document.getElementById(id+'-foto-reset-btn');
+  if(!foto){ 
+    if(statusEl) statusEl.innerHTML = '📸 <em>Sem foto registrada</em>';
+    if(verBtn)   verBtn.style.display = 'none';
+    if(resetBtn) resetBtn.style.display = 'none';
+    return;
+  }
+  const expTag = expirada ? ' <span style="color:var(--red);font-weight:700">[EXPIRADA — 90d]</span>' : '';
+  let scoreStr = '';
+  if(score){
+    scoreStr = ` · <span title="% do tempo dentro das bandas p25-p75 e p10-p90">
+      Assertividade: <b style="color:var(--green)">${score.pct_dentro_p25_p75}%</b> (banda central) /
+      <b style="color:var(--accent)">${score.pct_dentro_p10_p90}%</b> (banda ampla)
+      em ${score.dias_observados}d observados</span>`;
+  }
+  if(statusEl) statusEl.innerHTML =
+    `📸 Foto: <b>${foto.data_foto}</b> · Preço: R$${foto.preco_foto.toFixed(2)} · Vol: ${foto.sigma_pct.toFixed(1)}% a.a. · ${diasUteis}d úteis${expTag}${scoreStr}`;
+  if(verBtn)   verBtn.style.display = 'inline-block';
+  if(resetBtn) resetBtn.style.display = 'inline-block';
+}
+
+function renderFotoChart(id, periodo){
+  const data = _fotoData[id];
+  if(!data || !data.foto) return;
+
+  // Destaca botão do periodo selecionado
+  [21,60,90].forEach(p => {
+    const b = document.getElementById(id+'-fp-'+p);
+    if(b) b.style.background = p===periodo ? 'var(--accent)' : 'var(--bg3)';
+  });
+
+  const foto = data.foto;
+  const bandas = foto.bandas?.[String(periodo)];
+  if(!bandas){ console.warn('Bandas nao encontradas para periodo', periodo); return; }
+
+  const T = periodo;
+  const labels = Array.from({length: T+1}, (_,i) => `D+${i}`);
+
+  // Linha real: mapeia closes reais para os indices de dia
+  const histReal = (data.historico_real || []).slice(0, T+1);
+  const realData = labels.map((_, i) => i < histReal.length ? histReal[i].close : null);
+
+  // Datasets: bandas (preenchimento entre percentis) + linha mediana + linha real
+  const dsConfig = [
+    // Sombra externa: p10-p90
+    { label:'p90', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
+    { label:'p10', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
+    // Sombra central: p25-p75
+    { label:'p75', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
+    { label:'p25', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
+    // Mediana
+    { label:'Mediana (p50)', data: bandas.p50, borderColor:'rgba(180,200,255,0.6)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
+    // Preço real
+    { label:'Preço real', data: realData, borderColor:'#f0c040', borderWidth:2.5, pointRadius:0, fill:false, spanGaps:false },
+  ];
+
+  const canvas = document.getElementById(id+'-foto-canvas');
+  if(!canvas) return;
+
+  if(_fotoCharts[id]) { _fotoCharts[id].destroy(); }
+
+  _fotoCharts[id] = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets: dsConfig },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:true, labels:{ color:'#aaa', font:{size:10},
+          filter: item => !['p90','p10','p75','p25'].includes(item.text) } },
+        tooltip: { callbacks: { label: ctx => {
+          if(['p90','p10','p75','p25'].includes(ctx.dataset.label)) return null;
+          return `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2)??'—'}`;
+        }}}
+      },
+      scales: {
+        x: { ticks:{ color:'#666', maxTicksLimit:10, font:{size:9} }, grid:{color:'rgba(255,255,255,0.04)'} },
+        y: { ticks:{ color:'#aaa', font:{size:10},
+               callback: v => 'R$'+v.toFixed(2) }, grid:{color:'rgba(255,255,255,0.06)'} }
+      }
+    }
+  });
+
+  // Score de assertividade na caixa abaixo do gráfico
+  const scoreEl = document.getElementById(id+'-foto-score');
+  if(scoreEl && data.score){
+    const s = data.score;
+    scoreEl.innerHTML = `<b>Assertividade</b> (${s.dias_observados} dias observados) — 
+      Dentro banda central (p25–p75): <b style="color:var(--green)">${s.pct_dentro_p25_p75}%</b> do tempo · 
+      Dentro banda ampla (p10–p90): <b style="color:var(--accent)">${s.pct_dentro_p10_p90}%</b> do tempo`;
+  } else if(scoreEl){
+    scoreEl.innerHTML = data.historico_real?.length <= 1
+      ? '<em style="color:var(--muted)">Foto recém tirada — aguarde o próximo pregão para ver assertividade.</em>'
+      : '<em style="color:var(--muted)">Score disponível após o primeiro pregão.</em>';
+  }
+}
+
+async function resetarFoto(id){
+  if(!confirm(`Resetar foto de ${id}? A foto atual será apagada.`)) return;
+  try{
+    await fetch(B+'/foto-papel?ticker='+encodeURIComponent(id), {method:'DELETE'});
+    delete _fotoData[id];
+    if(_fotoCharts[id]){ _fotoCharts[id].destroy(); delete _fotoCharts[id]; }
+    const wrap = document.getElementById(id+'-foto-chart-wrap');
+    if(wrap) wrap.style.display='none';
+    _atualizarStatusFoto(id, null, 0, false, null);
+  } catch(e){ alert('Erro ao resetar foto'); }
+}
+
+// Carrega status de foto ao abrir a aba Indicadores (sem forçar render do gráfico)
+async function _carregarStatusFotos(ids){
+  for(const id of ids){
+    try{
+      const r = await fetch(B+'/foto-papel?ticker='+encodeURIComponent(id));
+      const d = await r.json();
+      if(d.encontrado){
+        _fotoData[id] = d;
+        _atualizarStatusFoto(id, d.foto, d.dias_uteis_decorridos, d.expirada, d.score);
+      }
+    } catch(e){}
+    await new Promise(res=>setTimeout(res,200)); // escalonado para nao sobrecarregar
+  }
+}
+
+// ── FAN CHART — cenários futuros Monte Carlo (watchlist) ──────────────────
 const _fanCharts={}; // guarda instancias Chart.js por ativo, para destruir/recriar
 
 function toggleFanChart(id){
@@ -2285,6 +2495,11 @@ async function loadInd(){
   // só quando o usuário clica para expandir o card (ver togInd), via rl(id).
   // Antes, todos os ~16+ ativos eram buscados de uma vez ao abrir a aba,
   // deixando o carregamento pesado mesmo sem o usuário pedir.
+  // Carrega status de fotos (adicionado 30/06/2026) em background, escalonado.
+  setTimeout(()=>{
+    const ids = getWatchlistFlat().map(a=>a.id);
+    _carregarStatusFotos(ids);
+  }, 1500);
 }
 async function rl(tk){
   const el=document.getElementById(tk+'-ind');
