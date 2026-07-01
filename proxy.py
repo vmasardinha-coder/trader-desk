@@ -5225,8 +5225,9 @@ GITHUB_FOTOS_SHA = {}  # cache de SHA para commits
 def _read_fotos():
     """Le fotos_papel.json do repo. Retorna (dict, sha)."""
     import urllib.request as _ur
-    TOKEN = os.environ.get('GITHUB_TOKEN', '')
-    REPO  = os.environ.get('GITHUB_REPO', 'vmasardinha-coder/trader-desk')
+    import base64 as _b64, urllib.error as _ue
+    TOKEN = _os.environ.get('GITHUB_TOKEN', '')
+    REPO  = _os.environ.get('GITHUB_REPO', 'vmasardinha-coder/trader-desk')
     if not TOKEN:
         return {}, None
     try:
@@ -5236,10 +5237,10 @@ def _read_fotos():
         with _ur.urlopen(req, timeout=8) as resp:
             d = json.loads(resp.read())
             sha = d['sha']
-            data = json.loads(base64.b64decode(d['content']).decode())
+            data = json.loads(_b64.b64decode(d['content']).decode())
             GITHUB_FOTOS_SHA['sha'] = sha
             return data, sha
-    except urllib.error.HTTPError as e:
+    except _ue.HTTPError as e:
         if e.code == 404:
             return {}, None
         raise
@@ -5248,13 +5249,13 @@ def _read_fotos():
 
 def _write_fotos(data, sha=None):
     """Salva fotos_papel.json no repo. Cria se nao existir (sha=None)."""
-    import urllib.request as _ur
-    TOKEN = os.environ.get('GITHUB_TOKEN', '')
-    REPO  = os.environ.get('GITHUB_REPO', 'vmasardinha-coder/trader-desk')
+    import urllib.request as _ur, base64 as _b64
+    TOKEN = _os.environ.get('GITHUB_TOKEN', '')
+    REPO  = _os.environ.get('GITHUB_REPO', 'vmasardinha-coder/trader-desk')
     if not TOKEN:
         return False
     payload = {'message': 'update: fotos_papel.json (auto)',
-               'content': base64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode()).decode()}
+               'content': _b64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode()).decode()}
     if sha:
         payload['sha'] = sha
     try:
