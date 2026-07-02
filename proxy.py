@@ -5395,7 +5395,7 @@ def _fetch_closes_for_foto(ticker, from_date_str):
                     continue
                 d = r.json()
                 result = d['chart']['result'][0]
-                timestamps = result['timestamps']
+                timestamps = result['timestamp']
                 closes = result['indicators']['quote'][0]['close']
                 pairs = []
                 for ts, cl in zip(timestamps, closes):
