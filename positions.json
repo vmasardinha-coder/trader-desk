@@ -119,7 +119,7 @@
       "estrategia": "Call Vendida (Rolagem defensiva)",
       "codigo_opcao": "ROXOI107",
       "strike": 10.75,
-      "vol_impl": null,
+      "vol_impl": 0.43617,
       "tipo": "call",
       "vencimento": "2026-09-17",
       "data_entrada": "2026-07-02",
