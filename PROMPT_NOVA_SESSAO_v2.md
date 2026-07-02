@@ -1,132 +1,92 @@
-# Trader Desk — Prompt de Continuação (v13.0 — sessão 30/06/2026)
+# Trader Desk — Prompt de Continuação (v14.0 — sessão 02/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
 - GitHub: vmasardinha-coder/trader-desk (branch: main)
-- Token GitHub de SESSÃO (Claude usa em chat, colado pelo usuário): classic, escopo `repo`, válido 90 dias a partir de 30/06/2026
-- Token GitHub de ESCRITA AUTOMÁTICA (app usa sozinho): fine-grained, restrito SÓ ao repo trader-desk, permissão "Contents: Read and write", configurado como `GITHUB_TOKEN` no Render. **PENDÊNCIA: criar token fine-grained sem vencimento curto para substituir o atual (processo: GitHub → Settings → Developer Settings → Fine-grained tokens → só trader-desk → Contents R/W)**
+- Token GitHub de SESSÃO (Claude usa em chat, colado pelo usuário): classic, escopo `repo`, válido 90 dias a partir de 02/07/2026
+- Token GitHub de ESCRITA AUTOMÁTICA (app usa sozinho): fine-grained, restrito SÓ ao repo trader-desk, permissão "Contents: Read and write", configurado como `GITHUB_TOKEN` no Render. **PENDÊNCIA AINDA ABERTA (item #1 do backlog): criar token fine-grained sem vencimento curto para substituir o atual (processo: GitHub → Settings → Developer Settings → Fine-grained tokens → só trader-desk → Contents R/W)**
 - Deploy: GET SHA → PUT base64 via API do GitHub. HTML em templates/, JS em static/app.js
-- Console de debug: Eruda ativo no index.html para validação mobile
+- Console de debug: Eruda ativo no index.html para validação mobile — usuário confirmou fluxo de POST manual via `fetch()` + `localStorage.getItem('api_write_token')` como `Authorization: Bearer <token>`, funciona bem para registrar análises de teste/lote sem passar pelo formulário do app
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
+- **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento desta sessão (30/06/2026)
-- proxy.py: 01056047ecb4b0755f3a5f4d1c30e36048969d2d
-- static/app.js: c6c0e554adefbb2ca1d4f1026392ded236393643
-- templates/index.html: ddfdfc00ef9755f83d13e7722337581eceba527f
-- positions.json: 8abde67a3dc6d59be1b9586dd23f05abf9fb95eb (7 posições ativas)
-- analises.json: bfb7b70fcbeab1a95aae2844c83682bf51ec6d58 (22 registros)
-- carteira_fiis.json: 7cac5d8262a2ad419783f7f03ccad198ba905243
-- fotos_papel.json: criado nesta sessão (via endpoints /foto-papel)
+## SHAs no fechamento desta sessão (02/07/2026)
+- proxy.py: 9b6d29ebd8f36ada0529e988546717ac51d9f38a
+- static/app.js: fa3813186b704ea61057a896566f911b87b43a0e
+- templates/index.html: e1207b38bbf86879686a2b6078509ae2bf697e7f
+- positions.json: c462e0a7b4d666e0c3f6b6e165f7df767d4a23ed (7 posições ativas, 4 encerradas)
+- analises.json: 5e638624371ec107611b90d63ca052452e1e66e6 (54 registros — inclui lote de teste 01-02/07, usuário ainda filtrando/limpando duplicatas no ranking)
 
-## ⚠️ Regras críticas de processo
+## Itens CONCLUIDOS e VALIDADOS nesta sessao (02/07/2026)
 
-### 1. Fase A / Fase B (ver FLUXO_FASE_A_FASE_B.md no repo)
-**Fase A** (pré-análise, sempre em chat): 4 números-chave em aberto (ticker, prazo, strike/range, prêmio). **Fase B** ("tirar a foto", grava em analises.json) só depois dos 4 números fechados. Se algum estiver vago, Claude DEVE questionar antes de prosseguir.
+### 1. Backlog #2 — Legenda de confianca na Foto do Papel
+Adicionada caixa "Com 80% de confianca, o preco deve estar entre R$X e R$Y" (e faixa de 50%) no grafico da Foto do Papel, mesmo padrao do fan chart de Monte Carlo. Implementado em `renderFotoChart` (app.js).
 
-### 2. PDFs de propostas reais do banco — NUNCA recalcular
-Números do PDF (ganho prefixado, barreira, teto, alavancagem) são PREMISSA FIXA. Só o vencimento muda: (a) se ainda não passou, usa prazo restante real com os MESMOS números; (b) se já passou, simula o MESMO prazo total a partir de hoje com os MESMOS números.
+### 2. Backlog #3 — Bulk foto na watchlist
+Botao "Tirar Foto de Todos" no topo da aba Papeis. Roda sequencialmente (400ms entre chamadas) por todos os ativos da watchlist, mostra progresso e resumo final.
 
-### 3. Régua de decisão para bidirecionais — 1%/mês proporcional ao prazo
-Só aceita bidirecional se teto de retorno ≥ ~1%/mês × prazo (ex: 30d→1%, 90d→3%). Vale só para decisões NOVAS a partir de 22/06/2026.
+### 3. Backlog #4 — Foto automatica congelada em Em Analise
+`POST /analises` agora congela sozinho as bandas GARCH (usando `preco_foto` como ponto de partida) sempre que uma analise e criada, para `tipo_estrutura != 'fii'`. Nova rota `GET /analises/<id>/foto-bandas` retorna as bandas congeladas + historico real desde a foto + score de assertividade. Botao de foto em cada linha do ranking de Em Analise abre um painel acima da tabela (nao dentro do card expandido — sao componentes visuais separados) com o grafico. CONFIRMADO FUNCIONANDO DE VERDADE via teste manual do usuario pelo Eruda (POST direto, resposta trouxe `bandas_congeladas` preenchido).
 
-### 4. Apresentação de grades de opções — sempre os 2 lados
-Quando o usuário manda grade do OpLab (PUT e CALL), sempre analisa e apresenta AMBOS os lados (call coberta E put vendida), mesmo que só um tenha sido pedido.
+### 4. BUGFIX CRITICO — historico real nunca aparecia nas fotos
+`_fetch_closes_for_foto` (proxy.py) tinha um typo: lia `result['timestamps']` (plural, chave errada) em vez de `result['timestamp']` (singular, chave real da API do Yahoo). Isso causava excecao silenciosa (capturada por `except: continue`), fazendo a funcao SEMPRE retornar lista vazia — ou seja, a linha de preco real NUNCA aparecia em nenhuma foto (nem Foto do Papel, nem foto de Em Analise), desde que essas features foram implementadas em 30/06. Corrigido para `result['timestamp']`. USUARIO AINDA PRECISA CONFIRMAR VISUALMENTE APOS O FIX (checar se o ponto/linha do preco real aparece no proximo pregao) — isso ficou pendente de validacao no fechamento desta sessao, deploy ja subiu.
 
-### 5. Mecânica americana vs. europeia
-Campo `exercicio` ('americana'|'europeia') obrigatório em chamadas a `/montecarlo`, `/montecarlo/condicional`, `/montecarlo/posicao_ativa` com `k_call`/`k_put` sem `kdo`/`kuo`. Das posições ativas: SÓ ROXO34/ROXOG105 é americana; PETR4, VALE3, BBAS3, AXIA3(A), AXIA3(B), BSLV39 são europeias.
+### 5. Filtro de FIIs fantasma (fundos incorporados/deslistados)
+Usuario reportou CBCV11 aparecendo no topo do ranking mesmo ja nao sendo mais negociado (virou outro fundo). Duas camadas de protecao adicionadas em `scrape_fiis_fundamentus`:
+- Automatica: exclui qualquer FII com `liquidez` zerada/nula (sem nenhum negocio registrado) — nao confundir com liquidez BAIXA (fundo pequeno mas vivo, que continua no universo normalmente, so pontua pior).
+- Manual: `_FII_TICKERS_INATIVOS` (set no proxy.py) para casos onde o Fundamentus mantem liquidez cacheada != 0 mesmo com o fundo morto (caso do CBCV11). Reportar novos casos ao Claude para adicionar.
 
-### 6. NUNCA inventar dados
-vol_impl=null explícito se GARCH falhar, cotação=null se scraping falhar. Nunca fallback fixo (0.35 ou qualquer outro número inventado).
+### 6. Ciclo de vida real: ROXO34 encerrada (fracasso) + rolagem registrada como nova ativa
+- ROXO34 original (codigo ROXOG105, strike R$10,50, opcao AMERICANA) estourou a barreira (probabilidade de rompimento chegou a 100%). Movida de `ativas` para `encerradas` com `status: "fracasso"` (id `cl-roxo-jul26`).
+- Usuario fez rolagem defensiva POR FORA do app (so para ganhar tempo/sobrevivencia, nao passaria pelos criterios normais de entrada dele — "e uma seca", sem colchao real). Nova posicao registrada em `ativas` (id `rx2`): codigo ROXOI107, strike R$10,75, vencimento 17/09/2026, meta 2,44%, EUROPEIA (nao americana — ver correcao abaixo).
+- LICAO IMPORTANTE: a mecanica americana/europeia NAO e fixa por ticker do ativo-objeto (ROXO34), e por codigo de opcao especifico. A ROXOG105 antiga era americana, a ROXOI107 nova e europeia. Sempre confirmar com o usuario a cada opcao/rolagem nova, nunca presumir pelo historico do ticker.
 
-### 7. Fluxo de análise de lote (Fase A automática)
-Quando usuário traz planilha "Index/Fixing/Strike/KO/Delta" ou PDFs do banco: 1º filtro retorno mensal >2% (eliminatório), 2º KO (proteção), 3º DY >8% (desempate). EV = retorno × Delta para desempate entre combinações do mesmo ativo. Apresentar tabela completa com TODAS as linhas, não esconder nada.
+### 7. Lote de retorno controlado 01/07/2026 (Fase A -> Fase B parcial)
+Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3/BBSE3/CMIN3/CXSE3/DIRR3/PETR4/PRIO3/VALE3) + 7 PDFs de proposta pronta do Itau (AMZO34/BEEF3/CYRE3/INBR32/NVDC34/ROXO34/TSLA34). Processo de filtragem em varias rodadas dentro da sessao (criterio de retorno mensal >2% + refinamentos de protecao minima por prazo, pedidos pelo usuario ao vivo — nao documentar os cortes intermediarios, so o resultado):
+- Claude registrou 13 analises via GitHub direto (SEM bandas congeladas, limitacao de ambiente). Usuario filtrou no ranking do app e manteve 8: ROXO34 58d, NVDC34 58d, AMZO34 43d, TSLA34 58d, PETR4 15d, DIRR3 15d, CMIN3 41d, CMIN3 15d.
+- Essas 8 foram RE-REGISTRADAS pelo usuario via Eruda (fetch manual, script fornecido por Claude) — nascem com sufixo "[Lote 01/07/2026 - refeita c/ foto]" no nome e JA TEM bandas congeladas.
+- PENDENCIA DE LIMPEZA: as 8 antigas (sem foto, sem sufixo) ficaram duplicadas no `analises.json` — usuario ainda precisa rejeita-las no ranking (rejeitar nao apaga, so muda status, fica em historico). Confirmar na proxima sessao se isso foi feito.
+- BBSE3: nenhuma linha do lote bateu o corte de 2%/mes (melhor delas: 1,31%/mes), mas usuario pediu como EXCECAO por interesse em dividendo — mostradas separadamente, usuario aplicou os mesmos filtros de protecao minima por conta propria depois.
 
-## O que o app faz hoje (estado atual)
+## Backlog atualizado (ordem sugerida para proxima sessao)
 
-### Abas e funcionalidades
-- **Cotações**: mercados EUA/B3/Europa/Ásia, commodities (WTI/Brent/Gás/Ouro/Prata/Cobre/Minério de Ferro via TradingView FEF1!), índices (VIX/DXY), câmbio (USD/BRL/EUR/BRL/BTC), grupos EUA por segmento (Semi/M7/Software com métrica de concentração no S&P 500), calendário econômico. **NOVO 30/06**: seção "📈 Juros Soberanos" (T-Bill 3M/T-Note 10Y/T-Bond 30Y/JGB 10Y/USD-JPY/SELIC).
-- **Papéis** (antes "Indicadores"): watchlist com ~17 ativos, 4 métodos de valuation (Graham/Bazin/P/L/P/VP), fan chart Monte Carlo, **NOVO 30/06: "📸 Foto do Papel"** — congela bandas GARCH 21/60/90d, acompanha preço real vs bandas, score de assertividade, auto-expira em 90 dias úteis, reseta manualmente ou automaticamente. Storage: fotos_papel.json no repo.
-- **FIIs**: screening de 591 fundos (560 Fundamentus + 31 FI-Infra/FIP-IE via Investidor10), critério P/VP→DY→liquidez, classificação High Grade/Middle Risk/High Yield, busca por texto, visão Todos vs Critério.
-- **Carteira FIIs**: FIIs ativos com preço/DY de ativação, último provento (via StatusInvest), **NOVO 30/06: colunas "Últ. Prov." e "12M (R$)"** carregadas assincronamente via /carteira-fiis/proventos.
-- **Em Análise**: estruturadas (ranking Monte Carlo com EV completo, botões Rejeitar/Ativar) + FIIs em análise (seção separada, ranking próprio com critério P/VP/DY/FFO). Migração automática Em Análise→Ativas (retorno_controlado/bidirecional) via /analises/<id>/status.
-- **Posições Ativas**: 7 posições (PETR4/VALE3/AXIA3-A/AXIA3-B/ROXO34/BBAS3/BSLV39), fan chart retroativo + projeção, simulação 100 ações, faixas de retorno.
-- **Encerradas**: histórico estático de análises (rejeitadas/encerradas) e posições.
+1. Token GitHub fine-grained no Render (ainda pendente, adiado multiplas sessoes) — ver processo na secao Stack acima.
+2. Confirmar visualmente o bugfix do historico real nas fotos (Foto do Papel e Em Analise) — deploy ja subiu no fechamento desta sessao, falta validacao do usuario no proximo pregao.
+3. Limpar duplicatas do lote 01/07 — rejeitar as 8 analises antigas sem foto (ver item 7 acima).
+4. NOVO (02/07/2026) — Nome do papel ao lado do codigo da opcao: em Posicoes Ativas, quando a posicao e uma opcao (`codigo_opcao`, ex: "ROXOI107"), o usuario so ve o codigo, nao o nome/ticker do ativo-objeto de forma clara — pediu para mostrar os dois juntos (ex: "ROXOI107 (ROXO34)"), especialmente relevante nas americanas/BDRs onde o codigo sozinho nao deixa obvio qual e o papel.
+5. Estender tabela de meta (probabilidade de bater retorno) + simulacao 100 acoes para Posicoes Ativas — so para as com meta de ganho real (AXIA3-A, AXIA3-B, BBAS3, e agora ROXOI107); PETR4 e VALE3 excluidas (objetivo e rollover, nao retorno).
+6. Resolver itens da revisao de telas de 22/06 ainda abertos: expandir/ocultar em "Abertura Mercado EUA"/"Top Bovespa"/Commodities; % de variacao do Nubank; divergencia VIX/DXY vs fonte do usuario; lazy load em Papeis; confirmar 3 vs 4 metodos de valuation em BDRs; possivel regressao de performance em vol. simples da ROXO34.
+7. Explicar/confirmar logica do % de variacao em R$ exibido nas Posicoes Ativas.
 
-### Motor estatístico
-- GARCH(1,1) via grid search (sem scipy) — em produção em /montecarlo, /montecarlo/barrier, /indicators, /foto-papel
-- Monte Carlo com n_sim=20000, horizonte até 90d (cuidado com memória no free tier: máx ~15-20 análises por chamada do ranking)
-- EV completo no score do ranking: pondera todos os cenários via prob_retorno_faixas
-- Fan chart: percentis p10/p25/p50/p75/p90, retroativo real (Yahoo) + projeção
+## Backlog de medio prazo (sem prioridade fechada, decidir a cada sessao)
+- Historico mensal completo de dividendos na Carteira FIIs
+- Teto de analises por chamada do ranking (15-20, nao fechado) + faseamento no frontend
+- ETFs (mapear universo com cuidado — licao do FI-Infra)
+- Encerradas para FIIs (comportamento ainda nao definido)
+- Visao multi-usuario (so se virar produto)
+- Renda fixa (so registro, sem acao por enquanto)
 
-### Segurança
-- Token de API (`API_WRITE_TOKEN` no Render) protege rotas de escrita (POST/PUT/DELETE)
-- Frontend pede token via prompt() uma vez por dispositivo, salva em localStorage
-- Disclaimer CVM implementado (modal na primeira visita + botão no rodapé)
-
-## Posições ativas atuais (positions.json)
-| ID | Ticker | Tipo | Exercício | Data entrada est. | Obs |
+## Posicoes ativas atuais (positions.json, 7 no total)
+| ID | Ticker | Tipo | Exercicio | Vencimento | Obs |
 |---|---|---|---|---|---|
-| pt | PETR4 | bidirecional | europeia | ~15/03/2026 | objetivo: rollover/recompra, SEM meta de ganho |
-| vl | VALE3 | bidirecional | europeia | ~04/02/2026 | objetivo: rollover/recompra, SEM meta de ganho |
-| rx | ROXO34 | simples (call vendida) | americana | ~03/06/2026 | meta_pct: 2.25, venc 16/07/2026 |
-| bb | BBAS3 | retorno_controlado | europeia | ~03/06/2026 | meta_pct: 2.25 |
-| a3 | AXIA3(A) | bidirecional | europeia | ~16/05/2026 | entry ~54.31 |
-| a3b | AXIA3(B) | bidirecional | europeia | ~08/06/2026 | entry ~50.65 |
-| bs | BSLV39 | retorno_controlado | europeia | ~26/06/2026 | vol_impl=null (histórico insuficiente no Yahoo para BDR de prata) |
+| pt | PETR4 | simples (call vendida) | europeia | 17/12/2026 | sem meta de ganho, objetivo e rollover |
+| vl | VALE3 | bidirecional | europeia | 18/02/2027 | sem meta de ganho, objetivo e rollover |
+| a3 | AXIA3(A) | bidirecional | europeia | 14/09/2026 | entry ~54,31 |
+| a3b | AXIA3(B) | bidirecional | europeia | 02/10/2026 | entry ~50,65 |
+| bb | BBAS3 | retorno_controlado | europeia | 20/08/2026 | meta 2,25% |
+| bslv39 | BSLV39 | retorno_controlado | europeia | — | vol_impl=null, historico insuficiente no Yahoo |
+| rx2 | ROXO34 (ROXOI107) | simples (call vendida, rolagem) | EUROPEIA | 17/09/2026 | meta 2,44%, rolagem defensiva pos-fracasso, "seca" |
 
-## Carteira FIIs (carteira_fiis.json) — ativos confirmados
-KNCR11, ITRI11, KNCA11, BDIF11, CDII11, e outros (verificar arquivo real).
+## Encerradas relevantes recentes
+- ROXO34 (ROXOG105, strike R$10,50): status "fracasso" — estourou a barreira, opcao era AMERICANA.
 
-## Universo FII coberto
-- FII tradicional: ~560 via Fundamentus (Papel/Tijolo/Híbrido/FoF/Fiagro)
-- FI-Infra + FIP-IE temático: ~31 via Investidor10 individual (CDII11, KNDI11, BDIV11, XPIE11, DIVS11, VIGT11, BRZP11, ENDD11, GTIS11, PICE11, PPEI11 + outros FI-Infra)
-- FIP genérico / FIDC: FORA DO ESCOPO por decisão deliberada do usuário
-
-## Pendências ativas (próximas sessões)
-1. **Token GitHub fine-grained no Render** — substituir token atual (válido 90 dias) por PAT fine-grained sem vencimento curto (só trader-desk, Contents R/W). Processo: GitHub → Settings → Developer Settings → Fine-grained tokens.
-2. **Layout da Foto do Papel** — adicionar bandas p10/p90 visíveis com legenda de confiança no gráfico (como o fan chart do Monte Carlo que mostra "80% de confiança"), não só a mediana.
-3. **Bulk foto** — botão para tirar foto de todos os papéis da watchlist de uma vez.
-4. **Foto automática na Em Análise** — quando uma análise é criada, congelar as bandas naquele dia; gráfico acompanha preço real por cima sem recalcular (mesmo conceito da Foto do Papel, aplicado à Em Análise).
-
-## Backlog de médio prazo (sem prioridade definida, decidir a cada sessão)
-- Histórico mensal completo de dividendos na Carteira FIIs (hoje só último provento + total semestral via 2 semestres; histórico mensal real exigiria scraping de proventos individuais não disponível server-side no StatusInvest)
-- Teto de análises por chamada do ranking (15-20, não fechado) + faseamento no frontend
-- ETFs (mapear universo com cuidado, lição do FI-Infra)
-- Encerradas para FIIs (comportamento não definido)
-- Visão multi-usuário (só se virar produto)
-- Renda fixa (só registro, sem ação)
-
-## Princípios técnicos estabelecidos
-- **Modelagem de volatilidade**: GARCH(1,1) grid search = MLE contínuo (scipy) em todos os testes. Heston inviável sem book de opções. Jump-Diffusion (Merton): estudo futuro, baixa prioridade. Vol realizada intraday: potencialmente útil mas fonte gratuita para B3 não confirmada.
-- **Scraping**: sempre validar estrutura real via endpoint de debug antes de implementar. Nunca assumir que HTML visto em web_fetch = HTML bruto que requests.get() recebe (JS pode renderizar campos dinamicamente). Investidor10/FAQ e StatusInvest/server-side são as fontes confiáveis validadas.
-- **Preço de foto impreciso**: usuário compara visualmente e rejeita/re-pede ao banco se diferença for grande — não auditoria automática.
-- **Tipos de estrutura**: retorno_controlado e bidirecional migram automaticamente (Em Análise → Ativas); 'simples' nunca passa por esse fluxo (decidido em chat, nasce já analisado).
-- **Próxima reunião COPOM**: 05/08/2026. SELIC meta atual: 14,25% (COPOM 17/06/2026). Atualizar fallback hardcoded em get_cdi() após cada decisão.
-- **Fundamentais hardcoded** (`FUND_DATA_REF` em proxy.py): ref. 22/05/2026. App mostra aviso visual automático após 90 dias. Quando usuário reportar esse aviso, atualizar via web search.
-
-
-## Fluxo de análise de lote com PDFs do banco (Fase A)
-
-### Como decodificar a planilha "Index/Fixing/Strike/KO/Delta"
-Propostas fechadas do banco (Retorno Controlado prontas). Colunas:
-- **Fixing**: data de VENCIMENTO
-- **Strike**: RETORNO da estrutura em % do valor inicial (ex: "101,02%" = retorno de 1,02%, subtrair 100)
-- **KO**: nível de PROTEÇÃO/barreira de baixa em % do valor inicial (ex: "82,00%" = proteção até cair 18%)
-- **Delta**: probabilidade de o cenário bom se realizar (informação secundária na decisão)
-
-### Ordem de critérios (aplicar nesta ordem)
-1. **Retorno mensal > 2%** (eliminatório): retorno_mensal = (Strike% - 100) / (dias_corridos_até_fixing / 30.4). Se não passa, descartado — não importa KO nem Delta.
-2. **KO** (proteção): quanto mais funda, melhor — só entra na decisão após passar no 1º filtro.
-3. **DY > 8%** (desempate): se barreira romper, usuário fica com o papel. DY alto = colchão enquanto espera recuperar. ADRs/BDRs sem dividendo (ROXO34/TSLA34/BSLV39/AMZO34/NVDC34) sempre DY=0%, é esperado.
-- **EV = retorno × Delta**: desempate entre combinações do mesmo ativo com fixing diferente.
-
-### PDFs do banco (Material Publicitário do Itaú) — REGRA ABSOLUTA
-- Aceitar todos os números como PREMISSA FIXA: ganho prefixado, barreira, teto, alavancagem. **NUNCA recalcular, NUNCA reescalar proporcionalmente ao tempo.**
-- A ÚNICA coisa que muda é o vencimento: (a) se ainda não passou → usa prazo restante real com os MESMOS números; (b) se já passou → simula o MESMO prazo total a partir de hoje com os MESMOS números.
-- Estrutura típica de bidirecional Itaú (3 pernas): 1 put com KDO (proporção 2x) + 1 call com KUI + 1 call com KUO. SEM desembolso de prêmio na largada — ganho embutido no payoff, realizado só no encerramento.
-
-### Entregável esperado
-Tabela completa com TODAS as linhas (inclusive as que não passam nos critérios), ordenada por retorno mensal decrescente. Colunas: origem, ativo, fixing, dias, meses, retorno%, retorno_mensal%, passa_retorno_2pct, KO%, proteção%, Delta%, DY%, passa_dy_8pct. Usuário filtra/decide por conta própria — Claude NÃO decide quais avançar para Fase B sem o usuário escolher explicitamente.
-
-### Bidirecionais — tratamento separado do ranking de Retorno Controlado
-Risco assimétrico diferente: sem piso garantido na queda se romper barreira baixa. Avaliar como ESTUDO SEPARADO do ranking principal.
+## Principios tecnicos ja estabelecidos (nao re-abrir sem novo contexto)
+- GARCH(1,1) grid search = MLE continuo em todos os testes — nao vale refinar.
+- Heston inviavel sem book de opcoes pago. Jump-Diffusion: estudo futuro, baixa prioridade.
+- Fundamentais hardcoded (`FUND_DATA_REF`): ref. 22/05/2026, aviso automatico apos 90 dias.
+- Fase A (chat, numeros ainda abertos) vs Fase B ("tirar a foto", 4 numeros fechados: ticker/prazo/strike-range/premio) — sempre questionar se algum numero parecer em aberto antes de registrar.
+- PDFs de propostas reais do banco: numeros sao premissa fixa, nunca recalcular/escalar — so o vencimento e reprojetado a partir de hoje.
+- Regua de bidirecionais novas (a partir de 22/06/2026): teto >= ~1%/mes proporcional ao prazo.
+- Grades de opcoes do OpLab: sempre apresentar os 2 lados (call coberta E put vendida).
+- Perfil do usuario: ~70% posicoes ativas sao estruturas arrojadas (bidirecional/retorno controlado), ~30% sao simples derivadas (quando a estrutura arrojada rompe e vira venda de opcao pra ganhar tempo).
+- Ao registrar analises, sempre incluir a data do lote de origem no nome/observacao (ex: "Lote 01/07/2026").
