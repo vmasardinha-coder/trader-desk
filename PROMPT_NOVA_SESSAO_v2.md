@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v14.0 — sessão 02/07/2026)
+# Trader Desk — Prompt de Continuação (v15.0 — sessão 02/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -10,12 +10,12 @@
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento desta sessão (02/07/2026)
+## SHAs no fechamento desta sessão (02/07/2026, apos item 2 do backlog — Cotações)
 - proxy.py: 9b6d29ebd8f36ada0529e988546717ac51d9f38a
-- static/app.js: fa3813186b704ea61057a896566f911b87b43a0e
-- templates/index.html: e1207b38bbf86879686a2b6078509ae2bf697e7f
+- static/app.js: d857a6883c7c148da67f0867a52a289d4011e2dd
+- templates/index.html: e3331e563433989e312d00b975cddde83c5173c1
 - positions.json: c462e0a7b4d666e0c3f6b6e165f7df767d4a23ed (7 posições ativas, 4 encerradas)
-- analises.json: 5e638624371ec107611b90d63ca052452e1e66e6 (54 registros — inclui lote de teste 01-02/07, usuário ainda filtrando/limpando duplicatas no ranking)
+- analises.json: 5e638624371ec107611b90d63ca052452e1e66e6 (54 registros — 8 duplicadas antigas já rejeitadas)
 
 ## Itens CONCLUIDOS e VALIDADOS nesta sessao (02/07/2026)
 
@@ -51,15 +51,16 @@ Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3
 
 ## Backlog atualizado (ordem sugerida para proxima sessao)
 
-1. Token GitHub fine-grained no Render (ainda pendente, adiado multiplas sessoes) — ver processo na secao Stack acima. **Token de SESSAO renovado em 02/07/2026 (fechamento), classic escopo `repo`, valido 90 dias.**
-2. NOVO (02/07/2026) — Nome do papel ao lado do codigo da opcao: em Posicoes Ativas, quando a posicao e uma opcao (`codigo_opcao`, ex: "ROXOI107"), o usuario so ve o codigo, nao o nome/ticker do ativo-objeto de forma clara — pediu para mostrar os dois juntos (ex: "ROXOI107 (ROXO34)"), especialmente relevante nas americanas/BDRs onde o codigo sozinho nao deixa obvio qual e o papel. Nada implementado ainda.
-3. Estender tabela de meta (probabilidade de bater retorno) + simulacao 100 acoes para Posicoes Ativas — so para as com meta de ganho real (AXIA3-A, AXIA3-B, BBAS3, e agora ROXOI107); PETR4 e VALE3 excluidas (objetivo e rollover, nao retorno).
-4. Resolver itens da revisao de telas de 22/06 ainda abertos: expandir/ocultar em "Abertura Mercado EUA"/"Top Bovespa"/Commodities; % de variacao do Nubank; divergencia VIX/DXY vs fonte do usuario; lazy load em Papeis; confirmar 3 vs 4 metodos de valuation em BDRs; possivel regressao de performance em vol. simples da ROXO34.
-5. Explicar/confirmar logica do % de variacao em R$ exibido nas Posicoes Ativas.
+1. Token GitHub fine-grained no Render — EM ANDAMENTO pelo usuario (fechamento 02/07/2026). Processo: GitHub → Settings → Developer settings → Fine-grained tokens → só repo trader-desk → Contents R/W → gerar → colar como `GITHUB_TOKEN` nas Environment Variables do servico no Render (+ `GITHUB_REPO=vmasardinha-coder/trader-desk`). Usuario vai avisar quando criar a variavel.
+2. ~~Cotacoes: segmentos encolhidos por padrao + nome da empresa ao lado do codigo~~ **CONCLUIDO E CONFIRMADO 02/07/2026.** Escopo real (diferente do que constava antes — NAO tem nada a ver com opcoes/Posicoes Ativas): (a) todas as tabelas fixas de Cotacoes (EUA — Mercados, Juros Soberanos, Europa & Asia, B3 — Top 10, Commodities) agora carregam colapsadas por padrao via `togCot()` — Bitcoin ja estava assim, os blocos setoriais (Financeiro/Petroleo/etc, `tg()`) ja eram colapsados por padrao (CSS `.sb2{display:none}`), nao precisou mexer; (b) mapa `US_NOMES` adicionado em app.js com nome da empresa por extenso (ex: UNH → UnitedHealth) exibido como subtitulo do ticker nos segmentos EUA (7 Magnificas, Nasdaq Top 15, S&P 500 Top 20, Dow Jones Top 20, Semicondutores, Software).
+3. ~~Estender tabela de meta (probabilidade de bater retorno) + simulacao 100 acoes para Posicoes Ativas~~ **JA EXISTIA, CONFIRMADO 02/07/2026.** Ao abrir a posicao em Em Analise, a foto ja replica as probabilidades de retorno e a simulacao a cada 100 acoes. Nao ha nada a implementar aqui — item removido do backlog ativo.
 
 ## Itens confirmados apos fechamento inicial desta sessao (02/07/2026)
 - Bugfix do timestamp: confirmado visualmente pelo usuario, linha de preco real aparecendo nas fotos.
 - Duplicatas do lote 01/07: as 8 analises antigas sem foto foram rejeitadas no ranking.
+- Item 4 completo (revisao de telas 22/06): TODOS os subitens resolvidos — expandir/ocultar em "Abertura Mercado EUA"/"Top Bovespa"/Commodities; % variacao Nubank; divergencia VIX/DXY vs fonte do usuario; lazy load em Papeis; confirmacao 3 vs 4 metodos de valuation em BDRs; regressao de performance vol. simples ROXO34.
+- Item 5: logica do % de variacao em R$ nas Posicoes Ativas — explicada/confirmada, resolvido.
+- Cotacoes tab publica (item de longo prazo, fora da lista numerada) — usuario mencionou como resolvido em 02/07/2026, mas sem detalhe do que foi feito; confirmar escopo exato se relevante numa proxima sessao.
 
 ## Backlog de medio prazo (sem prioridade fechada, decidir a cada sessao)
 - Historico mensal completo de dividendos na Carteira FIIs
