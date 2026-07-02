@@ -123,7 +123,7 @@
       "tipo": "call",
       "vencimento": "2026-09-17",
       "data_entrada": "2026-07-02",
-      "exercicio": "americana",
+      "exercicio": "europeia",
       "meta_pct": 2.44,
       "observacao": "Rolagem defensiva da ROXO34 original (strike R$10,50, venc 16/07/2026, encerrada como fracasso em 01/07/2026 apos estourar a barreira). Premio gerado ~2,44% so para ganhar tempo -- nao passaria pelos criterios normais de entrada do usuario ('e uma seca', sem colchao real, so sobrevivencia). Prazo estendido ate 17/09/2026."
     }
