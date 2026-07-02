@@ -61,6 +61,23 @@ const USSEG={
   // disponivel em nenhuma das fontes tentadas)
 };
 const fR=v=>v!=null?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+// Nomes de empresas para exibir junto ao ticker nos segmentos EUA
+// (m7/nq/sp/dj/semi/software) -- pedido do usuario 02/07/2026: so o
+// codigo (ex "UNH") nao deixa obvio qual e o papel.
+const US_NOMES={
+  AAPL:'Apple',MSFT:'Microsoft',NVDA:'NVIDIA',AMZN:'Amazon',GOOGL:'Alphabet (Google)',
+  META:'Meta Platforms',TSLA:'Tesla',AVGO:'Broadcom',COST:'Costco',NFLX:'Netflix',
+  QCOM:'Qualcomm',AMD:'AMD',ADBE:'Adobe',INTC:'Intel',CSCO:'Cisco',
+  'BRK.B':'Berkshire Hathaway',JPM:'JPMorgan Chase',LLY:'Eli Lilly',V:'Visa',
+  UNH:'UnitedHealth',XOM:'Exxon Mobil',MA:'Mastercard',PG:'Procter & Gamble',
+  JNJ:'Johnson & Johnson',HD:'Home Depot',BAC:'Bank of America',GS:'Goldman Sachs',
+  SHW:'Sherwin-Williams',CAT:'Caterpillar',AXP:'American Express',MCD:"McDonald's",
+  AMGN:'Amgen',TRV:'Travelers',IBM:'IBM',HON:'Honeywell',CRM:'Salesforce',
+  CVX:'Chevron',DIS:'Disney',NKE:'Nike',BA:'Boeing',
+  TSM:'Taiwan Semiconductor',ASML:'ASML',MU:'Micron',
+  PANW:'Palo Alto Networks',PLTR:'Palantir',ORCL:'Oracle',CRWD:'CrowdStrike',
+  APP:'AppLovin',CDNS:'Cadence',NOW:'ServiceNow',FTNT:'Fortinet',
+};
 const fU=v=>v!=null?'US$ '+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const fP=v=>v!=null?Number(v).toLocaleString('pt-BR',{maximumFractionDigits:0}):'—';
 function E(id,t){const e=document.getElementById(id);if(!e)return;e.textContent=t;e.classList.remove('loading');}
@@ -796,7 +813,7 @@ async function loadSeg(id){
       concHtml='<div id="conc-'+id+'" style="margin-bottom:10px;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted)">Calculando peso no S&amp;P 500...</div>';
     }
     g.innerHTML=concHtml+'<table class="tbl-mkt tbl-seg"><colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th>Ativo</th><th class="r">Último</th><th class="r">Variação</th><th class="r">Var.%</th></tr></thead><tbody>'+
-      tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');return '<tr><td><div class="sym">'+t+'</div></td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+'</tbody></table>';
+      tks.map(t=>{const tid=t.replace(/[^a-zA-Z0-9]/g,'_');const nome=US_NOMES[t];return '<tr><td><div class="sym">'+t+'</div>'+(nome?'<div class="desc">'+nome+'</div>':'')+'</td><td class="r"><span class="val loading" id="'+pfx+tid+'_p">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_v">—</span></td><td class="r"><span class="chg" id="'+pfx+tid+'_c">—</span></td></tr>';}).join('')+'</tbody></table>';
     if(GRUPOS_COM_CONCENTRACAO.includes(id)){
       // CORRIGIDO 23/06/2026 (5a correcao real): o bug NAO era timeout nem
       // paralelizacao -- era que r.ok e false para o 502 que o backend
