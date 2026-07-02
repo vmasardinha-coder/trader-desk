@@ -29,7 +29,7 @@ Botao "Tirar Foto de Todos" no topo da aba Papeis. Roda sequencialmente (400ms e
 `POST /analises` agora congela sozinho as bandas GARCH (usando `preco_foto` como ponto de partida) sempre que uma analise e criada, para `tipo_estrutura != 'fii'`. Nova rota `GET /analises/<id>/foto-bandas` retorna as bandas congeladas + historico real desde a foto + score de assertividade. Botao de foto em cada linha do ranking de Em Analise abre um painel acima da tabela (nao dentro do card expandido — sao componentes visuais separados) com o grafico. CONFIRMADO FUNCIONANDO DE VERDADE via teste manual do usuario pelo Eruda (POST direto, resposta trouxe `bandas_congeladas` preenchido).
 
 ### 4. BUGFIX CRITICO — historico real nunca aparecia nas fotos
-`_fetch_closes_for_foto` (proxy.py) tinha um typo: lia `result['timestamps']` (plural, chave errada) em vez de `result['timestamp']` (singular, chave real da API do Yahoo). Isso causava excecao silenciosa (capturada por `except: continue`), fazendo a funcao SEMPRE retornar lista vazia — ou seja, a linha de preco real NUNCA aparecia em nenhuma foto (nem Foto do Papel, nem foto de Em Analise), desde que essas features foram implementadas em 30/06. Corrigido para `result['timestamp']`. USUARIO AINDA PRECISA CONFIRMAR VISUALMENTE APOS O FIX (checar se o ponto/linha do preco real aparece no proximo pregao) — isso ficou pendente de validacao no fechamento desta sessao, deploy ja subiu.
+`_fetch_closes_for_foto` (proxy.py) tinha um typo: lia `result['timestamps']` (plural, chave errada) em vez de `result['timestamp']` (singular, chave real da API do Yahoo). Isso causava excecao silenciosa (capturada por `except: continue`), fazendo a funcao SEMPRE retornar lista vazia — ou seja, a linha de preco real NUNCA aparecia em nenhuma foto (nem Foto do Papel, nem foto de Em Analise), desde que essas features foram implementadas em 30/06. Corrigido para `result['timestamp']`. **CONFIRMADO VISUALMENTE PELO USUARIO — ponto/linha do preco real aparecendo corretamente nas fotos.**
 
 ### 5. Filtro de FIIs fantasma (fundos incorporados/deslistados)
 Usuario reportou CBCV11 aparecendo no topo do ranking mesmo ja nao sendo mais negociado (virou outro fundo). Duas camadas de protecao adicionadas em `scrape_fiis_fundamentus`:
@@ -45,18 +45,20 @@ Usuario reportou CBCV11 aparecendo no topo do ranking mesmo ja nao sendo mais ne
 Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3/BBSE3/CMIN3/CXSE3/DIRR3/PETR4/PRIO3/VALE3) + 7 PDFs de proposta pronta do Itau (AMZO34/BEEF3/CYRE3/INBR32/NVDC34/ROXO34/TSLA34). Processo de filtragem em varias rodadas dentro da sessao (criterio de retorno mensal >2% + refinamentos de protecao minima por prazo, pedidos pelo usuario ao vivo — nao documentar os cortes intermediarios, so o resultado):
 - Claude registrou 13 analises via GitHub direto (SEM bandas congeladas, limitacao de ambiente). Usuario filtrou no ranking do app e manteve 8: ROXO34 58d, NVDC34 58d, AMZO34 43d, TSLA34 58d, PETR4 15d, DIRR3 15d, CMIN3 41d, CMIN3 15d.
 - Essas 8 foram RE-REGISTRADAS pelo usuario via Eruda (fetch manual, script fornecido por Claude) — nascem com sufixo "[Lote 01/07/2026 - refeita c/ foto]" no nome e JA TEM bandas congeladas.
-- PENDENCIA DE LIMPEZA: as 8 antigas (sem foto, sem sufixo) ficaram duplicadas no `analises.json` — usuario ainda precisa rejeita-las no ranking (rejeitar nao apaga, so muda status, fica em historico). Confirmar na proxima sessao se isso foi feito.
+- **LIMPEZA CONCLUIDA: as 8 antigas (sem foto, sem sufixo) foram rejeitadas pelo usuario no ranking (status alterado, mantidas em historico).**
 - BBSE3: nenhuma linha do lote bateu o corte de 2%/mes (melhor delas: 1,31%/mes), mas usuario pediu como EXCECAO por interesse em dividendo — mostradas separadamente, usuario aplicou os mesmos filtros de protecao minima por conta propria depois.
 
 ## Backlog atualizado (ordem sugerida para proxima sessao)
 
-1. Token GitHub fine-grained no Render (ainda pendente, adiado multiplas sessoes) — ver processo na secao Stack acima.
-2. Confirmar visualmente o bugfix do historico real nas fotos (Foto do Papel e Em Analise) — deploy ja subiu no fechamento desta sessao, falta validacao do usuario no proximo pregao.
-3. Limpar duplicatas do lote 01/07 — rejeitar as 8 analises antigas sem foto (ver item 7 acima).
-4. NOVO (02/07/2026) — Nome do papel ao lado do codigo da opcao: em Posicoes Ativas, quando a posicao e uma opcao (`codigo_opcao`, ex: "ROXOI107"), o usuario so ve o codigo, nao o nome/ticker do ativo-objeto de forma clara — pediu para mostrar os dois juntos (ex: "ROXOI107 (ROXO34)"), especialmente relevante nas americanas/BDRs onde o codigo sozinho nao deixa obvio qual e o papel.
-5. Estender tabela de meta (probabilidade de bater retorno) + simulacao 100 acoes para Posicoes Ativas — so para as com meta de ganho real (AXIA3-A, AXIA3-B, BBAS3, e agora ROXOI107); PETR4 e VALE3 excluidas (objetivo e rollover, nao retorno).
-6. Resolver itens da revisao de telas de 22/06 ainda abertos: expandir/ocultar em "Abertura Mercado EUA"/"Top Bovespa"/Commodities; % de variacao do Nubank; divergencia VIX/DXY vs fonte do usuario; lazy load em Papeis; confirmar 3 vs 4 metodos de valuation em BDRs; possivel regressao de performance em vol. simples da ROXO34.
-7. Explicar/confirmar logica do % de variacao em R$ exibido nas Posicoes Ativas.
+1. Token GitHub fine-grained no Render (ainda pendente, adiado multiplas sessoes) — ver processo na secao Stack acima. **Token de SESSAO renovado em 02/07/2026 (fechamento), classic escopo `repo`, valido 90 dias.**
+2. NOVO (02/07/2026) — Nome do papel ao lado do codigo da opcao: em Posicoes Ativas, quando a posicao e uma opcao (`codigo_opcao`, ex: "ROXOI107"), o usuario so ve o codigo, nao o nome/ticker do ativo-objeto de forma clara — pediu para mostrar os dois juntos (ex: "ROXOI107 (ROXO34)"), especialmente relevante nas americanas/BDRs onde o codigo sozinho nao deixa obvio qual e o papel. Nada implementado ainda.
+3. Estender tabela de meta (probabilidade de bater retorno) + simulacao 100 acoes para Posicoes Ativas — so para as com meta de ganho real (AXIA3-A, AXIA3-B, BBAS3, e agora ROXOI107); PETR4 e VALE3 excluidas (objetivo e rollover, nao retorno).
+4. Resolver itens da revisao de telas de 22/06 ainda abertos: expandir/ocultar em "Abertura Mercado EUA"/"Top Bovespa"/Commodities; % de variacao do Nubank; divergencia VIX/DXY vs fonte do usuario; lazy load em Papeis; confirmar 3 vs 4 metodos de valuation em BDRs; possivel regressao de performance em vol. simples da ROXO34.
+5. Explicar/confirmar logica do % de variacao em R$ exibido nas Posicoes Ativas.
+
+## Itens confirmados apos fechamento inicial desta sessao (02/07/2026)
+- Bugfix do timestamp: confirmado visualmente pelo usuario, linha de preco real aparecendo nas fotos.
+- Duplicatas do lote 01/07: as 8 analises antigas sem foto foram rejeitadas no ranking.
 
 ## Backlog de medio prazo (sem prioridade fechada, decidir a cada sessao)
 - Historico mensal completo de dividendos na Carteira FIIs
