@@ -133,5 +133,16 @@
     "preco_ativacao": 101.34,
     "dy_anual_pct_ativacao": 14.21,
     "status": "ativa"
+  },
+  {
+    "id": "fii_1783083801",
+    "ticker": "CPTS11",
+    "nome_fundo": "CPTS11",
+    "segmento": "papel",
+    "nivel_risco": "middle_risk",
+    "data_ativacao": "2026-07-03",
+    "preco_ativacao": 7.52,
+    "dy_anual_pct_ativacao": 14.04,
+    "status": "ativa"
   }
 ]
