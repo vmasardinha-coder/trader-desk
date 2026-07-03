@@ -23,7 +23,6 @@
 <div class="tabs">
   <div class="tab active" onclick="sw('cotacoes',this)">📊 Cotações</div>
   <div class="tab" onclick="sw('indicadores',this)">📈 Papéis</div>
-  <div class="tab" onclick="sw('etfs',this)">📦 ETFs</div>
   <div class="tab" onclick="sw('fiis',this)">🏢 FIIs</div>
   <div class="tab" onclick="sw('carteirafiis',this)">💰 Carteira FIIs</div>
   <div class="tab" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
@@ -243,47 +242,6 @@
   </div>
   <div id="bulk-foto-status" style="display:none;font-size:11px;color:var(--muted);margin-bottom:10px;padding:8px;background:var(--bg2);border:1px solid var(--border)"></div>
   <div id="watchlist-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando ativos...</p></div>
-</div>
-
-<!-- ══ ETFs (novo 02/07/2026, backlog item 4) ══ -->
-<div id="tab-etfs" class="tab-content">
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="etf-subtab active" onclick="etfSubTab('watchlist',this)">Watchlist</button>
-    <button class="etf-subtab" onclick="etfSubTab('emanalise',this)">Em Análise</button>
-    <button class="etf-subtab" onclick="etfSubTab('carteira',this)">Carteira</button>
-  </div>
-
-  <div id="etf-sub-watchlist" class="etf-subcontent">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px" id="etf-mercado-filtros"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px" id="etf-risco-filtros"></div>
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
-        <input type="checkbox" id="etf-so-pagadores" onchange="renderEtfTable()" /> Só pagadores de dividendo
-      </label>
-      <span id="etf-count-label" style="font-size:12px;color:var(--muted);margin-left:auto"></span>
-      <button onclick="loadETFs(true)" style="font-size:12px">↻ Atualizar</button>
-    </div>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px" id="etf-tabela">
-        <thead><tr id="etf-thead"></tr></thead>
-        <tbody id="etf-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="etf-sub-emanalise" class="etf-subcontent" style="display:none">
-    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Candidatos que você está de olho. Score calculado dentro de cada faixa de risco (não mistura risco alto com baixo).</p>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px" id="etf-analise-tabela">
-        <thead><tr id="etf-analise-thead"></tr></thead>
-        <tbody id="etf-analise-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="etf-sub-carteira" class="etf-subcontent" style="display:none">
-    <div id="etf-carteira-lista"></div>
-  </div>
 </div>
 
 <!-- ══ FIIs ══ -->
