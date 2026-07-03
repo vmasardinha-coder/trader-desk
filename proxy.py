@@ -6459,52 +6459,6 @@ def _parse_num_br(txt):
     except Exception:
         return None
 
-def _extrair_headers_tabela(html_txt):
-    """
-    Le os <th> do <thead> da tabela do investidor10 e retorna os textos
-    limpos, na ordem. Usado para mapear colunas por NOME em vez de indice
-    fixo -- correcao 03/07/2026 apos Victor reportar DY com valores
-    absurdos nos ETFs: se o investidor10 reordenar/adicionar uma coluna,
-    o mapeamento por indice fixo desalinha silenciosamente (ex: pega
-    'Capitalizacao' pensando que e 'Dividend Yield'). Mapear por nome do
-    cabeçalho torna o scraper resiliente a essas mudancas de layout.
-    """
-    thead_m = re.search(r'<thead[^>]*>(.*?)</thead>', html_txt, re.S)
-    if not thead_m:
-        return []
-    ths = re.findall(r'<th[^>]*>(.*?)</th>', thead_m.group(1), re.S)
-    out = []
-    for t in ths:
-        limpo = re.sub(r'<[^>]+>', ' ', t)
-        limpo = _html_mod.unescape(limpo)
-        limpo = re.sub(r'\s+', ' ', limpo).strip()
-        out.append(limpo)
-    return out
-
-def _mapear_colunas_etf(headers):
-    """
-    Constroi {campo: indice} a partir dos textos de cabecalho reais da
-    tabela. 'Dividend Yield' e 'DY Medio 5 anos' sao ambos aceitos, mas
-    tratados como campos DIFERENTES (o segundo nunca deve virar 'dy').
-    Retorna {} se nao achou os campos essenciais (preco/dy/cap/var12m/
-    var24m) -- nesse caso quem chamar deve cair no indice fixo como
-    fallback (site pode estar bloqueando/servindo HTML diferente).
-    """
-    idx = {}
-    for i, h in enumerate(headers):
-        hl = h.lower()
-        if ('preço' in hl or 'preco' in hl) and 'atual' in hl:
-            idx['preco'] = i
-        elif 'dividend yield' in hl and 'medio' not in hl and 'médio' not in hl:
-            idx['dy'] = i
-        elif 'capitaliza' in hl:
-            idx['cap'] = i
-        elif 'variação' in hl and '12' in hl or ('variacao' in hl and '12' in hl):
-            idx['var_12m'] = i
-        elif 'variação' in hl and '24' in hl or ('variacao' in hl and '24' in hl):
-            idx['var_24m'] = i
-    return idx
-
 def _extrair_linhas_tabela(html_txt):
     linhas_out = []
     linhas_raw = re.findall(r'<tr[^>]*>(.*?)</tr>', html_txt, re.S)
@@ -6521,27 +6475,33 @@ def _extrair_linhas_tabela(html_txt):
         linhas_out.append(textos)
     return linhas_out
 
+def _dy_plausivel(v):
+    """
+    Trava de sanidade (03/07/2026) apos Victor reportar DY absurdo nos
+    ETFs (ex: BOVA11 mostrando 10000%/3300%, sendo que BOVA11 nao paga
+    dividendo). Nenhum ETF do nosso universo real (ETF_UNIVERSO) chega
+    perto de 100% de DY anual -- os "high income" mais agressivos
+    (COIN11/SPYI11/QQQI11/JEPI/JEPQ) ficam na faixa de 7-50%. Qualquer
+    valor fora de [0, 100] e quase certamente coluna errada (ex: pegou
+    Capitalizacao em vez de Dividend Yield) -- melhor mostrar "-"
+    (None) do que um numero fisicamente implausivel.
+    """
+    return v is not None and 0 <= v <= 100
+
 def _scrape_investidor10_etfs_nacional(paginas):
-    """Colunas Nacionais na ordem atual do site (confirmado 03/07/2026):
-    Ativos, Preco Atual, Variacao 12m, Variacao 24m, Capitalizacao,
-    Dividend Yield, DY Medio 5 anos, Variacao 5 Anos, Num. cotistas,
-    Variacao 30d -- ou seja col1=preco, col2=var12m, col3=var24m,
-    col4=cap, col5=dy. Mapeamento agora e DINAMICO via _mapear_colunas_etf
-    (le os <th> reais), com esses indices como fallback fixo apenas se o
-    parse do cabecalho falhar (ex: site bloqueando/mudando estrutura)."""
+    """Colunas Nacionais: col0='#N TICKER Nome...', 1=preco, 2=var12m,
+    3=var24m, 4=cap, 5=dy. Indices fixos (tentativa de mapeamento dinamico
+    por header foi revertida em 03/07/2026 -- pagina tem mais de uma
+    tabela/thead, header lido nao correspondia as linhas de dados,
+    causando desalinhamento pior que o indice fixo). DY passa por
+    _dy_plausivel como trava de sanidade final."""
     resultado = {}
-    fallback_idx = {'preco': 1, 'var_12m': 2, 'var_24m': 3, 'cap': 4, 'dy': 5}
     for pagina in range(1, paginas + 1):
         try:
             url = f'https://investidor10.com.br/etfs?page={pagina}'
             r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
             if not r.ok:
                 continue
-            headers_tab = _extrair_headers_tabela(r.text)
-            idx = _mapear_colunas_etf(headers_tab)
-            campos_essenciais = {'preco', 'dy', 'cap', 'var_12m', 'var_24m'}
-            if not campos_essenciais.issubset(idx.keys()):
-                idx = fallback_idx
             linhas = _extrair_linhas_tabela(r.text)
             for textos in linhas:
                 if len(textos) < 6:
@@ -6552,40 +6512,31 @@ def _scrape_investidor10_etfs_nacional(paginas):
                 ticker = m.group(1).upper()
                 if ticker not in _ETF_TICKERS_TODOS:
                     continue
-                if max(idx.values()) >= len(textos):
-                    continue
+                dy = _parse_num_br(textos[5])
                 resultado[ticker] = {
-                    'preco': _parse_num_br(textos[idx['preco']]),
-                    'var_12m': _parse_num_br(textos[idx['var_12m']]),
-                    'var_24m': _parse_num_br(textos[idx['var_24m']]),
-                    'cap': _parse_num_br(textos[idx['cap']]),
-                    'dy': _parse_num_br(textos[idx['dy']]),
+                    'preco': _parse_num_br(textos[1]),
+                    'var_12m': _parse_num_br(textos[2]),
+                    'var_24m': _parse_num_br(textos[3]),
+                    'cap': _parse_num_br(textos[4]),
+                    'dy': dy if _dy_plausivel(dy) else None,
                 }
         except Exception:
             continue
     return resultado
 
 def _scrape_investidor10_etfs_americano(paginas):
-    """Colunas Americanas na ordem atual do site (confirmado 03/07/2026,
-    DIFERENTE da Nacional, sem preco): Ativos, Dividend Yield, DY Medio
-    5 anos, Capitalizacao, Variacao 12m, Variacao 24m, Variacao 5 Anos,
-    Variacao 30d, Num. cotistas -- ou seja col1=dy, col3=cap, col4=var12m,
-    col5=var24m. Mapeamento agora e DINAMICO via _mapear_colunas_etf (le
-    os <th> reais), com esses indices como fallback fixo apenas se o
-    parse do cabecalho falhar."""
+    """Colunas Americanas (ordem DIFERENTE da Nacional, sem preco):
+    col0='#N TICKER Nome...', 1=dy, 2=dy_medio5a, 3=cap, 4=var12m,
+    5=var24m, 6=var5a, 7=var30d, 8=cotistas(sempre 0). Indices fixos
+    (ver nota no scraper nacional sobre reversao do mapeamento por
+    header em 03/07/2026). DY passa por _dy_plausivel."""
     resultado = {}
-    fallback_idx = {'dy': 1, 'cap': 3, 'var_12m': 4, 'var_24m': 5}
     for pagina in range(1, paginas + 1):
         try:
             url = f'https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page={pagina}'
             r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
             if not r.ok:
                 continue
-            headers_tab = _extrair_headers_tabela(r.text)
-            idx = _mapear_colunas_etf(headers_tab)
-            campos_essenciais = {'dy', 'cap', 'var_12m', 'var_24m'}
-            if not campos_essenciais.issubset(idx.keys()):
-                idx = fallback_idx
             linhas = _extrair_linhas_tabela(r.text)
             for textos in linhas:
                 if len(textos) < 6:
@@ -6596,14 +6547,13 @@ def _scrape_investidor10_etfs_americano(paginas):
                 ticker = m.group(1).upper()
                 if ticker not in _ETF_TICKERS_TODOS:
                     continue
-                if max(idx.values()) >= len(textos):
-                    continue
+                dy = _parse_num_br(textos[1])
                 resultado[ticker] = {
                     'preco': None,
-                    'dy': _parse_num_br(textos[idx['dy']]),
-                    'cap': _parse_num_br(textos[idx['cap']]),
-                    'var_12m': _parse_num_br(textos[idx['var_12m']]),
-                    'var_24m': _parse_num_br(textos[idx['var_24m']]),
+                    'dy': dy if _dy_plausivel(dy) else None,
+                    'cap': _parse_num_br(textos[3]),
+                    'var_12m': _parse_num_br(textos[4]),
+                    'var_24m': _parse_num_br(textos[5]),
                 }
         except Exception:
             continue
