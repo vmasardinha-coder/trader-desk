@@ -86,6 +86,7 @@ Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3
 - Encerradas para FIIs (comportamento ainda nao definido)
 - Visao multi-usuario (so se virar produto)
 - Renda fixa (so registro, sem acao por enquanto)
+- Analisar a empresa ORVR3 (pedido do usuario 02/07/2026, sem contexto/motivo especificado ainda -- perguntar o que despertou o interesse quando for pauta)
 
 
 
