@@ -6501,7 +6501,7 @@ def _scrape_investidor10_etfs(url_base, paginas):
             for textos in linhas:
                 if len(textos) < 6:
                     continue
-                m = re.match(r'#?\d*\s*([A-Z0-9]{3,7})\s+(.*)', textos[0])
+                m = re.match(r'#?\d*\s*([A-Z0-9]{2,7})\s+(.*)', textos[0])
                 if not m:
                     continue
                 ticker = m.group(1).upper()
