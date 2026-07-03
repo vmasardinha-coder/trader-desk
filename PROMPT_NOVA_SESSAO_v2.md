@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v15.0 — sessão 02/07/2026)
+# Trader Desk — Prompt de Continuação (v16.0 — sessão 02/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
