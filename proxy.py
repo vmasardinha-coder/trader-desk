@@ -5376,7 +5376,11 @@ def _calc_bandas_foto(S, sigma, periodos=(21, 60, 90)):
 
 def _fetch_closes_for_foto(ticker, from_date_str):
     """
-    Busca closes diarios desde from_date_str (YYYY-MM-DD) ate hoje via Yahoo.
+    Busca closes diarios desde from_date_str (YYYY-MM-DD) ate hoje.
+    Tenta Yahoo primeiro; se falhar (ex: ROXO34, bloqueado no Yahoo via
+    Render -- mesmo motivo documentado em /indicators e /bs), cai para
+    brapi.dev como fallback. Adicionado 02/07/2026 apos usuario reportar
+    que a foto da ROXO34 nunca mostrava a linha de preco real.
     Retorna list de (date_str, close).
     """
     from datetime import datetime, timedelta
@@ -5404,9 +5408,40 @@ def _fetch_closes_for_foto(ticker, from_date_str):
                     dt = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
                     if dt >= from_date_str:
                         pairs.append({'data': dt, 'close': round(float(cl), 4)})
-                return pairs
+                if pairs:
+                    return pairs
             except:
                 continue
+
+        # Fallback brapi.dev (mesmo padrao usado em /bs e /indicators para
+        # tickers bloqueados no Yahoo, ex ROXO34)
+        try:
+            symbol = ticker.replace('.SA', '').upper()
+            rb = requests.get(
+                f'https://brapi.dev/api/quote/{symbol}?range=3mo&interval=1d',
+                headers=BRAPI_HEADERS, timeout=8)
+            if rb.ok:
+                rd = rb.json().get('results', [{}])[0]
+                hist = rd.get('historicalDataPrice', [])
+                pairs = []
+                for pt in hist:
+                    ts = pt.get('date')
+                    cl = pt.get('close')
+                    if ts is None or cl is None:
+                        continue
+                    try:
+                        # brapi normalmente retorna 'date' como unix timestamp (segundos)
+                        dt = datetime.utcfromtimestamp(int(ts)).strftime('%Y-%m-%d')
+                    except (ValueError, TypeError, OSError):
+                        # defensivo: caso venha como string ISO ('2026-07-01' ou
+                        # '2026-07-01T00:00:00.000Z') em vez de timestamp
+                        dt = str(ts)[:10]
+                    if dt >= from_date_str:
+                        pairs.append({'data': dt, 'close': round(float(cl), 4)})
+                if pairs:
+                    return sorted(pairs, key=lambda p: p['data'])
+        except:
+            pass
     except:
         pass
     return []
