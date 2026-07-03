@@ -6331,5 +6331,268 @@ def serve_panel():
     resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return resp
 
+
+# ============================================================
+# ETFs -- aba nova (backlog item 4, fechado sessao 02/07/2026)
+# Universo Nacional (27) + Americano (26) fechado pelo usuario apos
+# pesquisa completa em chat. Fluxo: Watchlist -> Em Analise (com score
+# por faixa de risco) -> Carteira (tratamento igual ativo simples).
+# ============================================================
+
+ETF_UNIVERSO = [
+    # ---- Nacionais - Pagadores ----
+    {'ticker':'COIN11','mercado':'Nacional','categoria':'Pagador','desc':'Bitcoin high income','risco':1},
+    {'ticker':'SPYI11','mercado':'Nacional','categoria':'Pagador','desc':'S&P 500 EUA high income','risco':8},
+    {'ticker':'QQQI11','mercado':'Nacional','categoria':'Pagador','desc':'Nasdaq-100 high income','risco':8},
+    {'ticker':'DIVD11','mercado':'Nacional','categoria':'Pagador','desc':'IDIV - dividendos B3','risco':6},
+    {'ticker':'NDIV11','mercado':'Nacional','categoria':'Pagador','desc':'Ibovespa Smart Dividendos','risco':6},
+    # ---- Nacionais - Indice Brasil ----
+    {'ticker':'BOVA11','mercado':'Nacional','categoria':'Índice Brasil','desc':'Ibovespa','risco':4},
+    {'ticker':'BOVV11','mercado':'Nacional','categoria':'Índice Brasil','desc':'Ibovespa (IT Now)','risco':4},
+    {'ticker':'SMAL11','mercado':'Nacional','categoria':'Índice Brasil','desc':'Small Caps','risco':3},
+    {'ticker':'PIBB11','mercado':'Nacional','categoria':'Índice Brasil','desc':'IBrX-50','risco':4},
+    # ---- Nacionais - Americano ----
+    {'ticker':'IVVB11','mercado':'Nacional','categoria':'Americano','desc':'S&P 500 (BDR)','risco':4},
+    {'ticker':'NASD11','mercado':'Nacional','categoria':'Americano','desc':'Nasdaq-100 (BDR)','risco':4},
+    {'ticker':'SPXR11','mercado':'Nacional','categoria':'Americano','desc':'S&P 500 Futures BRL','risco':4},
+    {'ticker':'SPXH11','mercado':'Nacional','categoria':'Americano','desc':'S&P 500 (hedge cambial)','risco':4},
+    {'ticker':'TECK11','mercado':'Nacional','categoria':'Americano','desc':'Tecnologia (Brasil/América)','risco':2},
+    # ---- Nacionais - Renda Fixa ----
+    {'ticker':'LFTB11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro Selic','risco':10},
+    {'ticker':'LFTS11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro Selic','risco':10},
+    {'ticker':'LFTI11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro Selic','risco':10},
+    {'ticker':'LLFT11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro Selic','risco':10},
+    {'ticker':'IMAB11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro IPCA+ (IMA-B)','risco':9},
+    {'ticker':'IRFM11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro Prefixado','risco':10},
+    {'ticker':'B5P211','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro IPCA+ 2 anos','risco':9},
+    {'ticker':'B5MB11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro/crédito','risco':10},
+    {'ticker':'IB5M11','mercado':'Nacional','categoria':'Renda Fixa','desc':'Tesouro','risco':10},
+    # ---- Nacionais - Cripto ----
+    {'ticker':'HASH11','mercado':'Nacional','categoria':'Cripto','desc':'Cesta cripto (Nasdaq Crypto Index)','risco':1},
+    {'ticker':'QBTC11','mercado':'Nacional','categoria':'Cripto','desc':'Bitcoin','risco':1},
+    {'ticker':'BITI11','mercado':'Nacional','categoria':'Cripto','desc':'Bitcoin','risco':1},
+    {'ticker':'BITH11','mercado':'Nacional','categoria':'Cripto','desc':'Bitcoin (hedge)','risco':1},
+    {'ticker':'ETHE11','mercado':'Nacional','categoria':'Cripto','desc':'Ethereum','risco':1},
+    # ---- Nacionais - Ouro/Commodities/Cambio ----
+    {'ticker':'GOLD11','mercado':'Nacional','categoria':'Ouro/Commodities','desc':'Ouro (LBMA)','risco':7},
+    {'ticker':'MARG11','mercado':'Nacional','categoria':'Ouro/Commodities','desc':'Commodities/margem','risco':7},
+    {'ticker':'DOLA11','mercado':'Nacional','categoria':'Câmbio','desc':'Dólar','risco':7},
+    # ---- Nacionais - Internacional ----
+    {'ticker':'WRLD11','mercado':'Nacional','categoria':'Internacional','desc':'Global All Cap (mundo todo)','risco':4},
+    {'ticker':'XINA11','mercado':'Nacional','categoria':'Internacional','desc':'China','risco':4},
+    {'ticker':'USAL11','mercado':'Nacional','categoria':'Internacional','desc':'EUA amplo','risco':4},
+    {'ticker':'PACG11','mercado':'Nacional','categoria':'Internacional','desc':'Ásia-Pacífico','risco':4},
+    # ---- Americanos ----
+    {'ticker':'VOO','mercado':'Americano','categoria':'Índice amplo','desc':'S&P 500','risco':4},
+    {'ticker':'VTI','mercado':'Americano','categoria':'Índice amplo','desc':'Total Stock Market EUA','risco':4},
+    {'ticker':'QQQ','mercado':'Americano','categoria':'Índice amplo','desc':'Nasdaq-100','risco':4},
+    {'ticker':'JEPI','mercado':'Americano','categoria':'High income','desc':'S&P 500 high income','risco':8},
+    {'ticker':'JEPQ','mercado':'Americano','categoria':'High income','desc':'Nasdaq high income','risco':8},
+    {'ticker':'VT','mercado':'Americano','categoria':'Internacional','desc':'Total World (global)','risco':4},
+    {'ticker':'VUG','mercado':'Americano','categoria':'Índice amplo','desc':'Growth (crescimento)','risco':4},
+    {'ticker':'VTV','mercado':'Americano','categoria':'Dividendo/Value','desc':'Value (valor)','risco':6},
+    {'ticker':'SCHD','mercado':'Americano','categoria':'Dividendo/Value','desc':'Dividend Equity','risco':6},
+    {'ticker':'VGT','mercado':'Americano','categoria':'Setorial','desc':'Tecnologia (setor)','risco':2},
+    {'ticker':'SMH','mercado':'Americano','categoria':'Setorial','desc':'Semicondutores','risco':2},
+    {'ticker':'VEA','mercado':'Americano','categoria':'Internacional','desc':'Mercados desenvolvidos ex-EUA','risco':4},
+    {'ticker':'VWO','mercado':'Americano','categoria':'Internacional','desc':'Mercados emergentes','risco':4},
+    {'ticker':'IJR','mercado':'Americano','categoria':'Small/Mid cap','desc':'Small Cap','risco':3},
+    {'ticker':'IJH','mercado':'Americano','categoria':'Small/Mid cap','desc':'Mid Cap','risco':3},
+    {'ticker':'GLD','mercado':'Americano','categoria':'Ouro/Commodities','desc':'Ouro','risco':7},
+    {'ticker':'SLV','mercado':'Americano','categoria':'Ouro/Commodities','desc':'Prata','risco':7},
+    {'ticker':'IBIT','mercado':'Americano','categoria':'Cripto','desc':'Bitcoin','risco':1},
+    {'ticker':'VNQ','mercado':'Americano','categoria':'Real Estate','desc':'REITs EUA','risco':5},
+    {'ticker':'BND','mercado':'Americano','categoria':'Renda Fixa','desc':'Bond total EUA','risco':10},
+    {'ticker':'SGOV','mercado':'Americano','categoria':'Renda Fixa','desc':'Treasury curtíssimo','risco':10},
+    {'ticker':'TLT','mercado':'Americano','categoria':'Renda Fixa','desc':'Treasury longo (20+ anos)','risco':9},
+    {'ticker':'JPST','mercado':'Americano','categoria':'Renda Fixa','desc':'Ultra-short income','risco':10},
+    {'ticker':'XLE','mercado':'Americano','categoria':'Setorial','desc':'Energia','risco':2},
+    {'ticker':'EWJ','mercado':'Americano','categoria':'Internacional','desc':'Japão','risco':4},
+    {'ticker':'EWY','mercado':'Americano','categoria':'Internacional','desc':'Coreia do Sul','risco':4},
+]
+_ETF_TICKERS_NACIONAIS = {e['ticker'] for e in ETF_UNIVERSO if e['mercado']=='Nacional'}
+_ETF_TICKERS_AMERICANOS = {e['ticker'] for e in ETF_UNIVERSO if e['mercado']=='Americano'}
+
+_cache_etfs_live = {'dados': None, 'ts': 0}
+_ETF_CACHE_TTL = 900  # 15 minutos
+
+def _parse_num_br(txt):
+    """Converte string tipo '12,48%' ou 'R$ 264,01 M' ou '27,07%' em float.
+    Retorna None se vier '-' ou vazio (ETF que nao paga dividendo / sem dado)."""
+    if not txt: return None
+    txt = txt.strip()
+    if txt in ('-', '', '—', 'N/A'): return None
+    mult = 1.0
+    if 'B' in txt.upper(): mult = 1000.0
+    txt = re.sub(r'[^0-9,.\-]', '', txt)
+    txt = txt.replace('.', '').replace(',', '.')
+    try:
+        return round(float(txt) * mult, 2)
+    except Exception:
+        return None
+
+def _scrape_investidor10_etfs(url_base, paginas, tickers_alvo):
+    from bs4 import BeautifulSoup
+    """
+    Faz scraping de 1+ paginas de listagem de ETFs do Investidor10.
+    Parser DEFENSIVO por posicao de linha/coluna da tabela principal
+    (nao depende de nomes de classe CSS especificos, que nao pude
+    confirmar sem inspecionar o HTML bruto ao vivo -- VALIDAR no Render
+    apos deploy e ajustar os indices de coluna se vier torto).
+    Colunas esperadas (nessa ordem, conforme observado em pesquisa
+    manual 02/07/2026): Ticker | Nome | Preco | Var.30d | Var.12m |
+    Var.24m | DY atual | DY medio 5a | Var.5a | Capitalizacao | Cotistas
+    """
+    resultado = {}
+    for pagina in range(1, paginas + 1):
+        try:
+            url = url_base.format(pagina=pagina)
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+            if not r.ok:
+                continue
+            soup = BeautifulSoup(r.text, 'html.parser')
+            tabela = soup.find('table')
+            if not tabela:
+                continue
+            linhas = tabela.find_all('tr')
+            for linha in linhas:
+                celulas = linha.find_all('td')
+                if len(celulas) < 8:
+                    continue
+                textos = [c.get_text(strip=True) for c in celulas]
+                ticker = textos[0].upper().strip()
+                if ticker not in tickers_alvo:
+                    continue
+                try:
+                    resultado[ticker] = {
+                        'preco': _parse_num_br(textos[2]) if len(textos) > 2 else None,
+                        'var_30d': _parse_num_br(textos[3]) if len(textos) > 3 else None,
+                        'var_12m': _parse_num_br(textos[4]) if len(textos) > 4 else None,
+                        'var_24m': _parse_num_br(textos[5]) if len(textos) > 5 else None,
+                        'dy': _parse_num_br(textos[6]) if len(textos) > 6 else None,
+                        'cap': _parse_num_br(textos[9]) if len(textos) > 9 else None,
+                    }
+                except Exception:
+                    continue
+        except Exception:
+            continue
+    return resultado
+
+def _fetch_etfs_live():
+    """Busca dados ao vivo dos 53 ETFs do universo fechado, com cache de 15min."""
+    agora = time.time()
+    if _cache_etfs_live['dados'] is not None and (agora - _cache_etfs_live['ts']) < _ETF_CACHE_TTL:
+        return _cache_etfs_live['dados']
+
+    dados_nacionais = _scrape_investidor10_etfs(
+        'https://investidor10.com.br/etfs?page={pagina}', 3, _ETF_TICKERS_NACIONAIS)
+    dados_americanos = _scrape_investidor10_etfs(
+        'https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page={pagina}', 2, _ETF_TICKERS_AMERICANOS)
+
+    live = {**dados_nacionais, **dados_americanos}
+    _cache_etfs_live['dados'] = live
+    _cache_etfs_live['ts'] = agora
+    return live
+
+@app.route('/etfs', methods=['GET'])
+def get_etfs_watchlist():
+    """
+    Retorna o universo fechado de 53 ETFs (27 Nacionais + 26 Americanos)
+    com dados ao vivo (preco, DY, variacoes, capitalizacao) mesclados aos
+    metadados fixos (categoria, descricao, nivel de risco).
+    Cache de 15min em memoria para nao sobrecarregar o Investidor10 a
+    cada refresh de tela.
+    """
+    try:
+        live = _fetch_etfs_live()
+    except Exception as e:
+        live = {}
+    resultado = []
+    for etf in ETF_UNIVERSO:
+        d = live.get(etf['ticker'], {})
+        resultado.append({
+            **etf,
+            'preco': d.get('preco'),
+            'dy': d.get('dy'),
+            'var_12m': d.get('var_12m'),
+            'var_24m': d.get('var_24m'),
+            'cap': d.get('cap'),
+            'pagador': etf['categoria'] == 'Pagador' or (d.get('dy') is not None),
+        })
+    return jsonify(resultado)
+
+def _ler_etfs_estado():
+    """Le etfs_estado.json (em_analise / carteira). Cria estrutura vazia se nao existir."""
+    try:
+        r = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/etfs_estado.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        if r.ok:
+            return r.json()
+    except Exception:
+        pass
+    return {'em_analise': [], 'carteira': []}
+
+@app.route('/etfs/estado', methods=['GET'])
+def get_etfs_estado():
+    """Retorna a lista de tickers em Em Analise e em Carteira."""
+    return jsonify(_ler_etfs_estado())
+
+@app.route('/etfs/mover', methods=['POST'])
+@_requer_auth_escrita
+def mover_etf():
+    """
+    Move um ETF entre watchlist -> em_analise -> carteira.
+    Body: { "ticker": "SCHD", "destino": "em_analise" | "carteira",
+            "preco_entrada": 92.38 (obrigatorio so se destino=carteira),
+            "data_entrada": "2026-07-02" (obrigatorio so se destino=carteira) }
+    """
+    try:
+        body = request.get_json(force=True)
+        ticker = (body.get('ticker') or '').upper().strip()
+        destino = body.get('destino')
+        if not ticker or ticker not in {e['ticker'] for e in ETF_UNIVERSO}:
+            return jsonify({'error': 'ticker invalido ou fora do universo fechado de ETFs'}), 400
+        if destino not in ('em_analise', 'carteira'):
+            return jsonify({'error': "destino deve ser 'em_analise' ou 'carteira'"}), 400
+
+        try:
+            conteudo, sha = _github_get_file('etfs_estado.json')
+            estado = json.loads(conteudo)
+        except Exception:
+            estado = {'em_analise': [], 'carteira': []}
+            sha = None
+
+        estado.setdefault('em_analise', [])
+        estado.setdefault('carteira', [])
+
+        # remove de em_analise se estava la (tanto p/ mover pra carteira quanto se
+        # for adicionado de novo em em_analise)
+        estado['em_analise'] = [t for t in estado['em_analise'] if t != ticker]
+
+        if destino == 'em_analise':
+            if ticker not in estado['em_analise']:
+                estado['em_analise'].append(ticker)
+        else:  # carteira
+            preco_entrada = body.get('preco_entrada')
+            from datetime import datetime as _dt_etf
+            data_entrada = body.get('data_entrada') or _dt_etf.now().strftime('%Y-%m-%d')
+            estado['carteira'] = [c for c in estado['carteira'] if c.get('ticker') != ticker]
+            estado['carteira'].append({
+                'ticker': ticker,
+                'preco_entrada': preco_entrada,
+                'data_entrada': data_entrada,
+            })
+
+        conteudo_novo = json.dumps(estado, ensure_ascii=False, indent=2)
+        if sha:
+            _github_put_file('etfs_estado.json', conteudo_novo, sha, f'Move ETF {ticker} -> {destino}')
+        else:
+            _github_criar_arquivo('etfs_estado.json', conteudo_novo, f'Cria etfs_estado.json, move {ticker} -> {destino}')
+
+        return jsonify({'ok': True, 'estado': estado})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__=='__main__':
     app.run(debug=False,host='0.0.0.0',port=int(__import__('os').environ.get('PORT',5000)))
