@@ -2263,6 +2263,21 @@ def get_indicators(ticker):
             # (9 dias antes da FUND_DATA_REF global de 22/05/2026 -- diferenca
             # pequena, mantida sem ajustar a referencia global por 1 ativo)
             'PRIO3': {'pvp':2.14,'dy':0.00,'lpa':2.97,'vpa':30.52,'roe':9.7,'pl':22.05},
+            # Adicionado 03/07/2026 -- ORVR3 (Orizon), pesquisa web em 03/07/2026.
+            # ATENCAO: fundamentos incomumente incertos agora por causa da
+            # incorporacao da Vital (aumento de capital ~R$3,31bi + emissao de
+            # 41,2mi novas acoes) -- fontes distintas mostram numeros bem
+            # diferentes entre si (ex: LPA ora positivo ~0,89 ora negativo
+            # -0,87, dependendo se a base trailing-12m inclui trimestres
+            # anteriores a virada de resultado do 1T26). Usados os numeros do
+            # fundamentalista.com.br por baterem exatamente com a faixa de 52
+            # semanas (R$47,03-R$84,90) que Victor ja confirmou de outra fonte
+            # -- indicio de que estao atualizados. LPA negativo faz o Graham
+            # retornar None (formula exige lucro positivo) -- isso e esperado,
+            # nao e bug: reflete que a empresa ainda nao tem lucro trailing
+            # consistente, coerente com a tese "cara no multiplo atual" que
+            # o proprio Victor concluiu na triagem manual dele.
+            'ORVR3': {'pvp':6.33,'dy':0.00,'lpa':-0.87,'vpa':4.97,'roe':-17.44,'pl':-36.28},
         }
         fundamentais_de_override = False
         if symbol in FUND_OVERRIDE:
@@ -2289,6 +2304,7 @@ def get_indicators(ticker):
             'SAPR11':{'nome':'Saneamento','pl_medio':9.0,'pvp_medio':1.3,'roe_min':12},
             'GGBR4': {'nome':'Siderurgia','pl_medio':8.0,'pvp_medio':1.0,'roe_min':10},
             'PRIO3': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
+            'ORVR3': {'nome':'Resíduos & Economia Circular','pl_medio':15.0,'pvp_medio':2.5,'roe_min':10},
         }
         setor = SETOR_MAP.get(symbol, {'nome':'Geral','pl_medio':12.0,'pvp_medio':2.0,'roe_min':12})
 
@@ -3756,11 +3772,14 @@ FUND_OVERRIDE_GLOBAL = {
     # nenhum lugar do app ainda. DY coletado via busca web (StatusInvest,
     # 25/06/2026): 10,27%.
     'ALOS3': 10.27,
+    # Adicionado 03/07/2026 -- ORVR3 nao paga dividendo (confirmado por
+    # multiplas fontes, DY 0,00%).
+    'ORVR3': 0.00,
 }
 # Tickers sem dividendo relevante (BDRs de empresas/ETFs sem distribuicao,
 # ou commodities) -- mesmo se aparecessem com dy=0.0 cadastrado, marcar
 # explicitamente como "sem DY" para nao confundir com dado ausente.
-_SEM_DY_RELEVANTE = {'ROXO34', 'TSLA34', 'BSLV39', 'AMZO34', 'PRIO3'}
+_SEM_DY_RELEVANTE = {'ROXO34', 'TSLA34', 'BSLV39', 'AMZO34', 'PRIO3', 'ORVR3'}
 
 @app.route('/analises/ranking', methods=['GET'])
 def ranking_analises():
@@ -6559,6 +6578,56 @@ def _scrape_investidor10_etfs_americano(paginas):
             continue
     return resultado
 
+def _fetch_dy_yahoo(yahoo_ticker):
+    """
+    DY via Yahoo Finance (modulo summaryDetail.dividendYield) -- JSON
+    estruturado, mesmo dominio ja usado com sucesso no resto do app para
+    preco/historico (query1/query2.finance.yahoo.com). Solucao adotada
+    em 03/07/2026 para substituir o parsing por regex da tabela HTML do
+    investidor10, que estava desalinhando o DY silenciosamente (Victor
+    reportou BOVA11 com 10000%/3300%, sendo que BOVA11 nao paga
+    dividendo). Fonte estruturada elimina essa classe de bug por
+    completo -- nao depende de indice de coluna nenhum.
+    """
+    for host in ['query1', 'query2']:
+        try:
+            r = requests.get(
+                f'https://{host}.finance.yahoo.com/v10/finance/quoteSummary/{yahoo_ticker}?modules=summaryDetail',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+            if not r.ok:
+                continue
+            d = r.json()
+            res = (d.get('quoteSummary') or {}).get('result')
+            if not res:
+                continue
+            sd = res[0].get('summaryDetail', {}) or {}
+            dy_raw = (sd.get('dividendYield') or {}).get('raw')
+            if dy_raw is not None:
+                return round(float(dy_raw) * 100, 2)
+        except Exception:
+            continue
+    return None
+
+def _fetch_etfs_dy_yahoo_bulk(etfs):
+    """
+    Busca DY de todos os ETFs via Yahoo em paralelo (ThreadPoolExecutor,
+    mesmo padrao ja usado em /us/concentracao). ~61 chamadas, mas cache
+    de 15min (_ETF_CACHE_TTL) absorve o custo -- so roda quando o cache
+    expira, nao a cada requisicao do usuario.
+    """
+    resultado = {}
+    def _um(etf):
+        yt = _etf_yahoo_ticker(etf)
+        return etf['ticker'], _fetch_dy_yahoo(yt)
+    try:
+        with ThreadPoolExecutor(max_workers=12) as ex:
+            for ticker, dy in ex.map(_um, etfs):
+                if _dy_plausivel(dy):
+                    resultado[ticker] = dy
+    except Exception:
+        pass
+    return resultado
+
 def _fetch_etfs_live():
     agora = time.time()
     if _cache_etfs_live['dados'] is not None and (agora - _cache_etfs_live['ts']) < _ETF_CACHE_TTL:
@@ -6566,6 +6635,16 @@ def _fetch_etfs_live():
     dados_nacionais = _scrape_investidor10_etfs_nacional(3)
     dados_americanos = _scrape_investidor10_etfs_americano(2)
     live = {**dados_nacionais, **dados_americanos}
+    # DY via Yahoo sobrescreve o do investidor10 quando disponivel -- fonte
+    # estruturada mais confiavel (03/07/2026, ver _fetch_dy_yahoo). Mantem
+    # o valor do investidor10 (ja filtrado por _dy_plausivel) como fallback
+    # para os tickers em que o Yahoo nao retornar dado.
+    dy_yahoo = _fetch_etfs_dy_yahoo_bulk(ETF_UNIVERSO)
+    for ticker, dy in dy_yahoo.items():
+        if ticker in live:
+            live[ticker]['dy'] = dy
+        else:
+            live[ticker] = {'dy': dy}
     _cache_etfs_live['dados'] = live
     _cache_etfs_live['ts'] = agora
     return live
