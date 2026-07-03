@@ -6494,8 +6494,41 @@ def _fetch_etfs_live():
     _cache_etfs_live['ts'] = agora
     return live
 
-@app.route('/etfs', methods=['GET'])
-def get_etfs_watchlist():
+@app.route('/etfs/debug', methods=['GET'])
+def debug_etfs_scrape():
+    """
+    Endpoint temporario de diagnostico (02/07/2026) -- criado porque o
+    Claude nao tem acesso ao HTML bruto do Investidor10 pra escrever o
+    parser certeiro de primeira. Mostra o que o scraper esta REALMENTE
+    enxergando na pagina: quantas tabelas, quantas linhas, e o conteudo
+    cru das primeiras celulas de algumas linhas -- serve pra calibrar os
+    indices de coluna certos. REMOVER depois que o parser estiver validado.
+    """
+    from bs4 import BeautifulSoup
+    diag = {}
+    try:
+        url = 'https://investidor10.com.br/etfs?page=1'
+        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+        diag['status_http'] = r.status_code
+        diag['tamanho_resposta'] = len(r.text)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        tabelas = soup.find_all('table')
+        diag['num_tabelas'] = len(tabelas)
+        amostra_linhas = []
+        for i, tabela in enumerate(tabelas[:3]):
+            linhas = tabela.find_all('tr')
+            info_tabela = {'indice_tabela': i, 'num_linhas': len(linhas), 'linhas_amostra': []}
+            for linha in linhas[:5]:
+                celulas = linha.find_all(['td', 'th'])
+                textos = [c.get_text(strip=True) for c in celulas]
+                info_tabela['linhas_amostra'].append(textos)
+            amostra_linhas.append(info_tabela)
+        diag['tabelas'] = amostra_linhas
+    except Exception as e:
+        diag['erro'] = str(e)
+    return jsonify(diag)
+
+
     """
     Retorna o universo fechado de 53 ETFs (27 Nacionais + 26 Americanos)
     com dados ao vivo (preco, DY, variacoes, capitalizacao) mesclados aos
