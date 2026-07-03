@@ -6529,8 +6529,24 @@ def _fetch_etfs_live():
     _cache_etfs_live['ts'] = agora
     return live
 
-@app.route('/etfs', methods=['GET'])
-def get_etfs_watchlist():
+@app.route('/etfs/debug-us', methods=['GET'])
+def debug_etfs_scrape_us():
+    """Igual /etfs/debug, mas pra pagina de ETFs Americanos (etfs-global) --
+    criado 02/07/2026 porque a ordem de colunas pode ser diferente da
+    pagina Nacional, que foi a unica calibrada ate agora."""
+    diag = {}
+    try:
+        url = 'https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page=1'
+        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+        diag['status_http'] = r.status_code
+        linhas = _extrair_linhas_tabela(r.text)
+        diag['num_linhas_com_td'] = len(linhas)
+        diag['primeiras_10_linhas'] = linhas[:10]
+    except Exception as e:
+        diag['erro'] = str(e)
+    return jsonify(diag)
+
+
     try:
         live = _fetch_etfs_live()
     except Exception:
