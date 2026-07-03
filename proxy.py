@@ -6635,5 +6635,215 @@ def mover_etf():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def _etf_yahoo_ticker(etf):
+    """Nacional (B3) precisa do sufixo .SA no Yahoo; Americano vai puro."""
+    return etf['ticker'] + '.SA' if etf.get('mercado') == 'Nacional' else etf['ticker']
+
+def _fetch_yahoo_series(ticker, range_hist='1y'):
+    """
+    Serie (data_str -> close) via Yahoo, para alinhar por data entre varios
+    tickers (correlacao real da carteira de ETFs, item 2 do backlog
+    03/07/2026). Fatorado de _obter_preco_sigma_garch pois aquela funcao
+    so retorna a lista de closes sem as datas correspondentes.
+    """
+    from datetime import datetime as _dt_ys
+    for host in ['query1', 'query2']:
+        try:
+            r = requests.get(
+                f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range={range_hist}',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+            if not r.ok:
+                continue
+            d = r.json()
+            result = d['chart']['result'][0]
+            ts = result['timestamp']
+            cl = result['indicators']['quote'][0]['close']
+            out = {}
+            for t, c in zip(ts, cl):
+                if c is None:
+                    continue
+                dt = _dt_ys.utcfromtimestamp(t).strftime('%Y-%m-%d')
+                out[dt] = float(c)
+            if out:
+                return out
+        except Exception:
+            continue
+    return {}
+
+@app.route('/etfs/carteira/<ticker>/projecao', methods=['GET'])
+def get_etf_carteira_projecao(ticker):
+    """
+    Fan chart de projecao (GARCH) para um ETF individual da Carteira,
+    a partir do preco atual -- sem meta/barreira (ETF nao tem estrutura
+    com vencimento, e buy-and-hold puro). Mesmo padrao visual da Foto
+    do Papel: bandas p10/p25/p50/p75/p90 + linha de preco real desde a
+    data de entrada registrada em etfs_estado.json.
+    """
+    try:
+        ticker = ticker.upper().strip()
+        if ticker not in _ETF_TICKERS_TODOS:
+            return jsonify({'error': 'ticker fora do universo fechado de ETFs'}), 400
+        etf = next((e for e in ETF_UNIVERSO if e['ticker'] == ticker), None)
+        estado = _ler_etfs_estado()
+        pos = next((c for c in estado.get('carteira', []) if c.get('ticker') == ticker), None)
+        if not pos:
+            return jsonify({'error': 'ETF nao esta na Carteira'}), 404
+
+        yt = _etf_yahoo_ticker(etf)
+        S, sigma, garch_info, closes = _obter_preco_sigma_garch(yt)
+        if not S:
+            return jsonify({'error': f'Nao foi possivel obter preco/historico de {ticker}'}), 500
+        if not sigma:
+            sigma = 0.35  # fallback final, mesmo padrao do resto do app
+
+        periodos = [21, 60, 90, 180]
+        bandas = _calc_bandas_foto(S, sigma, periodos=periodos)
+
+        historico_real = []
+        data_entrada = pos.get('data_entrada')
+        if data_entrada:
+            try:
+                historico_real = _fetch_closes_for_foto(yt, data_entrada)
+            except Exception:
+                historico_real = []
+
+        return jsonify({
+            'ticker': ticker,
+            'desc': etf.get('desc'),
+            'mercado': etf.get('mercado'),
+            'preco_atual': round(S, 2),
+            'sigma_pct': round(sigma * 100, 2),
+            'garch': garch_info,
+            'preco_entrada': pos.get('preco_entrada'),
+            'data_entrada': data_entrada,
+            'periodos': periodos,
+            'bandas': bandas,
+            'historico_real': historico_real,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/etfs/carteira/resumo', methods=['GET'])
+def get_etf_carteira_resumo():
+    """
+    Card de resumo agregado da Carteira de ETFs (item 2 do backlog,
+    03/07/2026). Volatilidade da carteira calculada com CORRELACAO REAL
+    entre os ativos (matriz de covariancia dos retornos historicos
+    alinhados por data), nao soma simples das vols individuais --
+    decisao explicita do usuario ("realista", nao simplificado).
+
+    LIMITACAO ASSUMIDA (nao ha campo de quantidade em etfs_estado.json,
+    so preco_entrada por posicao): pondera cada ETF como 1 cota. Se no
+    futuro quiser peso por quantidade real comprada, precisa adicionar
+    campo 'quantidade' em /etfs/mover e aqui.
+    """
+    try:
+        estado = _ler_etfs_estado()
+        itens = estado.get('carteira', [])
+        if not itens:
+            return jsonify({
+                'itens': [], 'total_investido': 0, 'valor_atual': 0,
+                'retorno_pct': None, 'vol_carteira_pct': None,
+                'vol_soma_simples_pct': None, 'correlacoes': None,
+                'nota': 'Carteira vazia.',
+            })
+
+        try:
+            live = _fetch_etfs_live()
+        except Exception:
+            live = {}
+        etf_map = {e['ticker']: e for e in ETF_UNIVERSO}
+
+        resultado_itens = []
+        total_investido = 0.0
+        valor_atual_total = 0.0
+        pesos_valor = {}
+        series = {}
+
+        for c in itens:
+            ticker = c.get('ticker')
+            etf = etf_map.get(ticker)
+            if not etf:
+                continue
+            preco_entrada = c.get('preco_entrada')
+            preco_atual = (live.get(ticker) or {}).get('preco')
+            valor_pos = preco_atual if preco_atual is not None else preco_entrada
+            if preco_entrada:
+                total_investido += preco_entrada
+            if valor_pos:
+                valor_atual_total += valor_pos
+                pesos_valor[ticker] = valor_pos
+            variacao = None
+            if preco_entrada and preco_atual:
+                variacao = round((preco_atual / preco_entrada - 1) * 100, 2)
+            resultado_itens.append({
+                'ticker': ticker, 'mercado': etf.get('mercado'), 'desc': etf.get('desc'),
+                'preco_entrada': preco_entrada, 'data_entrada': c.get('data_entrada'),
+                'preco_atual': preco_atual, 'variacao_pct': variacao,
+            })
+            yt = _etf_yahoo_ticker(etf)
+            s = _fetch_yahoo_series(yt, '1y')
+            if s:
+                series[ticker] = s
+
+        retorno_pct = None
+        if total_investido > 0:
+            retorno_pct = round((valor_atual_total / total_investido - 1) * 100, 2)
+
+        vol_carteira_pct = None
+        vol_soma_simples_pct = None
+        correlacoes = None
+
+        if _NUMPY:
+            tickers_com_serie = [t for t in pesos_valor if t in series and len(series[t]) >= 30]
+            if len(tickers_com_serie) >= 2:
+                datas_comuns = None
+                for t in tickers_com_serie:
+                    ds = set(series[t].keys())
+                    datas_comuns = ds if datas_comuns is None else (datas_comuns & ds)
+                datas_ordenadas = sorted(datas_comuns) if datas_comuns else []
+                if len(datas_ordenadas) >= 30:
+                    precos_np = _np.array([[series[t][d] for d in datas_ordenadas] for t in tickers_com_serie])
+                    log_rets = _np.diff(_np.log(precos_np), axis=1)
+                    cov_diaria = _np.cov(log_rets)
+                    cov_anual = cov_diaria * 252
+                    pesos_vec = _np.array([pesos_valor[t] for t in tickers_com_serie])
+                    soma_pesos = pesos_vec.sum()
+                    if soma_pesos > 0:
+                        w = pesos_vec / soma_pesos
+                        var_port = float(w @ cov_anual @ w)
+                        vol_carteira_pct = round(math.sqrt(max(var_port, 0)) * 100, 2)
+                        vols_individuais = _np.sqrt(_np.diag(cov_anual))
+                        vol_soma_simples_pct = round(float((w * vols_individuais).sum()) * 100, 2)
+                        std = _np.sqrt(_np.diag(cov_anual))
+                        std_safe = _np.where(std == 0, 1e-9, std)
+                        corr = cov_anual / _np.outer(std_safe, std_safe)
+                        correlacoes = {
+                            tickers_com_serie[i]: {
+                                tickers_com_serie[j]: round(float(corr[i, j]), 3)
+                                for j in range(len(tickers_com_serie))
+                            } for i in range(len(tickers_com_serie))
+                        }
+            elif len(tickers_com_serie) == 1:
+                t = tickers_com_serie[0]
+                cl = list(series[t].values())
+                vh = vol_hist(cl) if len(cl) >= 22 else None
+                if vh:
+                    vol_carteira_pct = round(vh * 100, 2)
+                    vol_soma_simples_pct = vol_carteira_pct
+
+        return jsonify({
+            'itens': resultado_itens,
+            'total_investido': round(total_investido, 2),
+            'valor_atual': round(valor_atual_total, 2),
+            'retorno_pct': retorno_pct,
+            'vol_carteira_pct': vol_carteira_pct,
+            'vol_soma_simples_pct': vol_soma_simples_pct,
+            'correlacoes': correlacoes,
+            'nota': 'Peso de cada ETF assume 1 cota (nao ha campo de quantidade registrada).',
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__=='__main__':
     app.run(debug=False,host='0.0.0.0',port=int(__import__('os').environ.get('PORT',5000)))
