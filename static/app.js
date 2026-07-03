@@ -3956,25 +3956,149 @@ function renderEtfAnaliseTable() {
   });
 }
 
-function renderEtfCarteira() {
+let _etfCarteiraProjecaoChart = null;
+
+async function renderEtfCarteira() {
   const div = document.getElementById('etf-carteira-lista');
   const itens = _etfEstado.carteira || [];
   if (!itens.length) {
     div.innerHTML = '<p style="color:var(--muted);font-size:13px">Nenhum ETF na carteira ainda.</p>';
     return;
   }
-  div.innerHTML = itens.map(c => {
+
+  div.innerHTML =
+    '<div id="etf-carteira-resumo" style="border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px;background:var(--bg2)">' +
+      '<div style="font-size:11px;color:var(--muted)">Calculando resumo da carteira (vol. real com correlação entre ativos)...</div>' +
+    '</div>' +
+    '<div id="etf-carteira-cards"></div>' +
+    '<div id="etf-carteira-projecao-panel" style="display:none;margin-top:14px;padding:10px;background:var(--bg2);border:1px solid var(--border)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<div id="etf-projecao-titulo" style="font-size:12px;font-weight:700;color:var(--text)"></div>' +
+        '<span onclick="fecharEtfProjecao()" style="cursor:pointer;color:var(--muted);font-size:14px">✕</span>' +
+      '</div>' +
+      '<div id="etf-projecao-confianca" style="font-size:11px;color:var(--text);line-height:1.5;margin-bottom:8px;padding:8px 10px;background:rgba(124,106,247,.08);border-left:2px solid var(--accent);text-align:left"></div>' +
+      '<div style="position:relative;height:clamp(280px,34vh,440px);background:var(--bg1);border:1px solid var(--border);padding:8px">' +
+        '<canvas id="etf-projecao-canvas"></canvas>' +
+      '</div>' +
+    '</div>';
+
+  // Cards individuais (sincronos, usando dado ja carregado da watchlist -- rapido)
+  const cardsDiv = document.getElementById('etf-carteira-cards');
+  cardsDiv.innerHTML = itens.map(c => {
     const info = _etfData.find(d => d.ticker === c.ticker) || {};
     const precoAtual = info.preco;
     const variacao = (c.preco_entrada && precoAtual) ? ((precoAtual / c.preco_entrada - 1) * 100) : null;
     const varColor = variacao == null ? 'var(--muted)' : (variacao >= 0 ? '#2ecc71' : '#e74c3c');
-    return '<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">' +
+    return '<div onclick="verEtfProjecao(\'' + c.ticker + '\')" style="cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' +
       '<div><b>' + c.ticker + '</b><span style="color:var(--muted);font-size:12px;margin-left:8px">' + (info.desc || '') + '</span>' +
-      '<div style="font-size:11px;color:var(--muted)">Entrada: ' + (c.data_entrada || '—') + ' a R$ ' + (c.preco_entrada != null ? c.preco_entrada.toFixed(2) : '—') + '</div></div>' +
+      '<div style="font-size:11px;color:var(--muted)">Entrada: ' + (c.data_entrada || '—') + ' a R$ ' + (c.preco_entrada != null ? c.preco_entrada.toFixed(2) : '—') + ' · clique p/ ver projeção 📈</div></div>' +
       '<div style="text-align:right"><div>R$ ' + (precoAtual != null ? precoAtual.toFixed(2) : '—') + '</div>' +
       '<div style="color:' + varColor + ';font-size:12px">' + (variacao != null ? _etfFmtPct(variacao) : '—') + '</div></div>' +
       '</div>';
   }).join('');
+
+  // Resumo agregado (assincrono, roda GARCH/correlação no backend)
+  try {
+    const r = await fetch('/etfs/carteira/resumo', {cache:'no-store'});
+    const d = await r.json();
+    const resumoDiv = document.getElementById('etf-carteira-resumo');
+    if (!r.ok || d.error) throw new Error(d.error || ('HTTP ' + r.status));
+    const retornoColor = d.retorno_pct == null ? 'var(--muted)' : (d.retorno_pct >= 0 ? '#2ecc71' : '#e74c3c');
+    let volLinha = '<span style="color:var(--muted)">Volatilidade da carteira indisponível (histórico insuficiente para 2+ ativos).</span>';
+    if (d.vol_carteira_pct != null) {
+      const diff = d.vol_soma_simples_pct != null ? (d.vol_soma_simples_pct - d.vol_carteira_pct) : null;
+      volLinha = 'Vol. anualizada da carteira (correlação real): <b style="color:var(--accent)">' + d.vol_carteira_pct.toFixed(1) + '%</b>' +
+        (diff != null && diff > 0.05 ? ' <span style="color:var(--muted);font-size:10px">(vs ' + d.vol_soma_simples_pct.toFixed(1) + '% se os ativos fossem 100% correlacionados — diversificação está descontando ~' + diff.toFixed(1) + 'pp)</span>' : '');
+    }
+    resumoDiv.innerHTML =
+      '<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px">' +
+        '<div><div style="font-size:10px;color:var(--muted)">TOTAL INVESTIDO</div><div style="font-size:16px;font-weight:700">R$ ' + d.total_investido.toFixed(2) + '</div></div>' +
+        '<div><div style="font-size:10px;color:var(--muted)">VALOR ATUAL</div><div style="font-size:16px;font-weight:700">R$ ' + d.valor_atual.toFixed(2) + '</div></div>' +
+        '<div><div style="font-size:10px;color:var(--muted)">RETORNO</div><div style="font-size:16px;font-weight:700;color:' + retornoColor + '">' + (d.retorno_pct != null ? _etfFmtPct(d.retorno_pct) : '—') + '</div></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text)">' + volLinha + '</div>' +
+      '<div style="font-size:9px;color:var(--muted);margin-top:6px">' + (d.nota || '') + '</div>';
+  } catch (e) {
+    const resumoDiv = document.getElementById('etf-carteira-resumo');
+    if (resumoDiv) resumoDiv.innerHTML = '<span style="color:var(--red);font-size:11px">Erro ao calcular resumo: ' + e.message + '</span>';
+  }
+}
+
+async function verEtfProjecao(ticker) {
+  const panel = document.getElementById('etf-carteira-projecao-panel');
+  const titulo = document.getElementById('etf-projecao-titulo');
+  const confEl = document.getElementById('etf-projecao-confianca');
+  if (!panel) return;
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  titulo.textContent = '📈 Carregando projeção de ' + ticker + '...';
+  confEl.innerHTML = '';
+  try {
+    const r = await fetch('/etfs/carteira/' + encodeURIComponent(ticker) + '/projecao', {cache:'no-store'});
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || ('HTTP ' + r.status));
+
+    titulo.textContent = `📈 ${d.ticker} (${d.desc || ''}) — preço atual: R$${d.preco_atual.toFixed(2)}`;
+
+    const periodo = Math.max(...d.periodos);
+    const bandas = d.bandas[String(periodo)];
+    const T = periodo;
+    const labels = Array.from({length: T + 1}, (_, i) => `D+${i}`);
+    const histReal = (d.historico_real || []).slice(0, T + 1);
+    const realData = labels.map((_, i) => i < histReal.length ? histReal[i].close : null);
+
+    const dsConfig = [
+      { label:'p90', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'p10', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'p75', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'p25', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'Mediana (p50)', data: bandas.p50, borderColor:'rgba(180,200,255,0.6)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
+      { label:'Preço real', data: realData, borderColor:'#f0c040', borderWidth:2.5, pointRadius:0, fill:false, spanGaps:false },
+    ];
+
+    const canvas = document.getElementById('etf-projecao-canvas');
+    if (_etfCarteiraProjecaoChart) { _etfCarteiraProjecaoChart.destroy(); }
+    _etfCarteiraProjecaoChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels, datasets: dsConfig },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: { mode:'index', intersect:false },
+        plugins: {
+          legend: { display:true, labels:{ color:'#aaa', font:{size:10},
+            filter: item => !['p90','p10','p75','p25'].includes(item.text) } },
+          tooltip: { callbacks: { label: ctx => {
+            if (['p90','p10','p75','p25'].includes(ctx.dataset.label)) return null;
+            return `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2) ?? '—'}`;
+          }}}
+        },
+        scales: {
+          x: { ticks:{ color:'#666', maxTicksLimit:10, font:{size:9} }, grid:{color:'rgba(255,255,255,0.04)'} },
+          y: { ticks:{ color:'#aaa', font:{size:10}, callback: v => 'R$' + v.toFixed(2) }, grid:{color:'rgba(255,255,255,0.06)'} }
+        }
+      }
+    });
+
+    const p10f = bandas.p10[bandas.p10.length - 1], p90f = bandas.p90[bandas.p90.length - 1];
+    const p25f = bandas.p25[bandas.p25.length - 1], p75f = bandas.p75[bandas.p75.length - 1];
+    const p50f = bandas.p50[bandas.p50.length - 1];
+    confEl.innerHTML =
+      `📍 Com <b>80% de confiança</b>, o preço em <b>D+${T}</b> deveria estar entre ` +
+      `<b style="color:var(--red)">R$${p10f.toFixed(2)}</b> e <b style="color:var(--green)">R$${p90f.toFixed(2)}</b>. ` +
+      `Com <b>50% de confiança</b>, entre ` +
+      `<b style="color:var(--red)">R$${p25f.toFixed(2)}</b> e <b style="color:var(--green)">R$${p75f.toFixed(2)}</b>. ` +
+      `Mediana: <b style="color:var(--accent)">R$${p50f.toFixed(2)}</b>. ` +
+      `<span style="color:var(--muted);font-size:10px">Sem meta/barreira — ETF é buy-and-hold, projeção é só GARCH sobre o preço atual (vol projetada: ${d.sigma_pct?.toFixed(1)}% a.a.).</span>`;
+  } catch (e) {
+    titulo.textContent = '📈 Erro';
+    confEl.innerHTML = '<span style="color:var(--red)">Erro ao carregar projeção: ' + e.message + '</span>';
+  }
+}
+
+function fecharEtfProjecao() {
+  const panel = document.getElementById('etf-carteira-projecao-panel');
+  if (panel) panel.style.display = 'none';
+  if (_etfCarteiraProjecaoChart) { _etfCarteiraProjecaoChart.destroy(); _etfCarteiraProjecaoChart = null; }
 }
 
 async function moverEtf(ticker, destino, precoEntrada) {
