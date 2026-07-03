@@ -1,10 +1,15 @@
 {
   "em_analise": [
-    "COIN11",
     "SPYI11",
     "QQQI11",
     "DIVD11",
     "NDIV11"
   ],
-  "carteira": []
+  "carteira": [
+    {
+      "ticker": "COIN11",
+      "preco_entrada": null,
+      "data_entrada": "2026-07-03"
+    }
+  ]
 }
