@@ -1426,6 +1426,9 @@ const WATCHLIST = [
   {segmento:'💳 Fintech / BDR', ativos:[
     {id:'roxo34', ticker:'ROXO34.SA', nome:'ROXO34 — Nubank BDR'},
   ]},
+  {segmento:'♻️ Resíduos & Economia Circular', ativos:[
+    {id:'orvr3', ticker:'ORVR3.SA', nome:'ORVR3 — Orizon ON'},
+  ]},
 ];
 
 function getWatchlistFlat(){
@@ -3890,7 +3893,7 @@ function renderEtfTable() {
     } else if (jaEmAnalise.has(d.ticker)) {
       acaoHtml = '<span style="font-size:11px;color:var(--accent)">✓ Em análise</span>';
     } else {
-      acaoHtml = '<button style="font-size:11px" onclick="moverEtf(\'' + d.ticker + '\',\'em_analise\')">+ Em Análise</button>';
+      acaoHtml = '<button style="font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:600;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'em_analise\')">+ Em Análise</button>';
     }
     tr.innerHTML =
       '<td style="font-weight:600">' + d.ticker + (d.pagador ? '<span class="etf-tag-div">div</span>' : '') + '</td>' +
@@ -3951,7 +3954,7 @@ function renderEtfAnaliseTable() {
       '<td style="color:var(--muted)">' + _etfFmtCap(d.cap) + '</td>' +
       '<td style="color:var(--muted)">' + d.risco + '</td>' +
       '<td><span class="etf-tag-score">' + score + '</span></td>' +
-      '<td><button style="font-size:11px" onclick="moverEtf(\'' + d.ticker + '\',\'carteira\',' + (d.preco || 'null') + ')">OK → Carteira</button></td>';
+      '<td><button style="font-size:11px;background:var(--accent);border:none;color:#fff;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'carteira\',' + (d.preco || 'null') + ')">OK → Carteira</button></td>';
     tb.appendChild(tr);
   });
 }
