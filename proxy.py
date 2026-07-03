@@ -6450,7 +6450,8 @@ def _parse_num_br(txt):
     txt = txt.strip()
     if txt in ('-', '', '—', 'N/A'): return None
     mult = 1.0
-    if 'B' in txt.upper(): mult = 1000.0
+    if 'T' in txt.upper(): mult = 1000000.0
+    elif 'B' in txt.upper(): mult = 1000.0
     txt = re.sub(r'[^0-9,.\-]', '', txt)
     txt = txt.replace('.', '').replace(',', '.')
     try:
