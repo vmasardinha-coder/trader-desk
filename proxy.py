@@ -6331,5 +6331,53 @@ def serve_panel():
     resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return resp
 
+
+# ============================================================
+# ETFs -- FASE 1: so backend de diagnostico, sem bs4 (evita risco de
+# dependencia nova quebrar o boot do Render -- ja aconteceu uma vez
+# nesta sessao). Regex puro, mesmo padrao usado no resto do arquivo.
+# ============================================================
+import html as _html_mod
+
+def _extrair_linhas_tabela(html_txt):
+    """Extrai todas as linhas <tr>...</tr> de todas as tabelas da pagina,
+    e dentro de cada linha, o texto limpo de cada <td>. Regex puro."""
+    linhas_out = []
+    linhas_raw = re.findall(r'<tr[^>]*>(.*?)</tr>', html_txt, re.S)
+    for linha in linhas_raw:
+        celulas = re.findall(r'<td[^>]*>(.*?)</td>', linha, re.S)
+        if not celulas:
+            continue
+        textos = []
+        for c in celulas:
+            limpo = re.sub(r'<[^>]+>', ' ', c)
+            limpo = _html_mod.unescape(limpo)
+            limpo = re.sub(r'\s+', ' ', limpo).strip()
+            textos.append(limpo)
+        linhas_out.append(textos)
+    return linhas_out
+
+@app.route('/etfs/debug', methods=['GET'])
+def debug_etfs_scrape():
+    """
+    Endpoint TEMPORARIO de diagnostico (02/07/2026). Mostra o que o
+    scraper regex esta enxergando na pagina do Investidor10: quantas
+    linhas de tabela, e o conteudo cru das primeiras celulas -- serve
+    pra calibrar os indices de coluna certos antes de ligar o parser
+    de verdade. REMOVER depois que validado.
+    """
+    diag = {}
+    try:
+        url = 'https://investidor10.com.br/etfs?page=1'
+        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+        diag['status_http'] = r.status_code
+        diag['tamanho_resposta'] = len(r.text)
+        linhas = _extrair_linhas_tabela(r.text)
+        diag['num_linhas_com_td'] = len(linhas)
+        diag['primeiras_10_linhas'] = linhas[:10]
+    except Exception as e:
+        diag['erro'] = str(e)
+    return jsonify(diag)
+
 if __name__=='__main__':
     app.run(debug=False,host='0.0.0.0',port=int(__import__('os').environ.get('PORT',5000)))
