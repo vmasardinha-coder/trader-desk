@@ -6367,61 +6367,13 @@ def serve_panel():
     return resp
 
 
-# ============================================================
-# ETFs -- FASE 1: so backend de diagnostico, sem bs4 (evita risco de
-# dependencia nova quebrar o boot do Render -- ja aconteceu uma vez
-# nesta sessao). Regex puro, mesmo padrao usado no resto do arquivo.
-# ============================================================
-import html as _html_mod
-
-def _extrair_linhas_tabela(html_txt):
-    """Extrai todas as linhas <tr>...</tr> de todas as tabelas da pagina,
-    e dentro de cada linha, o texto limpo de cada <td>. Regex puro."""
-    linhas_out = []
-    linhas_raw = re.findall(r'<tr[^>]*>(.*?)</tr>', html_txt, re.S)
-    for linha in linhas_raw:
-        celulas = re.findall(r'<td[^>]*>(.*?)</td>', linha, re.S)
-        if not celulas:
-            continue
-        textos = []
-        for c in celulas:
-            limpo = re.sub(r'<[^>]+>', ' ', c)
-            limpo = _html_mod.unescape(limpo)
-            limpo = re.sub(r'\s+', ' ', limpo).strip()
-            textos.append(limpo)
-        linhas_out.append(textos)
-    return linhas_out
-
-@app.route('/etfs/debug', methods=['GET'])
-def debug_etfs_scrape():
-    """
-    Endpoint TEMPORARIO de diagnostico (02/07/2026). Mostra o que o
-    scraper regex esta enxergando na pagina do Investidor10: quantas
-    linhas de tabela, e o conteudo cru das primeiras celulas -- serve
-    pra calibrar os indices de coluna certos antes de ligar o parser
-    de verdade. REMOVER depois que validado.
-    """
-    diag = {}
-    try:
-        url = 'https://investidor10.com.br/etfs?page=1'
-        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
-        diag['status_http'] = r.status_code
-        diag['tamanho_resposta'] = len(r.text)
-        linhas = _extrair_linhas_tabela(r.text)
-        diag['num_linhas_com_td'] = len(linhas)
-        diag['primeiras_10_linhas'] = linhas[:10]
-    except Exception as e:
-        diag['erro'] = str(e)
-    return jsonify(diag)
-
 
 # ============================================================
 # ETFs -- aba nova (backlog item 4, fechado sessao 02/07/2026)
-# Universo Nacional (27) + Americano (26) fechado pelo usuario.
-# Parser regex CALIBRADO com dado real do /etfs/debug em 02/07/2026:
-# coluna 0 = "#rank TICKER Nome completo", 1=preco, 2=var12m, 3=var24m,
-# 4=capitalizacao, 5=DY atual, 6=DY medio 5a, 7=var5a, 8=cotistas,
-# 9=var30d. SEM bs4 (regex puro, evita dependencia nova).
+# Universo Nacional (35) + Americano (26) = 61 fechado pelo usuario.
+# Parsers calibrados com dado real via /etfs/debug e /etfs/debug-us
+# (regex puro, sem bs4). Nacional e Americano tem ORDENS DE COLUNA
+# DIFERENTES na tabela do Investidor10 -- ver docstrings.
 # ============================================================
 import html as _html_mod
 
@@ -6523,8 +6475,8 @@ def _extrair_linhas_tabela(html_txt):
     return linhas_out
 
 def _scrape_investidor10_etfs_nacional(paginas):
-    """Colunas Nacionais (validado /etfs/debug 02/07/2026): col0='#N TICKER
-    Nome...', 1=preco, 2=var12m, 3=var24m, 4=cap, 5=dy."""
+    """Colunas Nacionais: col0='#N TICKER Nome...', 1=preco, 2=var12m,
+    3=var24m, 4=cap, 5=dy."""
     resultado = {}
     for pagina in range(1, paginas + 1):
         try:
@@ -6554,8 +6506,7 @@ def _scrape_investidor10_etfs_nacional(paginas):
     return resultado
 
 def _scrape_investidor10_etfs_americano(paginas):
-    """Colunas Americanas (validado /etfs/debug-us 02/07/2026 -- ordem
-    DIFERENTE da Nacional, e SEM coluna de preco nesta listagem):
+    """Colunas Americanas (ordem DIFERENTE da Nacional, sem preco):
     col0='#N TICKER Nome...', 1=dy, 2=dy_medio5a, 3=cap, 4=var12m,
     5=var24m, 6=var5a, 7=var30d, 8=cotistas(sempre 0)."""
     resultado = {}
@@ -6576,7 +6527,7 @@ def _scrape_investidor10_etfs_americano(paginas):
                 if ticker not in _ETF_TICKERS_TODOS:
                     continue
                 resultado[ticker] = {
-                    'preco': None,  # nao disponivel nesta listagem
+                    'preco': None,
                     'dy': _parse_num_br(textos[1]),
                     'cap': _parse_num_br(textos[3]),
                     'var_12m': _parse_num_br(textos[4]),
@@ -6597,24 +6548,8 @@ def _fetch_etfs_live():
     _cache_etfs_live['ts'] = agora
     return live
 
-@app.route('/etfs/debug-us', methods=['GET'])
-def debug_etfs_scrape_us():
-    """Igual /etfs/debug, mas pra pagina de ETFs Americanos (etfs-global) --
-    criado 02/07/2026 porque a ordem de colunas pode ser diferente da
-    pagina Nacional, que foi a unica calibrada ate agora."""
-    diag = {}
-    try:
-        url = 'https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page=1'
-        r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
-        diag['status_http'] = r.status_code
-        linhas = _extrair_linhas_tabela(r.text)
-        diag['num_linhas_com_td'] = len(linhas)
-        diag['primeiras_10_linhas'] = linhas[:10]
-    except Exception as e:
-        diag['erro'] = str(e)
-    return jsonify(diag)
-
-
+@app.route('/etfs', methods=['GET'])
+def get_etfs_watchlist():
     try:
         live = _fetch_etfs_live()
     except Exception:
@@ -6635,8 +6570,6 @@ def debug_etfs_scrape_us():
 
 @app.route('/etfs/live-status', methods=['GET'])
 def etfs_live_status():
-    """Diagnostico rapido: quantos dos 53 tickers do universo vieram com
-    dado ao vivo preenchido, sem precisar abrir o JSON gigante do /etfs."""
     try:
         live = _fetch_etfs_live()
     except Exception as e:
