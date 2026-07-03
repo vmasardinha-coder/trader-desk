@@ -6487,13 +6487,13 @@ def _extrair_linhas_tabela(html_txt):
         linhas_out.append(textos)
     return linhas_out
 
-def _scrape_investidor10_etfs(url_base, paginas):
-    """Parser calibrado com dado real (validado via /etfs/debug 02/07/2026):
-    col0='#N TICKER Nome...', 1=preco, 2=var12m, 3=var24m, 4=cap, 5=dy."""
+def _scrape_investidor10_etfs_nacional(paginas):
+    """Colunas Nacionais (validado /etfs/debug 02/07/2026): col0='#N TICKER
+    Nome...', 1=preco, 2=var12m, 3=var24m, 4=cap, 5=dy."""
     resultado = {}
     for pagina in range(1, paginas + 1):
         try:
-            url = url_base.format(pagina=pagina)
+            url = f'https://investidor10.com.br/etfs?page={pagina}'
             r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
             if not r.ok:
                 continue
@@ -6518,12 +6518,45 @@ def _scrape_investidor10_etfs(url_base, paginas):
             continue
     return resultado
 
+def _scrape_investidor10_etfs_americano(paginas):
+    """Colunas Americanas (validado /etfs/debug-us 02/07/2026 -- ordem
+    DIFERENTE da Nacional, e SEM coluna de preco nesta listagem):
+    col0='#N TICKER Nome...', 1=dy, 2=dy_medio5a, 3=cap, 4=var12m,
+    5=var24m, 6=var5a, 7=var30d, 8=cotistas(sempre 0)."""
+    resultado = {}
+    for pagina in range(1, paginas + 1):
+        try:
+            url = f'https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page={pagina}'
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+            if not r.ok:
+                continue
+            linhas = _extrair_linhas_tabela(r.text)
+            for textos in linhas:
+                if len(textos) < 6:
+                    continue
+                m = re.match(r'#?\d*\s*([A-Z0-9]{2,7})\s+(.*)', textos[0])
+                if not m:
+                    continue
+                ticker = m.group(1).upper()
+                if ticker not in _ETF_TICKERS_TODOS:
+                    continue
+                resultado[ticker] = {
+                    'preco': None,  # nao disponivel nesta listagem
+                    'dy': _parse_num_br(textos[1]),
+                    'cap': _parse_num_br(textos[3]),
+                    'var_12m': _parse_num_br(textos[4]),
+                    'var_24m': _parse_num_br(textos[5]),
+                }
+        except Exception:
+            continue
+    return resultado
+
 def _fetch_etfs_live():
     agora = time.time()
     if _cache_etfs_live['dados'] is not None and (agora - _cache_etfs_live['ts']) < _ETF_CACHE_TTL:
         return _cache_etfs_live['dados']
-    dados_nacionais = _scrape_investidor10_etfs('https://investidor10.com.br/etfs?page={pagina}', 3)
-    dados_americanos = _scrape_investidor10_etfs('https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page={pagina}', 2)
+    dados_nacionais = _scrape_investidor10_etfs_nacional(3)
+    dados_americanos = _scrape_investidor10_etfs_americano(2)
     live = {**dados_nacionais, **dados_americanos}
     _cache_etfs_live['dados'] = live
     _cache_etfs_live['ts'] = agora
