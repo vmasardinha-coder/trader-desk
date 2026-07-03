@@ -144,7 +144,7 @@ import math
 import time
 import json
 import re  # adicionado 23/06/2026 -- scraping de fallback do 8marketcap.com
-from concurrent.futures import ThreadPoolExecutor  # adicionado 23/06/2026 -- /us/concentracao
+from concurrent.futures import ThreadPoolExecutor, wait as _cf_wait  # adicionado 23/06/2026 -- /us/concentracao; wait adicionado 03/07/2026 p/ orcamento de tempo no bulk DY de ETFs
 from threading import Lock  # adicionado 23/06/2026 -- cache lazy do 8marketcap
 
 try:
@@ -6593,7 +6593,7 @@ def _fetch_dy_yahoo(yahoo_ticker):
         try:
             r = requests.get(
                 f'https://{host}.finance.yahoo.com/v10/finance/quoteSummary/{yahoo_ticker}?modules=summaryDetail',
-                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
             if not r.ok:
                 continue
             d = r.json()
@@ -6608,24 +6608,39 @@ def _fetch_dy_yahoo(yahoo_ticker):
             continue
     return None
 
-def _fetch_etfs_dy_yahoo_bulk(etfs):
+def _fetch_etfs_dy_yahoo_bulk(etfs, timeout_total=9):
     """
-    Busca DY de todos os ETFs via Yahoo em paralelo (ThreadPoolExecutor,
-    mesmo padrao ja usado em /us/concentracao). ~61 chamadas, mas cache
-    de 15min (_ETF_CACHE_TTL) absorve o custo -- so roda quando o cache
-    expira, nao a cada requisicao do usuario.
+    Busca DY de todos os ETFs via Yahoo em paralelo (ThreadPoolExecutor).
+    CORRECAO CRITICA 03/07/2026: a primeira versao usava
+    "with ThreadPoolExecutor(...) as ex: ex.map(...)" -- o `with` so
+    libera a requisicao quando TODAS as ~61 threads terminam (mesmo com
+    timeout de 8s por chamada individual, o pior caso e sequencial por
+    causa de retries/hosts alternativos dentro de _fetch_dy_yahoo), o
+    que estourou o timeout do Render e derrubou /etfs com 502. Agora usa
+    ORCAMENTO DE TEMPO FIXO (~9s) via concurrent.futures.wait: o que
+    responder a tempo entra no resultado, o resto e descartado sem
+    bloquear a resposta -- e ex.shutdown(wait=False) para nao esperar as
+    threads pendentes. O DY que faltar fica None nesse ciclo (cache de
+    15min tenta de novo depois; investidor10 serve de fallback nesse
+    meio tempo, ja filtrado por _dy_plausivel).
     """
     resultado = {}
-    def _um(etf):
-        yt = _etf_yahoo_ticker(etf)
-        return etf['ticker'], _fetch_dy_yahoo(yt)
+    ex = ThreadPoolExecutor(max_workers=25)
     try:
-        with ThreadPoolExecutor(max_workers=12) as ex:
-            for ticker, dy in ex.map(_um, etfs):
+        futuros = {ex.submit(_fetch_dy_yahoo, _etf_yahoo_ticker(etf)): etf['ticker'] for etf in etfs}
+        prontos, pendentes = _cf_wait(list(futuros.keys()), timeout=timeout_total)
+        for fut in prontos:
+            ticker = futuros[fut]
+            try:
+                dy = fut.result()
                 if _dy_plausivel(dy):
                     resultado[ticker] = dy
+            except Exception:
+                continue
     except Exception:
         pass
+    finally:
+        ex.shutdown(wait=False)
     return resultado
 
 def _fetch_etfs_live():
