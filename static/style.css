@@ -174,3 +174,13 @@ footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);displ
 .tbl-seg tr:last-child td{border-bottom:none}
 .tbl-seg tr:hover td{background:var(--bg3)}
 .tbl-seg .sym{font-weight:700;font-size:13px;color:var(--text)}
+
+/* ETFs -- aba nova 02/07/2026 */
+.etf-subtab{padding:6px 14px;background:var(--bg2);border:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);border-radius:4px;font-family:inherit}
+.etf-subtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.etf-filtro-btn{padding:5px 10px;font-size:11px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-family:inherit}
+.etf-filtro-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+#etf-tabela th,#etf-analise-tabela th{text-align:left;padding:8px 10px;font-size:11px;color:var(--muted);font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border)}
+#etf-tabela td,#etf-analise-tabela td{padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+.etf-tag-div{background:rgba(0,180,100,.15);color:#2ecc71;font-size:10px;padding:1px 6px;border-radius:3px;margin-left:4px}
+.etf-tag-score{background:rgba(100,150,255,.15);color:#6496ff;font-size:10px;padding:1px 6px;border-radius:3px}
