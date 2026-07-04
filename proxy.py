@@ -6262,15 +6262,66 @@ def get_etfs_watchlist():
 
 @app.route('/etfs/live-status', methods=['GET'])
 def etfs_live_status():
+    """
+    04/07/2026: Victor reportou watchlist inteira com "—" mesmo apos
+    forcar refresh. Nao consigo testar rede real (investidor10/Yahoo)
+    do sandbox de desenvolvimento -- essa rota faz um diagnostico AO
+    VIVO, direto do Render, pra saber exatamente onde a cadeia esta
+    falhando: investidor10 bloqueando (status != 200)? Retornando 200
+    mas com HTML que nao bate o regex (0 linhas)? Yahoo bloqueando?
+    Timeout? So chamar essa rota no navegador/curl e mandar o retorno.
+    """
+    diagnostico = {}
+
+    # 1. investidor10 nacional, pagina 1, cru -- sem cache, sem paralelismo
+    try:
+        t0 = time.time()
+        r = requests.get('https://investidor10.com.br/etfs?page=1',
+                          headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+        dt = round(time.time() - t0, 2)
+        linhas = _extrair_linhas_tabela(r.text) if r.ok else []
+        diagnostico['investidor10_nacional_pagina1'] = {
+            'status_http': r.status_code, 'tempo_s': dt,
+            'tamanho_resposta': len(r.text), 'linhas_extraidas': len(linhas),
+            'primeira_linha_bruta': linhas[0] if linhas else None,
+        }
+    except Exception as e:
+        diagnostico['investidor10_nacional_pagina1'] = {'excecao': str(e)}
+
+    # 2. Yahoo DY direto para 1 ticker conhecido (COIN11.SA)
+    try:
+        t0 = time.time()
+        dy = _fetch_dy_yahoo('COIN11.SA')
+        diagnostico['yahoo_dy_COIN11'] = {'valor': dy, 'tempo_s': round(time.time()-t0, 2)}
+    except Exception as e:
+        diagnostico['yahoo_dy_COIN11'] = {'excecao': str(e)}
+
+    # 3. Yahoo preco direto para 1 ticker conhecido
+    try:
+        t0 = time.time()
+        preco = _fetch_preco_yahoo('COIN11.SA')
+        diagnostico['yahoo_preco_COIN11'] = {'valor': preco, 'tempo_s': round(time.time()-t0, 2)}
+    except Exception as e:
+        diagnostico['yahoo_preco_COIN11'] = {'excecao': str(e)}
+
+    # 4. Estado do cache em memoria agora
+    diagnostico['cache_atual'] = {
+        'tem_dados': _cache_etfs_live['dados'] is not None,
+        'idade_s': round(time.time() - _cache_etfs_live['ts'], 1) if _cache_etfs_live['dados'] else None,
+        'qtd_tickers_com_dado': len(_cache_etfs_live['dados']) if _cache_etfs_live['dados'] else 0,
+        'refresh_em_andamento': _dy_refresh_em_andamento['flag'],
+    }
+
     try:
         live = _fetch_etfs_live()
     except Exception as e:
-        return jsonify({'erro': str(e)})
+        return jsonify({'erro_geral': str(e), 'diagnostico': diagnostico})
     faltando = [t for t in sorted(_ETF_TICKERS_TODOS) if t not in live]
     return jsonify({
         'total_universo': len(_ETF_TICKERS_TODOS),
         'total_com_dado': len(live),
         'faltando': faltando,
+        'diagnostico': diagnostico,
     })
 
 def _ler_etfs_estado():
