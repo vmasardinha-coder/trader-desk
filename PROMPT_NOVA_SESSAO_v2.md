@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v20.0 — sessão 03/07/2026)
+# Trader Desk — Prompt de Continuação (v21.0 — sessão 04/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -10,13 +10,14 @@
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento desta sessão (03/07/2026, apos Prioridade 2 fase 1+2 da modularizacao)
-- proxy.py: e2d484afc1d0f76443992a7ac2103d8b0f1e6581
-- static/app.js: dd5b4b2fc1eded93c8439f7e44cca67ab3a309d2
-- templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado nesta sessao)
+## SHAs no fechamento desta sessão (04/07/2026, apos resolver a saga completa do DY de ETFs)
+- proxy.py: b084e32bf33f584b6973abaed8dce171dc8aa1c1
+- static/app.js: 965939f8cdf3ab39bdf6afaba7f92c79d396649c
+- templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado)
 - fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805
-- motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35 (NOVO -- nucleo estatistico)
-- fontes_etfs.py: c21f836de7d50f986309d604f1d46d4e6922c9fc (NOVO -- universo ETFs + scraping/fetch)
+- motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35
+- fontes_etfs.py: 0ac5fc6d851e8c6f7b4cb369d6b459c0785938fd (dedup de celulas, ver secao abaixo)
+- etfs_estado.json: 032ef6d74e38b1569be8c432c721f5d7ee2a2f9e (preco_entrada COIN11/SPYI11 corrigido)
 
 **PRATICA DE BACKUP (pedido explicito do usuario 03/07/2026):** cada arquivo
 tocado tem seu SHA anotado aqui ANTES e DEPOIS de cada edicao. Isso ja
@@ -119,6 +120,25 @@ Plano original (ver secao anterior "Plano de modularizacao aprovado"): 4-5 modul
 - Depois disso, proxy.py vira essencialmente so: app Flask + rotas core de posicoes/analises/montecarlo + imports dos modulos.
 
 **BUG CORRIGIDO NO MEIO DO CAMINHO desta sessao (antes das fases acima)**: apos a Prioridade 1 (fundamentos.json), o usuario reportou varias abas nao carregando. Causa raiz: NAO era a migracao do JSON (essa validou limpa) -- era o worker unico do Render free tier ficando bloqueado pelo bulk de DY do Yahoo (~9s) SOMADO ao scraping do investidor10 (ate 75s no pior caso, 5 paginas x 15s). Corrigido: bulk de DY movido para thread de fundo (`_refresh_dy_yahoo_background`, nao bloqueia a resposta) + timeout dos scrapers reduzido de 15s para 6s por pagina. **PRINCIPIO REFORCADO: o Render free tier so aceita 1 requisicao por vez -- qualquer rota lenta trava TODAS as outras, nao so a propria.**
+
+## SAGA DO DY DE ETFS -- RESOLVIDA DE VERDADE (04/07/2026)
+Historico completo (a v20 registrou o meio do caminho; isto e o desfecho real):
+
+**Descoberta 1 (03/07):** mapeamento por header do investidor10 piorou (pagina tem varias tabelas/thead) -- revertido para indice fixo + trava `_dy_plausivel`.
+
+**Descoberta 2 (03/07):** trava de sanidade escondeu o sintoma mas nao a causa -- ETFs pagadores tambem ficaram sem DY. Solucao adotada: Yahoo (`quoteSummary.summaryDetail.dividendYield`) como fonte primaria de DY, investidor10 como fallback.
+
+**Descoberta 3 (04/07, INICIO DESTA SESSAO):** apos a Prioridade 2 fase 2 (extracao de fontes_etfs.py), a watchlist inteira apareceu com "-" em tudo, mesmo forcando refresh. Causa: `_cache_etfs_live` e `_ETF_CACHE_TTL` foram APAGADOS POR ENGANO no corte -- `_fetch_etfs_live()` lancava `NameError` em toda chamada, escondido pelo `except Exception: live={}` da rota. Corrigido restaurando as 2 linhas. **LICAO CRITICA: boot test (importar modulo + contar rotas) NAO basta -- e preciso CHAMAR as rotas via `app.test_client()` de verdade antes de considerar uma extracao validada.** Isso virou pratica obrigatoria a partir de agora.
+
+**Descoberta 4 (04/07, A CAUSA RAIZ VERDADEIRA):** criei rota de diagnostico `/etfs/live-status` (expõe status HTTP, tempo, linhas parseadas, chamadas Yahoo cruas) porque nao consigo testar rede real do sandbox de dev. Victor rodou em producao e o `primeira_linha_bruta` revelou: o investidor10 duplica CADA CELULA da tabela (`["R$ 437,18","R$ 437,18", "15,27%","15,27%", ...]`) -- provavelmente uma variante responsiva/mobile embutida no mesmo HTML. Isso desalinhava QUALQUER indice fixo desde o primeiro dia: a coluna 5 (esperada = DY) na verdade pegava a segunda copia da Variacao 24m -- exatamente o "BOVA11 com 10000%" original. NAO era header, nao era mapeamento -- era duplicacao de celula.
+
+**FIX FINAL:** `_deduplicar_celulas()` em fontes_etfs.py colapsa pares consecutivos identicos antes de indexar. Validado com o HTML real (via diagnostico) e com mock: IVVB11 (indice, sem dividendo) -> dy=None correto; NDIV11 (pagador) -> dy=9.8% plausivel. Confirmado em producao via segunda rodada do diagnostico: `total_com_dado: 61/61`, linha limpa com 10 elementos.
+
+**Ajuste final de prioridade de fontes:** com investidor10 corrigido e confiavel de novo, Yahoo virou FALLBACK (so preenche lacuna quando investidor10 nao tem o dado), nao mais primario -- descobriu-se que o Yahoo da preco ERRADO para COIN11 (R$39,50 vs R$47,98 real, ~20% de diferenca, provavel ticker `.SA` resolvendo para instrumento errado). Sobrescrever um investidor10 ja correto com um Yahoo as vezes errado seria regressao.
+
+**Dado corrigido:** `etfs_estado.json` tinha `preco_entrada: null` para COIN11 e SPYI11 (comprados em 03/07 quando investidor10 ja estava com o bug). Corrigido com cotacao real confirmada via investidor10 ao vivo (COIN11: R$47,98, SPYI11: R$108,53), autorizado por Victor ("pegue o ultimo preco sem problemas"), mantendo data_entrada original.
+
+**PENDENTE:** investigar por que Yahoo da preco errado para COIN11/SPYI11 especificamente (BDR/wrapper de ETF americano, "high income" com opcoes) -- pode ser resolucao de ticker `.SA` incorreta no Yahoo para esse tipo de fundo. Nao e urgente agora que Yahoo virou so fallback, mas vale entender se aparecer de novo.
 
 ## Backlog atualizado (ordem sugerida para proxima sessao)
 
