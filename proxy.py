@@ -211,23 +211,48 @@ def _requer_auth_escrita(f):
         return f(*args, **kwargs)
     return wrapper
 
-# ── SETORES ───────────────────────────────────────────
-SETORES = {
-    'PETR4.SA': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
-    'VALE3.SA':  {'nome':'Mineracao',    'pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
-    'BBAS3.SA':  {'nome':'Bancos',       'pl_medio':8.0,'pvp_medio':1.2,'roe_min':18},
-    'AXIA3.SA':  {'nome':'Energia Eletrica','pl_medio':12.0,'pvp_medio':1.2,'roe_min':10},
-    'ROXO34.SA': {'nome':'Fintech/BDR',    'pl_medio':40.0,'pvp_medio':5.0,'roe_min':10},
-    'DEFAULT':   {'nome':'Geral',        'pl_medio':12.0,'pvp_medio':2.0,'roe_min':12},
+# ── FUNDAMENTOS (fonte unica: fundamentos.json) ───────
+# Prioridade 1 da modularizacao (03/07/2026): antes existiam 6 copias
+# desses dados espalhadas pelo proxy.py (FUND, SETORES, vol_defaults,
+# FUND_OVERRIDE, SETOR_MAP, FUND_EXTRA, FUND_OVERRIDE_GLOBAL) -- os dois
+# primeiros eram inclusive codigo morto (nunca lidos). Agora tudo vem de
+# fundamentos.json, lido uma vez no startup. Atualizacao trimestral dos
+# fundamentos = 1 commit no JSON, sem tocar em codigo. Fallback embutido
+# minimo garante que o app sobe mesmo se o arquivo faltar/corromper
+# (principio: nenhuma rota depende de fonte externa para devolver 200).
+_FUNDAMENTOS_FALLBACK = {
+    'fund_data_ref': '2026-05-22',
+    'fundamentos': {
+        'PETR4': {'pvp': 1.65, 'dy': 6.42, 'lpa': 8.54, 'vpa': 29.76, 'roe': 22.5, 'pl': 5.8, 'ev_ebitda': 3.2, 'debt_ebitda': 0.8, 'margem': 18.3},
+        'VALE3': {'pvp': 1.93, 'dy': 6.7, 'lpa': 3.51, 'vpa': 43.07, 'roe': 8.2, 'pl': 23.64, 'ev_ebitda': 4.1, 'debt_ebitda': 0.6, 'margem': 22.1},
+    },
+    'dy_extra': {},
+    'setores': {'DEFAULT': {'nome': 'Geral', 'pl_medio': 12.0, 'pvp_medio': 2.0, 'roe_min': 12}},
+    'sem_dy_relevante': ['ROXO34', 'TSLA34', 'BSLV39', 'AMZO34', 'PRIO3', 'ORVR3'],
+    'vol_defaults': {'DEFAULT': 0.35},
 }
 
-FUND = {
-    'PETR4': {'pvp':1.65,'dy':6.42,'lpa':8.54, 'vpa':29.76,'ev_ebitda':3.2, 'roe':22.5,'debt_ebitda':0.8, 'margem':18.3},
-    'VALE3': {'pvp':1.80,'dy':8.50,'lpa':11.20,'vpa':47.30,'ev_ebitda':4.1, 'roe':24.1,'debt_ebitda':0.6, 'margem':22.1},
-    'BBAS3': {'pvp':0.95,'dy':9.80,'lpa':4.20, 'vpa':24.80,'ev_ebitda':None,'roe':19.8,'debt_ebitda':None,'margem':28.5},
-    'AXIA3': {'pvp':0.85,'dy':4.20,'lpa':1.90, 'vpa':12.50,'ev_ebitda':7.5, 'roe':10.0,'debt_ebitda':3.2, 'margem':15.0},
-    'ROXO34':{'pvp':3.50,'dy':0.00,'lpa':0.45, 'vpa':3.60, 'ev_ebitda':None,'roe':8.5, 'debt_ebitda':None,'margem':18.0},
-}
+def _carregar_fundamentos():
+    try:
+        import os as _os_f
+        caminho = _os_f.path.join(_os_f.path.dirname(_os_f.path.abspath(__file__)), 'fundamentos.json')
+        with open(caminho, 'r', encoding='utf-8') as f:
+            dados = json.load(f)
+        # validacao minima de estrutura antes de aceitar
+        if 'fundamentos' in dados and 'setores' in dados:
+            return dados
+    except Exception:
+        pass
+    return _FUNDAMENTOS_FALLBACK
+
+_FUNDX = _carregar_fundamentos()
+FUND_DATA_REF_GLOBAL = _FUNDX.get('fund_data_ref', '2026-05-22')
+FUNDAMENTOS = _FUNDX.get('fundamentos', {})
+SETORES_MAP = _FUNDX.get('setores', {})
+SEM_DY_RELEVANTE = set(_FUNDX.get('sem_dy_relevante', []))
+VOL_DEFAULTS = _FUNDX.get('vol_defaults', {'DEFAULT': 0.35})
+DY_GLOBAL = {t: f.get('dy') for t, f in FUNDAMENTOS.items() if f.get('dy') is not None}
+DY_GLOBAL.update({k: v for k, v in _FUNDX.get('dy_extra', {}).items() if not k.startswith('_')})
 
 # ── CDI ───────────────────────────────────────────────
 def get_cdi():
@@ -2006,8 +2031,7 @@ def run_montecarlo():
             except Exception as e_brapi:
                 debug_brapi = {'exception': str(e_brapi)}
         if not sigma or sigma==0.35:
-            vol_defaults={'AXIA3':0.35,'ROXO34':0.45,'PETR4':0.30,'VALE3':0.32}
-            sigma=vol_defaults.get(ticker.replace('.SA','').upper(),0.35)
+            sigma=VOL_DEFAULTS.get(ticker.replace('.SA','').upper(), VOL_DEFAULTS.get('DEFAULT', 0.35))
         if cl and not data.get('sigma'):
             sigma=vol_hist(cl)
         sigma_hist = sigma  # guarda vol. historica simples antes de qualquer ajuste GARCH
@@ -2235,78 +2259,21 @@ def get_indicators(ticker):
             if candidato != preco_atual:
                 preco_prev = candidato
 
-        # Hardcoded fundamentais
-        # Data de referencia dos fundamentais hardcoded (FUND_OVERRIDE).
-        # Atualizar manualmente a cada revisao trimestral.
-        FUND_DATA_REF = '2026-05-22'
-
-        FUND_OVERRIDE = {
-            # Originais (mantidos)
-            'PETR4': {'pvp':1.65,'dy':6.42,'lpa':8.54,'vpa':29.76,'roe':22.5,'pl':5.8},
-            'VALE3': {'pvp':1.93,'dy':6.70,'lpa':3.51,'vpa':43.07,'roe':8.2,'pl':23.64},
-            'BBAS3': {'pvp':0.95,'dy':9.80,'lpa':4.20,'vpa':24.80,'roe':19.8,'pl':5.2},
-            'AXIA3': {'pvp':1.30,'dy':5.30,'lpa':3.27,'vpa':41.55,'roe':7.9,'pl':16.50},
-            'ROXO34':{'pvp':3.50,'dy':0.00,'lpa':0.45,'vpa':3.60,'roe':8.5,'pl':40.0},
-            # Novos — dados Fundamentus, ref. 22/05/2026 (atualizar periodicamente)
-            'ITUB4': {'pvp':2.18,'dy':8.70,'lpa':4.21,'vpa':18.12,'roe':23.2,'pl':9.36},
-            'BBSE3': {'pvp':5.29,'dy':13.60,'lpa':4.73,'vpa':6.51,'roe':72.7,'pl':7.28},
-            'CXSE3': {'pvp':3.81,'dy':7.50,'lpa':1.46,'vpa':4.59,'roe':31.9,'pl':11.94},
-            'MULT3': {'pvp':2.35,'dy':3.70,'lpa':2.38,'vpa':12.62,'roe':18.9,'pl':12.42},
-            'CYRE3': {'pvp':0.91,'dy':10.80,'lpa':4.33,'vpa':23.25,'roe':18.6,'pl':4.91},
-            'DIRR3': {'pvp':3.13,'dy':17.30,'lpa':1.61,'vpa':4.09,'roe':39.41,'pl':7.96},
-            'CMIN3': {'pvp':3.44,'dy':24.30,'lpa':0.41,'vpa':1.30,'roe':31.5,'pl':10.92},
-            'GGBR4': {'pvp':0.90,'dy':2.90,'lpa':0.83,'vpa':26.58,'roe':3.1,'pl':29.07},
-            'PSSA3': {'pvp':2.05,'dy':6.10,'lpa':5.70,'vpa':24.03,'roe':23.7,'pl':8.63},
-            'SAPR11':{'pvp':1.45,'dy':5.20,'lpa':3.30,'vpa':26.16,'roe':12.6,'pl':11.49},
-            'EUCA4': {'pvp':0.77,'dy':4.60,'lpa':4.42,'vpa':31.80,'roe':13.9,'pl':5.54},
-            # Adicionado 23/06/2026 -- Fundamentus, dado coletado em 13/05/2026
-            # (9 dias antes da FUND_DATA_REF global de 22/05/2026 -- diferenca
-            # pequena, mantida sem ajustar a referencia global por 1 ativo)
-            'PRIO3': {'pvp':2.14,'dy':0.00,'lpa':2.97,'vpa':30.52,'roe':9.7,'pl':22.05},
-            # Adicionado 03/07/2026 -- ORVR3 (Orizon), pesquisa web em 03/07/2026.
-            # ATENCAO: fundamentos incomumente incertos agora por causa da
-            # incorporacao da Vital (aumento de capital ~R$3,31bi + emissao de
-            # 41,2mi novas acoes) -- fontes distintas mostram numeros bem
-            # diferentes entre si (ex: LPA ora positivo ~0,89 ora negativo
-            # -0,87, dependendo se a base trailing-12m inclui trimestres
-            # anteriores a virada de resultado do 1T26). Usados os numeros do
-            # fundamentalista.com.br por baterem exatamente com a faixa de 52
-            # semanas (R$47,03-R$84,90) que Victor ja confirmou de outra fonte
-            # -- indicio de que estao atualizados. LPA negativo faz o Graham
-            # retornar None (formula exige lucro positivo) -- isso e esperado,
-            # nao e bug: reflete que a empresa ainda nao tem lucro trailing
-            # consistente, coerente com a tese "cara no multiplo atual" que
-            # o proprio Victor concluiu na triagem manual dele.
-            'ORVR3': {'pvp':6.33,'dy':0.00,'lpa':-0.87,'vpa':4.97,'roe':-17.44,'pl':-36.28},
-        }
+        # Fundamentais hardcoded -- fonte unica: fundamentos.json (03/07/2026,
+        # Prioridade 1 da modularizacao). Atualizacao trimestral = commit no
+        # JSON, sem tocar em codigo. Notas por ativo (ex: ORVR3 pos-Vital)
+        # vivem no proprio JSON no campo _nota.
+        FUND_DATA_REF = FUND_DATA_REF_GLOBAL
         fundamentais_de_override = False
-        if symbol in FUND_OVERRIDE:
-            for k,v in FUND_OVERRIDE[symbol].items():
+        if symbol in FUNDAMENTOS:
+            for k, v in FUNDAMENTOS[symbol].items():
+                if k.startswith('_'):
+                    continue
                 if v is not None and not fund.get(k):
                     fund[k] = v
                     fundamentais_de_override = True
 
-        SETOR_MAP = {
-            'PETR4': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
-            'VALE3': {'nome':'Mineracao','pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
-            'BBAS3': {'nome':'Bancos','pl_medio':8.0,'pvp_medio':1.2,'roe_min':18},
-            'AXIA3': {'nome':'Energia Eletrica','pl_medio':12.0,'pvp_medio':1.2,'roe_min':10},
-            'ROXO34':{'nome':'Fintech/BDR','pl_medio':40.0,'pvp_medio':5.0,'roe_min':10},
-            'ITUB4': {'nome':'Bancos','pl_medio':8.0,'pvp_medio':1.5,'roe_min':18},
-            'CYRE3': {'nome':'Construcao & Incorporacao','pl_medio':10.0,'pvp_medio':1.3,'roe_min':12},
-            'DIRR3': {'nome':'Construcao & Incorporacao','pl_medio':10.0,'pvp_medio':1.5,'roe_min':15},
-            'MULT3': {'nome':'Shoppings & Locacao','pl_medio':14.0,'pvp_medio':1.5,'roe_min':10},
-            'PSSA3': {'nome':'Seguros','pl_medio':9.0,'pvp_medio':2.0,'roe_min':18},
-            'BBSE3': {'nome':'Seguros','pl_medio':9.0,'pvp_medio':4.0,'roe_min':40},
-            'CXSE3': {'nome':'Seguros','pl_medio':9.0,'pvp_medio':3.0,'roe_min':30},
-            'CMIN3': {'nome':'Mineracao','pl_medio':7.0,'pvp_medio':1.8,'roe_min':15},
-            'EUCA4': {'nome':'Papel & Celulose','pl_medio':10.0,'pvp_medio':1.0,'roe_min':10},
-            'SAPR11':{'nome':'Saneamento','pl_medio':9.0,'pvp_medio':1.3,'roe_min':12},
-            'GGBR4': {'nome':'Siderurgia','pl_medio':8.0,'pvp_medio':1.0,'roe_min':10},
-            'PRIO3': {'nome':'Petroleo & Gas','pl_medio':6.0,'pvp_medio':1.5,'roe_min':15},
-            'ORVR3': {'nome':'Resíduos & Economia Circular','pl_medio':15.0,'pvp_medio':2.5,'roe_min':10},
-        }
-        setor = SETOR_MAP.get(symbol, {'nome':'Geral','pl_medio':12.0,'pvp_medio':2.0,'roe_min':12})
+        setor = SETORES_MAP.get(symbol, SETORES_MAP.get('DEFAULT', {'nome':'Geral','pl_medio':12.0,'pvp_medio':2.0,'roe_min':12}))
 
         closes = hist_closes
         p = float(preco_atual)
@@ -2473,15 +2440,11 @@ def get_indicators(ticker):
                 indicadores.append({'nome':'Bollinger %B','valor':f'{pct_b:.0f}%','sinal':s_b,'explicacao':exp_b})
         except: pass
 
-        # FUNDAMENTAIS EXTRAS hardcoded (atualizar trimestralmente)
-        FUND_EXTRA = {
-            'PETR4': {'ev_ebitda':3.2,'debt_ebitda':0.8,'margem':18.3},
-            'VALE3': {'ev_ebitda':4.1,'debt_ebitda':0.6,'margem':22.1},
-            'BBAS3': {'ev_ebitda':None,'debt_ebitda':None,'margem':28.5},
-            'AXIA3': {'ev_ebitda':7.5,'debt_ebitda':3.2,'margem':15.0},
-            'ROXO34':{'ev_ebitda':None,'debt_ebitda':None,'margem':18.0},
-        }
-        extra = FUND_EXTRA.get(symbol, {})
+        # FUNDAMENTAIS EXTRAS (ev_ebitda/debt_ebitda/margem) -- tambem da
+        # fonte unica fundamentos.json (so os 5 ativos originais tem esses
+        # campos cadastrados; os demais retornam {} e os indicadores extras
+        # simplesmente nao aparecem, comportamento identico ao anterior)
+        extra = FUNDAMENTOS.get(symbol, {})
 
         ev_eb = extra.get('ev_ebitda')
         if ev_eb:
@@ -3753,33 +3716,18 @@ def forcar_migracao_retroativa(analise_id):
 #   retorno_mensal = ganho_pct / meses_restantes
 #   peso_prazo = 1 + (30/dias_restantes) * 0.1   (vantagem leve, giro de capital)
 #   SE dy do papel-base existir e for > 0 (bidirecional/retorno_controlado
-#   com dividendo real cadastrado em FUND_OVERRIDE_GLOBAL):
+#   com dividendo real cadastrado em fundamentos.json):
 #       colchao_vs_cdi = (dy_anual/12) - (cdi_anual/12)
 #       score = (prob_meta/100) * retorno_mensal * peso_prazo
 #               + (0.1 if colchao_vs_cdi > 0 else 0)
 #   SE NAO (BDR/ADR/commodity sem dividendo -- ex. ROXO34/TSLA34/BSLV39/
 #   AMZO34): score = (prob_meta/100) * retorno_mensal * peso_prazo, puro,
 #   sem bonus de colchao (nao tem rede de seguranca de dividendo).
-FUND_OVERRIDE_GLOBAL = {
-    # Mesmos dados do FUND_OVERRIDE usado em /indicators (ref. Fundamentus,
-    # ver FUND_DATA_REF la dentro -- duplicado aqui de proposito para nao
-    # acoplar este endpoint a estrutura interna de outro endpoint.
-    'PETR4': 6.42, 'VALE3': 6.70, 'BBAS3': 9.80, 'AXIA3': 5.30, 'ROXO34': 0.00,
-    'ITUB4': 8.70, 'BBSE3': 13.60, 'CXSE3': 7.50, 'MULT3': 3.70, 'CYRE3': 10.80,
-    'DIRR3': 17.30, 'CMIN3': 24.30, 'GGBR4': 2.90, 'PSSA3': 6.10,
-    'SAPR11': 5.20, 'EUCA4': 4.60, 'PRIO3': 0.00,
-    # Adicionado 25/06/2026 para o lote -- ALOS3 nao estava cadastrado em
-    # nenhum lugar do app ainda. DY coletado via busca web (StatusInvest,
-    # 25/06/2026): 10,27%.
-    'ALOS3': 10.27,
-    # Adicionado 03/07/2026 -- ORVR3 nao paga dividendo (confirmado por
-    # multiplas fontes, DY 0,00%).
-    'ORVR3': 0.00,
-}
-# Tickers sem dividendo relevante (BDRs de empresas/ETFs sem distribuicao,
-# ou commodities) -- mesmo se aparecessem com dy=0.0 cadastrado, marcar
-# explicitamente como "sem DY" para nao confundir com dado ausente.
-_SEM_DY_RELEVANTE = {'ROXO34', 'TSLA34', 'BSLV39', 'AMZO34', 'PRIO3', 'ORVR3'}
+# DY agora vem da fonte unica fundamentos.json (DY_GLOBAL derivado no
+# startup, inclui dy_extra tipo ALOS3). Aliases mantidos para nao mexer
+# no corpo de ranking_analises (03/07/2026, Prioridade 1 modularizacao).
+FUND_OVERRIDE_GLOBAL = DY_GLOBAL
+_SEM_DY_RELEVANTE = SEM_DY_RELEVANTE
 
 @app.route('/analises/ranking', methods=['GET'])
 def ranking_analises():
