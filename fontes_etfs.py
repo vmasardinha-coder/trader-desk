@@ -280,6 +280,59 @@ def _fetch_etfs_dy_yahoo_bulk(etfs, timeout_total=9):
         ex.shutdown(wait=False)
     return resultado
 
+def _fetch_preco_yahoo(yahoo_ticker):
+    """
+    Preco mais recente via Yahoo (v8/finance/chart, range curto, ultimo
+    close). Adicionado 04/07/2026 apos Victor reportar Carteira de ETFs
+    com R$0,00 -- causa raiz: investidor10 vinha falhando para COIN11/
+    SPYI11 desde 03/07/2026 (preco_entrada ja tinha sido salvo como null
+    na epoca da compra), nao era so um problema de timeout de hoje.
+    Mesmo padrao de robustez ja aplicado ao DY: Yahoo como fonte
+    estruturada, investidor10 vira fallback tambem para preco.
+    """
+    for host in ['query1', 'query2']:
+        try:
+            r = requests.get(
+                f'https://{host}.finance.yahoo.com/v8/finance/chart/{yahoo_ticker}?interval=1d&range=5d',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+            if not r.ok:
+                continue
+            d = r.json()
+            result = d['chart']['result'][0]
+            closes = result['indicators']['quote'][0]['close']
+            validos = [c for c in closes if c is not None]
+            if validos:
+                return round(float(validos[-1]), 2)
+        except Exception:
+            continue
+    return None
+
+def _fetch_etfs_preco_yahoo_bulk(etfs, timeout_total=9):
+    """
+    Preco de todos os ETFs via Yahoo em paralelo, mesmo padrao de
+    orcamento de tempo fixo do _fetch_etfs_dy_yahoo_bulk (04/07/2026) --
+    nao bloqueia a resposta, o que nao responder a tempo fica para o
+    proximo ciclo de cache/refresh em background.
+    """
+    resultado = {}
+    ex = ThreadPoolExecutor(max_workers=25)
+    try:
+        futuros = {ex.submit(_fetch_preco_yahoo, _etf_yahoo_ticker(etf)): etf['ticker'] for etf in etfs}
+        prontos, pendentes = _cf_wait(list(futuros.keys()), timeout=timeout_total)
+        for fut in prontos:
+            ticker = futuros[fut]
+            try:
+                preco = fut.result()
+                if preco is not None and preco > 0:
+                    resultado[ticker] = preco
+            except Exception:
+                continue
+    except Exception:
+        pass
+    finally:
+        ex.shutdown(wait=False)
+    return resultado
+
 def _fetch_yahoo_series(ticker, range_hist='1y'):
     """
     Serie (data_str -> close) via Yahoo, para alinhar por data entre varios
