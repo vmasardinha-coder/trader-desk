@@ -3783,9 +3783,10 @@ function etfSubTab(nome, el) {
 
 async function loadETFs(forcar) {
   try {
+    const urlEtfs = '/etfs' + (forcar ? '?forcar=1' : '');
     const [rData, rEstado] = await Promise.all([
-      fetch('/etfs').then(r => r.json()),
-      fetch('/etfs/estado').then(r => r.json())
+      fetch(urlEtfs, {cache: 'no-store'}).then(r => r.json()),
+      fetch('/etfs/estado', {cache: 'no-store'}).then(r => r.json())
     ]);
     _etfData = rData;
     _etfEstado = rEstado || { em_analise: [], carteira: [] };
