@@ -3593,7 +3593,9 @@ def _linha_ranking_base(a):
 # endpoint, ativa de fato). "Foto" tirada no MOMENTO da ativacao (nao
 # retroativa ao historico de compra real, se ja possuido antes -- usuario
 # aceitou essa simplificacao explicitamente).
-_CARTEIRA_FII_STATUS_VALIDOS = ['ativa', 'encerrada']
+# _CARTEIRA_FII_STATUS_VALIDOS movido para rotas_fiis.py em 04/07/2026
+# (Fase 4) -- so a rota mudar_status_carteira_fii usava essa constante,
+# e ela foi para la junto.
 
 # ── RANKING DE FIIs EM ANALISE ─────────────────────────
 # Adicionado 26/06/2026. Usuario pediu secao SEPARADA dentro de "Em
