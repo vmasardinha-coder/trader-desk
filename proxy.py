@@ -6466,7 +6466,7 @@ def _scrape_investidor10_etfs_nacional(paginas):
     for pagina in range(1, paginas + 1):
         try:
             url = f'https://investidor10.com.br/etfs?page={pagina}'
-            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=6)  # era 15s; 5 paginas x 15s = ate 75s segurando o unico worker do Render (03/07/2026)
             if not r.ok:
                 continue
             linhas = _extrair_linhas_tabela(r.text)
@@ -6501,7 +6501,7 @@ def _scrape_investidor10_etfs_americano(paginas):
     for pagina in range(1, paginas + 1):
         try:
             url = f'https://investidor10.com.br/etfs-global/?order=vol&dir=desc&page={pagina}'
-            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=6)  # era 15s, ver nota no scraper nacional (03/07/2026)
             if not r.ok:
                 continue
             linhas = _extrair_linhas_tabela(r.text)
@@ -6591,6 +6591,34 @@ def _fetch_etfs_dy_yahoo_bulk(etfs, timeout_total=9):
         ex.shutdown(wait=False)
     return resultado
 
+_dy_refresh_em_andamento = {'flag': False}
+
+def _refresh_dy_yahoo_background():
+    """
+    Roda o bulk de DY do Yahoo FORA do caminho da requisicao (correcao
+    03/07/2026, segunda rodada): mesmo com orcamento de 9s, o bulk inline
+    segurava o UNICO worker do Render free tier, e enquanto isso TODAS as
+    outras rotas (FIIs, analises, etc.) ficavam na fila -- sintoma
+    reportado pelo usuario: "varias abas nao carregam". Agora a rota
+    /etfs responde imediatamente com o dado do investidor10 (DY ja
+    filtrado por _dy_plausivel) e esta thread daemon atualiza o cache com
+    o DY do Yahoo em background; a proxima carga da aba ja pega o dado
+    melhorado. Flag simples evita threads concorrentes duplicadas.
+    """
+    try:
+        dy_yahoo = _fetch_etfs_dy_yahoo_bulk(ETF_UNIVERSO)
+        dados = _cache_etfs_live.get('dados')
+        if dy_yahoo and dados is not None:
+            for ticker, dy in dy_yahoo.items():
+                if ticker in dados:
+                    dados[ticker]['dy'] = dy
+                else:
+                    dados[ticker] = {'dy': dy}
+    except Exception:
+        pass
+    finally:
+        _dy_refresh_em_andamento['flag'] = False
+
 def _fetch_etfs_live():
     agora = time.time()
     if _cache_etfs_live['dados'] is not None and (agora - _cache_etfs_live['ts']) < _ETF_CACHE_TTL:
@@ -6598,18 +6626,17 @@ def _fetch_etfs_live():
     dados_nacionais = _scrape_investidor10_etfs_nacional(3)
     dados_americanos = _scrape_investidor10_etfs_americano(2)
     live = {**dados_nacionais, **dados_americanos}
-    # DY via Yahoo sobrescreve o do investidor10 quando disponivel -- fonte
-    # estruturada mais confiavel (03/07/2026, ver _fetch_dy_yahoo). Mantem
-    # o valor do investidor10 (ja filtrado por _dy_plausivel) como fallback
-    # para os tickers em que o Yahoo nao retornar dado.
-    dy_yahoo = _fetch_etfs_dy_yahoo_bulk(ETF_UNIVERSO)
-    for ticker, dy in dy_yahoo.items():
-        if ticker in live:
-            live[ticker]['dy'] = dy
-        else:
-            live[ticker] = {'dy': dy}
     _cache_etfs_live['dados'] = live
     _cache_etfs_live['ts'] = agora
+    # DY do Yahoo em background (nao bloqueia a resposta -- ver docstring
+    # de _refresh_dy_yahoo_background)
+    if not _dy_refresh_em_andamento['flag']:
+        _dy_refresh_em_andamento['flag'] = True
+        try:
+            import threading as _th
+            _th.Thread(target=_refresh_dy_yahoo_background, daemon=True).start()
+        except Exception:
+            _dy_refresh_em_andamento['flag'] = False
     return live
 
 @app.route('/etfs', methods=['GET'])
