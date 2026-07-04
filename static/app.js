@@ -3782,6 +3782,10 @@ function etfSubTab(nome, el) {
 }
 
 async function loadETFs(forcar) {
+  const tbody = document.getElementById('etf-tbody');
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);animation:pulse 1.5s infinite">⏳ Carregando ETFs (investidor10 + Yahoo)...</td></tr>';
+  }
   try {
     const urlEtfs = '/etfs' + (forcar ? '?forcar=1' : '');
     const [rData, rEstado] = await Promise.all([
@@ -3794,6 +3798,9 @@ async function loadETFs(forcar) {
     renderEtfTable();
   } catch (e) {
     console.error('Erro ao carregar ETFs', e);
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--red)">Erro ao carregar ETFs. Tenta de novo em alguns segundos.</td></tr>';
+    }
   }
 }
 
@@ -3894,7 +3901,7 @@ function renderEtfTable() {
     } else if (jaEmAnalise.has(d.ticker)) {
       acaoHtml = '<span style="font-size:11px;color:var(--accent)">✓ Em análise</span>';
     } else {
-      acaoHtml = '<button style="font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:600;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'em_analise\')">+ Em Análise</button>';
+      acaoHtml = '<button style="font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:600;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'em_analise\',null,this)">+ Em Análise</button>';
     }
     tr.innerHTML =
       '<td style="font-weight:600">' + d.ticker + (d.pagador ? '<span class="etf-tag-div">div</span>' : '') + '</td>' +
@@ -3955,7 +3962,7 @@ function renderEtfAnaliseTable() {
       '<td style="color:var(--muted)">' + _etfFmtCap(d.cap) + '</td>' +
       '<td style="color:var(--muted)">' + d.risco + '</td>' +
       '<td><span class="etf-tag-score">' + score + '</span></td>' +
-      '<td><button style="font-size:11px;background:var(--accent);border:none;color:#fff;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'carteira\',' + (d.preco || 'null') + ')">OK → Carteira</button></td>';
+      '<td><button style="font-size:11px;background:var(--accent);border:none;color:#fff;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'carteira\',' + (d.preco || 'null') + ',this)">OK → Carteira</button></td>';
     tb.appendChild(tr);
   });
 }
@@ -4105,9 +4112,15 @@ function fecharEtfProjecao() {
   if (_etfCarteiraProjecaoChart) { _etfCarteiraProjecaoChart.destroy(); _etfCarteiraProjecaoChart = null; }
 }
 
-async function moverEtf(ticker, destino, precoEntrada) {
+async function moverEtf(ticker, destino, precoEntrada, btnEl) {
   const token = localStorage.getItem('api_write_token');
   if (!token) { alert('Token de escrita não configurado neste navegador.'); return; }
+  const textoOriginal = btnEl ? btnEl.textContent : null;
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.style.opacity = '.6';
+    btnEl.textContent = '⏳ ...';
+  }
   const body = { ticker, destino };
   if (destino === 'carteira') body.preco_entrada = precoEntrada;
   try {
@@ -4124,5 +4137,11 @@ async function moverEtf(ticker, destino, precoEntrada) {
     if (destino === 'carteira') renderEtfCarteira();
   } catch (e) {
     alert('Erro ao mover ETF: ' + e.message);
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.style.opacity = '1';
+      btnEl.textContent = textoOriginal;
+    }
   }
 }
