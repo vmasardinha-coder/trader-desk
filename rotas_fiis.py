@@ -25,12 +25,15 @@ from flask import request, jsonify
 import re
 import json
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from fontes import (
     scrape_fiis_fundamentus, _classificar_risco_fii, _score_fii,
     scrape_fi_infra, scrape_fi_infra_dados,
     scrape_statusinvest_ultimo_provento, scrape_statusinvest_historico_proventos,
     scrape_statusinvest_tickers_listagem, scrape_statusinvest_fundo_dados,
 )
+
+_CARTEIRA_FII_STATUS_VALIDOS = ['ativa', 'encerrada']
 
 
 def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_auth_escrita):
