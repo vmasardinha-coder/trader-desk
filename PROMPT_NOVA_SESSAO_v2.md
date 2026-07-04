@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v21.0 — sessão 04/07/2026)
+# Trader Desk — Prompt de Continuação (v22.0 — FECHAMENTO sessão 04/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -10,14 +10,15 @@
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento desta sessão (04/07/2026, apos resolver a saga completa do DY de ETFs)
-- proxy.py: b084e32bf33f584b6973abaed8dce171dc8aa1c1
-- static/app.js: 965939f8cdf3ab39bdf6afaba7f92c79d396649c
+## SHAs no fechamento REAL desta sessão (04/07/2026, todos validados no ar pelo usuario)
+- proxy.py: 9cd1e9747dbb50e0f5ae7b5d961a2d3a15bf9324
+- static/app.js: a0cf5cb2d6b02a48e89caab0759b1910508c1674
 - templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado)
 - fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805
 - motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35
-- fontes_etfs.py: 0ac5fc6d851e8c6f7b4cb369d6b459c0785938fd (dedup de celulas, ver secao abaixo)
+- fontes_etfs.py: 256cf7da182e82aea6b982e544b12960a20614fe (dedup de celulas + escala de risco invertida)
 - etfs_estado.json: 032ef6d74e38b1569be8c432c721f5d7ee2a2f9e (preco_entrada COIN11/SPYI11 corrigido)
+- static/style.css: 61ef8928448b18e1582aff710da2cbc4a5992d01 (inalterado)
 
 **PRATICA DE BACKUP (pedido explicito do usuario 03/07/2026):** cada arquivo
 tocado tem seu SHA anotado aqui ANTES e DEPOIS de cada edicao. Isso ja
@@ -139,6 +140,30 @@ Historico completo (a v20 registrou o meio do caminho; isto e o desfecho real):
 **Dado corrigido:** `etfs_estado.json` tinha `preco_entrada: null` para COIN11 e SPYI11 (comprados em 03/07 quando investidor10 ja estava com o bug). Corrigido com cotacao real confirmada via investidor10 ao vivo (COIN11: R$47,98, SPYI11: R$108,53), autorizado por Victor ("pegue o ultimo preco sem problemas"), mantendo data_entrada original.
 
 **PENDENTE:** investigar por que Yahoo da preco errado para COIN11/SPYI11 especificamente (BDR/wrapper de ETF americano, "high income" com opcoes) -- pode ser resolucao de ticker `.SA` incorreta no Yahoo para esse tipo de fundo. Nao e urgente agora que Yahoo virou so fallback, mas vale entender se aparecer de novo.
+
+## FECHAMENTO DA SESSAO 04/07/2026 -- recapitulacao final
+
+**Tudo abaixo foi validado pelo usuario no ar (nao so no sandbox):**
+
+1. Watchlist de ETFs: DY/preco/var/cap corretos depois do fix de deduplicacao de celula.
+2. Escala de risco invertida (1=minimo, 10=maximo -- era o contrario, Cripto aparecia como 1). Rotulos dos filtros (`ETF_RISCO_LABEL`) corrigidos junto.
+3. Botao "Atualizar" nao trava mais em 502 -- `forcar=1` agora so dispara refresh em background e devolve o cache na hora, nunca bloqueia a resposta.
+4. Loading states adicionados na tabela de ETFs (ficava em branco enquanto carregava a primeira vez) e nos botoes "+ Em Analise"/"OK -> Carteira" (ficam desabilitados com "⏳ ..." durante o POST). FIIs ja tinha isso desde antes, nao precisou mexer.
+5. Carteira de ETFs: preco_entrada de COIN11/SPYI11 corrigido (estava null por causa do bug do investidor10 no dia da compra) -- usado preco real confirmado via investidor10 ao vivo.
+6. Prioridade 2 da modularizacao: fases 1 (`motor.py`) e 2 (`fontes_etfs.py`) concluidas e validadas. proxy.py caiu de 6.940 para ~6.500 linhas.
+
+**Bug mais serio da sessao (referencia rapida caso precise depurar algo parecido no futuro):** a extracao do fontes_etfs.py apagou sem querer `_cache_etfs_live`/`_ETF_CACHE_TTL`, causando `NameError` silencioso em toda chamada de `_fetch_etfs_live()` (escondido pelo `except Exception: live={}`). So foi descoberto rodando `app.test_client()` de verdade contra a rota -- boot test (importar + contar rotas) NAO pega esse tipo de erro. **Regra permanente a partir de agora: toda extracao/refatoracao de rota precisa ser testada com `app.test_client()` batendo nas rotas afetadas, alem do boot test.**
+
+**Praticas consolidadas nesta sessao (usar sempre daqui pra frente):**
+- SHA antes E depois de cada edicao, anotado no raciocinio (backup implicito via git history).
+- Validacao em 2 camadas: boot test (importa modulo) + `app.test_client()` batendo nas rotas de verdade.
+- Rede real (investidor10/Yahoo/Render) so pode ser testada em producao -- quando precisar diagnosticar algo que depende de rede, criar uma rota de diagnostico temporaria (como `/etfs/live-status`) em vez de tentar adivinhar do sandbox.
+- Ao achar um bug de dado (ex: DY errado), sempre considerar a hipotese "duplicacao/estrutura do HTML mudou" antes de "mapeamento de coluna errado" -- a segunda parece mais obvia mas nem sempre e a causa real.
+
+**Proxima sessao, ordem sugerida:**
+1. Validar mais uma vez a Watchlist/Em Analise/Carteira de ETFs com uso normal (sem forcar nada), confirmar que loading states aparecem bem.
+2. Se tudo OK, seguir a Prioridade 2 -- Fase 3 (`fontes.py` geral: Yahoo fundamentals, Bacen/CDI, scrapers de FIIs) ou pular direto pra Fase 4/5 (rotas_fiis.py/rotas_etfs.py) se preferir ver o proxy.py enxugar mais rapido.
+3. Backlog de medio prazo (sem urgencia): investigar por que Yahoo erra preco do COIN11/SPYI11; considerar adicionar confirmacao antes do "Tirar Foto de Todos" (reseta historico sem avisar); revisar se algum outro FII/papel tem tese pendente tipo ORVR3.
 
 ## Backlog atualizado (ordem sugerida para proxima sessao)
 
