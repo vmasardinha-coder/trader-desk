@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v18.0 — sessão 02/07/2026)
+# Trader Desk — Prompt de Continuação (v19.0 — sessão 03/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -10,10 +10,11 @@
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento desta sessão (02/07/2026, apos aba ETFs completa e validada)
-- proxy.py: a0187da9623df1ae29380c71a8125662b530fb99
-- static/app.js: fb7387f7691621903c51846d6847887964244aac
-- templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a
+## SHAs no fechamento desta sessão (03/07/2026, apos Carteira ETFs interativa + fonte unica de fundamentos)
+- proxy.py: 12eb08764e37aafdc7bf225d17ababf66d85466b
+- static/app.js: dd5b4b2fc1eded93c8439f7e44cca67ab3a309d2
+- templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado nesta sessao)
+- fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805 (NOVO -- fonte unica de fundamentos, ver sessao 03/07)
 - static/style.css: 61ef8928448b18e1582aff710da2cbc4a5992d01
 - requirements.txt: 149f508144c7f8dfb852f83af4b8325711e29ff3 (SEM beautifulsoup4 -- nao adicionar de novo, ver licao critica no item 4)
 - positions.json: c462e0a7b4d666e0c3f6b6e165f7df767d4a23ed (7 posições ativas, 4 encerradas)
@@ -52,6 +53,41 @@ Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3
 - **LIMPEZA CONCLUIDA: as 8 antigas (sem foto, sem sufixo) foram rejeitadas pelo usuario no ranking (status alterado, mantidas em historico).**
 - BBSE3: nenhuma linha do lote bateu o corte de 2%/mes (melhor delas: 1,31%/mes), mas usuario pediu como EXCECAO por interesse em dividendo — mostradas separadamente, usuario aplicou os mesmos filtros de protecao minima por conta propria depois.
 
+## Itens CONCLUIDOS nesta sessao (03/07/2026)
+
+### 1. Carteira de ETFs interativa (era pendencia tecnica da v18)
+- **Card de resumo agregado** no topo: total investido, valor atual, retorno %, e volatilidade da carteira com CORRELACAO REAL (matriz de covariancia dos retornos historicos alinhados por data entre os ETFs, ponderada por valor) -- decisao explicita do usuario: "realista", nao soma simples. Mostra tambem quanto a diversificacao esta descontando vs cenario 100% correlacionado.
+- **Cards individuais clicaveis** -> painel com fan chart de projecao GARCH (bandas p10-p90, periodos 21/60/90/180d), mesmo padrao visual da Foto do Papel, SEM meta/barreira (ETF e buy-and-hold).
+- Rotas novas: `GET /etfs/carteira/resumo` e `GET /etfs/carteira/<ticker>/projecao`.
+- **LIMITACAO ACEITA PELO USUARIO**: nao ha campo de quantidade de cotas em etfs_estado.json -- peso assume 1 cota por posicao. Usuario confirmou que esta ok por enquanto ("como referencia"); se um dia quiser peso real, adicionar campo `quantidade` em /etfs/mover + resumo.
+- Botoes "+ Em Analise" e "OK -> Carteira" estilizados (estavam brancos, sem CSS).
+
+### 2. Saga do DY dos ETFs (bug reportado: BOVA11 com 10000%/3300%)
+Historico completo da investigacao (importante pra nao repetir caminhos que falharam):
+- (a) Primeira tentativa: mapear colunas da tabela do investidor10 pelo NOME do header (<th>) em vez de indice fixo -- **PIOROU** (pagina tem mais de um thead/tabela, header lido nao correspondia as linhas). Revertido.
+- (b) Segunda camada: `_dy_plausivel` (trava de sanidade, DY fora de [0,100] vira None) -- parou de mostrar lixo, mas ETFs pagadores tambem ficaram sem DY, confirmando que o indice fixo tambem estava errado.
+- (c) **SOLUCAO FINAL**: DY via Yahoo Finance (`quoteSummary/summaryDetail.dividendYield`, JSON estruturado, mesmo dominio ja usado pra preco/historico) em `_fetch_dy_yahoo` + `_fetch_etfs_dy_yahoo_bulk`. Elimina a classe de bug por completo (nao depende de coluna). Investidor10 vira fallback.
+- **BUG CRITICO NO MEIO DO CAMINHO**: primeira versao do bulk usou `with ThreadPoolExecutor` + `ex.map` -- o `with` espera TODAS as ~61 threads terminarem, estourou o timeout do Render e derrubou `/etfs` com 502. Corrigido com ORCAMENTO DE TEMPO FIXO (~9s) via `concurrent.futures.wait` + `shutdown(wait=False)`: o que responder a tempo entra, o resto e descartado sem travar (cache de 15min tenta de novo depois). **PRINCIPIO FORMALIZADO: nenhuma rota pode depender de fonte externa responder pra devolver 200 -- sempre orcamento de tempo + fallback degradado.**
+- **PENDENTE DE VALIDACAO pelo usuario**: conferir DY de BOVA11/WRLD/NDIV11 apos deploy.
+
+### 3. ORVR3 incorporada ao sistema
+- Watchlist de Papeis: novo segmento "Residuos & Economia Circular" com ORVR3 (app.js, array WATCHLIST).
+- Padronizada nos metodos de precificacao: fundamentos completos + setor cadastrados (agora em fundamentos.json). LPA negativo -> Graham None (esperado). Detalhes da triagem/regua de reentrada: ver backlog de medio prazo.
+
+### 4. PRIORIDADE 1 DA MODULARIZACAO EXECUTADA: fundamentos.json como fonte unica
+- Analise de arquitetura feita nesta sessao (metricas reais): proxy.py 6.964 linhas/54 rotas, app.js 4.127 linhas/130 funcoes, fundamentos duplicados em 6 lugares, maiores funcoes com 400-500 linhas.
+- Extraidos TODOS os fundamentos hardcoded para `fundamentos.json` (raiz do repo): fundamentos por ativo (18 ativos, incl. ev_ebitda/debt_ebitda/margem dos 5 originais), setores (18+DEFAULT), dy_extra (ALOS3), sem_dy_relevante, vol_defaults, fund_data_ref.
+- proxy.py le o JSON no startup (`_carregar_fundamentos`, com fallback embutido minimo se arquivo faltar -- app nunca deixa de subir por causa disso). Removidos: FUND e SETORES do topo (eram CODIGO MORTO, nunca lidos), vol_defaults inline, FUND_OVERRIDE, SETOR_MAP, FUND_EXTRA (dentro de get_indicators), FUND_OVERRIDE_GLOBAL/_SEM_DY_RELEVANTE (viraram aliases de DY_GLOBAL/SEM_DY_RELEVANTE derivados do JSON).
+- Validacao: espot-check completo dos 18 ativos campo a campo contra os valores antigos (zero divergencia) + execucao real do loader + checagem de rotas duplicadas.
+- **ATUALIZACAO TRIMESTRAL DE FUNDAMENTOS AGORA = 1 COMMIT NO fundamentos.json** (Claude pode fazer via Contents API sem tocar em codigo).
+
+## Plano de modularizacao aprovado (03/07/2026) -- executar em fases, uma por sessao
+Analise completa de engenharia feita e aprovada pelo usuario. Ordem de retorno sobre esforco:
+1. ~~**Prioridade 1** -- dados fora do codigo (fundamentos.json)~~ **EXECUTADA 03/07/2026** (ver acima). **PENDENTE VALIDACAO NO AR** (usuario testar aba Papeis/indicadores apos deploy).
+2. **Prioridade 2** -- modularizar proxy.py em 4-5 arquivos: `motor.py` (GARCH/Monte Carlo/Graham-Bazin, nucleo fechado), `fontes.py` (24 fetches Yahoo + Bacen + scrapers), `rotas_etfs.py`, `rotas_fiis.py`, proxy.py so app+rotas core. UM MODULO POR SESSAO, validando no ar antes do proximo (licao beautifulsoup4). Pre-requisito para multi-usuario futuro.
+3. **Prioridade 3** -- layout profissional sem framework: (a) agrupar 10 abas em 3 familias (Mercado / Minha Operacao / Agenda) com navegacao de 2 niveis (padrao dos subtabs de ETFs ja existente); (b) unificar linguagem visual dos cards (30-40 linhas de classes CSS reutilizaveis: .card, .card-titulo, .badge-pct); (c) header fixo com resumo do dia (IBOV, dolar, SELIC, P&L das posicoes).
+4. **NAO fazer** (decisao registrada): React/Vue (reescrita, ganho marginal p/ 1 usuario), banco de dados (GitHub-as-storage e auditavel por design), TypeScript, testes formais. Multi-usuario depende da Prioridade 2 primeiro.
+
 ## Backlog atualizado (ordem sugerida para proxima sessao)
 
 1. ~~Token GitHub fine-grained no Render~~ **VARIAVEIS CONFIGURADAS 02/07/2026** (token `trader-desk-render-write`, gerado no GitHub, validade ate 02/07/2027, escopo so trader-desk, Contents R/W). Usuario colou o MESMO token novo em `GITHUB_TOKEN` e `GITHUB_WRITE_TOKEN` no Render (sao 2 variaveis distintas no codigo -- `GITHUB_TOKEN`+`GITHUB_REPO` usados em `_read_fotos`/`_write_fotos` para `fotos_papel.json`; `GITHUB_WRITE_TOKEN` usado em `_github_get_file`/`_github_put_file`/`_github_criar_arquivo` para `analises.json`/`positions.json`/`carteira_fiis.json`). `API_WRITE_TOKEN` nao foi mexido (proposito diferente -- autentica o usuario, nao o GitHub). **PENDENTE DE VALIDACAO REAL**: usuario prefere confirmar organicamente na proxima vez que usar o app (tirar uma foto em Papeis ou registrar/editar algo em Em Analise) em vez de forcar um teste agora. Se aparecer erro tipo "GITHUB_TOKEN nao configurado" ou falha ao salvar, meio caminho andado ja sabemos onde olhar.
@@ -86,7 +122,7 @@ Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3
 - Encerradas para FIIs (comportamento ainda nao definido)
 - Visao multi-usuario (so se virar produto)
 - Renda fixa (so registro, sem acao por enquanto)
-- Analisar a empresa ORVR3 (pedido do usuario 02/07/2026, sem contexto/motivo especificado ainda -- perguntar o que despertou o interesse quando for pauta)
+- ~~Analisar ORVR3~~ **TRIADO EM 03/07/2026 pelo proprio usuario** (dados puxados por ele): tese de crescimento/assimetria (residuos, biometano, creditos de carbono, incorporacao Vital), NAO e papel de renda (DY 0). Decisao: RADAR, nao comprar agora. Zona de reentrada definida por ele: correcao pra R$70-72 OU proximo resultado confirmando aceleracao do EBITDA proforma pos-Vital. Acima de R$79 nao corre atras. Posicao satelite se entrar. ORVR3 ja esta na watchlist de Papeis (segmento Residuos & Economia Circular) e padronizada nos metodos de precificacao (fundamentos.json) -- ATENCAO: LPA negativo (-0,87) faz Graham retornar None, esperado e nao bug (fundamentos incertos pos-incorporacao Vital, fontes divergem).
 
 
 
@@ -99,7 +135,7 @@ Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3
 | a3b | AXIA3(B) | bidirecional | europeia | 02/10/2026 | entry ~50,65 |
 | bb | BBAS3 | retorno_controlado | europeia | 20/08/2026 | meta 2,25% |
 | bslv39 | BSLV39 | retorno_controlado | europeia | — | vol_impl=null, historico insuficiente no Yahoo |
-| rx2 | ROXO34 (ROXOI107) | simples (call vendida, rolagem) | EUROPEIA | 17/09/2026 | meta 2,44%, rolagem defensiva pos-fracasso, "seca" |
+| rx | ROXO34 (ROXOI107) | simples (call vendida, rolagem) | EUROPEIA | 17/09/2026 | meta 2,44%, rolagem defensiva pos-fracasso, "seca" -- id SEMPRE `rx` (logica hardcoded no app.js) |
 
 ## Encerradas relevantes recentes
 - ROXO34 (ROXOG105, strike R$10,50): status "fracasso" — estourou a barreira, opcao era AMERICANA.
@@ -107,7 +143,7 @@ Usuario trouxe planilha "Index/Fixing/Strike/KO/Delta" (159 linhas, ativos ALOS3
 ## Principios tecnicos ja estabelecidos (nao re-abrir sem novo contexto)
 - GARCH(1,1) grid search = MLE continuo em todos os testes — nao vale refinar.
 - Heston inviavel sem book de opcoes pago. Jump-Diffusion: estudo futuro, baixa prioridade.
-- Fundamentais hardcoded (`FUND_DATA_REF`): ref. 22/05/2026, aviso automatico apos 90 dias.
+- Fundamentais em `fundamentos.json` (fonte UNICA desde 03/07/2026, antes eram 6 copias no proxy.py): ref. 22/05/2026 (`fund_data_ref` no JSON), aviso automatico apos 90 dias. Atualizacao trimestral = 1 commit no JSON, sem tocar em codigo.
 - Fase A (chat, numeros ainda abertos) vs Fase B ("tirar a foto", 4 numeros fechados: ticker/prazo/strike-range/premio) — sempre questionar se algum numero parecer em aberto antes de registrar.
 - PDFs de propostas reais do banco: numeros sao premissa fixa, nunca recalcular/escalar — so o vencimento e reprojetado a partir de hoje.
 - Regua de bidirecionais novas (a partir de 22/06/2026): teto >= ~1%/mes proporcional ao prazo.
