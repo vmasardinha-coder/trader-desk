@@ -107,6 +107,33 @@ def _parse_num_br(txt):
     except Exception:
         return None
 
+def _deduplicar_celulas(textos):
+    """
+    04/07/2026: Victor rodou o diagnostico /etfs/live-status em producao
+    e revelou a causa raiz REAL do "DY absurdo" desde o inicio -- nao era
+    mapeamento de coluna nem header duplo, era CELULA duplicada: o
+    investidor10 esta renderizando cada <td> duas vezes seguidas na
+    mesma linha (['R$ 437,18','R$ 437,18', '15,27%','15,27%', ...]),
+    provavelmente uma versao responsiva/mobile duplicada no mesmo HTML.
+    Isso desalinhava QUALQUER indice fixo: a coluna 5 (onde eu esperava
+    DY) na verdade pegava a segunda copia da Variacao 24m, que pode ser
+    um numero grande de verdade para fundos alavancados -- exatamente o
+    "BOVA11 com 10000%" que Victor reportou. Colapsa pares consecutivos
+    idênticos (preserva o texto do ticker/nome na posicao 0 sempre).
+    """
+    if len(textos) < 2:
+        return textos
+    out = [textos[0]]
+    i = 1
+    while i < len(textos):
+        if i + 1 < len(textos) and textos[i] == textos[i + 1]:
+            out.append(textos[i])
+            i += 2
+        else:
+            out.append(textos[i])
+            i += 1
+    return out
+
 def _extrair_linhas_tabela(html_txt):
     linhas_out = []
     linhas_raw = re.findall(r'<tr[^>]*>(.*?)</tr>', html_txt, re.S)
@@ -120,7 +147,7 @@ def _extrair_linhas_tabela(html_txt):
             limpo = _html_mod.unescape(limpo)
             limpo = re.sub(r'\s+', ' ', limpo).strip()
             textos.append(limpo)
-        linhas_out.append(textos)
+        linhas_out.append(_deduplicar_celulas(textos))
     return linhas_out
 
 def _dy_plausivel(v):
