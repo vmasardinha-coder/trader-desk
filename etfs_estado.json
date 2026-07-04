@@ -1,6 +1,5 @@
 {
   "em_analise": [
-    "QQQI11",
     "DIVD11",
     "NDIV11"
   ],
@@ -14,6 +13,11 @@
       "ticker": "SPYI11",
       "preco_entrada": 108.53,
       "data_entrada": "2026-07-03"
+    },
+    {
+      "ticker": "QQQI11",
+      "preco_entrada": 97.59,
+      "data_entrada": "2026-07-04"
     }
   ]
 }
