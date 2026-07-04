@@ -6176,36 +6176,49 @@ _ETF_CACHE_TTL = 900
 
 _dy_refresh_em_andamento = {'flag': False}
 
-def _refresh_dy_yahoo_background():
+# _refresh_dy_yahoo_background (so DY+preco) substituida por
+# _refresh_completo_background (investidor10 paralelo + DY + preco) em
+# 04/07/2026, ver docstring dela abaixo.
+
+def _refresh_completo_background():
     """
-    Roda o bulk de DY do Yahoo FORA do caminho da requisicao (correcao
-    03/07/2026, segunda rodada): mesmo com orcamento de 9s, o bulk inline
-    segurava o UNICO worker do Render free tier, e enquanto isso TODAS as
-    outras rotas (FIIs, analises, etc.) ficavam na fila -- sintoma
-    reportado pelo usuario: "varias abas nao carregam". Agora a rota
-    /etfs responde imediatamente com o dado do investidor10 (DY ja
-    filtrado por _dy_plausivel) e esta thread daemon atualiza o cache com
-    o DY do Yahoo em background; a proxima carga da aba ja pega o dado
-    melhorado. Flag simples evita threads concorrentes duplicadas.
-
-    04/07/2026: tambem busca PRECO via Yahoo em background (mesmo
-    padrao) -- Victor reportou Carteira de ETFs com R$0,00 porque
-    investidor10 vinha falhando para COIN11/SPYI11 desde 03/07 (nao so
-    um problema de timeout: o preco_entrada ja tinha sido salvo como
-    null na hora da compra, porque o investidor10 ja estava vazio
-    naquele momento). Yahoo vira fonte extra de preco tambem, nao so DY.
-
-    04/07/2026 (2a correcao no mesmo dia): a causa raiz do investidor10
-    "falhando" era a duplicacao de celulas na tabela (ver
-    _deduplicar_celulas em fontes_etfs.py) -- ja corrigida. Com isso,
-    investidor10 volta a ser a fonte PRIMARIA confiavel (foi confirmado
-    via /etfs/live-status em producao). Yahoo agora so PREENCHE LACUNA
-    (quando investidor10 nao tem o dado), nao sobrescreve mais um DY que
-    o investidor10 ja acertou -- descobri que o Yahoo da preco errado
-    para COIN11 (R$39,50 vs R$47,98 real, ~20% de diferenca), entao
-    confiar nele por cima do investidor10 já correto seria regressao.
+    Atualiza TUDO em background (investidor10 nacional+americano em
+    paralelo + Yahoo DY/preco) -- usado tanto pelo refresh periodico
+    quanto pelo botao "Atualizar" (forcar=1). NUNCA roda no caminho da
+    requisicao: correcao 04/07/2026 apos o botao Atualizar causar 502 de
+    novo -- forcar=True ainda rodava o scrape do investidor10 de forma
+    SINCRONA (5 paginas x 6s = ate 30s bloqueando o unico worker do
+    Render). Agora forcar so dispara esta thread e devolve o cache atual
+    na hora, nunca espera nada.
     """
     try:
+        ex = ThreadPoolExecutor(max_workers=2)
+        try:
+            fut_nac = ex.submit(_scrape_investidor10_etfs_nacional, 3)
+            fut_ame = ex.submit(_scrape_investidor10_etfs_americano, 2)
+            prontos, pendentes = _cf_wait([fut_nac, fut_ame], timeout=20)
+            live_novo = {}
+            for fut in prontos:
+                try:
+                    live_novo.update(fut.result())
+                except Exception:
+                    continue
+        finally:
+            ex.shutdown(wait=False)
+
+        anterior = _cache_etfs_live.get('dados') or {}
+        for ticker, d_ant in anterior.items():
+            if ticker not in live_novo:
+                live_novo[ticker] = d_ant
+            else:
+                if live_novo[ticker].get('preco') is None and d_ant.get('preco') is not None:
+                    live_novo[ticker]['preco'] = d_ant['preco']
+                if live_novo[ticker].get('dy') is None and d_ant.get('dy') is not None:
+                    live_novo[ticker]['dy'] = d_ant['dy']
+        if live_novo:
+            _cache_etfs_live['dados'] = live_novo
+            _cache_etfs_live['ts'] = time.time()
+
         dy_yahoo = _fetch_etfs_dy_yahoo_bulk(ETF_UNIVERSO)
         preco_yahoo = _fetch_etfs_preco_yahoo_bulk(ETF_UNIVERSO)
         dados = _cache_etfs_live.get('dados')
@@ -6227,40 +6240,50 @@ def _refresh_dy_yahoo_background():
     finally:
         _dy_refresh_em_andamento['flag'] = False
 
+def _disparar_refresh_background():
+    if _dy_refresh_em_andamento['flag']:
+        return
+    _dy_refresh_em_andamento['flag'] = True
+    try:
+        import threading as _th
+        _th.Thread(target=_refresh_completo_background, daemon=True).start()
+    except Exception:
+        _dy_refresh_em_andamento['flag'] = False
+
 def _fetch_etfs_live(forcar=False):
     agora = time.time()
-    # forcar=True (botao "Atualizar" do usuario, 04/07/2026): ignora o TTL
-    # e forca um re-scrape do investidor10 na hora, alem de disparar o
-    # refresh do Yahoo em background de novo. NAO faz o bulk do Yahoo de
-    # forma sincrona aqui -- isso reintroduziria o risco de travar o
-    # worker unico do Render (mesmo bug do 502 corrigido mais cedo).
-    if not forcar and _cache_etfs_live['dados'] is not None and (agora - _cache_etfs_live['ts']) < _ETF_CACHE_TTL:
+    tem_cache = _cache_etfs_live['dados'] is not None
+
+    if not forcar and tem_cache and (agora - _cache_etfs_live['ts']) < _ETF_CACHE_TTL:
         return _cache_etfs_live['dados']
-    dados_nacionais = _scrape_investidor10_etfs_nacional(3)
-    dados_americanos = _scrape_investidor10_etfs_americano(2)
-    live = {**dados_nacionais, **dados_americanos}
-    # Preserva preco/dy do Yahoo que ja estavam no cache anterior, caso o
-    # investidor10 volte vazio de novo para algum ticker (04/07/2026)
-    anterior = _cache_etfs_live.get('dados') or {}
-    for ticker, d_ant in anterior.items():
-        if ticker not in live:
-            live[ticker] = d_ant
-        else:
-            if live[ticker].get('preco') is None and d_ant.get('preco') is not None:
-                live[ticker]['preco'] = d_ant['preco']
-            if live[ticker].get('dy') is None and d_ant.get('dy') is not None:
-                live[ticker]['dy'] = d_ant['dy']
+
+    if forcar and tem_cache:
+        # NUNCA bloqueia: so dispara o refresh completo em background e
+        # devolve o cache atual (levemente desatualizado, mas instantaneo)
+        _disparar_refresh_background()
+        return _cache_etfs_live['dados']
+
+    # Cache frio (primeiro load desde o deploy): faz UM scrape com
+    # orcamento de tempo limitado (paralelo, nacional+americano ao mesmo
+    # tempo, ~20s no pior caso em vez de ~30s sequencial), pra nao devolver
+    # tela vazia no primeiro acesso. Ciclos seguintes usam o cache.
+    ex = ThreadPoolExecutor(max_workers=2)
+    try:
+        fut_nac = ex.submit(_scrape_investidor10_etfs_nacional, 3)
+        fut_ame = ex.submit(_scrape_investidor10_etfs_americano, 2)
+        prontos, pendentes = _cf_wait([fut_nac, fut_ame], timeout=20)
+        live = {}
+        for fut in prontos:
+            try:
+                live.update(fut.result())
+            except Exception:
+                continue
+    finally:
+        ex.shutdown(wait=False)
+
     _cache_etfs_live['dados'] = live
     _cache_etfs_live['ts'] = agora
-    # DY + preco do Yahoo em background (nao bloqueia a resposta -- ver
-    # docstring de _refresh_dy_yahoo_background)
-    if not _dy_refresh_em_andamento['flag']:
-        _dy_refresh_em_andamento['flag'] = True
-        try:
-            import threading as _th
-            _th.Thread(target=_refresh_dy_yahoo_background, daemon=True).start()
-        except Exception:
-            _dy_refresh_em_andamento['flag'] = False
+    _disparar_refresh_background()
     return live
 
 @app.route('/etfs', methods=['GET'])
