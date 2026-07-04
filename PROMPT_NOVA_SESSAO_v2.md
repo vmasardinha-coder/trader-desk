@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v19.0 — sessão 03/07/2026)
+# Trader Desk — Prompt de Continuação (v20.0 — sessão 03/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -10,11 +10,19 @@
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento desta sessão (03/07/2026, apos Carteira ETFs interativa + fonte unica de fundamentos)
-- proxy.py: 12eb08764e37aafdc7bf225d17ababf66d85466b
+## SHAs no fechamento desta sessão (03/07/2026, apos Prioridade 2 fase 1+2 da modularizacao)
+- proxy.py: e2d484afc1d0f76443992a7ac2103d8b0f1e6581
 - static/app.js: dd5b4b2fc1eded93c8439f7e44cca67ab3a309d2
 - templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado nesta sessao)
-- fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805 (NOVO -- fonte unica de fundamentos, ver sessao 03/07)
+- fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805
+- motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35 (NOVO -- nucleo estatistico)
+- fontes_etfs.py: c21f836de7d50f986309d604f1d46d4e6922c9fc (NOVO -- universo ETFs + scraping/fetch)
+
+**PRATICA DE BACKUP (pedido explicito do usuario 03/07/2026):** cada arquivo
+tocado tem seu SHA anotado aqui ANTES e DEPOIS de cada edicao. Isso ja
+funciona como backup completo -- reverter e so fazer PUT com o conteudo
+do SHA anterior. Sempre guardar o SHA de "antes" no raciocinio da sessao,
+nao so o de "depois", para rollback ser trivial se algo quebrar.
 - static/style.css: 61ef8928448b18e1582aff710da2cbc4a5992d01
 - requirements.txt: 149f508144c7f8dfb852f83af4b8325711e29ff3 (SEM beautifulsoup4 -- nao adicionar de novo, ver licao critica no item 4)
 - positions.json: c462e0a7b4d666e0c3f6b6e165f7df767d4a23ed (7 posições ativas, 4 encerradas)
@@ -87,6 +95,30 @@ Analise completa de engenharia feita e aprovada pelo usuario. Ordem de retorno s
 2. **Prioridade 2** -- modularizar proxy.py em 4-5 arquivos: `motor.py` (GARCH/Monte Carlo/Graham-Bazin, nucleo fechado), `fontes.py` (24 fetches Yahoo + Bacen + scrapers), `rotas_etfs.py`, `rotas_fiis.py`, proxy.py so app+rotas core. UM MODULO POR SESSAO, validando no ar antes do proximo (licao beautifulsoup4). Pre-requisito para multi-usuario futuro.
 3. **Prioridade 3** -- layout profissional sem framework: (a) agrupar 10 abas em 3 familias (Mercado / Minha Operacao / Agenda) com navegacao de 2 niveis (padrao dos subtabs de ETFs ja existente); (b) unificar linguagem visual dos cards (30-40 linhas de classes CSS reutilizaveis: .card, .card-titulo, .badge-pct); (c) header fixo com resumo do dia (IBOV, dolar, SELIC, P&L das posicoes).
 4. **NAO fazer** (decisao registrada): React/Vue (reescrita, ganho marginal p/ 1 usuario), banco de dados (GitHub-as-storage e auditavel por design), TypeScript, testes formais. Multi-usuario depende da Prioridade 2 primeiro.
+
+## Prioridade 2 da modularizacao -- progresso (03/07/2026)
+Plano original (ver secao anterior "Plano de modularizacao aprovado"): 4-5 modulos, um por sessao, validando no ar antes do proximo.
+
+- **Fase 1 CONCLUIDA**: `motor.py` -- nucleo estatistico puro (RSI/MM/EMA/MACD/Bollinger/OBV, Graham, vol_hist, GARCH(1,1), bandas de projecao GBM, score de assertividade). Zero dependencia de Flask/rede/disco. proxy.py: -194 linhas.
+- **Fase 2 CONCLUIDA**: `fontes_etfs.py` -- universo fechado dos 61 ETFs (ETF_UNIVERSO) + todo o cluster de parsing/scraping (parse numerico BR, scraping investidor10 nacional/americano, DY via Yahoo estruturado, fetch de serie historica por data). proxy.py: -270 linhas.
+- proxy.py total: 6.940 -> 6.476 linhas (-464, -6.7%) so nessas duas fases.
+
+**METODO DE VALIDACAO usado em cada fase (repetir sempre)**:
+1. Baixar proxy.py + modulos direto do GitHub via api.github.com (nunca confiar em cache local)
+2. Importar o modulo de verdade (`importlib.util.spec_from_file_location` + `exec_module`) -- NAO basta `ast.parse`, isso so pega erro de sintaxe, nao de import faltando (foi assim que passou batido o `ModuleNotFoundError: flask_cors` na primeira tentativa desta sessao)
+3. Contar rotas registradas no `app.url_map` de verdade e conferir que as criticas estao la
+4. Checar ausencia de rotas duplicadas
+5. Chamar as funcoes migradas com valores de teste conhecidos pra confirmar que o comportamento nao mudou
+6. Commitar
+7. **Baixar de novo do GitHub (nao do cache local) e repetir o boot test** -- garante que o que esta commitado e exatamente o que foi validado, nao uma versao local que "parecia certa"
+
+**Proximas fases (ordem sugerida, nao obrigatoria)**:
+- Fase 3: `fontes.py` geral -- os ~15 fetches restantes (Yahoo fundamentals/quotes, Bacen/CDI, scrapers de FIIs -- fundamentus/statusinvest/8marketcap, BTC onchain). Mais delicada que as duas primeiras: mais acoplamento com cache e headers repetidos.
+- Fase 4: `rotas_fiis.py` -- rotas de FIIs (get_fiis, buscar_fii, ranking_fiis_em_analise, carteira_fiis*, get_fii_infra, etc.)
+- Fase 5: `rotas_etfs.py` -- rotas de ETFs (get_etfs_watchlist, mover_etf, get_etf_carteira_*) -- pode aproveitar e ficar fino agora que fontes_etfs.py ja existe.
+- Depois disso, proxy.py vira essencialmente so: app Flask + rotas core de posicoes/analises/montecarlo + imports dos modulos.
+
+**BUG CORRIGIDO NO MEIO DO CAMINHO desta sessao (antes das fases acima)**: apos a Prioridade 1 (fundamentos.json), o usuario reportou varias abas nao carregando. Causa raiz: NAO era a migracao do JSON (essa validou limpa) -- era o worker unico do Render free tier ficando bloqueado pelo bulk de DY do Yahoo (~9s) SOMADO ao scraping do investidor10 (ate 75s no pior caso, 5 paginas x 15s). Corrigido: bulk de DY movido para thread de fundo (`_refresh_dy_yahoo_background`, nao bloqueia a resposta) + timeout dos scrapers reduzido de 15s para 6s por pagina. **PRINCIPIO REFORCADO: o Render free tier so aceita 1 requisicao por vez -- qualquer rota lenta trava TODAS as outras, nao so a propria.**
 
 ## Backlog atualizado (ordem sugerida para proxima sessao)
 
