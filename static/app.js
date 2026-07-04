@@ -3770,7 +3770,7 @@ let _etfRiscoAtivo = 'Todos';
 let _etfSortCol = 'cap';
 let _etfSortDir = -1;
 
-const ETF_RISCO_LABEL = {1:'1 Cripto',2:'2 Setorial',3:'3 Small/Mid',4:'4 Índice amplo',5:'5 Real Estate',6:'6 Dividendo/Value',7:'7 Commodities',8:'8 High income',9:'9 RF longa',10:'10 RF curta'};
+const ETF_RISCO_LABEL = {1:'1 RF curta',2:'2 RF longa',3:'3 High income',4:'4 Ouro/Câmbio',5:'5 Dividendo/Value',6:'6 Real Estate',7:'7 Índice amplo',8:'8 Small/Mid',9:'9 Setorial',10:'10 Cripto'};
 
 function etfSubTab(nome, el) {
   document.querySelectorAll('.etf-subtab').forEach(x => x.classList.remove('active'));
