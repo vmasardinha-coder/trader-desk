@@ -7,12 +7,12 @@
   "carteira": [
     {
       "ticker": "COIN11",
-      "preco_entrada": null,
+      "preco_entrada": 47.98,
       "data_entrada": "2026-07-03"
     },
     {
       "ticker": "SPYI11",
-      "preco_entrada": null,
+      "preco_entrada": 108.53,
       "data_entrada": "2026-07-03"
     }
   ]
