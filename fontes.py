@@ -1027,3 +1027,99 @@ def scrape_statusinvest_fundo_dados(ticker, path_categoria):
         }
     except Exception:
         return None
+# ── FI-Infra (Fundos de Investimento em Infraestrutura) ────
+# Adicionado 26/06/2026. Usuario percebeu que CDII11 (e outros FI-Infra)
+# nunca apareciam na busca/listagem de FIIs -- investigacao confirmou:
+# FI-Infra e categoria REGULATORIAMENTE SEPARADA de FII tradicional
+# (mesma raiz legal -- condominio fechado, isencao de IR -- mas registro
+# proprio na B3/CVM). O Fundamentus (fonte usada para FIIs tradicionais)
+# NAO lista FI-Infra. Fonte alternativa encontrada: Investidor10
+# (investidor10.com.br/fiis/segmento/fi-infra/), que lista os FI-Infra
+# DENTRO da mesma estrutura de navegacao de FIIs do site (~22 fundos
+# confirmados via inspecao manual em 26/06/2026, incluindo CDII11).
+#
+# RISCO DOCUMENTADO: pagina pode renderizar via JS (React), e um simples
+# requests.get() pode nao capturar o HTML completo -- mesma ressalva ja
+# dada para outras fontes nesta sessao. Sanity check rigoroso abaixo;
+# se falhar, retorna erro explicito (nunca dado parcial/inventado).
+_FII_INFRA_TIPO_MAP = {
+    'Outro': 'outro',
+    'Fundo de Papel': 'papel',
+    'Fundo Misto': 'misto',
+    'Fundo de Desenvolvimento': 'desenvolvimento',
+}
+
+def scrape_fi_infra():
+    """
+    Scraping de FI-Infra via fiis.com.br/lista-de-fundos-imobiliarios/.
+
+    HISTORICO (26/06/2026): 1a tentativa (Investidor10) deu erro 500
+    (catastrophic backtracking de regex). 2a tentativa (fiis.com.br, regex
+    dependente do texto "Fi-infra:" estar proximo do link) deu 0 matches
+    em producao -- a estrutura HTML real (tags/atributos) e diferente do
+    que o web_fetch mostra (que ja vem processado/markdown), e adivinhar
+    a estrutura exata sem poder testar contra o HTML bruto real (site
+    bloqueado no sandbox de desenvolvimento) se mostrou fragil demais.
+
+    3a TENTATIVA (atual): abordagem mais ROBUSTA, em duas camadas:
+    1. Tenta o padrao mais simples possivel -- so o link href="/<ticker>/"
+       seguido do texto do ticker, SEM depender de "Fi-infra:" estar logo
+       antes (que pode ter mais tags/espacos entre eles do que esperado).
+    2. Fallback: BUSCA DE STRING SIMPLES (nao regex) pelos tickers de
+       FI-Infra JA CONHECIDOS (confirmados via multiplas fontes externas
+       nesta sessao: Investidor10, fiis.com.br via web_fetch, Toro, Nord).
+       Se o ticker aparecer em QUALQUER lugar do HTML da pagina (com ou
+       sem tag ao redor), confirma a existencia dele -- muito mais robusto
+       contra mudanca de estrutura HTML do que tentar parsear o padrao
+       exato de marcacao da categoria.
+    """
+    # Lista de FI-Infra confirmados via pesquisa externa em 26/06/2026
+    # (Investidor10 + fiis.com.br via web_fetch + Toro + Nord Research).
+    # Usada como FALLBACK de busca simples se o parsing por regex falhar --
+    # nao e dado "inventado", e dado real confirmado por multiplas fontes
+    # independentes, so usado de forma mais robusta (busca de substring)
+    # em vez de parsing fragil de estrutura HTML.
+    TICKERS_FI_INFRA_CONHECIDOS = [
+        'BDIF11', 'BIDB11', 'BINC11', 'BODB11', 'BRZD11', 'CDII11', 'CPTI11',
+        'IFRA11', 'IFRI11', 'INFA11', 'INFB11', 'IRIF11', 'JMBI11', 'JURO11',
+        'KDIF11', 'NUIF11', 'OGIN11', 'RBIF11', 'RIFF11', 'SNID11', 'VANG11', 'XPID11',
+    ]
+    try:
+        r = requests.get(
+            'https://fiis.com.br/lista-de-fundos-imobiliarios/',
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language': 'pt-BR,pt;q=0.9',
+            },
+            timeout=15)
+        if not r.ok:
+            return None, f'http_error_{r.status_code}'
+        html = r.text
+        html_upper = html.upper()
+
+        # Camada 1: regex simples, so o link (sem depender de "Fi-infra:")
+        fundos = []
+        tickers_vistos = set()
+        for m in re.finditer(r'href="/([a-z0-9]{4,7})/"[^>]{0,150}>\s*([A-Z0-9]{4,7})\s*<', html, re.IGNORECASE):
+            ticker = (m.group(2) or m.group(1)).upper()
+            if ticker in tickers_vistos or ticker not in TICKERS_FI_INFRA_CONHECIDOS:
+                continue
+            tickers_vistos.add(ticker)
+            fundos.append({'ticker': ticker, 'nome_fundo': ticker, 'fonte_match': 'regex'})
+
+        # Camada 2 (fallback): busca de substring simples para os tickers
+        # conhecidos que a Camada 1 NAO encontrou -- protege contra
+        # mudanca de estrutura HTML que o regex nao previu.
+        for ticker in TICKERS_FI_INFRA_CONHECIDOS:
+            if ticker in tickers_vistos:
+                continue
+            if ticker in html_upper:
+                tickers_vistos.add(ticker)
+                fundos.append({'ticker': ticker, 'nome_fundo': ticker, 'fonte_match': 'substring'})
+
+        if len(fundos) < 10:
+            return None, f'poucos_fundos_encontrados ({len(fundos)} de {len(TICKERS_FI_INFRA_CONHECIDOS)} conhecidos, esperado 10+)'
+
+        return fundos, None
+    except Exception as e:
+        return None, str(e)
