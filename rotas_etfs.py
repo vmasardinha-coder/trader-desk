@@ -27,6 +27,7 @@ import json
 import math
 import time
 import requests
+from concurrent.futures import ThreadPoolExecutor, wait as _cf_wait
 from motor import vol_hist, _calc_bandas_foto
 from fontes_etfs import (
     ETF_UNIVERSO, _ETF_TICKERS_TODOS, _etf_yahoo_ticker, _fetch_yahoo_series,
@@ -295,14 +296,39 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
                     'preco_entrada': preco_entrada, 'data_entrada': c.get('data_entrada'),
                     'preco_atual': preco_atual, 'variacao_pct': variacao,
                 })
-                yt = _etf_yahoo_ticker(etf)
-                s = _fetch_yahoo_series(yt, '1y')
-                if s:
-                    series[ticker] = s
+
+            # CORRIGIDO 04/07/2026 -- o loop acima buscava _fetch_yahoo_series
+            # SEQUENCIALMENTE (1 ticker de cada vez, ate 2 hosts x 8s cada),
+            # podendo passar de 30s com so 2-3 posicoes e derrubar a resposta
+            # no meio (Render mata a conexao, browser recebe corpo vazio ->
+            # "Unexpected end of JSON input"). Mesmo principio ja usado em
+            # _fetch_etfs_live/_refresh_completo_background: busca em PARALELO
+            # com orcamento de tempo fixo, nunca deixa uma rota depender de N
+            # chamadas de rede sequenciais para responder.
+            tickers_com_etf = [c.get('ticker') for c in itens if etf_map.get(c.get('ticker'))]
+            if tickers_com_etf:
+                ex = ThreadPoolExecutor(max_workers=min(8, len(tickers_com_etf)))
+                try:
+                    futuros = {
+                        ex.submit(_fetch_yahoo_series, _etf_yahoo_ticker(etf_map[t]), '1y'): t
+                        for t in tickers_com_etf
+                    }
+                    prontos, pendentes = _cf_wait(list(futuros.keys()), timeout=15)
+                    for fut in prontos:
+                        t = futuros[fut]
+                        try:
+                            s = fut.result()
+                        except Exception:
+                            s = None
+                        if s:
+                            series[t] = s
+                finally:
+                    ex.shutdown(wait=False)
 
             retorno_pct = None
             if total_investido > 0:
                 retorno_pct = round((valor_atual_total / total_investido - 1) * 100, 2)
+
 
             vol_carteira_pct = None
             vol_soma_simples_pct = None
