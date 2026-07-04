@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v22.0 — FECHAMENTO sessão 04/07/2026)
+# Trader Desk — Prompt de Continuação (v22.1 — FECHAMENTO sessão 04/07/2026)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -194,8 +194,6 @@ Historico completo (a v20 registrou o meio do caminho; isto e o desfecho real):
 ## Backlog de medio prazo (sem prioridade fechada, decidir a cada sessao)
 - Historico mensal completo de dividendos na Carteira FIIs — **DESCARTADO 02/07/2026**: StatusInvest so tem totais semestrais via scraping simples (regex), o breakdown mes-a-mes fica atras de chamada assincrona/JS que nao consigo capturar de fora. Usuario decidiu que nao vale o esforco pra uma informacao complementar (ja acessa via detalhe do fundo quando precisa).
 - Varredura/limpeza de fundos "lixo" (FIIs mortos/incorporados) na Carteira FIIs — usuario vai estudar criterios e trazer numa proxima sessao; Claude tambem deve propor criterios quando o assunto voltar.
-- Ranking de ETFs — ver item 4 do backlog imediato acima (pesquisa pronta, falta codar).
-- ETFs via Binance/RWA — ver item 5 do backlog imediato acima.
 - Encerradas para FIIs (comportamento ainda nao definido)
 - Visao multi-usuario (so se virar produto)
 - Renda fixa (so registro, sem acao por enquanto)
