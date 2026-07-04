@@ -6194,6 +6194,16 @@ def _refresh_dy_yahoo_background():
     um problema de timeout: o preco_entrada ja tinha sido salvo como
     null na hora da compra, porque o investidor10 ja estava vazio
     naquele momento). Yahoo vira fonte extra de preco tambem, nao so DY.
+
+    04/07/2026 (2a correcao no mesmo dia): a causa raiz do investidor10
+    "falhando" era a duplicacao de celulas na tabela (ver
+    _deduplicar_celulas em fontes_etfs.py) -- ja corrigida. Com isso,
+    investidor10 volta a ser a fonte PRIMARIA confiavel (foi confirmado
+    via /etfs/live-status em producao). Yahoo agora so PREENCHE LACUNA
+    (quando investidor10 nao tem o dado), nao sobrescreve mais um DY que
+    o investidor10 ja acertou -- descobri que o Yahoo da preco errado
+    para COIN11 (R$39,50 vs R$47,98 real, ~20% de diferenca), entao
+    confiar nele por cima do investidor10 já correto seria regressao.
     """
     try:
         dy_yahoo = _fetch_etfs_dy_yahoo_bulk(ETF_UNIVERSO)
@@ -6202,7 +6212,8 @@ def _refresh_dy_yahoo_background():
         if dados is not None:
             for ticker, dy in dy_yahoo.items():
                 if ticker in dados:
-                    dados[ticker]['dy'] = dy
+                    if dados[ticker].get('dy') is None:
+                        dados[ticker]['dy'] = dy
                 else:
                     dados[ticker] = {'dy': dy}
             for ticker, preco in preco_yahoo.items():
