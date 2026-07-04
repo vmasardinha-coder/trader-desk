@@ -6160,6 +6160,19 @@ from fontes_etfs import (
     _fetch_preco_yahoo, _fetch_etfs_preco_yahoo_bulk,
 )
 
+# BUG CRITICO CORRIGIDO 04/07/2026: estas duas linhas foram apagadas sem
+# querer durante o corte da Prioridade 2 fase 2 (extracao de fontes_etfs.py).
+# Consequencia: _fetch_etfs_live() lancava NameError em TODA chamada, mas o
+# erro ficava escondido pelo "except Exception: live = {}" da rota /etfs --
+# por isso a watchlist inteira aparecia com "-", e nao era o investidor10
+# nem o Yahoo estarem fora do ar como eu suspeitei antes. Reproduzi o 500
+# de /etfs/live-status com o Flask test client de verdade e vi o
+# NameError explicito -- so assim descobri.
+# LICAO: boot test (importar o modulo + contar rotas) NAO basta; preciso
+# tambem CHAMAR as rotas via app.test_client() antes de considerar uma
+# extracao validada, nao so confirmar que o app sobe.
+_cache_etfs_live = {'dados': None, 'ts': 0}
+_ETF_CACHE_TTL = 900
 
 _dy_refresh_em_andamento = {'flag': False}
 
