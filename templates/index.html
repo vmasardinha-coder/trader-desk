@@ -20,17 +20,26 @@
   </div>
 </div>
 
+<!-- ══ NAV NIVEL 1 — FAMILIAS (adicionado fase 1 da modernizacao de layout,
+     04/07/2026). Nao mexe em sw()/tab-content: so mostra/esconde quais
+     .tab ficam visiveis na barra abaixo, por familia. ══ -->
+<div class="fam-tabs">
+  <div class="fam-tab active" onclick="swFam('mercado',this)">🏛 Mercado</div>
+  <div class="fam-tab" onclick="swFam('operacao',this)">💼 Minha Operação</div>
+  <div class="fam-tab" onclick="swFam('agenda',this)">📅 Agenda</div>
+</div>
+
 <div class="tabs">
-  <div class="tab active" onclick="sw('cotacoes',this)">📊 Cotações</div>
-  <div class="tab" onclick="sw('indicadores',this)">📈 Papéis</div>
-  <div class="tab" onclick="sw('etfs',this)">📦 ETFs</div>
-  <div class="tab" onclick="sw('fiis',this)">🏢 FIIs</div>
-  <div class="tab" onclick="sw('carteirafiis',this)">💰 Carteira FIIs</div>
-  <div class="tab" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
-  <div class="tab" onclick="sw('posicoes',this)">💼 Posições Ativas <span id="pos-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
-  <div class="tab" onclick="sw('encerradas',this)">🗂 Encerradas</div>
-  <div class="tab" onclick="sw('calendario',this)">📅 FF Calendar</div>
-  <div class="tab" onclick="sw('tvcal',this)">📺 TV Calendar</div>
+  <div class="tab active" data-fam="mercado" onclick="sw('cotacoes',this)">📊 Cotações</div>
+  <div class="tab" data-fam="mercado" onclick="sw('indicadores',this)">📈 Papéis</div>
+  <div class="tab" data-fam="mercado" onclick="sw('etfs',this)">📦 ETFs</div>
+  <div class="tab" data-fam="mercado" onclick="sw('fiis',this)">🏢 FIIs</div>
+  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
+  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('posicoes',this)">💼 Posições Ativas <span id="pos-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
+  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('carteirafiis',this)">💰 Carteira FIIs</div>
+  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('encerradas',this)">🗂 Encerradas</div>
+  <div class="tab" data-fam="agenda" style="display:none" onclick="sw('calendario',this)">📅 FF Calendar</div>
+  <div class="tab" data-fam="agenda" style="display:none" onclick="sw('tvcal',this)">📺 TV Calendar</div>
 </div>
 
 <!-- ══ COTAÇÕES ══ -->
