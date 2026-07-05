@@ -26,6 +26,7 @@ import re
 import json
 import math
 import time
+import datetime as _dt_cache
 import requests
 from concurrent.futures import ThreadPoolExecutor, wait as _cf_wait
 from motor import vol_hist, _calc_bandas_foto
@@ -51,6 +52,14 @@ def _ler_etfs_estado():
     except Exception:
         pass
     return {'em_analise': [], 'carteira': []}
+
+
+# Cache diario do resumo de volatilidade da Carteira ETFs (05/07/2026,
+# pedido do usuario -- mesmo raciocinio aplicado em /carteira-fiis/resumo:
+# o calculo de correlacao/GARCH nao precisa rodar a cada clique, so 1x por
+# dia). Chave inclui os tickers da carteira, entao se o usuario mover um
+# ETF pra dentro/fora da carteira no meio do dia, o cache invalida sozinho.
+_cache_etf_carteira_resumo = {'chave': None, 'resposta': None}
 
 
 def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_andamento,
@@ -251,6 +260,10 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
         so preco_entrada por posicao): pondera cada ETF como 1 cota. Se no
         futuro quiser peso por quantidade real comprada, precisa adicionar
         campo 'quantidade' em /etfs/mover e aqui.
+
+        CACHE DIARIO (05/07/2026): calculo pesado, roda de verdade so 1x
+        por dia (chave = data + tickers da carteira). Resposta cacheada
+        volta com 'cache': True.
         """
         try:
             estado = _ler_etfs_estado()
@@ -262,6 +275,13 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
                     'vol_soma_simples_pct': None, 'correlacoes': None,
                     'nota': 'Carteira vazia.',
                 })
+
+            itens_check = sorted(c.get('ticker', '') for c in itens)
+            chave_cache = _dt_cache.date.today().isoformat() + '|' + ','.join(itens_check)
+            if _cache_etf_carteira_resumo['chave'] == chave_cache:
+                resp_cache = dict(_cache_etf_carteira_resumo['resposta'])
+                resp_cache['cache'] = True
+                return jsonify(resp_cache)
 
             try:
                 live = _fetch_etfs_live()
@@ -372,7 +392,7 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
                         vol_carteira_pct = round(vh * 100, 2)
                         vol_soma_simples_pct = vol_carteira_pct
 
-            return jsonify({
+            resposta = {
                 'itens': resultado_itens,
                 'total_investido': round(total_investido, 2),
                 'valor_atual': round(valor_atual_total, 2),
@@ -381,6 +401,11 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
                 'vol_soma_simples_pct': vol_soma_simples_pct,
                 'correlacoes': correlacoes,
                 'nota': 'Peso de cada ETF assume 1 cota (nao ha campo de quantidade registrada).',
-            })
+            }
+            _cache_etf_carteira_resumo['chave'] = chave_cache
+            _cache_etf_carteira_resumo['resposta'] = resposta
+            resp_out = dict(resposta)
+            resp_out['cache'] = False
+            return jsonify(resp_out)
         except Exception as e:
             return jsonify({'error': str(e)}), 500
