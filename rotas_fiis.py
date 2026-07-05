@@ -24,14 +24,23 @@
 from flask import request, jsonify
 import re
 import json
+import math
 import requests
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait as _cf_wait
 from fontes import (
     scrape_fiis_fundamentus, _classificar_risco_fii, _score_fii,
     scrape_fi_infra, scrape_fi_infra_dados,
     scrape_statusinvest_ultimo_provento, scrape_statusinvest_historico_proventos,
     scrape_statusinvest_tickers_listagem, scrape_statusinvest_fundo_dados,
 )
+from fontes_etfs import _fetch_yahoo_series
+from motor import vol_hist
+
+try:
+    import numpy as _np
+    _NUMPY = True
+except ImportError:
+    _NUMPY = False
 
 _CARTEIRA_FII_STATUS_VALIDOS = ['ativa', 'encerrada']
 
@@ -382,6 +391,145 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             return jsonify({'error': str(e), 'carteira': []}), 500
         except Exception as e:
             return jsonify({'error': str(e), 'carteira': []}), 500
+
+    @app.route('/carteira-fiis/resumo', methods=['GET'])
+    def get_carteira_fiis_resumo():
+        """
+        Card de resumo agregado da Carteira de FIIs (05/07/2026), espelhando
+        /etfs/carteira/resumo: volatilidade real da carteira via matriz de
+        covariancia dos retornos historicos (correlacao real entre os FIIs),
+        nao soma simples das vols individuais.
+
+        MESMA LIMITACAO ASSUMIDA que em ETFs (nao ha campo de quantidade em
+        carteira_fiis.json, so preco_ativacao por posicao): pondera cada FII
+        pelo VALOR da posicao (preco_atual, com fallback pro preco de
+        ativacao), nao por numero de cotas.
+
+        MESMO CUIDADO DE PERFORMANCE que em /etfs/carteira/resumo: busca os
+        historicos de TODOS os FIIs em PARALELO (ThreadPoolExecutor) com
+        orcamento de tempo fixo (15s), nunca sequencial -- com 12 FIIs ativos
+        (mais que o caso de ETFs), buscar 1 de cada vez estouraria o tempo do
+        Render e cortaria a resposta no meio.
+        """
+        try:
+            conteudo_str, _ = _github_get_file('carteira_fiis.json')
+            carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
+            itens = [f for f in carteira if f.get('status') == 'ativa']
+            if not itens:
+                return jsonify({
+                    'itens': [], 'total_investido': 0, 'valor_atual': 0,
+                    'retorno_pct': None, 'vol_carteira_pct': None,
+                    'vol_soma_simples_pct': None, 'correlacoes': None,
+                    'nota': 'Carteira vazia.',
+                })
+
+            tickers = [f['ticker'] for f in itens]
+            series = {}
+            ex = ThreadPoolExecutor(max_workers=min(12, len(tickers)))
+            try:
+                futuros = {
+                    ex.submit(_fetch_yahoo_series, t + '.SA', '1y'): t
+                    for t in tickers
+                }
+                prontos, pendentes = _cf_wait(list(futuros.keys()), timeout=15)
+                for fut in prontos:
+                    t = futuros[fut]
+                    try:
+                        s = fut.result()
+                    except Exception:
+                        s = None
+                    if s:
+                        series[t] = s
+            finally:
+                ex.shutdown(wait=False)
+
+            resultado_itens = []
+            total_investido = 0.0
+            valor_atual_total = 0.0
+            pesos_valor = {}
+
+            for f in itens:
+                ticker = f['ticker']
+                preco_ativacao = f.get('preco_ativacao')
+                s = series.get(ticker)
+                preco_atual = None
+                if s:
+                    ultima_data = max(s.keys())
+                    preco_atual = s[ultima_data]
+                valor_pos = preco_atual if preco_atual is not None else preco_ativacao
+                if preco_ativacao:
+                    total_investido += preco_ativacao
+                if valor_pos:
+                    valor_atual_total += valor_pos
+                    pesos_valor[ticker] = valor_pos
+                variacao = None
+                if preco_ativacao and preco_atual:
+                    variacao = round((preco_atual / preco_ativacao - 1) * 100, 2)
+                resultado_itens.append({
+                    'ticker': ticker, 'nome_fundo': f.get('nome_fundo'),
+                    'segmento': f.get('segmento'),
+                    'preco_ativacao': preco_ativacao, 'data_ativacao': f.get('data_ativacao'),
+                    'preco_atual': preco_atual, 'variacao_pct': variacao,
+                })
+
+            retorno_pct = None
+            if total_investido > 0:
+                retorno_pct = round((valor_atual_total / total_investido - 1) * 100, 2)
+
+            vol_carteira_pct = None
+            vol_soma_simples_pct = None
+            correlacoes = None
+
+            if _NUMPY:
+                tickers_com_serie = [t for t in pesos_valor if t in series and len(series[t]) >= 30]
+                if len(tickers_com_serie) >= 2:
+                    datas_comuns = None
+                    for t in tickers_com_serie:
+                        ds = set(series[t].keys())
+                        datas_comuns = ds if datas_comuns is None else (datas_comuns & ds)
+                    datas_ordenadas = sorted(datas_comuns) if datas_comuns else []
+                    if len(datas_ordenadas) >= 30:
+                        precos_np = _np.array([[series[t][d] for d in datas_ordenadas] for t in tickers_com_serie])
+                        log_rets = _np.diff(_np.log(precos_np), axis=1)
+                        cov_diaria = _np.cov(log_rets)
+                        cov_anual = cov_diaria * 252
+                        pesos_vec = _np.array([pesos_valor[t] for t in tickers_com_serie])
+                        soma_pesos = pesos_vec.sum()
+                        if soma_pesos > 0:
+                            w = pesos_vec / soma_pesos
+                            var_port = float(w @ cov_anual @ w)
+                            vol_carteira_pct = round(math.sqrt(max(var_port, 0)) * 100, 2)
+                            vols_individuais = _np.sqrt(_np.diag(cov_anual))
+                            vol_soma_simples_pct = round(float((w * vols_individuais).sum()) * 100, 2)
+                            std = _np.sqrt(_np.diag(cov_anual))
+                            std_safe = _np.where(std == 0, 1e-9, std)
+                            corr = cov_anual / _np.outer(std_safe, std_safe)
+                            correlacoes = {
+                                tickers_com_serie[i]: {
+                                    tickers_com_serie[j]: round(float(corr[i, j]), 3)
+                                    for j in range(len(tickers_com_serie))
+                                } for i in range(len(tickers_com_serie))
+                            }
+                elif len(tickers_com_serie) == 1:
+                    t = tickers_com_serie[0]
+                    cl = list(series[t].values())
+                    vh = vol_hist(cl) if len(cl) >= 22 else None
+                    if vh:
+                        vol_carteira_pct = round(vh * 100, 2)
+                        vol_soma_simples_pct = vol_carteira_pct
+
+            return jsonify({
+                'itens': resultado_itens,
+                'total_investido': round(total_investido, 2),
+                'valor_atual': round(valor_atual_total, 2),
+                'retorno_pct': retorno_pct,
+                'vol_carteira_pct': vol_carteira_pct,
+                'vol_soma_simples_pct': vol_soma_simples_pct,
+                'correlacoes': correlacoes,
+                'nota': 'Peso de cada FII assume valor da posicao (nao ha campo de quantidade registrada).',
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/carteira-fiis', methods=['POST'])
     @_requer_auth_escrita
