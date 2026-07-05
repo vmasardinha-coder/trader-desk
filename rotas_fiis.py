@@ -44,6 +44,15 @@ except ImportError:
 
 _CARTEIRA_FII_STATUS_VALIDOS = ['ativa', 'encerrada']
 
+# Cache diario do resumo de volatilidade da Carteira FIIs (05/07/2026,
+# pedido do usuario -- o calculo de correlacao com 12 FIIs demora alguns
+# segundos, nao precisa rodar a cada clique, so 1x por dia). Chave inclui
+# a lista de tickers ativos: se o usuario ativar/encerrar um FII no meio
+# do dia, o cache invalida sozinho (chave muda) em vez de mostrar dado
+# desatualizado da composicao da carteira.
+import datetime as _dt_cache
+_cache_carteira_fiis_resumo = {'chave': None, 'resposta': None}
+
 
 def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_auth_escrita):
     """Registra todas as rotas de FIIs no app Flask recebido de proxy.py."""
@@ -410,10 +419,21 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
         orcamento de tempo fixo (15s), nunca sequencial -- com 12 FIIs ativos
         (mais que o caso de ETFs), buscar 1 de cada vez estouraria o tempo do
         Render e cortaria a resposta no meio.
+
+        CACHE DIARIO (05/07/2026): o calculo de correlacao/GARCH e pesado,
+        nao precisa refazer a cada clique -- roda de verdade so 1x por dia
+        (chave = data + tickers ativos ordenados). Resposta cacheada volta
+        com 'cache': True para o front saber que nao e dado fresco.
         """
         try:
             conteudo_str, _ = _github_get_file('carteira_fiis.json')
             carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
+            itens_check = sorted(f['ticker'] for f in carteira if f.get('status') == 'ativa')
+            chave_cache = _dt_cache.date.today().isoformat() + '|' + ','.join(itens_check)
+            if _cache_carteira_fiis_resumo['chave'] == chave_cache:
+                resp_cache = dict(_cache_carteira_fiis_resumo['resposta'])
+                resp_cache['cache'] = True
+                return jsonify(resp_cache)
             itens = [f for f in carteira if f.get('status') == 'ativa']
             if not itens:
                 return jsonify({
@@ -518,7 +538,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                         vol_carteira_pct = round(vh * 100, 2)
                         vol_soma_simples_pct = vol_carteira_pct
 
-            return jsonify({
+            resposta = {
                 'itens': resultado_itens,
                 'total_investido': round(total_investido, 2),
                 'valor_atual': round(valor_atual_total, 2),
@@ -527,7 +547,12 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 'vol_soma_simples_pct': vol_soma_simples_pct,
                 'correlacoes': correlacoes,
                 'nota': 'Peso de cada FII assume valor da posicao (nao ha campo de quantidade registrada).',
-            })
+            }
+            _cache_carteira_fiis_resumo['chave'] = chave_cache
+            _cache_carteira_fiis_resumo['resposta'] = resposta
+            resp_out = dict(resposta)
+            resp_out['cache'] = False
+            return jsonify(resp_out)
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
