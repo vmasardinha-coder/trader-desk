@@ -110,7 +110,28 @@ function sw(t,el){
   if(t==='calendario'&&!window._CL){window._CL=true;loadCal();}
   if(t==='emanalise'&&!window._AL){window._AL=true;loadAnalises();}
   if(t==='etfs'&&!window._ETL){window._ETL=true;loadETFs();}
+  if(t==='etfscarteira'){
+    if(!window._ETL){window._ETL=true;loadETFs();}
+    _renderEtfCarteiraTabQuandoPronto();
+  }
 
+}
+
+// Adicionado 05/07/2026 -- Em Analise/Carteira de ETFs viraram aba propria
+// em Minha Operacao (#tab-etfscarteira), separada da Watchlist (que ficou
+// em Mercado). Como essa aba pode ser aberta ANTES da Watchlist (e antes
+// de loadETFs() terminar), espera _etfData estar populado antes de
+// renderizar a subtab ativa -- evita mostrar tabela vazia se o usuario
+// clicar direto em "Carteira ETFs" sem nunca ter aberto "ETFs" (Mercado).
+function _renderEtfCarteiraTabQuandoPronto(){
+  if(!window._etfDataPronto){
+    setTimeout(_renderEtfCarteiraTabQuandoPronto,200);
+    return;
+  }
+  const btnAtivo=document.querySelector('#tab-etfscarteira .etf-subtab.active');
+  const nome=(btnAtivo&&btnAtivo.textContent.includes('Carteira'))?'carteira':'emanalise';
+  if(nome==='emanalise')renderEtfAnaliseTable();
+  else renderEtfCarteira();
 }
 
 // Adicionado 05/07/2026 -- fase 4 da modernizacao de layout (sidebar com
@@ -3875,6 +3896,7 @@ async function loadETFs(forcar) {
     ]);
     _etfData = rData;
     _etfEstado = rEstado || { em_analise: [], carteira: [] };
+    window._etfDataPronto = true;
     renderEtfFiltros();
     renderEtfTable();
   } catch (e) {
