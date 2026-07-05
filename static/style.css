@@ -16,12 +16,17 @@ body{
 @media(min-width:900px){body{zoom:1.3}}
 
 /* ── HEADER ── */
-.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.logo{font-size:18px;font-weight:700;color:var(--accent);letter-spacing:.5px;font-family:'IBM Plex Mono',monospace}
+.hdr{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 clamp(-24px,-3vw,-48px) 20px;padding:14px clamp(24px,3vw,48px) 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;background:var(--bg);flex-wrap:wrap}
+.logo{font-size:18px;font-weight:700;color:var(--accent);letter-spacing:.5px;font-family:'IBM Plex Mono',monospace;flex-shrink:0}
 .logo span{color:var(--accent2)}
-.hdr-right{display:flex;align-items:center;gap:12px}
+.hdr-ticker{display:flex;gap:18px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:12px;overflow-x:auto}
+.hdr-tk-item{color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:5px}
+.hdr-tk-item b{color:var(--text);font-weight:700}
+.hdr-tk-item b.loading{color:var(--muted);animation:pulse 1.5s infinite;font-weight:500}
+.hdr-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .badge{background:var(--bg3);border:1px solid var(--border);padding:4px 12px;font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.5px}
 .hdr-time{font-size:11px;color:var(--muted)}
+@media(max-width:700px){.hdr-ticker{order:3;width:100%;font-size:11px;gap:12px}}
 
 /* ── NAV FAMILIAS (nivel 1) — adicionado 04/07/2026 ── */
 .fam-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
