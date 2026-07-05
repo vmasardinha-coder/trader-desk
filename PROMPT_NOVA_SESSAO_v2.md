@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v23 — FECHAMENTO sessão 04/07/2026, modularização completa)
+# Trader Desk — Prompt de Continuação (v24 — FECHAMENTO sessão 05/07/2026, modernização de layout + volatilidade Carteira FIIs + reorg ETFs)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -10,18 +10,54 @@
 - **REGRA CRÍTICA DE PROCESSO**: usar `api.github.com/repos/.../contents/...` para ler arquivos que foram editados NA MESMA sessão — nunca `raw.githubusercontent.com` para isso (CDN cache causa leituras desatualizadas e pode reverter mudanças ao re-editar)
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
-## SHAs no fechamento REAL desta sessão (04/07/2026, todos validados no ar pelo usuario)
-- proxy.py: 56fbd1fad0e5c1f6007de03ffbfeed46b3d1a271 (modularizacao completa -- fases 3/4/5, ver secao propria abaixo)
-- fontes.py: ca3a07053ccdc794dff5fed9a5eeb455597dd4c3 (novo -- fase 3)
-- rotas_fiis.py: 13c522224454888415d7108de4fdf26ef9699e23 (novo -- fase 4, com bugfix)
-- rotas_etfs.py: deac9d1e21e1214aa99bbf62905a6361c9ab71df (novo -- fase 5, com fix de paralelizacao)
-- static/app.js: a0cf5cb2d6b02a48e89caab0759b1910508c1674
-- templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado)
-- fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805
-- motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35
-- fontes_etfs.py: 256cf7da182e82aea6b982e544b12960a20614fe (dedup de celulas + escala de risco invertida)
-- etfs_estado.json: 3972f87b0de75a9b35f4821a206595246b4012f0 (revertido apos escrita acidental de teste, ver licao abaixo)
-- static/style.css: 61ef8928448b18e1582aff710da2cbc4a5992d01 (inalterado)
+## SHAs no fechamento REAL desta sessão (05/07/2026, todos validados no ar pelo usuario)
+- templates/index.html: 82b6d88df26e2464f974609435aa6e15e4ba74f8 (sidebar com accordion + reorg de ETFs)
+- static/style.css: aedb6fcbe339ede195c6e6182fec5f5da4157fe7 (sidebar/app-shell + unificacao de radius)
+- static/app.js: 1407c164bf85ded2f8e6b87319bafa78b64b3f9a (swFam accordion + syncHeaderTicker + loadCarteiraFiisResumo + etfscarteira)
+- rotas_fiis.py: aba19f80ed2f52e0a37203742ad4c79a3f47ae79 (novo endpoint /carteira-fiis/resumo + cache diario)
+- rotas_etfs.py: ab401ebbf1b12f73e6d454ded2349b3011939136 (cache diario em /etfs/carteira/resumo)
+- proxy.py: 56fbd1fad0e5c1f6007de03ffbfeed46b3d1a271 (inalterado desde 04/07)
+- fontes.py: ca3a07053ccdc794dff5fed9a5eeb455597dd4c3 (inalterado desde 04/07)
+- fontes_etfs.py: 256cf7da182e82aea6b982e544b12960a20614fe (inalterado desde 04/07)
+- motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35 (inalterado)
+- fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805 (inalterado)
+- etfs_estado.json: 3972f87b0de75a9b35f4821a206595246b4012f0 (inalterado)
+- positions.json: c462e0a7b4d666e0c3f6b6e165f7df767d4a23ed (inalterado)
+- analises.json: 5e638624371ec107611b90d63ca052452e1e66e6 (inalterado)
+- carteira_fiis.json: 7ae13a8040f95b99901a2564825abe0533353f99 (inalterado, so lido)
+
+## Continuação 05/07/2026 — Modernização de layout (4 fases) + volatilidade Carteira FIIs + cache diário + reorg ETFs
+
+**Modernização de layout (aprovada por mockups no Visualizer antes de cada fase, nenhuma feita "no escuro"):**
+- **Fase 1** (nav 2 níveis, depois SUBSTITUÍDA pela fase 4): agrupou as 10 abas em 3 famílias (Mercado/Minha Operação/Agenda) via `swFam()`.
+- **Fase 2** (header fixo): sticky, com ticker IBOV/USD/SELIC espelhando (via `syncHeaderTicker()`, poll a cada 1.5s) os valores já calculados na aba Cotações — zero duplicação de fetch.
+- **Fase 3** (unificação visual): border-radius consistente (10px) em todos os cards principais (`.card`,`.pc`,`.pos-acc`,`.ind-acc`,`.tbl-wrap`,`.sig`,`.ib`,`.scc`,`.pos-enc`) + nav centralizado (mobile e depois desktop também).
+- **Fase 4** (sidebar com accordion — SUBSTITUIU as fases 1-3 de nav horizontal): usuário pediu referências visuais reais (buscou imagens, aprovou por mockup), apontou 2 fotos de dashboards ("Metric Flow" e "Hector") como referência de estilo. Sidebar fixa à esquerda, só a família ativa expandida (accordion), item ativo = retângulo sólido colorido (não mais borda lateral fina). `swFam()` reescrito para controlar `.sidebar-fam-body` (display block/none) em vez de nav horizontal. No mobile, sidebar empilha em cima do conteúdo (`.app-shell{flex-direction:column}`).
+- **Pendência de estética explicitamente aceita pelo usuário**: layout "ainda feio mas funcional" — usuário quer ver mais exemplos antes de pedir refinamento visual adicional (cores/textura/tipografia). Não é bug, é gosto pessoal ainda não resolvido — não tratar como bug se voltar ao assunto.
+
+**Volatilidade real da Carteira FIIs (novo endpoint, espelhando o de ETFs):**
+- `GET /carteira-fiis/resumo` em `rotas_fiis.py`: mesma lógica de `/etfs/carteira/resumo` (matriz de covariância dos retornos históricos, correlação REAL entre os FIIs, não soma simples das vols individuais). Peso de cada FII = valor da posição (preço atual via última cota do histórico Yahoo, fallback pro preço de ativação) — mesma limitação assumida de ETFs (sem campo de quantidade real).
+- Busca os históricos de TODOS os FIIs ativos em PARALELO (`ThreadPoolExecutor`, orçamento 15s) — 12 FIIs ativos (mais que o caso de ETFs), sequencial estouraria o tempo do Render.
+- Testado com harness real (mock de rede + GitHub): dados normais, falha parcial de rede (1 ticker falha, rota não quebra), carteira vazia — todos passaram.
+- Frontend: card `#carteirafiis-resumo` em `loadCarteiraFiisResumo()` (app.js), acima da tabela da Carteira FIIs, mesmo visual do card de ETFs.
+
+**Cache diário (pedido do usuário 05/07/2026 — cálculo de correlação é pesado, não precisa rodar a cada clique):**
+- Ambos `/etfs/carteira/resumo` e `/carteira-fiis/resumo` agora cacheiam em memória (module-level dict), chave = `data_de_hoje + tickers_ativos_ordenados`. Se o usuário ativar/encerrar um ativo no meio do dia, a chave muda e o cache invalida sozinho. Resposta cacheada volta com `'cache': true` pro front (não usado visualmente ainda, disponível se quiser indicar na UI).
+- Testado: 1ª chamada busca de rede de verdade, 2ª chamada (mesmo dia, mesma composição) não rebusca nada, mesmo resultado.
+
+**Reorganização de ETFs (Mercado vs Minha Operação, mesmo padrão que FIIs):**
+- Watchlist de ETFs ficou sozinha em Mercado > ETFs (removida a barra de sub-abas, já que só sobrou 1 seção).
+- "Em Análise" e "Carteira" de ETFs viraram aba própria — **"📦 Carteira ETFs"** — dentro de Minha Operação, com sub-abas internas (`etfSubTab()`, inalterado). Nova aba precisa aguardar `loadETFs()` terminar antes de renderizar (flag `window._etfDataPronto`, usada porque `_etfData` começa como array vazio `[]`, que é truthy em JS — checar só `!_etfData` não detectava "ainda não carregado").
+- **BACKLOG NOVO, registrado pelo próprio usuário nesta sessão**: o "Em Análise" de ETFs deveria estar dentro da aba única e já existente `#tab-emanalise` (a mesma que tem "Estruturas em Análise" + ranking de FIIs logo abaixo), não dentro de "Carteira ETFs". Ou seja, `#tab-emanalise` deveria virar o lugar único para TODO "em análise" (estruturas, FIIs, ETFs), e "Carteira ETFs" deveria conter só a carteira de fato (como Carteira FIIs). Usuário classificou como "mais estético do que prático", não urgente — mas fica registrado pra próxima rodada de ajuste de layout.
+- Confirmado com o usuário: o fluxo de ativação (`moverEtf()`, botões "+ Em Análise"/"OK → Carteira") não foi afetado pela reorganização — só mudou em qual aba os containers (`etf-analise-tbody`, `etf-carteira-lista`) aparecem, os IDs continuam os mesmos.
+
+**Itens do backlog antigo confirmados como já entregues nesta sessão (não precisam de ação):**
+- Item "convergência Graham → Média dos 4 métodos": já estava implementado (card de resumo já mostra "Méd. 4 Métodos" como destaque principal). Confirmado.
+- Item "fan chart para Posições Ativas" (retroativo + projeção): já implementado (`data_entrada` real, botão "Ver evolução desde a entrada" em todos os templates de posição). Confirmado.
+- Item "Monte Carlo Condicional em Em Análise": já implementado (`/montecarlo/condicional`, botão "Ver probabilidade atualizada"). Confirmado.
+- Item "código da opção junto ao ticker em Posições Ativas": **CANCELADO** pelo usuário — não se aplica a operações estruturadas (bidirecional/retorno controlado), que não têm um único código de opção (são combinações de pernas com quantidades). Só faz sentido pra operações simples, que já mostravam certo.
+
+
 
 **PRATICA DE BACKUP (pedido explicito do usuario 03/07/2026):** cada arquivo
 tocado tem seu SHA anotado aqui ANTES e DEPOIS de cada edicao. Isso ja
@@ -265,6 +301,7 @@ Historico completo (a v20 registrou o meio do caminho; isto e o desfecho real):
 - **Teto de analises por lote — CONFIRMADO/FECHADO**: nao ha limitacao tecnica real no Render pra VISUALIZAR o ranking (GET /analises so le JSON, nao recalcula Monte Carlo -- bandas ja vem congeladas da criacao). O teto de 15 e so pra RODADAS DE REGISTRO (POST /analises em loop no Eruda), por seguranca de timeout/rate-limit, nao por limite real. Usuario pode acumular quantos itens quiser em Em Analise sem problema.
 
 ## Backlog de medio prazo (sem prioridade fechada, decidir a cada sessao)
+- **NOVO 05/07/2026** — "Em Análise" de ETFs deveria morar dentro da aba única `#tab-emanalise` (junto com Estruturas em Análise + ranking de FIIs), em vez de dentro de "Carteira ETFs". "Carteira ETFs" ficaria só com a carteira de fato. Classificado pelo usuário como estético, não urgente.
 - Historico mensal completo de dividendos na Carteira FIIs — **DESCARTADO 02/07/2026**: StatusInvest so tem totais semestrais via scraping simples (regex), o breakdown mes-a-mes fica atras de chamada assincrona/JS que nao consigo capturar de fora. Usuario decidiu que nao vale o esforco pra uma informacao complementar (ja acessa via detalhe do fundo quando precisa).
 - Varredura/limpeza de fundos "lixo" (FIIs mortos/incorporados) na Carteira FIIs — usuario vai estudar criterios e trazer numa proxima sessao; Claude tambem deve propor criterios quando o assunto voltar.
 - Encerradas para FIIs (comportamento ainda nao definido)
