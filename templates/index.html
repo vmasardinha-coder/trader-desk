@@ -12,40 +12,57 @@
 </head>
 <body>
 
-<div class="hdr">
-  <div class="logo">TRADER <span>DESK</span></div>
-  <div class="hdr-ticker" id="hdr-ticker">
-    <span class="hdr-tk-item">IBOV <b id="hdr-ibov-p" class="loading">—</b> <span id="hdr-ibov-c">—</span></span>
-    <span class="hdr-tk-item">USD/BRL <b id="hdr-usd-p" class="loading">—</b> <span id="hdr-usd-c">—</span></span>
-    <span class="hdr-tk-item">SELIC <b id="hdr-selic-p" class="loading">—</b></span>
-  </div>
-  <div class="hdr-right">
-    <div class="badge">● AO VIVO</div>
-    <div class="hdr-time" id="last-update">—</div>
-  </div>
-</div>
+<!-- ══ FASE 4 modernizacao de layout (05/07/2026) — sidebar fixa com
+     accordion, substitui a nav horizontal de topo (fases 1-3). Mesma
+     logica por baixo (sw()/swFam(), data-fam, tab-content) -- so mudou a
+     disposicao visual, aprovada por mockup antes de implementar. ══ -->
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><span class="sidebar-logo-mark"></span>TRADER DESK</div>
 
-<!-- ══ NAV NIVEL 1 — FAMILIAS (adicionado fase 1 da modernizacao de layout,
-     04/07/2026). Nao mexe em sw()/tab-content: so mostra/esconde quais
-     .tab ficam visiveis na barra abaixo, por familia. ══ -->
-<div class="fam-tabs">
-  <div class="fam-tab active" onclick="swFam('mercado',this)">🏛 Mercado</div>
-  <div class="fam-tab" onclick="swFam('operacao',this)">💼 Minha Operação</div>
-  <div class="fam-tab" onclick="swFam('agenda',this)">📅 Agenda</div>
-</div>
+    <div class="sidebar-fam" id="sfam-mercado">
+      <div class="sidebar-fam-hdr active" onclick="swFam('mercado',this)"><span>🏛 Mercado</span><span class="sidebar-fam-arrow">⌄</span></div>
+      <div class="sidebar-fam-body">
+        <div class="tab active" data-fam="mercado" onclick="sw('cotacoes',this)">📊 Cotações</div>
+        <div class="tab" data-fam="mercado" onclick="sw('indicadores',this)">📈 Papéis</div>
+        <div class="tab" data-fam="mercado" onclick="sw('etfs',this)">📦 ETFs</div>
+        <div class="tab" data-fam="mercado" onclick="sw('fiis',this)">🏢 FIIs</div>
+      </div>
+    </div>
 
-<div class="tabs">
-  <div class="tab active" data-fam="mercado" onclick="sw('cotacoes',this)">📊 Cotações</div>
-  <div class="tab" data-fam="mercado" onclick="sw('indicadores',this)">📈 Papéis</div>
-  <div class="tab" data-fam="mercado" onclick="sw('etfs',this)">📦 ETFs</div>
-  <div class="tab" data-fam="mercado" onclick="sw('fiis',this)">🏢 FIIs</div>
-  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
-  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('posicoes',this)">💼 Posições Ativas <span id="pos-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
-  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('carteirafiis',this)">💰 Carteira FIIs</div>
-  <div class="tab" data-fam="operacao" style="display:none" onclick="sw('encerradas',this)">🗂 Encerradas</div>
-  <div class="tab" data-fam="agenda" style="display:none" onclick="sw('calendario',this)">📅 FF Calendar</div>
-  <div class="tab" data-fam="agenda" style="display:none" onclick="sw('tvcal',this)">📺 TV Calendar</div>
-</div>
+    <div class="sidebar-fam" id="sfam-operacao">
+      <div class="sidebar-fam-hdr" onclick="swFam('operacao',this)"><span>💼 Minha Operação</span><span class="sidebar-fam-arrow">›</span></div>
+      <div class="sidebar-fam-body" style="display:none">
+        <div class="tab" data-fam="operacao" onclick="sw('emanalise',this)">🔍 Em Análise <span id="analise-badge" style="display:none;background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
+        <div class="tab" data-fam="operacao" onclick="sw('posicoes',this)">💼 Posições Ativas <span id="pos-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:700">!</span></div>
+        <div class="tab" data-fam="operacao" onclick="sw('carteirafiis',this)">💰 Carteira FIIs</div>
+        <div class="tab" data-fam="operacao" onclick="sw('encerradas',this)">🗂 Encerradas</div>
+      </div>
+    </div>
+
+    <div class="sidebar-fam" id="sfam-agenda">
+      <div class="sidebar-fam-hdr" onclick="swFam('agenda',this)"><span>📅 Agenda</span><span class="sidebar-fam-arrow">›</span></div>
+      <div class="sidebar-fam-body" style="display:none">
+        <div class="tab" data-fam="agenda" onclick="sw('calendario',this)">📅 FF Calendar</div>
+        <div class="tab" data-fam="agenda" onclick="sw('tvcal',this)">📺 TV Calendar</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-area">
+    <div class="hdr">
+      <div class="hdr-ticker" id="hdr-ticker">
+        <span class="hdr-tk-item">IBOV <b id="hdr-ibov-p" class="loading">—</b> <span id="hdr-ibov-c">—</span></span>
+        <span class="hdr-tk-item">USD/BRL <b id="hdr-usd-p" class="loading">—</b> <span id="hdr-usd-c">—</span></span>
+        <span class="hdr-tk-item">SELIC <b id="hdr-selic-p" class="loading">—</b></span>
+      </div>
+      <div class="hdr-right">
+        <div class="badge">● AO VIVO</div>
+        <div class="hdr-time" id="last-update">—</div>
+      </div>
+    </div>
+
+    <div class="page-content">
 
 <!-- ══ COTAÇÕES ══ -->
 <div id="tab-cotacoes" class="tab-content active">
@@ -419,6 +436,10 @@
   </div>
   <div id="cal-st" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
   <div id="cal-area"><p style="color:var(--muted);padding:20px;text-align:center">Carregando...</p></div>
+</div>
+
+    </div>
+  </div>
 </div>
 
 <!-- ══ AVISO LEGAL ══ -->
