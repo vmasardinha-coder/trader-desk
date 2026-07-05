@@ -658,6 +658,7 @@ async function loadCarteiraFiis(){
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
     renderCarteiraFiis(d.carteira||[]);
+    loadCarteiraFiisResumo();
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar carteira: '+e.message+'</p>';
   }finally{
@@ -717,6 +718,45 @@ function renderCarteiraFiis(carteira){
     setTimeout(()=>carregarProventosCarteira(f), delay);
     delay+=500;
   });
+}
+
+// Adicionado 05/07/2026 -- card de resumo agregado da Carteira FIIs
+// (volatilidade real via correlacao, espelhando o mesmo card ja existente
+// em Carteira de ETFs / renderEtfCarteira). Fica em div separada
+// (#carteirafiis-resumo), nao mexe na tabela nem na logica de proventos
+// existente em renderCarteiraFiis.
+async function loadCarteiraFiisResumo(){
+  const div=document.getElementById('carteirafiis-resumo');
+  if(!div)return;
+  div.style.display='block';
+  div.innerHTML='<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--bg2)">'+
+    '<div style="font-size:11px;color:var(--muted)">Calculando resumo da carteira (vol. real com correlação entre ativos)...</div></div>';
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),18000);
+    const r=await fetch(B+'/carteira-fiis/resumo',{signal:ctrl.signal,cache:'no-store'});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    if(!d.itens||!d.itens.length){div.style.display='none';return;}
+    const retornoColor=d.retorno_pct==null?'var(--muted)':(d.retorno_pct>=0?'var(--green)':'var(--red)');
+    let volLinha='<span style="color:var(--muted)">Volatilidade da carteira indisponível (histórico insuficiente para 2+ ativos).</span>';
+    if(d.vol_carteira_pct!=null){
+      const diff=d.vol_soma_simples_pct!=null?(d.vol_soma_simples_pct-d.vol_carteira_pct):null;
+      volLinha='Vol. anualizada da carteira (correlação real): <b style="color:var(--accent)">'+d.vol_carteira_pct.toFixed(1)+'%</b>'+
+        (diff!=null&&diff>0.05?' <span style="color:var(--muted);font-size:10px">(vs '+d.vol_soma_simples_pct.toFixed(1)+'% se os FIIs fossem 100% correlacionados — diversificação está descontando ~'+diff.toFixed(1)+'pp)</span>':'');
+    }
+    div.innerHTML='<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--bg2)">'+
+      '<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<div><div style="font-size:10px;color:var(--muted)">TOTAL INVESTIDO</div><div style="font-size:16px;font-weight:700">R$ '+d.total_investido.toFixed(2)+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--muted)">VALOR ATUAL</div><div style="font-size:16px;font-weight:700">R$ '+d.valor_atual.toFixed(2)+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--muted)">RETORNO</div><div style="font-size:16px;font-weight:700;color:'+retornoColor+'">'+(d.retorno_pct!=null?(d.retorno_pct>=0?'+':'')+d.retorno_pct.toFixed(2)+'%':'—')+'</div></div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--text)">'+volLinha+'</div>'+
+      '<div style="font-size:9px;color:var(--muted);margin-top:6px">'+(d.nota||'')+'</div>'+
+    '</div>';
+  }catch(e){
+    div.innerHTML='<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--bg2)">'+
+      '<span style="color:var(--red);font-size:11px">Erro ao calcular resumo: '+e.message+'</span></div>';
+  }
 }
 
 // GENERALIZADO 30/06/2026 -- antes so existia para a Carteira de FIIs,
