@@ -113,17 +113,23 @@ function sw(t,el){
 
 }
 
-// Adicionado 04/07/2026 -- nav de 2 niveis (fase 1 da modernizacao de
-// layout). NAO substitui sw(): so controla quais .tab ficam visiveis na
-// barra de baixo, por familia (data-fam), e ativa a primeira aba daquela
-// familia clicando nela de verdade (reaproveita o onclick original, sem
-// duplicar logica de troca de conteudo).
+// Adicionado 05/07/2026 -- fase 4 da modernizacao de layout (sidebar com
+// accordion, substitui a nav horizontal das fases 1-3). NAO substitui
+// sw(): so controla qual .sidebar-fam-body fica expandido (accordion) e
+// ativa a primeira aba daquela familia clicando nela de verdade
+// (reaproveita o onclick original, sem duplicar logica de troca de
+// conteudo). Cada familia e seu container: '#sfam-'+fam.
 function swFam(fam,el){
-  document.querySelectorAll('.fam-tab').forEach(x=>x.classList.remove('active'));
-  if(el)el.classList.add('active');
-  const tabs=document.querySelectorAll('.tabs .tab');
-  tabs.forEach(t=>{t.style.display=(t.dataset.fam===fam)?'':'none';});
-  const first=document.querySelector('.tabs .tab[data-fam="'+fam+'"]');
+  document.querySelectorAll('.sidebar-fam').forEach(sf=>{
+    const hdr=sf.querySelector('.sidebar-fam-hdr');
+    const body=sf.querySelector('.sidebar-fam-body');
+    const arrow=sf.querySelector('.sidebar-fam-arrow');
+    const isAlvo=sf.id==='sfam-'+fam;
+    if(hdr)hdr.classList.toggle('active',isAlvo);
+    if(body)body.style.display=isAlvo?'block':'none';
+    if(arrow)arrow.textContent=isAlvo?'⌄':'›';
+  });
+  const first=document.querySelector('#sfam-'+fam+' .tab');
   if(first)first.click();
 }
 
