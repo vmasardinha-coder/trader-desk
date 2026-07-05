@@ -9,17 +9,32 @@
 body{
   background:var(--bg);color:var(--text);
   font-family:'Inter',sans-serif;font-size:clamp(14px,0.95vw,17px);
-  line-height:1.5;padding:20px clamp(24px,3vw,48px);
-  max-width:clamp(1100px,92vw,1800px);margin:0 auto;min-height:100vh
+  line-height:1.5;min-height:100vh
 }
-@media(max-width:600px){body{padding:12px;font-size:14px}}
 @media(min-width:900px){body{zoom:1.3}}
 
-/* ── HEADER ── */
-.hdr{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 clamp(-24px,-3vw,-48px) 20px;padding:14px clamp(24px,3vw,48px) 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;background:var(--bg);flex-wrap:wrap}
-.logo{font-size:18px;font-weight:700;color:var(--accent);letter-spacing:.5px;font-family:'IBM Plex Mono',monospace;flex-shrink:0}
-.logo span{color:var(--accent2)}
-.hdr-ticker{display:flex;gap:18px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:12px;overflow-x:auto}
+/* ── APP SHELL / SIDEBAR (fase 4, 05/07/2026) — substitui a nav
+   horizontal de topo (fases 1-3) por sidebar fixa com accordion, mesma
+   logica de sw()/swFam()/data-fam por baixo. ── */
+.app-shell{display:flex;min-height:100vh}
+.sidebar{width:200px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:20px 14px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto}
+.sidebar-logo{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--text);letter-spacing:.3px;margin-bottom:22px}
+.sidebar-logo-mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--accent2));flex-shrink:0}
+.sidebar-fam{margin-bottom:4px}
+.sidebar-fam-hdr{display:flex;justify-content:space-between;align-items:center;padding:9px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);cursor:pointer;border-radius:8px;transition:all .15s}
+.sidebar-fam-hdr:hover{color:var(--text)}
+.sidebar-fam-hdr.active{background:var(--accent);color:#fff}
+.sidebar-fam-arrow{font-size:11px;opacity:.7}
+.sidebar-fam-body{padding-top:2px}
+@media(max-width:700px){
+  .app-shell{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:relative;top:auto;border-right:none;border-bottom:1px solid var(--border)}
+}
+
+/* ── MAIN AREA / HEADER ── */
+.main-area{flex:1;min-width:0}
+.hdr{display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:14px clamp(20px,3vw,40px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;background:var(--bg);flex-wrap:wrap}
+.hdr-ticker{display:flex;gap:18px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:12px;overflow-x:auto;margin-right:auto}
 .hdr-tk-item{color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:5px}
 .hdr-tk-item b{color:var(--text);font-weight:700}
 .hdr-tk-item b.loading{color:var(--muted);animation:pulse 1.5s infinite;font-weight:500}
@@ -29,18 +44,12 @@ body{
 @media(max-width:700px){
   .hdr-ticker{order:3;width:100%;font-size:11px;gap:12px}
 }
+.page-content{padding:20px clamp(20px,3vw,40px);max-width:1500px}
 
-/* ── NAV FAMILIAS (nivel 1) — adicionado 04/07/2026 ── */
-.fam-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;justify-content:center}
-.fam-tab{padding:10px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.3px;color:var(--muted);white-space:nowrap;font-family:inherit;transition:all .15s}
-.fam-tab:hover{color:var(--text);border-color:var(--accent)}
-.fam-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(124,106,247,.35)}
-
-/* ── TABS (nivel 2) ── */
-.tabs{display:flex;gap:4px;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;justify-content:center}
-.tab{padding:8px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;font-family:inherit;transition:all .15s}
-.tab:hover{color:var(--text);border-color:var(--accent)}
-.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* ── TABS (agora itens da sidebar, nao mais barra horizontal) ── */
+.tab{padding:8px 10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;font-family:inherit;transition:all .15s;border-radius:7px;margin-bottom:2px;display:block}
+.tab:hover{color:var(--text);background:var(--bg3)}
+.tab.active{background:var(--bg3);color:var(--text);border-left:2px solid var(--accent2)}
 .tab-content{display:none!important}.tab-content.active{display:block!important}
 
 /* ── SECTION ── */
