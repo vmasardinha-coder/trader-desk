@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v22.1 — FECHAMENTO sessão 04/07/2026)
+# Trader Desk — Prompt de Continuação (v23 — FECHAMENTO sessão 04/07/2026, modularização completa)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -11,13 +11,16 @@
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
 ## SHAs no fechamento REAL desta sessão (04/07/2026, todos validados no ar pelo usuario)
-- proxy.py: 9cd1e9747dbb50e0f5ae7b5d961a2d3a15bf9324
+- proxy.py: 56fbd1fad0e5c1f6007de03ffbfeed46b3d1a271 (modularizacao completa -- fases 3/4/5, ver secao propria abaixo)
+- fontes.py: ca3a07053ccdc794dff5fed9a5eeb455597dd4c3 (novo -- fase 3)
+- rotas_fiis.py: 13c522224454888415d7108de4fdf26ef9699e23 (novo -- fase 4, com bugfix)
+- rotas_etfs.py: deac9d1e21e1214aa99bbf62905a6361c9ab71df (novo -- fase 5, com fix de paralelizacao)
 - static/app.js: a0cf5cb2d6b02a48e89caab0759b1910508c1674
 - templates/index.html: 3950b10eb59d1a9c07432426afeb063914206a7a (inalterado)
 - fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805
 - motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35
 - fontes_etfs.py: 256cf7da182e82aea6b982e544b12960a20614fe (dedup de celulas + escala de risco invertida)
-- etfs_estado.json: 032ef6d74e38b1569be8c432c721f5d7ee2a2f9e (preco_entrada COIN11/SPYI11 corrigido)
+- etfs_estado.json: 3972f87b0de75a9b35f4821a206595246b4012f0 (revertido apos escrita acidental de teste, ver licao abaixo)
 - static/style.css: 61ef8928448b18e1582aff710da2cbc4a5992d01 (inalterado)
 
 **PRATICA DE BACKUP (pedido explicito do usuario 03/07/2026):** cada arquivo
@@ -32,6 +35,76 @@ nao so o de "depois", para rollback ser trivial se algo quebrar.
 - etfs_estado.json: novo arquivo criado nesta sessão via /etfs/mover (em_analise e carteira de ETFs)
 
 ## Itens CONCLUIDOS e VALIDADOS nesta sessao (02/07/2026)
+
+## Continuação 04/07/2026 (tarde) — Modularização completa (Fases 3, 4 e 5)
+
+`proxy.py` caiu de **6.606 → 4.323 linhas (-35%)** nesta sessão. As 5 fases do
+plano de modularização (aprovado em 03/07) estão TODAS concluídas e validadas
+no ar pelo usuário:
+- **Fase 1** (`motor.py`) e **Fase 2** (`fontes_etfs.py`): já fechadas em sessão anterior.
+- **Fase 3** (`fontes.py`, novo): CDI (Bacen), BTC onchain, Yahoo fundamentals/quotes,
+  minério de ferro, 8marketcap (helpers), e todo o cluster de FIIs — constantes de
+  segmento/classificação, `scrape_fiis_fundamentus` (Fundamentus), `scrape_fi_infra`,
+  `scrape_fi_infra_dados`, os 4 scrapers do StatusInvest. Tudo puro (sem Flask/estado).
+- **Fase 4** (`rotas_fiis.py`, novo): as 10 rotas de FIIs (`/fiis`, `/fiis/buscar`,
+  `/fii-infra`, `/carteira-fiis` GET/POST/PUT, `/fii-ultimo-provento`,
+  `/carteira-fiis/proventos`, `/fiis/universo-complementar`, `/analises/ranking-fiis`,
+  `/debug-statusinvest*`). Padrão novo: `registrar_rotas(app, ...)` — rotas não podem
+  fazer import direto de `proxy.py` (circular), então `proxy.py` cria o `app` e as
+  dependências (`_github_get_file`, `_github_put_file`, `_hoje_str`,
+  `_requer_auth_escrita`) e CHAMA a função de registro depois de defini-las.
+- **Fase 5** (`rotas_etfs.py`, novo): as 6 rotas de ETFs (`/etfs`, `/etfs/live-status`,
+  `/etfs/estado`, `/etfs/mover`, `/etfs/carteira/<ticker>/projecao`,
+  `/etfs/carteira/resumo`). Mesmo padrão `registrar_rotas(app, ...)`, incluindo
+  `_cache_etfs_live`, `_dy_refresh_em_andamento`, `_fetch_closes_for_foto` e
+  `_obter_preco_sigma_garch` como dependências passadas (essas ficam em `proxy.py`
+  de propósito — dependem de estado compartilhado/ciclo de background, não são
+  rota nem fonte pura).
+
+`proxy.py` agora é essencialmente: app Flask + rotas core (posições/análises/
+Monte Carlo de Papéis) + as chamadas `registrar_rotas(...)` dos módulos.
+
+### Bugs reais pegos DEPOIS do commit (rede real, não sandbox) — corrigidos
+1. **`rotas_fiis.py` (Fase 4)**: faltava `import json` (NameError real em
+   `/carteira-fiis`), e faltavam `ThreadPoolExecutor`/`_CARTEIRA_FII_STATUS_VALIDOS`
+   (NameError real em `/fii-infra` e `/fiis/universo-complementar` — só aparecia
+   DEPOIS que o scraping de rede tinha sucesso, por isso o boot test no sandbox,
+   que não acessa Fundamentus/Investidor10, nunca chegava nessas linhas e não
+   pegou o bug antes do commit). Ambos corrigidos e revalidados.
+2. **`rotas_etfs.py` (Fase 5) — fix de performance, não crash**: `/etfs/carteira/resumo`
+   buscava o histórico de cada ETF da carteira SEQUENCIALMENTE via Yahoo (até 2 hosts
+   × 8s por ticker). Com Render free tier (timeout de request), isso podia estourar
+   e devolver resposta vazia pro navegador (`Unexpected end of JSON input`).
+   Corrigido: agora usa `ThreadPoolExecutor` (orçamento de 15s), mesmo padrão já usado
+   em `_fetch_etfs_live`/`_refresh_completo_background`. Confirmado com teste de
+   latência simulada (2s por ticker): antes ~4s+ para 2 posições, depois ~2,5s.
+
+### LIÇÃO NOVA para próximas extrações/refatorações
+Quando uma rota só executa um trecho de código DEPOIS de uma chamada de rede bem
+sucedida (ex: processamento paralelo pós-scraping), o boot test de 2 camadas
+(`ast.parse` + `app.test_client()`) não é suficiente sozinho se o sandbox não tem
+acesso à rede real usada pela rota — o código nunca chega a rodar esse trecho, e
+um `NameError` escondido ali passa despercebido. Precisa **mockar a função de rede**
+(ex: `fontes_etfs._fetch_yahoo_series = lambda ...: {...}`) para forçar a execução
+real do trecho pós-rede antes de considerar validado. Usado com sucesso para pegar
+e confirmar os 2 bugs acima.
+
+### Incidente durante validação (revertido)
+Um teste de `POST /etfs/mover` rodou sem querer com o token de escrita real contra
+o `etfs_estado.json` de produção, adicionando IVVB11 em `em_analise` sem ter sido
+pedido. Revertido na hora (estado exato de antes restaurado, novo SHA
+`3972f87b0de75a9b35f4821a206595246b4012f0`). **Regra nova**: testes de rota de
+escrita (POST/PUT/DELETE) SEMPRE com `_github_get_file`/`_github_put_file`
+mockados — nunca mais token real em teste, mesmo que o teste pareça inofensivo.
+
+### Nota conhecida (não é bug, não vale corrigir sem sair do free tier)
+Erros esporádicos de "Unexpected end of JSON input" ao clicar rápido em Atualizar
+(FIIs) ou trocar de aba rapidamente (Em Análise) — Render free tier só tem 1
+worker, então duas requisições pesadas simultâneas competem pelo único processo e
+uma pode estourar timeout. Usuário confirmou: não clicar em cascata resolve na
+prática. Não é regressão da modularização.
+
+## Itens CONCLUIDOS e VALIDADOS em sessao anterior (02/07/2026)
 
 ### 1. Backlog #2 — Legenda de confianca na Foto do Papel
 Adicionada caixa "Com 80% de confianca, o preco deve estar entre R$X e R$Y" (e faixa de 50%) no grafico da Foto do Papel, mesmo padrao do fan chart de Monte Carlo. Implementado em `renderFotoChart` (app.js).
