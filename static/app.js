@@ -113,6 +113,20 @@ function sw(t,el){
 
 }
 
+// Adicionado 04/07/2026 -- nav de 2 niveis (fase 1 da modernizacao de
+// layout). NAO substitui sw(): so controla quais .tab ficam visiveis na
+// barra de baixo, por familia (data-fam), e ativa a primeira aba daquela
+// familia clicando nela de verdade (reaproveita o onclick original, sem
+// duplicar logica de troca de conteudo).
+function swFam(fam,el){
+  document.querySelectorAll('.fam-tab').forEach(x=>x.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const tabs=document.querySelectorAll('.tabs .tab');
+  tabs.forEach(t=>{t.style.display=(t.dataset.fam===fam)?'':'none';});
+  const first=document.querySelector('.tabs .tab[data-fam="'+fam+'"]');
+  if(first)first.click();
+}
+
 // Adicionado 25/06/2026 -- item 1 do backlog (FIIs). Screening via
 // Fundamentus, descarte automatico no backend (liquidez/DY/P-VP), filtro
 // de segmento aplicado no FRONTEND (dado completo ja vem do backend numa
