@@ -127,6 +127,27 @@ function swFam(fam,el){
   if(first)first.click();
 }
 
+// Adicionado 04/07/2026 -- fase 2 da modernizacao de layout (header fixo).
+// NAO duplica fetch: so espelha o que ja esta calculado nos elementos da
+// aba Cotacoes (ibov-p/ibov-c, usd-p/usd-c, brselic-p) para os elementos
+// espelho no header sticky. Roda em intervalo simples, zero acoplamento
+// com a logica de busca/atualizacao existente.
+function _mirror(srcId,dstId){
+  const s=document.getElementById(srcId),d=document.getElementById(dstId);
+  if(!s||!d)return;
+  d.textContent=s.textContent;
+  d.className=s.className;
+}
+function syncHeaderTicker(){
+  _mirror('ibov-p','hdr-ibov-p');
+  _mirror('ibov-c','hdr-ibov-c');
+  _mirror('usd-p','hdr-usd-p');
+  _mirror('usd-c','hdr-usd-c');
+  _mirror('brselic-p','hdr-selic-p');
+}
+setInterval(syncHeaderTicker,1500);
+syncHeaderTicker();
+
 // Adicionado 25/06/2026 -- item 1 do backlog (FIIs). Screening via
 // Fundamentus, descarte automatico no backend (liquidez/DY/P-VP), filtro
 // de segmento aplicado no FRONTEND (dado completo ja vem do backend numa
