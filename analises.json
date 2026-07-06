@@ -3517,5 +3517,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-06. P/VP=1.03, DY=9.99%, segmento=Fundo de Investimentos em Participacoes (FIP-IE), nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1783353943"
+  },
+  {
+    "ticker": "HGBS11.SA",
+    "nome": "HGBS11 - FII Shoppings",
+    "data_foto": "2026-07-06",
+    "preco_foto": 19.37,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 9.78,
+    "p_vp": 0.95,
+    "liquidez": 6251520,
+    "segmento": "tijolo",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-07-06. P/VP=0.95, DY=9.78%, segmento=Shoppings, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1783353966"
   }
 ]
