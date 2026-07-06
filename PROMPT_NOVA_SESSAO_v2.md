@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v24 — FECHAMENTO sessão 05/07/2026, modernização de layout + volatilidade Carteira FIIs + reorg ETFs)
+# Trader Desk — Prompt de Continuação (v25 — FECHAMENTO sessão 05/07/2026 continuação, painel de aproveitamento em Encerradas + processo de fechamento de Posições Ativas)
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
@@ -11,20 +11,83 @@
 - **LIMITAÇÃO DE AMBIENTE CONFIRMADA (02/07/2026)**: o sandbox de execução do Claude (bash_tool) só acessa domínios de pacotes (github.com, api.github.com, pypi.org, npmjs.com etc) — NÃO acessa `trader-desk.onrender.com` nem `finance.yahoo.com`. Isso significa que Claude NÃO consegue chamar `POST /analises` (ou qualquer rota Flask) diretamente, nem buscar preço/histórico via Yahoo no sandbox. Duas consequências práticas: (1) quando Claude precisa registrar uma análise nova a partir de um lote decidido em chat, o caminho é ESCREVER DIRETO no `analises.json`/`positions.json` via GitHub Contents API (contorna o Flask) — mas isso PULA o congelamento automático de bandas (backlog #4), que só roda dentro da rota Flask; (2) para testar de verdade o congelamento de bandas, o USUÁRIO precisa rodar o `fetch()` manual pelo Eruda, não Claude. Se no futuro o domínio do Render for liberado no sandbox, isso deixa de ser necessário.
 
 ## SHAs no fechamento REAL desta sessão (05/07/2026, todos validados no ar pelo usuario)
-- templates/index.html: 82b6d88df26e2464f974609435aa6e15e4ba74f8 (sidebar com accordion + reorg de ETFs)
-- static/style.css: aedb6fcbe339ede195c6e6182fec5f5da4157fe7 (sidebar/app-shell + unificacao de radius)
-- static/app.js: 1407c164bf85ded2f8e6b87319bafa78b64b3f9a (swFam accordion + syncHeaderTicker + loadCarteiraFiisResumo + etfscarteira)
+- proxy.py: 4f37b90ee37e8385e234c80d41ccfa37b8c39f2c (captura preco_encerramento + /montecarlo/condicional aceita override retroativo)
+- static/app.js: bb84611393a21285933af603ccec82e496968aa9 (painel de aproveitamento em Encerradas, lote de 100)
 - rotas_fiis.py: aba19f80ed2f52e0a37203742ad4c79a3f47ae79 (novo endpoint /carteira-fiis/resumo + cache diario)
 - rotas_etfs.py: ab401ebbf1b12f73e6d454ded2349b3011939136 (cache diario em /etfs/carteira/resumo)
-- proxy.py: 56fbd1fad0e5c1f6007de03ffbfeed46b3d1a271 (inalterado desde 04/07)
+- templates/index.html: 82b6d88df26e2464f974609435aa6e15e4ba74f8 (sidebar com accordion + reorg de ETFs)
+- static/style.css: aedb6fcbe339ede195c6e6182fec5f5da4157fe7 (sidebar/app-shell + unificacao de radius)
 - fontes.py: ca3a07053ccdc794dff5fed9a5eeb455597dd4c3 (inalterado desde 04/07)
 - fontes_etfs.py: 256cf7da182e82aea6b982e544b12960a20614fe (inalterado desde 04/07)
 - motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35 (inalterado)
 - fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805 (inalterado)
 - etfs_estado.json: 3972f87b0de75a9b35f4821a206595246b4012f0 (inalterado)
-- positions.json: c462e0a7b4d666e0c3f6b6e165f7df767d4a23ed (inalterado)
+- positions.json: 3319dd4b563058c50d4893f9b7b724b3d9d53af9 (inalterado -- 7 ativas, 4 encerradas SEM preco_encerramento/data_encerramento, ver processo novo abaixo)
 - analises.json: 5e638624371ec107611b90d63ca052452e1e66e6 (inalterado)
 - carteira_fiis.json: 7ae13a8040f95b99901a2564825abe0533353f99 (inalterado, so lido)
+
+## Continuação 05/07/2026 (parte 2) — Painel "quanto ficou na mesa" em Encerradas + processo de fechamento de Posições Ativas
+
+**Contexto/motivação**: usuário quer, ao encerrar uma análise/posição, saber retrospectivamente
+qual era a probabilidade de sucesso NO MOMENTO do fechamento (não só hoje), e "quanto dinheiro
+ficou na mesa" comparado ao que a simulação esperava -- útil para avaliar se o motor de decisão
+está sendo assertivo, não para controle financeiro exato (isso as corretoras já dão).
+
+**Backend (`proxy.py`):**
+- `PUT /analises/<id>/status`: quando `resultado` é enviado (sucesso/fracasso), agora captura
+  `preco_encerramento` via `_fetch_preco_yahoo` (best-effort, não trava o encerramento se falhar)
+  além do `data_encerramento` que já existia.
+- `/montecarlo/condicional`: ganhou parâmetros OPCIONAIS `data_referencia` e `preco_referencia`.
+  Quando enviados, ancora o cálculo NAQUELE ponto no tempo (não em "agora") -- permite calcular
+  "qual era a probabilidade quando encerrei" em vez de sempre "qual é a probabilidade hoje".
+  Comportamento ORIGINAL (sem esses parâmetros) preservado 100% -- testado com boot real do
+  proxy.py (test_client, mocks de rede/GitHub), não só ast.parse.
+  **LIMITAÇÃO ASSUMIDA E EXPOSTA na resposta** (`nota_limitacao`): a volatilidade usada continua
+  sendo a ATUAL (buscada ao vivo), não a de época -- Yahoo não dá uma forma simples de reconstruir
+  vol histórica "como era vista" numa data passada sem dados pagos. `retorno_medio_pct` (usado no
+  painel) vem do bloco de simulação que já existia (projeta do `preco_foto` original pelo
+  `prazo_dias` TOTAL, não depende de fato do override -- é o valor esperado teórico da estrutura
+  completa, ponto de comparação, não uma projeção "condicional" de verdade).
+
+**Frontend (`app.js`):** painel novo na aba Encerradas (`calcularSomatorioEncerradas`), roda
+automaticamente ao carregar a aba, para toda análise com `status=='encerrada' && resultado &&
+preco_encerramento`:
+- Por item: "Esperado (teórico) X% · Realizado (preço) Y% · diferença em R$ (lote de 100)".
+- Agregado no topo: soma de todas as diferenças, em R$ (lote de 100 ativos, seja ETF/ação/FII --
+  padronizado para comparabilidade) + em pp.
+- Chamadas SEQUENCIAIS com atraso de 400ms entre elas (não paralelas) -- mesmo cuidado de
+  concorrência do Render (1 worker) já documentado no backlog.
+- **"Realizado" é retorno BRUTO de preço** (`preco_encerramento/preco_foto - 1`), NÃO o payoff
+  exato da estrutura (kdo/kuo/alavancagem/teto) -- replicar o payoff exato no front duplicaria
+  lógica do backend. Indicador direcional ("ficou dinheiro na mesa ou não"), não valor exato.
+  Documentado na própria UI, não escondido.
+- **Só funciona para encerramentos A PARTIR DE 05/07/2026** -- análises já encerradas antes não
+  têm `preco_encerramento` salvo (painel avisa quando não há dado suficiente).
+
+**PROCESSO NOVO ESTABELECIDO (Posições Ativas, `positions.json`) -- decisão explícita do usuário
+05/07/2026:** `positions.json` **NÃO TEM e NÃO VAI GANHAR** endpoint/botão de fechamento automático
+por enquanto -- usuário prefere fechar SEMPRE em conversa com o Claude, dando contexto (se bateu
+a meta, se saiu antes mas dentro da proporção esperada, e sua PRÓPRIA interpretação de
+sucesso/fracasso, que pode divergir do número puro -- ex: "só rolei, não perdi dinheiro, mas
+considero fracasso"). Rotina esperada quando o usuário pedir para encerrar uma posição real:
+1. Claude busca o preço atual do ativo (web_search/web_fetch, já que o sandbox NÃO acessa Yahoo
+   nem o Render diretamente -- ver limitação de ambiente já documentada).
+2. Claude calcula esperado-vs-realizado usando a MESMA lógica do painel (lote de 100 ativos).
+3. Usuário informa o resultado final (sucesso/fracasso, na sua própria leitura -- não
+   necessariamente a leitura pelo numero puro).
+4. Claude grava tudo direto no `positions.json` (moving pra lista `encerradas`, com
+   `preco_encerramento`, `data_encerramento`, `resultado`, `observacao`) via GitHub Contents API.
+NÃO construir endpoint/UI para isso sem o usuário pedir explicitamente essa mudança de rotina.
+
+**Backlog ETFs/FIIs (adiado, prioridade baixa) -- critério explícito do usuário:** este é um
+sistema de TOMADA DE DECISÃO, não de controle de carteira -- o valor financeiro exato corretoras/
+bancos já fornecem. Para ETFs/FIIs, o interesse é só se o motor está sendo ASSERTIVO na decisão
+(a análise recomendou certo?), não o dinheiro ganho/perdido. Quando for revisitar, manter esse
+escopo mais simples -- não replicar o painel de R$/lote de 100 para ETFs/FIIs sem necessidade
+clara, considerar algo mais leve (ex: só confirmar se a decisão bateu com o esperado, sem
+valor monetário).
+
+
 
 ## Continuação 05/07/2026 — Modernização de layout (4 fases) + volatilidade Carteira FIIs + cache diário + reorg ETFs
 
