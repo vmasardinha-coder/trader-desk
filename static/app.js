@@ -109,6 +109,7 @@ function sw(t,el){
   if(t==='indicadores'&&!window._IL){window._IL=true;loadInd();}
   if(t==='calendario'&&!window._CL){window._CL=true;loadCal();}
   if(t==='emanalise'&&!window._AL){window._AL=true;loadAnalises();}
+  if(t==='encerradas'&&!window._ENCL){window._ENCL=true;loadAnalisesEncerradas();}
   if(t==='etfs'&&!window._ETL){window._ETL=true;loadETFs();}
   if(t==='etfscarteira'){
     if(!window._ETL){window._ETL=true;loadETFs();}
@@ -2821,7 +2822,6 @@ async function loadCal(){
 async function main(){
   try{
     if(!_posData)await loadPositions();
-    loadAnalisesEncerradas();
     const wt=(p,ms,fb)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(fb),ms))]);
     const[,tv,ft]=await Promise.all([wt(fHL(),12000,null),wt(fTV(),14000,{}),wt(fFut(),14000,null)]);
     const now=new Date().toLocaleTimeString('pt-BR');
@@ -3476,7 +3476,20 @@ async function calcularSomatorioEncerradas(lista){
   }
   painel.innerHTML='<div class="card" style="margin-bottom:10px"><div class="cl">Calculando aproveitamento (quanto ficou na mesa)...</div></div>';
   let somaGap=0, somaGapRs=0, contabilizados=0;
+  window._gapCache = window._gapCache || {};
   for(const a of qualificam){
+    // Cache de sessao: preco_encerramento/data_encerramento sao imutaveis
+    // uma vez fixados, entao o resultado nunca muda -- reabrir a aba na
+    // mesma sessao do navegador nao precisa rebuscar rede (evita sobrecarga
+    // no worker unico do Render, mesmo problema de concorrencia documentado
+    // no backlog geral).
+    if(window._gapCache[a.id]){
+      const c=window._gapCache[a.id];
+      const gapEl=document.getElementById('enc-gap-'+a.id);
+      if(gapEl)gapEl.innerHTML=c.html;
+      if(c.aplicavel){somaGap+=c.gap; somaGapRs+=c.gapRs; contabilizados++;}
+      continue;
+    }
     try{
       const body={ticker:a.ticker,preco_foto:a.preco_foto,data_foto:a.data_foto,prazo_dias:a.prazo_dias,
         data_referencia:a.data_encerramento,preco_referencia:a.preco_encerramento};
@@ -3496,7 +3509,9 @@ async function calcularSomatorioEncerradas(lista){
       const d=await r.json();
       const gapEl=document.getElementById('enc-gap-'+a.id);
       if(!r.ok||d.error||d.retorno_medio_pct==null){
-        if(gapEl)gapEl.innerHTML='<span style="color:var(--muted)">Aproveitamento: não aplicável a este tipo de estrutura.</span>';
+        const htmlNA='<span style="color:var(--muted)">Aproveitamento: não aplicável a este tipo de estrutura.</span>';
+        if(gapEl)gapEl.innerHTML=htmlNA;
+        window._gapCache[a.id]={html:htmlNA,aplicavel:false};
       }else{
         const realizadoPct=round2((a.preco_encerramento/a.preco_foto-1)*100);
         const esperadoPct=d.retorno_medio_pct;
@@ -3509,7 +3524,9 @@ async function calcularSomatorioEncerradas(lista){
         somaGap+=gap; somaGapRs+=gapRs; contabilizados++;
         const corGap=gap>0.05?'var(--accent)':(gap<-0.05?'var(--green)':'var(--muted)');
         const txtGap=gap>0.05?('deixou ~R$ '+gapRs.toFixed(2)+' na mesa (lote de 100)'):(gap<-0.05?('superou o esperado em ~R$ '+Math.abs(gapRs).toFixed(2)+' (lote de 100)'):'bateu bem próximo do esperado');
-        if(gapEl)gapEl.innerHTML='<span style="color:'+corGap+'">Esperado (teórico): '+esperadoPct.toFixed(2)+'% · Realizado (preço): '+realizadoPct.toFixed(2)+'% · '+txtGap+'</span>';
+        const htmlOk='<span style="color:'+corGap+'">Esperado (teórico): '+esperadoPct.toFixed(2)+'% · Realizado (preço): '+realizadoPct.toFixed(2)+'% · '+txtGap+'</span>';
+        if(gapEl)gapEl.innerHTML=htmlOk;
+        window._gapCache[a.id]={html:htmlOk,aplicavel:true,gap:gap,gapRs:gapRs};
       }
     }catch(e){
       const gapEl=document.getElementById('enc-gap-'+a.id);
