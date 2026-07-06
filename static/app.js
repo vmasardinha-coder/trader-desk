@@ -3435,9 +3435,93 @@ async function loadAnalisesEncerradas(){
     }
 
     const cards=listaCards.map(a=>tplAnaliseEncerrada(a)).join('');
-    cont.innerHTML=dashboard+cards;
+    cont.innerHTML=dashboard+'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'+cards;
+    calcularSomatorioEncerradas(listaCards);
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar histórico de análises: '+e.message+'</p>';
+  }
+}
+
+// Adicionado 05/07/2026 (pedido do usuario) -- painel "quanto ficou na
+// mesa": para cada analise ENCERRADA com resultado + preco_encerramento
+// registrado, reaproveita /montecarlo/condicional (mesmo endpoint do
+// botao "Ver probabilidade atualizada" em Em Analise) mas ancorado na
+// DATA/PRECO DO ENCERRAMENTO em vez de hoje -- calcula, com esse ponto de
+// referencia, o retorno medio TEORICO esperado da estrutura (ja calculado
+// pelo endpoint a partir da foto original + vol atual como proxy) e
+// compara com o retorno REALIZADO DE PRECO ate o fechamento (proxy simples
+// -- nao reaplica o payoff exato da estrutura, ver nota abaixo).
+//
+// LIMITACAO ASSUMIDA E ANUNCIADA NA UI: "realizado" aqui e o retorno bruto
+// de preco (preco_encerramento/preco_foto - 1), nao o payoff exato da
+// estrutura (que dependeria de reimplementar kdo/kuo/alavancagem/teto no
+// front, duplicando logica do backend) -- serve como indicador direcional
+// de "ficou dinheiro na mesa ou nao", nao como valor financeiro exato.
+//
+// Chamadas SEQUENCIAIS com atraso (nao paralelas) -- mesmo cuidado de
+// concorrencia do Render ja documentado no backlog (1 worker so).
+// Adicionado 05/07/2026 -- helper simples de arredondamento, usado pelo
+// calculo de aproveitamento em Encerradas.
+function round2(n){ return Math.round(n*100)/100; }
+
+async function calcularSomatorioEncerradas(lista){
+  const qualificam=lista.filter(a=>
+    a.status==='encerrada' && a.resultado && a.preco_encerramento!=null &&
+    a.preco_foto!=null && a.data_encerramento && a.data_foto);
+  const painel=document.getElementById('enc-somatorio-panel');
+  if(!painel)return;
+  if(!qualificam.length){
+    painel.innerHTML='<p style="font-size:11px;color:var(--muted)">Nenhuma análise encerrada com preço de fechamento registrado ainda para calcular aproveitamento (só disponível para encerramentos a partir de 05/07/2026).</p>';
+    return;
+  }
+  painel.innerHTML='<div class="card" style="margin-bottom:10px"><div class="cl">Calculando aproveitamento (quanto ficou na mesa)...</div></div>';
+  let somaGap=0, contabilizados=0;
+  for(const a of qualificam){
+    try{
+      const body={ticker:a.ticker,preco_foto:a.preco_foto,data_foto:a.data_foto,prazo_dias:a.prazo_dias,
+        data_referencia:a.data_encerramento,preco_referencia:a.preco_encerramento};
+      if(a.k_call!=null)body.k_call=a.k_call;
+      if(a.k_put!=null)body.k_put=a.k_put;
+      if(a.kdo!=null)body.kdo=a.kdo;
+      if(a.kuo!=null)body.kuo=a.kuo;
+      if(a.alavancagem!=null)body.alavancagem=a.alavancagem;
+      if(a.teto_retorno_pct!=null)body.teto_retorno_pct=a.teto_retorno_pct;
+      if(a.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=a.ganho_prefixado_pct;
+      if(a.exercicio!=null)body.exercicio=a.exercicio;
+      const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),18000);
+      const r=await fetch(B+'/montecarlo/condicional',{
+        method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+        body:JSON.stringify(body)
+      });
+      const d=await r.json();
+      const gapEl=document.getElementById('enc-gap-'+a.id);
+      if(!r.ok||d.error||d.retorno_medio_pct==null){
+        if(gapEl)gapEl.innerHTML='<span style="color:var(--muted)">Aproveitamento: não aplicável a este tipo de estrutura.</span>';
+      }else{
+        const realizadoPct=round2((a.preco_encerramento/a.preco_foto-1)*100);
+        const esperadoPct=d.retorno_medio_pct;
+        const gap=round2(esperadoPct-realizadoPct);
+        somaGap+=gap; contabilizados++;
+        const corGap=gap>0.05?'var(--accent)':(gap<-0.05?'var(--green)':'var(--muted)');
+        const txtGap=gap>0.05?('deixou ~'+gap.toFixed(2)+'pp na mesa'):(gap<-0.05?('superou o esperado em ~'+Math.abs(gap).toFixed(2)+'pp'):'bateu bem próximo do esperado');
+        if(gapEl)gapEl.innerHTML='<span style="color:'+corGap+'">Esperado (teórico): '+esperadoPct.toFixed(2)+'% · Realizado (preço): '+realizadoPct.toFixed(2)+'% · '+txtGap+'</span>';
+      }
+    }catch(e){
+      const gapEl=document.getElementById('enc-gap-'+a.id);
+      if(gapEl)gapEl.innerHTML='<span style="color:var(--muted)">Não foi possível calcular (erro de rede).</span>';
+    }
+    await new Promise(res=>setTimeout(res,400));
+  }
+  if(contabilizados>0){
+    const corSoma=somaGap>0?'var(--accent)':'var(--green)';
+    const txtSoma=somaGap>0?'ficou em média na mesa (esperado acima do realizado)':'superou o esperado em média';
+    painel.innerHTML='<div class="card" style="margin-bottom:10px">'+
+      '<div class="cl">Somatório de aproveitamento ('+contabilizados+' análises com dado)</div>'+
+      '<div class="cp" style="color:'+corSoma+'">'+(somaGap>0?'+':'')+somaGap.toFixed(2)+' pp</div>'+
+      '<div class="cc" style="color:var(--muted)">'+txtSoma+' · comparação bruta de retorno de preço, não payoff exato da estrutura</div>'+
+    '</div>';
+  }else{
+    painel.innerHTML='<p style="font-size:11px;color:var(--muted)">Nenhuma das análises encerradas com preço registrado se aplica a este cálculo (tipo de estrutura sem payoff simulável).</p>';
   }
 }
 
@@ -3450,6 +3534,8 @@ function tplAnaliseEncerrada(a){
   let rows=`<div class="sr"><span class="sl">Tipo</span><span class="sv">${_TIPO_LABEL[a.tipo_estrutura]||a.tipo_estrutura}</span></div>`;
   if(a.preco_foto!=null)rows+=`<div class="sr"><span class="sl">Preço na foto</span><span class="sv">R$ ${Number(a.preco_foto).toFixed(2).replace('.',',')}</span></div>`;
   if(a.observacao)rows+=`<div class="sr"><span class="sl">Observação</span><span class="sv" style="color:var(--muted);white-space:pre-wrap">${a.observacao.slice(0,400)}</span></div>`;
+  const qualificaGap=a.status==='encerrada'&&a.resultado&&a.preco_encerramento!=null&&a.preco_foto!=null&&a.data_encerramento&&a.data_foto;
+  const gapHtml=qualificaGap?`<div id="enc-gap-${a.id}" style="font-size:11px;margin-top:8px;color:var(--muted)">Calculando aproveitamento...</div>`:'';
   return `
   <div class="pos-enc" style="margin-top:10px">
     <div class="pos-enc-hdr" onclick="togPos('an-${a.id}')">
@@ -3464,6 +3550,7 @@ function tplAnaliseEncerrada(a){
     </div>
     <div class="pos-acc-body" id="body-an-${a.id}">
       <div class="sb">${rows}</div>
+      ${gapHtml}
     </div>
   </div>`;
 }
