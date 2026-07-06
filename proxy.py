@@ -863,7 +863,18 @@ def run_montecarlo_condicional():
         except ValueError:
             return jsonify({'error': 'data_foto invalida, use YYYY-MM-DD'}), 400
 
-        hoje = _dt.now().date()
+        hoje_str = data.get('data_referencia')
+        # Adicionado 05/07/2026 (pedido do usuario, painel "quanto ficou na
+        # mesa" em Encerradas) -- permite ancorar o calculo em uma data
+        # PASSADA (ex: data_encerramento) em vez de sempre "agora". Quando
+        # nao enviado, comportamento IDENTICO ao original (usa hoje real).
+        if hoje_str:
+            try:
+                hoje = _dt.strptime(hoje_str[:10], '%Y-%m-%d').date()
+            except ValueError:
+                return jsonify({'error': 'data_referencia invalida, use YYYY-MM-DD'}), 400
+        else:
+            hoje = _dt.now().date()
         dias_passados = (hoje - data_foto).days
         dias_restantes = max(prazo_dias - dias_passados, 0)
         fora_do_prazo = dias_passados >= prazo_dias
@@ -906,6 +917,21 @@ def run_montecarlo_condicional():
                         cl = cl_bp
                         sigma = vol_hist(cl)
             except: pass
+
+        # Adicionado 05/07/2026 -- se preco_referencia foi enviado, usa ele
+        # como ancora da projecao em vez do preco AO VIVO buscado acima
+        # (que so serve para estimar volatilidade/sigma nesse caso -- ver
+        # LIMITACAO ASSUMIDA no docstring da rota). Precisa ter chegado ate
+        # aqui com algum preco valido primeiro (senao nao ha sigma pra usar).
+        preco_referencia = data.get('preco_referencia')
+        if preco_referencia:
+            try:
+                preco_referencia = float(preco_referencia)
+                if preco_referencia > 0:
+                    S = preco_referencia
+            except (TypeError, ValueError):
+                pass
+
         if not S or S <= 0:
             return jsonify({'error': f'Nao foi possivel obter preco atual de {ticker}'}), 500
 
@@ -945,7 +971,14 @@ def run_montecarlo_condicional():
             'volatilidade_historica_simples_pct': round(sigma_hist * 100, 2),
             'garch': garch_info,
             'cenarios': n, 'engine': 'numpy',
+            'calculo_retroativo': bool(hoje_str),
+            'data_referencia_usada': hoje.isoformat(),
         }
+        if hoje_str:
+            res['nota_limitacao'] = ('Calculo ancorado em data passada (data_referencia), mas a '
+                'volatilidade usada e a ATUAL (nao a de entao) -- Yahoo nao da forma simples de '
+                'reconstruir volatilidade historica "como era vista" numa data passada sem dados '
+                'pagos. Limitacao assumida, documentada.')
 
         if K_call is not None or K_put is not None or (kdo is not None and kuo is not None):
             # Precisa da trajetoria completa quando a opcao for AMERICANA
@@ -3263,6 +3296,21 @@ def mudar_status_analise(analise_id):
                 if resultado:
                     item['resultado'] = resultado
                     item['data_encerramento'] = _hoje_str()
+                    # Adicionado 05/07/2026 (pedido do usuario) -- captura o
+                    # preco do ativo NO MOMENTO do encerramento, nao so a
+                    # data. Sem isso, nao da pra calcular depois "quanto
+                    # dinheiro ficou na mesa" (precisa comparar o preco real
+                    # de fechamento com a distribuicao teorica projetada a
+                    # partir daquele ponto). Best-effort: se o fetch falhar,
+                    # segue sem travar o encerramento -- so fica sem o dado
+                    # para o painel de Encerradas.
+                    try:
+                        yahoo_ticker = item.get('ticker', '')
+                        preco_fechamento = _fetch_preco_yahoo(yahoo_ticker)
+                        if preco_fechamento:
+                            item['preco_encerramento'] = preco_fechamento
+                    except Exception:
+                        pass
                 encontrado = True
                 item_encontrado = dict(item)  # copia para usar na migracao apos salvar
                 break
