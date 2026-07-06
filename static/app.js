@@ -3475,7 +3475,7 @@ async function calcularSomatorioEncerradas(lista){
     return;
   }
   painel.innerHTML='<div class="card" style="margin-bottom:10px"><div class="cl">Calculando aproveitamento (quanto ficou na mesa)...</div></div>';
-  let somaGap=0, contabilizados=0;
+  let somaGap=0, somaGapRs=0, contabilizados=0;
   for(const a of qualificam){
     try{
       const body={ticker:a.ticker,preco_foto:a.preco_foto,data_foto:a.data_foto,prazo_dias:a.prazo_dias,
@@ -3501,9 +3501,14 @@ async function calcularSomatorioEncerradas(lista){
         const realizadoPct=round2((a.preco_encerramento/a.preco_foto-1)*100);
         const esperadoPct=d.retorno_medio_pct;
         const gap=round2(esperadoPct-realizadoPct);
-        somaGap+=gap; contabilizados++;
+        // LOTE PADRAO 100 ativos (pedido do usuario 05/07/2026) -- converte
+        // pp em R$ usando sempre 100 unidades como base, seja ETF, acao ou
+        // FII, para comparabilidade entre ativos de precos diferentes.
+        // gap_rs = (gap_pct/100) * preco_foto * 100 unidades = gap_pct * preco_foto
+        const gapRs=round2(gap*a.preco_foto);
+        somaGap+=gap; somaGapRs+=gapRs; contabilizados++;
         const corGap=gap>0.05?'var(--accent)':(gap<-0.05?'var(--green)':'var(--muted)');
-        const txtGap=gap>0.05?('deixou ~'+gap.toFixed(2)+'pp na mesa'):(gap<-0.05?('superou o esperado em ~'+Math.abs(gap).toFixed(2)+'pp'):'bateu bem próximo do esperado');
+        const txtGap=gap>0.05?('deixou ~R$ '+gapRs.toFixed(2)+' na mesa (lote de 100)'):(gap<-0.05?('superou o esperado em ~R$ '+Math.abs(gapRs).toFixed(2)+' (lote de 100)'):'bateu bem próximo do esperado');
         if(gapEl)gapEl.innerHTML='<span style="color:'+corGap+'">Esperado (teórico): '+esperadoPct.toFixed(2)+'% · Realizado (preço): '+realizadoPct.toFixed(2)+'% · '+txtGap+'</span>';
       }
     }catch(e){
@@ -3516,9 +3521,9 @@ async function calcularSomatorioEncerradas(lista){
     const corSoma=somaGap>0?'var(--accent)':'var(--green)';
     const txtSoma=somaGap>0?'ficou em média na mesa (esperado acima do realizado)':'superou o esperado em média';
     painel.innerHTML='<div class="card" style="margin-bottom:10px">'+
-      '<div class="cl">Somatório de aproveitamento ('+contabilizados+' análises com dado)</div>'+
-      '<div class="cp" style="color:'+corSoma+'">'+(somaGap>0?'+':'')+somaGap.toFixed(2)+' pp</div>'+
-      '<div class="cc" style="color:var(--muted)">'+txtSoma+' · comparação bruta de retorno de preço, não payoff exato da estrutura</div>'+
+      '<div class="cl">Somatório de aproveitamento ('+contabilizados+' análises com dado, lote de 100 ativos)</div>'+
+      '<div class="cp" style="color:'+corSoma+'">'+(somaGapRs>0?'+':'')+'R$ '+somaGapRs.toFixed(2)+'</div>'+
+      '<div class="cc" style="color:var(--muted)">'+(somaGap>0?'+':'')+somaGap.toFixed(2)+' pp · '+txtSoma+' · comparação bruta de retorno de preço, não payoff exato da estrutura</div>'+
     '</div>';
   }else{
     painel.innerHTML='<p style="font-size:11px;color:var(--muted)">Nenhuma das análises encerradas com preço registrado se aplica a este cálculo (tipo de estrutura sem payoff simulável).</p>';
