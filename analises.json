@@ -3499,5 +3499,23 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-06. P/VP=0.99, DY=9.43%, segmento=Logística, nível de risco=middle_risk. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1783349877"
+  },
+  {
+    "ticker": "ENDD11.SA",
+    "nome": "ENDD11 - FII Fundo de Investimentos em Participacoes (FIP-IE)",
+    "data_foto": "2026-07-06",
+    "preco_foto": 108,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 9.99,
+    "p_vp": 1.03,
+    "liquidez": 305820,
+    "segmento": "fi-infra",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-07-06. P/VP=1.03, DY=9.99%, segmento=Fundo de Investimentos em Participacoes (FIP-IE), nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1783353943"
   }
 ]
