@@ -1,4 +1,18 @@
-# Trader Desk — Prompt de Continuação (v25 — FECHAMENTO sessão 05/07/2026 continuação, painel de aproveitamento em Encerradas + processo de fechamento de Posições Ativas)
+# Trader Desk — Prompt de Continuação (v26 — FECHAMENTO sessão 06/07/2026, rotina de gates de análise de lote)
+
+## ARQUIVO NOVO NO REPO: `ROTINA_GATES_LOTE.md` (criado 06/07/2026, sem SHA fixo -- sempre puxar versão atual via API)
+Sempre que o usuário colar um lote de opções/estruturas no chat pedindo análise, filtro ou
+"aplicar os gates", **ler `ROTINA_GATES_LOTE.md` via GitHub API antes de responder** -- não é
+uma feature do site, é uma rotina do Claude documentada no repo (mesmo princípio de uma função
+de backend, só que executada em conversa). Resumo rápido (ler o arquivo completo para o detalhe):
+- Gates automáticos (cortam o candidato): liquidez operável + retorno mínimo 2-2,5%/mês
+  proporcional ao prazo (correção 06/07/2026: **não é 1%/mês** -- esse número era da regra
+  específica de bidirecionais estabelecida 22/06, diferente da diretriz geral de lote).
+- NÃO automáticos, sempre mostrados lado a lado para o usuário decidir: probabilidade de
+  sucesso (Monte Carlo) e assimetria (ganho se certo vs. perda se errado) -- usuário foi
+  explícito que estes são julgamento dele, ligados ao perfil da estrutura, e NÃO devem virar
+  filtro automático mesmo que pareça conveniente.
+
 
 ## Stack
 - Flask no Render (free tier): https://trader-desk.onrender.com
