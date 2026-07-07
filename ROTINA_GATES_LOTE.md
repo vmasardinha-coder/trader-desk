@@ -64,6 +64,33 @@ teto/prefixado, probabilidade de sucesso, ganho se certo, perda se errado.
   conveniente — o usuário foi explícito que isso tiraria autonomia da parte
   que é realmente julgamento dele.
 
+## Limitações práticas por gate (corrigido 06/07/2026, conversa real com o usuário)
+
+**Retorno mínimo (gate 2)**: cálculo puro/aritmético a partir dos números que o usuário
+já traz (strike, prêmio, prazo). Claude calcula na hora, sempre, sem depender de nada
+externo. Nenhuma limitação aqui.
+
+**Liquidez (gate 1)**: na prática do usuário, quase sempre já vem resolvida -- o banco só
+oferece o que tem liquidez, e o usuário já filtra antes de trazer o lote. Este gate existe
+mais como salvaguarda (caso um dia apareça algo fora desse padrão, ex: ideia própria do
+usuário não vinda do banco) do que como filtro que realisticamente vai reprovar algo no
+fluxo usual.
+
+**Probabilidade de sucesso (gate 3)**: **aqui SIM há uma limitação real**. O Claude NÃO
+acessa o site/Render nem o Yahoo Finance diretamente no seu ambiente de sandbox (limitação
+de rede já documentada em outras partes do projeto). Para calcular probabilidade com a
+MESMA precisão do motor GARCH real (histórico de 1 ano, calibração completa), o caminho é:
+- **Preferencial**: usuário roda o ranking/condicional no próprio app e cola o resultado
+  aqui -- Claude incorpora esse número na tabela comparativa.
+- **Alternativa quando o usuário não tiver isso em mãos**: Claude busca o preço atual via
+  busca na web e roda uma simulação Monte Carlo própria (tem numpy disponível), mas com uma
+  volatilidade ESTIMADA (vol implícita se o usuário tiver, ou uma aproximação própria) --
+  **menos precisa** que o motor real do site. Sempre avisar quando o número é estimativa,
+  não fingir precisão de motor quando não há.
+
+**Assimetria (gate 4)**: mesma lógica de retorno mínimo -- cálculo direto a partir dos
+números do lote (payoff se der certo vs se der errado), sem dependência externa.
+
 ## Evolução futura (backlog, não fazer sem pedido explícito)
 
 Depois de acumular um histórico real de análises encerradas com o painel de
