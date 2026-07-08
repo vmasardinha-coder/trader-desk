@@ -191,31 +191,37 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             tickers_fallback = []  # ADICIONADO 07/07/2026 -- para enriquecimento via StatusInvest depois
             for f in fiis:
                 motivo = None
+                fundo_grande = bool(f.get('valor_mercado') and f['valor_mercado'] >= VALOR_MERCADO_MINIMO_FALLBACK)
+                usa_algum_fallback = False
+
+                # CORRIGIDO 07/07/2026 (v2): liquidez e DY agora tem fallback
+                # INDEPENDENTES -- descoberto que um fundo pode ter UM campo
+                # ruim sem o outro (KNCA11 apareceu com liquidez valida mas
+                # DY=0 numa tentativa, e liquidez=None com DY=0 em outra).
+                # A v1 so perdoava o DY se a liquidez TAMBEM tivesse falhado
+                # (via aceito_via_fallback), o que deixava passar batido o
+                # caso "so o DY veio ruim, liquidez normal".
                 liquidez_ok = f['liquidez'] is not None and f['liquidez'] >= liquidez_min
-                aceito_via_fallback = False
-                if not liquidez_ok and fonte_liquidez_suspeita and f.get('valor_mercado') and f['valor_mercado'] >= VALOR_MERCADO_MINIMO_FALLBACK:
-                    liquidez_ok = True  # aceito via fallback de valor de mercado (fonte de liquidez nao confiavel agora)
-                    aceito_via_fallback = True
+                if not liquidez_ok and fonte_liquidez_suspeita and fundo_grande:
+                    liquidez_ok = True  # aceito via fallback de valor de mercado
+                    usa_algum_fallback = True
                     tickers_fallback.append(f['ticker'])
+
+                dy_ok = f['dy_pct'] is not None and f['dy_pct'] > 0
+                if not dy_ok and fonte_liquidez_suspeita and fundo_grande:
+                    # dy_pct=0/None suspeito -- corrige para None ("sem dado")
+                    # em vez de deixar um ZERO FALSO enganar score/exibicao,
+                    # e nao usa isso como motivo de exclusao.
+                    f['dy_pct'] = None
+                    dy_ok = True
+                    usa_algum_fallback = True
+                    if f['ticker'] not in tickers_fallback:
+                        tickers_fallback.append(f['ticker'])
+
                 if not liquidez_ok:
                     motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
-                elif (f['dy_pct'] is None or f['dy_pct'] <= 0) and not aceito_via_fallback:
-                    # CORRIGIDO 07/07/2026: fundo reportado pelo usuario (KNCA11)
-                    # veio com dy_pct=0 alem de liquidez=None -- confirma que a
-                    # falha da fonte nesse momento nao e so no campo liquidez,
-                    # atinge multiplos campos do mesmo fundo. Se o fundo ja foi
-                    # aceito via fallback de valor de mercado (ja sinalizando
-                    # que a fonte esta ruim PRA ELE especificamente), nao
-                    # aplica o gate de DY tambem -- um campo ruim confirmado ja
-                    # e evidencia suficiente de que os outros campos desse
-                    # MESMO fundo tambem podem estar contaminados.
+                elif not dy_ok:
                     motivo = 'DY zerado ou ausente'
-                elif aceito_via_fallback and f['dy_pct'] is not None and f['dy_pct'] <= 0:
-                    # dy_pct=0 nesse fundo especifico ja e suspeito (mesmo
-                    # fundo com liquidez tambem ruim) -- em vez de deixar um
-                    # ZERO FALSO alimentar o score/exibicao (que pareceria
-                    # "sem dividendo", enganoso), marca como None ("sem dado")
-                    f['dy_pct'] = None
 
                 if motivo:
                     descartados_motivos.append({'ticker': f['ticker'], 'motivo': motivo})
