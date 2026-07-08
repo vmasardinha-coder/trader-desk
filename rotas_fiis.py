@@ -25,6 +25,7 @@ from flask import request, jsonify
 import re
 import json
 import math
+import time
 import requests
 from concurrent.futures import ThreadPoolExecutor, wait as _cf_wait
 from fontes import (
@@ -228,20 +229,48 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                     f['fora_criterio'] = False
                     candidatos.append(f)
 
-            # REVERTIDO 07/07/2026: o enriquecimento via StatusInvest em
-            # paralelo (ThreadPoolExecutor) foi REMOVIDO poucos minutos
-            # depois de commitado -- suspeita forte de ter travado o site
-            # inteiro (Render e 1 worker so; threads de rede que nao
-            # terminam a tempo podem se acumular a cada clique em
-            # "Atualizar" e degradar o processo inteiro, nao so essa rota).
-            # Prioridade foi estabilizar primeiro. Fundos aceitos via
-            # fallback de valor de mercado (variavel tickers_fallback acima)
-            # ficam com dy_pct/liquidez = None ("sem dado") por enquanto --
-            # nao tenta mais buscar dado real automaticamente. Se quiser
-            # retomar essa ideia no futuro, fazer de forma mais segura (ex:
-            # processo separado, fila assincrona, ou so 1 ticker por vez
-            # sequencial com timeout curto e cancelamento de verdade, nao
-            # so shutdown(wait=False) que deixa threads orfas rodando).
+            # REIMPLEMENTADO 07/07/2026 (v2, mais seguro): a primeira versao
+            # usava ThreadPoolExecutor com shutdown(wait=False) -- suspeita
+            # forte de ter travado o site inteiro (Render e 1 worker so;
+            # threads de rede que nao terminam a tempo continuam rodando em
+            # segundo plano MESMO apos o shutdown, se acumulando a cada
+            # clique em "Atualizar" e degradando o processo inteiro). Essa
+            # versao e SEQUENCIAL (nenhuma thread nova criada) -- cada
+            # chamada de rede usa o timeout NATIVO do requests.get() (que
+            # aborta de verdade, sem deixar nada rodando em segundo plano) e
+            # o loop para no primeiro sinal de estouro de orcamento total.
+            # Limitado aos 5 MAIORES por valor de mercado (prioriza impacto,
+            # nao cobertura -- ex: KNCA11 entra por ser gigante).
+            if tickers_fallback:
+                candidatos_por_ticker = {f['ticker']: f for f in candidatos}
+                tickers_fallback_priorizados = sorted(
+                    tickers_fallback,
+                    key=lambda tk: -(candidatos_por_ticker.get(tk, {}).get('valor_mercado') or 0)
+                )[:5]
+                _orcamento_total = 8.0  # segundos, soma de todas as chamadas deste bloco
+                _inicio_enriquecimento = time.time()
+                for tk in tickers_fallback_priorizados:
+                    if time.time() - _inicio_enriquecimento > _orcamento_total:
+                        break  # estourou o orcamento total -- para de tentar, segue com o que tem
+                    dados = None
+                    for path_si in ('fundos-imobiliarios', 'fiagros'):
+                        if time.time() - _inicio_enriquecimento > _orcamento_total:
+                            break
+                        try:
+                            dados = scrape_statusinvest_fundo_dados(tk, path_si)
+                            if dados and (dados.get('dy_pct') or dados.get('liquidez')):
+                                break
+                            dados = None
+                        except Exception:
+                            dados = None
+                    if dados and tk in candidatos_por_ticker:
+                        alvo = candidatos_por_ticker[tk]
+                        if dados.get('dy_pct'):
+                            alvo['dy_pct'] = dados['dy_pct']
+                        if dados.get('liquidez'):
+                            alvo['liquidez'] = dados['liquidez']
+                        if dados.get('p_vp'):
+                            alvo['p_vp'] = dados['p_vp']
 
             # Mediana de DY por SEGMENTO (necessaria para _classificar_risco_fii
             # detectar premio de risco relativo -- DY alto so e suspeito quando
