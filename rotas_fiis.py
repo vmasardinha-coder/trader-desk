@@ -238,7 +238,21 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             # cuidado de concorrencia ja documentado no backlog (Render 1
             # worker so).
             if tickers_fallback:
+                # CORRIGIDO 07/07/2026 (regressao pega rapido apos deploy):
+                # o orcamento anterior (10s, sem limite de quantidade) podia
+                # empurrar o tempo total da rota alem do timeout de 30s do
+                # front (AbortController), causando "signal is aborted
+                # without reason" -- especialmente se scrape_fiis_fundamentus
+                # ja tivesse consumido boa parte do orcamento antes de chegar
+                # aqui. Reduzido para 5s + limitado aos 12 MAIORES por valor
+                # de mercado (os que mais importam, ex: KNCA11 certamente
+                # entra por ser gigante) -- prioriza impacto sobre cobertura
+                # total, dado o orcamento de tempo do Render (1 worker).
                 candidatos_por_ticker = {f['ticker']: f for f in candidatos}
+                tickers_fallback_priorizados = sorted(
+                    tickers_fallback,
+                    key=lambda tk: -(candidatos_por_ticker.get(tk, {}).get('valor_mercado') or 0)
+                )[:12]
                 def _enriquecer(tk):
                     for path_si in ('fundos-imobiliarios', 'fiagros'):
                         try:
@@ -248,10 +262,10 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                         except Exception:
                             continue
                     return tk, None
-                ex = ThreadPoolExecutor(max_workers=min(8, len(tickers_fallback)))
+                ex = ThreadPoolExecutor(max_workers=min(8, len(tickers_fallback_priorizados)))
                 try:
-                    futuros = {ex.submit(_enriquecer, tk): tk for tk in tickers_fallback}
-                    prontos, _ = _cf_wait(list(futuros.keys()), timeout=10)
+                    futuros = {ex.submit(_enriquecer, tk): tk for tk in tickers_fallback_priorizados}
+                    prontos, _ = _cf_wait(list(futuros.keys()), timeout=5)
                     for fut in prontos:
                         try:
                             tk, dados = fut.result()
