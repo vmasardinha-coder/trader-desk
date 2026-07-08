@@ -524,13 +524,13 @@ function renderFiis(){
     }
     return `<tr id="fii-row-${f.ticker}">
       <td style="padding:6px 8px;font-weight:700">${f.ticker} ${badge}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.segmento_fundamentus}</span></td>
-      <td style="padding:6px 8px;text-align:right">R$${f.cotacao.toFixed(2)}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${pvpCor}">${f.p_vp.toFixed(2)}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right">R$${f.cotacao!=null?f.cotacao.toFixed(2):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${pvpCor}">${f.p_vp!=null?f.p_vp.toFixed(2):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${dyCor}">${f.dy_pct!=null?f.dy_pct.toFixed(2)+'%':'—'}</td>
       <td style="padding:6px 8px;text-align:right">${ffoHtml}</td>
-      <td style="padding:6px 8px;text-align:right">R$${(f.liquidez/1000).toFixed(0)}k/dia</td>
+      <td style="padding:6px 8px;text-align:right">${f.liquidez!=null?'R$'+(f.liquidez/1000).toFixed(0)+'k/dia':'—'}</td>
       <td style="padding:6px 8px;text-align:right">${vac}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez × fator de sustentabilidade (FFO vs DY) -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score.toFixed(1)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = DY × fator de liquidez × fator de sustentabilidade (FFO vs DY) -- ordena dentro de cada nível de risco, não substitui seu julgamento">${f.score!=null?f.score.toFixed(1):'—'}</td>
       <td id="prov-${f.ticker}" style="padding:6px 8px;text-align:right;color:var(--muted)">—</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         ${botaoStatusFii(f.ticker,'Adicionar a Em Análise','background:var(--accent);border:none;color:#fff;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700')}
