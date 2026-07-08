@@ -1,17 +1,49 @@
-# Trader Desk — Prompt de Continuação (v26 — FECHAMENTO sessão 06/07/2026, rotina de gates de análise de lote)
+# Trader Desk — Prompt de Continuação (v27 — FECHAMENTO sessão 06/07/2026, fix BSLV39 + rotina de gates validada)
 
-## ARQUIVO NOVO NO REPO: `ROTINA_GATES_LOTE.md` (criado 06/07/2026, sem SHA fixo -- sempre puxar versão atual via API)
-Sempre que o usuário colar um lote de opções/estruturas no chat pedindo análise, filtro ou
-"aplicar os gates", **ler `ROTINA_GATES_LOTE.md` via GitHub API antes de responder** -- não é
-uma feature do site, é uma rotina do Claude documentada no repo (mesmo princípio de uma função
-de backend, só que executada em conversa). Resumo rápido (ler o arquivo completo para o detalhe):
-- Gates automáticos (cortam o candidato): liquidez operável + retorno mínimo 2-2,5%/mês
-  proporcional ao prazo (correção 06/07/2026: **não é 1%/mês** -- esse número era da regra
-  específica de bidirecionais estabelecida 22/06, diferente da diretriz geral de lote).
-- NÃO automáticos, sempre mostrados lado a lado para o usuário decidir: probabilidade de
-  sucesso (Monte Carlo) e assimetria (ganho se certo vs. perda se errado) -- usuário foi
-  explícito que estes são julgamento dele, ligados ao perfil da estrutura, e NÃO devem virar
-  filtro automático mesmo que pareça conveniente.
+## SHAs relevantes desta sessão (06/07/2026)
+- proxy.py: 754b9a78e601e2c4fb1049602ff41332914ab8b9 (fallback nivel 3 BSLV39: proxy SLV+cambio)
+- static/app.js: adaedf1f4598093bc91e2bdc069f97185ec60d99 (aviso visivel de dado estimado no grafico)
+- ROTINA_GATES_LOTE.md: 52e40aadf69df474fcc28864d58eca1041bd1970
+
+## Continuação 06/07/2026 — Fix BSLV39 (histórico "achatado" no gráfico de evolução)
+
+**Sintoma**: usuário reportou que "Ver evolução desde a entrada" pro BSLV39 mostrava uma linha
+praticamente reta/plana, como se fosse 1 dia único, apesar de já estarem 13 dias desde a entrada.
+
+**Diagnóstico real (não era bug de lógica de datas)**: `/montecarlo/posicao_ativa` dependia só do
+Yahoo Finance. Confirmado via pesquisa que nem Yahoo nem brapi.dev têm cobertura de histórico
+diário boa para o BSLV39 especificamente (BDR de ETF estrangeiro de metal -- prata) -- o próprio
+brapi.dev mostra "R$0,00" publicamente pra esse ticker. Não é sobre liquidez real do ativo (que é
+boa, negocia diariamente na B3) -- é sobre cobertura de dado das APIs gratuitas para esse tipo
+específico de BDR.
+
+**Fix em 3 camadas** (cada uma só dispara se a anterior não resolveu):
+1. Yahoo (já existia).
+2. brapi.dev como fallback quando Yahoo é esparso (mesmo padrão já usado em `/montecarlo/condicional`).
+3. **NOVO**: quando NEM Yahoo NEM brapi resolvem, para tickers mapeados em `_BDR_PROXY_ORIGINAL`
+   (hoje só `'BSLV39.SA': 'SLV'`), reconstrói a trajetória via o ativo ORIGINAL (SLV na NYSE, que
+   tem histórico perfeito) + câmbio USD/BRL (Yahoo tem histórico perfeito de `USDBRL=X` também):
+   `preco_estimado(dia) = preco_entrada * (SLV[dia]/SLV[entrada]) * (cambio[dia]/cambio[entrada])`.
+   Marcado explicitamente como `precos_reais_estimados: true` na resposta -- front mostra aviso
+   visível no card. Usuário confirmou no ar: "deu certo, buscou histórico, está certinho".
+   **Extensível**: se aparecer outro BDR de ETF estrangeiro com o mesmo problema (ex: BIAU39/ouro),
+   só adicionar ao dict `_BDR_PROXY_ORIGINAL` em `proxy.py` (dentro de `run_montecarlo_posicao_ativa`).
+
+**Ordem de execução importante (bug corrigido durante o desenvolvimento, não repetir)**: o cálculo
+de `preco_entrada`/`idx_entrada` (extraído do histórico real no dia da entrada) precisa acontecer
+**ANTES** do fallback nível 3 (proxy SLV+câmbio) usar `preco_entrada` como âncora -- na primeira
+tentativa de implementação isso ficou na ordem errada (`UnboundLocalError`), só descoberto porque
+o teste automatizado rodou de verdade (boot real + mock) em vez de só `ast.parse()`.
+
+## Rotina de gates (validada em conversa 06/07/2026, ver `ROTINA_GATES_LOTE.md` para o texto completo)
+Usuário confirmou o desenho: liquidez e retorno mínimo (2-2,5%/mês) são gates automáticos (cortam
+o candidato); probabilidade e assimetria são sempre mostradas lado a lado, nunca viram filtro
+automático (é julgamento do usuário). **Limitação prática exposta e aceita pelo usuário**:
+probabilidade com precisão de motor real só é possível se o usuário rodar no site e colar o
+resultado aqui -- Claude não acessa o Render/Yahoo direto do sandbox. Quando o usuário não tiver
+isso em mãos, Claude pode estimar com busca na web + Monte Carlo próprio (numpy disponível), mas
+avisando que é aproximação.
+
 
 
 ## Stack
