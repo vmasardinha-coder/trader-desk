@@ -1,4 +1,43 @@
-# Trader Desk — Prompt de Continuação (v29 — FECHAMENTO sessão 07/07/2026, cadeia completa de fixes KNCA11/liquidez FIIs)
+# Trader Desk — Prompt de Continuação (v30 — FECHAMENTO sessão 07/07/2026, incidente de travamento + reimplementação segura do enriquecimento)
+
+## SHA relevante: rotas_fiis.py 412c5cd9a19189bf53e332f1375a7c7ed3511f28
+
+## INCIDENTE 07/07/2026 -- site travou completamente (registrar como aprendizado de arquitetura)
+
+Apos o primeiro fix do KNCA11 (enriquecimento via StatusInvest), o usuario reportou o SITE INTEIRO
+travado (nao so /fiis lento -- nada carregava). Causa suspeita: a implementacao usava
+`ThreadPoolExecutor` com `ex.shutdown(wait=False)` -- as threads de rede que nao terminavam
+dentro do orcamento continuavam rodando em SEGUNDO PLANO mesmo apos o shutdown, e como o Render
+roda com 1 worker so, threads acumulando a cada clique em "Atualizar" podem ter degradado o
+processo inteiro (contencao de GIL/recursos), nao so a rota que as criou.
+
+**Acao tomada**: revert IMEDIATO e completo do bloco de threads assim que o usuario reportou o
+travamento -- prioridade foi estabilizar antes de qualquer outra coisa, mesmo que isso significasse
+perder o enriquecimento (KNCA11 voltou a ficar "sem dado" por um tempo). So depois de confirmar
+estabilidade, reimplementado de forma SEQUENCIAL (sem nenhuma thread nova): cada chamada de rede
+usa o timeout NATIVO do `requests.get()` (aborta de verdade, nao deixa nada rodando depois), loop
+para sozinho se o orcamento total (8s) estourar. Testado simulando rede sempre lenta (3s/chamada)
+-- total ficou em 9.3s, bem dentro do timeout do front (30s).
+
+**Licao de arquitetura para o projeto (Render free tier, 1 worker)**: `ThreadPoolExecutor` com
+`shutdown(wait=False)` e um padrao PERIGOSO nesse ambiente -- ja era usado em outros lugares do
+codigo (Carteira ETFs, Carteira FIIs) SEM ter causado esse problema ainda, mas o risco existe
+sempre que threads podem ficar rodando alem do timeout monitorado. Se aparecer mais algum
+travamento parecido no futuro, suspeitar PRIMEIRO desse padrao antes de investigar outra coisa.
+Nao foi possivel confirmar 100% que foi essa a causa exata (nao ha acesso a logs do Render), mas
+a correlacao temporal (travou logo apos esse deploy especifico) e o padrao de risco conhecido
+tornam essa a hipotese mais provavel.
+
+## Continuação 07/07/2026 (parte 3) — bug de frontend descoberto na mesma cadeia
+
+Apos o fix do backend (fallback + bypass de gates), o frontend quebrou com "Cannot read properties
+of null (reading 'toFixed')" -- a tabela de Criterio nunca esperava receber `dy_pct`/`liquidez`/
+`p_vp`/`score` como `null` (antes do fallback, esses campos SEMPRE vinham preenchidos para
+qualquer item que chegasse no Criterio). Fix: `app.js` (SHA 64d0f3199b5538b250e7ac6844dfa9287a306d34)
+adiciona guardas `!=null?...:'—'` nessas 4 celulas da linha da tabela (as unicas que ainda usavam
+`.toFixed()` direto sem protecao -- as outras ocorrencias no arquivo ja tinham essa protecao).
+
+
 
 ## SHA relevante: rotas_fiis.py 6743f818d35bafbb3fba54d61c5d6407d8053386
 
