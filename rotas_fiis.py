@@ -228,61 +228,20 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                     f['fora_criterio'] = False
                     candidatos.append(f)
 
-            # ADICIONADO 07/07/2026 -- enriquece com dado REAL (nao so "sem
-            # dado") os fundos aceitos via fallback de valor de mercado,
-            # buscando individualmente no StatusInvest (mesma fonte ja usada
-            # com sucesso em Carteira FIIs -- usuario confirmou que la o
-            # KNCA11 aparece com todos os campos corretos). So roda para os
-            # tickers que caíram no fallback (tipicamente poucos, nao o
-            # universo inteiro) e em PARALELO com orcamento de tempo, mesmo
-            # cuidado de concorrencia ja documentado no backlog (Render 1
-            # worker so).
-            if tickers_fallback:
-                # CORRIGIDO 07/07/2026 (regressao pega rapido apos deploy):
-                # o orcamento anterior (10s, sem limite de quantidade) podia
-                # empurrar o tempo total da rota alem do timeout de 30s do
-                # front (AbortController), causando "signal is aborted
-                # without reason" -- especialmente se scrape_fiis_fundamentus
-                # ja tivesse consumido boa parte do orcamento antes de chegar
-                # aqui. Reduzido para 5s + limitado aos 12 MAIORES por valor
-                # de mercado (os que mais importam, ex: KNCA11 certamente
-                # entra por ser gigante) -- prioriza impacto sobre cobertura
-                # total, dado o orcamento de tempo do Render (1 worker).
-                candidatos_por_ticker = {f['ticker']: f for f in candidatos}
-                tickers_fallback_priorizados = sorted(
-                    tickers_fallback,
-                    key=lambda tk: -(candidatos_por_ticker.get(tk, {}).get('valor_mercado') or 0)
-                )[:12]
-                def _enriquecer(tk):
-                    for path_si in ('fundos-imobiliarios', 'fiagros'):
-                        try:
-                            dados = scrape_statusinvest_fundo_dados(tk, path_si)
-                            if dados and (dados.get('dy_pct') or dados.get('liquidez')):
-                                return tk, dados
-                        except Exception:
-                            continue
-                    return tk, None
-                ex = ThreadPoolExecutor(max_workers=min(8, len(tickers_fallback_priorizados)))
-                try:
-                    futuros = {ex.submit(_enriquecer, tk): tk for tk in tickers_fallback_priorizados}
-                    prontos, _ = _cf_wait(list(futuros.keys()), timeout=5)
-                    for fut in prontos:
-                        try:
-                            tk, dados = fut.result()
-                        except Exception:
-                            continue
-                        if dados and tk in candidatos_por_ticker:
-                            alvo = candidatos_por_ticker[tk]
-                            if dados.get('dy_pct'):
-                                alvo['dy_pct'] = dados['dy_pct']
-                            if dados.get('liquidez'):
-                                alvo['liquidez'] = dados['liquidez']
-                            if dados.get('p_vp'):
-                                alvo['p_vp'] = dados['p_vp']
-                finally:
-                    ex.shutdown(wait=False)
-
-
+            # REVERTIDO 07/07/2026: o enriquecimento via StatusInvest em
+            # paralelo (ThreadPoolExecutor) foi REMOVIDO poucos minutos
+            # depois de commitado -- suspeita forte de ter travado o site
+            # inteiro (Render e 1 worker so; threads de rede que nao
+            # terminam a tempo podem se acumular a cada clique em
+            # "Atualizar" e degradar o processo inteiro, nao so essa rota).
+            # Prioridade foi estabilizar primeiro. Fundos aceitos via
+            # fallback de valor de mercado (variavel tickers_fallback acima)
+            # ficam com dy_pct/liquidez = None ("sem dado") por enquanto --
+            # nao tenta mais buscar dado real automaticamente. Se quiser
+            # retomar essa ideia no futuro, fazer de forma mais segura (ex:
+            # processo separado, fila assincrona, ou so 1 ticker por vez
+            # sequencial com timeout curto e cancelamento de verdade, nao
+            # so shutdown(wait=False) que deixa threads orfas rodando).
 
             # Mediana de DY por SEGMENTO (necessaria para _classificar_risco_fii
             # detectar premio de risco relativo -- DY alto so e suspeito quando
