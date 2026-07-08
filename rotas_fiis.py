@@ -187,6 +187,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             diag_fonte = getattr(_fontes_mod, '_FII_ULTIMO_DIAGNOSTICO', {}) or {}
             fonte_liquidez_suspeita = diag_fonte.get('filtro_fantasma_desativado_fonte_suspeita', False)
             VALOR_MERCADO_MINIMO_FALLBACK = 100_000_000  # R$100M -- fundo grande o suficiente pra confiar mesmo sem liquidez confiavel
+            tickers_fallback = []  # ADICIONADO 07/07/2026 -- para enriquecimento via StatusInvest depois
             for f in fiis:
                 motivo = None
                 liquidez_ok = f['liquidez'] is not None and f['liquidez'] >= liquidez_min
@@ -194,6 +195,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 if not liquidez_ok and fonte_liquidez_suspeita and f.get('valor_mercado') and f['valor_mercado'] >= VALOR_MERCADO_MINIMO_FALLBACK:
                     liquidez_ok = True  # aceito via fallback de valor de mercado (fonte de liquidez nao confiavel agora)
                     aceito_via_fallback = True
+                    tickers_fallback.append(f['ticker'])
                 if not liquidez_ok:
                     motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
                 elif (f['dy_pct'] is None or f['dy_pct'] <= 0) and not aceito_via_fallback:
@@ -225,6 +227,47 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 else:
                     f['fora_criterio'] = False
                     candidatos.append(f)
+
+            # ADICIONADO 07/07/2026 -- enriquece com dado REAL (nao so "sem
+            # dado") os fundos aceitos via fallback de valor de mercado,
+            # buscando individualmente no StatusInvest (mesma fonte ja usada
+            # com sucesso em Carteira FIIs -- usuario confirmou que la o
+            # KNCA11 aparece com todos os campos corretos). So roda para os
+            # tickers que caíram no fallback (tipicamente poucos, nao o
+            # universo inteiro) e em PARALELO com orcamento de tempo, mesmo
+            # cuidado de concorrencia ja documentado no backlog (Render 1
+            # worker so).
+            if tickers_fallback:
+                candidatos_por_ticker = {f['ticker']: f for f in candidatos}
+                def _enriquecer(tk):
+                    for path_si in ('fundos-imobiliarios', 'fiagros'):
+                        try:
+                            dados = scrape_statusinvest_fundo_dados(tk, path_si)
+                            if dados and (dados.get('dy_pct') or dados.get('liquidez')):
+                                return tk, dados
+                        except Exception:
+                            continue
+                    return tk, None
+                ex = ThreadPoolExecutor(max_workers=min(8, len(tickers_fallback)))
+                try:
+                    futuros = {ex.submit(_enriquecer, tk): tk for tk in tickers_fallback}
+                    prontos, _ = _cf_wait(list(futuros.keys()), timeout=10)
+                    for fut in prontos:
+                        try:
+                            tk, dados = fut.result()
+                        except Exception:
+                            continue
+                        if dados and tk in candidatos_por_ticker:
+                            alvo = candidatos_por_ticker[tk]
+                            if dados.get('dy_pct'):
+                                alvo['dy_pct'] = dados['dy_pct']
+                            if dados.get('liquidez'):
+                                alvo['liquidez'] = dados['liquidez']
+                            if dados.get('p_vp'):
+                                alvo['p_vp'] = dados['p_vp']
+                finally:
+                    ex.shutdown(wait=False)
+
 
 
             # Mediana de DY por SEGMENTO (necessaria para _classificar_risco_fii
