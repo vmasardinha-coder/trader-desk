@@ -1412,6 +1412,37 @@ def run_montecarlo_posicao_ativa():
         if S is None or not cl:
             return jsonify({'error': f'nao foi possivel obter historico de {ticker}'}), 502
 
+        # ADICIONADO 06/07/2026 -- fallback via brapi.dev quando o Yahoo
+        # devolve historico ESPARSO DEMAIS para cobrir o periodo desde
+        # data_entrada (ex: BSLV39 -- BDR de ETF estrangeiro com liquidez
+        # real boa na B3, mas cobertura de dados ruim no Yahoo Finance
+        # especificamente. Nao e sobre iliquidez do ativo, e sobre o Yahoo
+        # nao ter os pregoes). Sem isso, precos_reais_fan ficava com so 1-2
+        # pontos, aparecendo como linha reta/plana no grafico mesmo apos
+        # 13 dias de posicao aberta. Mesmo padrao de fallback ja usado em
+        # /montecarlo/condicional e /indicadores (brapi com range=1y).
+        pontos_minimos_esperados = max(2, min(dias_passados, 5))
+        if len(cl) < pontos_minimos_esperados:
+            try:
+                symbol_bp = ticker.replace('.SA', '').upper()
+                rb = requests.get(
+                    f'https://brapi.dev/api/quote/{symbol_bp}?range=1y&interval=1d&fundamental=false',
+                    headers=BRAPI_HEADERS, timeout=12)
+                if rb.ok:
+                    rd = rb.json().get('results', [{}])[0]
+                    hist_bp = rd.get('historicalDataPrice', [])
+                    cl_bp = [x['close'] for x in hist_bp if x.get('close')]
+                    ts_bp = [x['date'] for x in hist_bp if x.get('close') and x.get('date')]
+                    if len(cl_bp) > len(cl):
+                        cl = cl_bp
+                        ts = ts_bp
+                        sigma = vol_hist(cl) if cl else sigma
+                        preco_atual_bp = rd.get('regularMarketPrice')
+                        if preco_atual_bp:
+                            S = float(preco_atual_bp)
+            except Exception:
+                pass  # falha no fallback nao impede seguir com o que o Yahoo deu
+
         # Extrai preco_entrada do historico real no dia de data_entrada
         # (ou o pregao mais proximo disponivel apos essa data)
         import math
