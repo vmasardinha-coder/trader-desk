@@ -175,9 +175,24 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             descartados_motivos = []
             candidatos = []
             fora_criterio = []
+            # CORRIGIDO 07/07/2026: quando a fonte (Fundamentus) esta com uma
+            # fracao implausivel de liquidez zerada/nula (sinal ja calculado
+            # em scrape_fiis_fundamentus e exposto em _FII_ULTIMO_DIAGNOSTICO),
+            # o campo liquidez NAO E CONFIAVEL para todo o universo nesse
+            # momento -- confirmado com o usuario 07/07/2026 (KNCA11, Fiagro
+            # gigante e liquido de verdade, caindo aqui por causa disso).
+            # Fallback: usa VALOR DE MERCADO como sinal alternativo de que o
+            # fundo e real/grande o suficiente para nao ser descartado as
+            # cegas por um campo sabidamente ruim nesse run.
+            diag_fonte = getattr(_fontes_mod, '_FII_ULTIMO_DIAGNOSTICO', {}) or {}
+            fonte_liquidez_suspeita = diag_fonte.get('filtro_fantasma_desativado_fonte_suspeita', False)
+            VALOR_MERCADO_MINIMO_FALLBACK = 100_000_000  # R$100M -- fundo grande o suficiente pra confiar mesmo sem liquidez confiavel
             for f in fiis:
                 motivo = None
-                if f['liquidez'] is None or f['liquidez'] < liquidez_min:
+                liquidez_ok = f['liquidez'] is not None and f['liquidez'] >= liquidez_min
+                if not liquidez_ok and fonte_liquidez_suspeita and f.get('valor_mercado') and f['valor_mercado'] >= VALOR_MERCADO_MINIMO_FALLBACK:
+                    liquidez_ok = True  # aceito via fallback de valor de mercado (fonte de liquidez nao confiavel agora)
+                if not liquidez_ok:
                     motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
                 elif f['dy_pct'] is None or f['dy_pct'] <= 0:
                     motivo = 'DY zerado ou ausente'
@@ -193,6 +208,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 else:
                     f['fora_criterio'] = False
                     candidatos.append(f)
+
 
             # Mediana de DY por SEGMENTO (necessaria para _classificar_risco_fii
             # detectar premio de risco relativo -- DY alto so e suspeito quando
