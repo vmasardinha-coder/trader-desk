@@ -1257,7 +1257,11 @@ function renderEvolucaoPosicao(id,d){
     return;
   }
 
-  let html='<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">1. PROBABILIDADES — PREÇO DA ENTRADA vs. ATUAL</div>';
+  let html='';
+  if(d.fan_chart&&d.fan_chart.precos_reais_estimados){
+    html+='<div style="padding:8px 10px;background:rgba(139,124,246,.08);border-left:2px solid var(--accent);font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:10px">⚠ Histórico real estimado (via ativo original + câmbio) — Yahoo/brapi não têm cobertura diária boa pra esse ticker. Se o preço parecer muito longe do seu home broker, avise.</div>';
+  }
+  html+='<div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;margin-bottom:8px">1. PROBABILIDADES — PREÇO DA ENTRADA vs. ATUAL</div>';
   html+='<div class="sb" style="margin-top:0">';
   html+='<div class="sr"><span class="sl">Preço na entrada</span><span class="sv">'+fR(d.preco_entrada)+'</span></div>';
   html+='<div class="sr"><span class="sl">Preço atual</span><span class="sv">'+fR(d.preco_atual)+'</span></div>';
