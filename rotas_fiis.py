@@ -33,6 +33,7 @@ from fontes import (
     scrape_statusinvest_ultimo_provento, scrape_statusinvest_historico_proventos,
     scrape_statusinvest_tickers_listagem, scrape_statusinvest_fundo_dados,
 )
+import fontes as _fontes_mod  # acesso a _FII_ULTIMO_DIAGNOSTICO (atualizada em tempo real)
 from fontes_etfs import _fetch_yahoo_series
 from motor import vol_hist
 
@@ -387,6 +388,23 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             })
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/fiis/diagnostico', methods=['GET'])
+    def get_fiis_diagnostico():
+        """
+        Adicionado 07/07/2026 -- consulta o diagnostico do ULTIMO scrape do
+        Fundamentus: quais tickers foram descartados e por qual motivo
+        (celulas_count_N, erro_parsing_X, liquidez_zerada_ou_nula,
+        exclusao_manual_inativo). Existe porque o usuario reportou KNCA11
+        (Fiagro grande e liquido, confirmado por pesquisa externa) sumindo
+        do universo sem explicacao visivel -- sem isso, e impossivel
+        diagnosticar remotamente (Claude nao acessa fundamentus.com.br).
+
+        Retorna vazio ate o proximo scrape rodar (nao forca um novo scrape
+        sozinho, so exibe o cache do ultimo que ja rodou).
+        """
+        diag = _fontes_mod._FII_ULTIMO_DIAGNOSTICO or {}
+        return jsonify(diag or {'aviso': 'Nenhum scrape rodou ainda nesta instancia (reinicia a cada deploy/sleep do Render).'})
 
     @app.route('/carteira-fiis', methods=['GET'])
     def get_carteira_fiis():
