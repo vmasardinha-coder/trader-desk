@@ -190,12 +190,29 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             for f in fiis:
                 motivo = None
                 liquidez_ok = f['liquidez'] is not None and f['liquidez'] >= liquidez_min
+                aceito_via_fallback = False
                 if not liquidez_ok and fonte_liquidez_suspeita and f.get('valor_mercado') and f['valor_mercado'] >= VALOR_MERCADO_MINIMO_FALLBACK:
                     liquidez_ok = True  # aceito via fallback de valor de mercado (fonte de liquidez nao confiavel agora)
+                    aceito_via_fallback = True
                 if not liquidez_ok:
                     motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
-                elif f['dy_pct'] is None or f['dy_pct'] <= 0:
+                elif (f['dy_pct'] is None or f['dy_pct'] <= 0) and not aceito_via_fallback:
+                    # CORRIGIDO 07/07/2026: fundo reportado pelo usuario (KNCA11)
+                    # veio com dy_pct=0 alem de liquidez=None -- confirma que a
+                    # falha da fonte nesse momento nao e so no campo liquidez,
+                    # atinge multiplos campos do mesmo fundo. Se o fundo ja foi
+                    # aceito via fallback de valor de mercado (ja sinalizando
+                    # que a fonte esta ruim PRA ELE especificamente), nao
+                    # aplica o gate de DY tambem -- um campo ruim confirmado ja
+                    # e evidencia suficiente de que os outros campos desse
+                    # MESMO fundo tambem podem estar contaminados.
                     motivo = 'DY zerado ou ausente'
+                elif aceito_via_fallback and f['dy_pct'] is not None and f['dy_pct'] <= 0:
+                    # dy_pct=0 nesse fundo especifico ja e suspeito (mesmo
+                    # fundo com liquidez tambem ruim) -- em vez de deixar um
+                    # ZERO FALSO alimentar o score/exibicao (que pareceria
+                    # "sem dividendo", enganoso), marca como None ("sem dado")
+                    f['dy_pct'] = None
 
                 if motivo:
                     descartados_motivos.append({'ticker': f['ticker'], 'motivo': motivo})
@@ -216,8 +233,9 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             from statistics import median
             dy_por_segmento = {}
             for f in candidatos:
-                dy_por_segmento.setdefault(f['segmento'], []).append(f['dy_pct'])
-            mediana_dy_segmento = {seg: median(vals) for seg, vals in dy_por_segmento.items()}
+                if f['dy_pct'] is not None:  # CORRIGIDO 07/07/2026: dy_pct pode ser None agora (fallback de fonte suspeita)
+                    dy_por_segmento.setdefault(f['segmento'], []).append(f['dy_pct'])
+            mediana_dy_segmento = {seg: median(vals) for seg, vals in dy_por_segmento.items() if vals}
 
             for f in candidatos:
                 f['nivel_risco'] = _classificar_risco_fii(
@@ -236,7 +254,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             # Niveis de risco aparecem agrupados: high_grade -> middle_risk ->
             # high_yield, e dentro de cada um, por score.
             ordem_risco = {'high_grade': 0, 'middle_risk': 1, 'high_yield': 2}
-            candidatos.sort(key=lambda f: (ordem_risco.get(f['nivel_risco'], 1), -f['score']))
+            candidatos.sort(key=lambda f: (ordem_risco.get(f['nivel_risco'], 1), -(f['score'] or 0)))
 
             # Resposta final: 'fiis' = so os classificados (visao "Criterio",
             # comportamento ORIGINAL preservado para nao quebrar nada que ja
