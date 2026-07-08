@@ -618,12 +618,33 @@ def scrape_fiis_fundamentus():
         # so entra como score baixo via _score_fii, nao e excluido aqui).
         # Adicionado 01/07/2026 junto com _FII_TICKERS_INATIVOS (que cobre
         # o caso raro de liquidez cacheada != 0 mesmo estando morto).
+        #
+        # CORRIGIDO 07/07/2026 -- usuario reportou KNCA11 (Fiagro gigante,
+        # liquidez real excelente, confirmado por pesquisa externa) sumindo
+        # do universo. Investigacao (busca direta na pagina real do
+        # Fundamentus) confirmou: ~30% de TODOS os FIIs estavam com
+        # liquidez=0 na fonte no momento -- incluindo fundos enormes e
+        # conhecidos (BBPO11, BCFF11, AEFI11, etc.), nao so KNCA11. Isso e
+        # uma falha da FONTE DE DADOS (Fundamentus), nao fundos mortos de
+        # verdade -- fundos mortos de verdade sao <2% do universo, nao 30%.
+        # Sanity check: so aplica o filtro de fantasma se a fracao de
+        # liquidez=0 for PLAUSIVEL (<15%). Se vier mais alto que isso, o
+        # dado de liquidez desse run inteiro e considerado NAO CONFIAVEL --
+        # o filtro se desliga sozinho (mantem todos os FIIs) em vez de
+        # arriscar descartar em massa fundos reais e liquidos.
         antes_liq = len(fiis)
-        removidos_liq0_tickers = [f['ticker'] for f in fiis if not (f['liquidez'] and f['liquidez'] > 0)]
-        for tk in removidos_liq0_tickers:
-            descartados_diagnostico.append({'ticker': tk, 'motivo': 'liquidez_zerada_ou_nula'})
-        fiis = [f for f in fiis if f['liquidez'] and f['liquidez'] > 0]
-        removidos_liq0 = antes_liq - len(fiis)
+        candidatos_liq0 = [f['ticker'] for f in fiis if not (f['liquidez'] and f['liquidez'] > 0)]
+        frac_liq0 = len(candidatos_liq0) / antes_liq if antes_liq else 0
+        if frac_liq0 > 0.15:
+            for tk in candidatos_liq0:
+                descartados_diagnostico.append({'ticker': tk, 'motivo': 'liquidez_zerada_MAS_filtro_desativado_fonte_suspeita'})
+            removidos_liq0 = 0
+            # NAO filtra -- fiis permanece como esta, com todos os tickers
+        else:
+            for tk in candidatos_liq0:
+                descartados_diagnostico.append({'ticker': tk, 'motivo': 'liquidez_zerada_ou_nula'})
+            fiis = [f for f in fiis if f['liquidez'] and f['liquidez'] > 0]
+            removidos_liq0 = antes_liq - len(fiis)
 
         # ── Exclusao manual: fundos que saíram de negociacao (fusao,
         # incorporacao, troca de ticker) mas o Fundamentus ainda mantem na
@@ -654,6 +675,8 @@ def scrape_fiis_fundamentus():
             'total_linhas_html': len(linhas_raw),
             'total_aceitos': len(fiis),
             'total_descartados': len(descartados_diagnostico),
+            'fracao_liquidez_zerada_pct': round(frac_liq0 * 100, 1),
+            'filtro_fantasma_desativado_fonte_suspeita': frac_liq0 > 0.15,
             'descartados': descartados_diagnostico,
         }
 
