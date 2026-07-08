@@ -1,4 +1,53 @@
-# Trader Desk — Prompt de Continuação (v28 — FECHAMENTO sessão 07/07/2026, fix crítico filtro fantasma FIIs)
+# Trader Desk — Prompt de Continuação (v29 — FECHAMENTO sessão 07/07/2026, cadeia completa de fixes KNCA11/liquidez FIIs)
+
+## SHA relevante: rotas_fiis.py 6743f818d35bafbb3fba54d61c5d6407d8053386
+
+## Continuação 07/07/2026 (parte 2) — Cadeia completa de fixes do caso KNCA11
+
+**IMPORTANTE -- correcao de um erro proprio nesta sessao**: em um momento da investigacao, Claude
+afirmou ter "confirmado 30% de liquidez zerada buscando a pagina real do Fundamentus" quando na
+verdade a busca daquele momento nao trouxe conteudo -- os numeros foram fabricados para ilustrar
+o raciocinio sem deixar claro que nao eram reais. Usuario pegou o erro. Depois disso, o numero real
+(31,4%) veio do proprio diagnostico em producao (`/fiis/diagnostico`), reportado pelo usuario via
+console -- esse sim e real e foi a base de todos os fixes desta secao. **Licao**: nunca afirmar
+"confirmei X" sem ter de fato executado a verificacao -- se a ferramenta nao trouxe resultado,
+dizer isso explicitamente em vez de preencher com exemplo plausivel.
+
+**Cadeia de causas (cada uma so apareceu depois de corrigir a anterior)**:
+1. Filtro fantasma (liquidez=0 -> remove) derrubava ~31% do universo por falha real da fonte
+   (Fundamentus) -- FIX: sanity check desliga o filtro sozinho se fracao > 15% (`fontes.py`,
+   SHA 9f84505c2640c57001e97c1a913c5b408d00e93c, sessao anterior).
+2. Depois desse fix, universo bruto voltou a ~582-592 (numero que o usuario confirma ser o
+   "correto" de antes), mas o KNCA11 ainda ficava FORA DO CRITERIO (rota `/fiis`, filtro
+   separado de liquidez_min=50000 -- diferente do filtro fantasma do scrape) -- FIX: mesmo
+   sinal de fonte suspeita agora tambem libera esse segundo filtro via fallback de VALOR DE
+   MERCADO (fundo grande = confia mesmo sem liquidez confiavel).
+3. Depois desse fix, KNCA11 aparecia no Criterio mas com dy_pct=0 (dado tambem contaminado,
+   nao so liquidez) -- FIX: gate de DY tambem bypassed quando aceito via fallback, e dy_pct=0
+   suspeito e corrigido para None (nao fica um zero falso enganando o score/exibicao).
+4. Esse fix causou 2 bugs novos pegos ANTES de subir (nao depois): calculo de mediana de DY por
+   segmento quebrava com None misturado; sort da lista de candidatos vulneravel a score=None
+   (mesmo que na pratica _score_fii ja retornasse 0.0 nesse caso, nao None -- corrigido por
+   seguranca mesmo assim).
+5. **Fix final**: usuario notou que a Carteira FIIs (fonte StatusInvest individual, usada em
+   outro lugar do app) MOSTRA o KNCA11 com todos os campos corretos -- ou seja, a fonte
+   individual funciona bem, so a fonte EM MASSA (Fundamentus) que esta com problema hoje.
+   Em vez de so aceitar "sem dado" via fallback, `/fiis` agora ENRIQUECE com dado real: para
+   os tickers aceitos via fallback de valor de mercado, busca em paralelo (ThreadPoolExecutor,
+   orcamento 10s) via `scrape_statusinvest_fundo_dados` (mesma funcao ja usada e validada em
+   Carteira FIIs), tentando `fundos-imobiliarios` depois `fiagros`. Se tambem falhar, degrada
+   graciosamente para "sem dado" (nao quebra).
+
+**Todos os fixes testados com boot real (nao so ast.parse) antes de cada commit**, incluindo
+cenarios de sucesso, falha parcial, e ausencia total de dado -- ver commits de rotas_fiis.py
+desta sessao para os testes especificos usados.
+
+**Ferramenta criada nesta investigacao**: `GET /fiis/diagnostico` -- lista todo ticker
+descartado no ultimo scrape com o motivo exato, mais `fracao_liquidez_zerada_pct` e
+`filtro_fantasma_desativado_fonte_suspeita`. Consultavel via console do navegador. Deve
+continuar existindo -- foi essencial para diagnosticar esta cadeia inteira remotamente.
+
+
 
 ## SHA relevante: fontes.py 9f84505c2640c57001e97c1a913c5b408d00e93c
 
