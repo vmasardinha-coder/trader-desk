@@ -1478,6 +1478,98 @@ def run_montecarlo_posicao_ativa():
             except (TypeError, ValueError):
                 pass
 
+        # ADICIONADO 06/07/2026 -- fallback NIVEL 3, so para BDRs de ETFs
+        # estrangeiros mapeados em _BDR_PROXY_ORIGINAL (pedido explicito do
+        # usuario): quando NEM Yahoo NEM brapi tem historico diario granular
+        # (caso comprovado do BSLV39 -- confirmado que o proprio brapi.dev
+        # mostra R$0,00 pra esse ticker na pagina publica dele), reconstroi
+        # a trajetoria estimada usando o ATIVO ORIGINAL (ex: SLV na NYSE,
+        # que tem historico perfeito) + cambio USD/BRL (Yahoo tem historico
+        # perfeito de USDBRL=X tambem):
+        #   preco_estimado(dia) = preco_entrada * (SLV[dia]/SLV[entrada]) *
+        #                         (USDBRL[dia]/USDBRL[entrada])
+        # Isso e uma ESTIMATIVA (nao e o preco real negociado do BDR na B3,
+        # que pode ter pequeno premio/desconto vs o NAV teorico) -- marcado
+        # explicitamente na resposta como 'precos_reais_estimados': true,
+        # para o usuario saber que se o preco ficar muito longe do que ele
+        # observa no home broker, o dado e aproximado, nao exato.
+        _BDR_PROXY_ORIGINAL = {
+            'BSLV39.SA': 'SLV',  # iShares Silver Trust BDR -> SLV (NYSE)
+        }
+        precos_reais_estimados = False
+        if ticker in _BDR_PROXY_ORIGINAL and len(cl) < pontos_minimos_esperados:
+            try:
+                original = _BDR_PROXY_ORIGINAL[ticker]
+                def _fetch_serie_yahoo(simbolo):
+                    for host in ['query1', 'query2']:
+                        try:
+                            rr = requests.get(
+                                f'https://{host}.finance.yahoo.com/v8/finance/chart/{simbolo}?interval=1d&range=1y',
+                                headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                            if rr.ok:
+                                dd = rr.json()['chart']['result'][0]
+                                raw_c = dd['indicators']['quote'][0]['close']
+                                raw_t = dd.get('timestamp', [])
+                                pares = [(t, c) for t, c in zip(raw_t, raw_c) if c is not None]
+                                return pares
+                        except Exception:
+                            continue
+                    return []
+
+                serie_original = _fetch_serie_yahoo(original)
+                serie_cambio = _fetch_serie_yahoo('USDBRL=X')
+
+                if serie_original and serie_cambio:
+                    # Converte para dict data(YYYY-MM-DD) -> preco, para alinhar
+                    # os dois calendarios (NYSE vs mercado de cambio) por data
+                    def _para_dict_data(pares):
+                        out = {}
+                        for t, c in pares:
+                            dia = _dt.utcfromtimestamp(t).date()
+                            out[dia] = c
+                        return out
+                    dict_original = _para_dict_data(serie_original)
+                    dict_cambio = _para_dict_data(serie_cambio)
+                    datas_original = sorted(dict_original.keys())
+                    datas_cambio = sorted(dict_cambio.keys())
+
+                    def _valor_mais_recente(dict_serie, datas_ordenadas, alvo):
+                        # forward-fill: pega o ultimo valor disponivel em ou antes de 'alvo'
+                        melhor = None
+                        for dd2 in datas_ordenadas:
+                            if dd2 <= alvo:
+                                melhor = dict_serie[dd2]
+                            else:
+                                break
+                        return melhor
+
+                    original_entrada = _valor_mais_recente(dict_original, datas_original, data_entrada)
+                    cambio_entrada = _valor_mais_recente(dict_cambio, datas_cambio, data_entrada)
+
+                    if original_entrada and cambio_entrada:
+                        datas_alvo = [dd2 for dd2 in datas_cambio if dd2 >= data_entrada]
+                        cl_estimado = []
+                        ts_estimado = []
+                        for dd2 in datas_alvo:
+                            orig_v = _valor_mais_recente(dict_original, datas_original, dd2)
+                            camb_v = _valor_mais_recente(dict_cambio, datas_cambio, dd2)
+                            if orig_v and camb_v:
+                                preco_est = preco_entrada * (orig_v/original_entrada) * (camb_v/cambio_entrada)
+                                cl_estimado.append(round(preco_est, 2))
+                                ts_estimado.append(int(_dt.combine(dd2, _dt.min.time()).timestamp()))
+                        if len(cl_estimado) >= pontos_minimos_esperados:
+                            cl = cl_estimado
+                            ts = ts_estimado
+                            precos_reais_estimados = True
+                            # sigma: usa a vol do ATIVO ORIGINAL como proxy
+                            # (mais real que a vol de 1-2 pontos esparsos do BDR)
+                            vals_original_recentes = [v for _, v in serie_original[-252:]]
+                            if vals_original_recentes:
+                                sigma = vol_hist(vals_original_recentes)
+            except Exception:
+                pass  # se o proxy tambem falhar, segue com o que ja tinha (Yahoo/brapi esparso)
+
+
         res = {
             'ticker': ticker, 'preco_entrada': round(preco_entrada, 2),
             'preco_atual': round(S, 2), 'dias_passados': dias_passados,
@@ -1576,6 +1668,7 @@ def run_montecarlo_posicao_ativa():
                 'dias': list(range(prazo_dias+1)), 'percentis': percentis_fan,
                 'trajetorias': trajetorias_fan, 'precos_reais': precos_reais_fan,
                 'preco_foto': round(preco_entrada, 2),
+                'precos_reais_estimados': precos_reais_estimados,
             }
         except Exception:
             res['fan_chart'] = None
