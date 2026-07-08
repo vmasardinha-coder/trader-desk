@@ -1,4 +1,41 @@
-# Trader Desk — Prompt de Continuação (v27 — FECHAMENTO sessão 06/07/2026, fix BSLV39 + rotina de gates validada)
+# Trader Desk — Prompt de Continuação (v28 — FECHAMENTO sessão 07/07/2026, fix crítico filtro fantasma FIIs)
+
+## SHA relevante: fontes.py 9f84505c2640c57001e97c1a913c5b408d00e93c
+
+## Continuação 07/07/2026 — Fix crítico: filtro "fantasma" de liquidez derrubando ~30% do universo de FIIs
+
+**Sintoma**: usuário reportou KNCA11 (maior Fiagro do mercado, liquidez real excelente) sumindo
+do universo de FIIs em Mercado. A princípio pareceu ser um caso isolado do KNCA11.
+
+**Diagnóstico real (via `/fiis/diagnostico`, rota nova, + pesquisa direta na página real do
+Fundamentus)**: NÃO era o KNCA11 isoladamente -- confirmado contando manualmente que **~30% de
+TODOS os FIIs** (incluindo fundos gigantes conhecidos: BBPO11 com R$1,5bi/61 imóveis, BCFF11,
+AEFI11, etc.) estavam com liquidez="0" LITERAL na própria página do Fundamentus naquele momento.
+Isso é uma falha da FONTE DE DADOS (Fundamentus, causa exata desconhecida -- possível problema no
+feed deles), não fundos mortos de verdade (que normalmente são <2% do universo).
+
+**Causa raiz do bug (existia desde 01/07/2026, antes desta sessão)**: o filtro "fantasma"
+(`liquidez==0 -> remove como fundo morto`) não tinha proteção contra esse cenário -- confiava
+cegamente na fonte e removia em massa fundos reais e líquidos sempre que a fonte tivesse esse
+tipo de falha.
+
+**Fix**: sanity check antes de aplicar o filtro -- calcula `frac_liq0` (fração do universo com
+liquidez zerada). Se > 15% (implausível para fundos mortos de verdade), o filtro se DESATIVA
+sozinho para aquele run inteiro (mantém todos os FIIs), em vez de arriscar remover fundos reais
+em massa. Exposto no diagnóstico: `fracao_liquidez_zerada_pct` e
+`filtro_fantasma_desativado_fonte_suspeita`. Testado com 2 cenários (fração baixa = filtra
+normal; fração alta = desliga sozinho) -- ambos passaram.
+
+**Ferramenta nova que ajudou a achar isso**: `GET /fiis/diagnostico` (rota criada na mesma
+investigação) -- lista todo ticker descartado no último scrape e o motivo exato. Consultável via
+console do navegador: `fetch('/fiis/diagnostico').then(r=>r.json()).then(d=>console.log(JSON.stringify(d,null,2)))`.
+Só mostra dado de um scrape que já rodou nesta instância (reseta a cada restart/deploy do Render).
+
+**Lição de processo**: uma investigação que começou parecendo "1 ticker com problema" (KNCA11)
+era na verdade um bug estrutural afetando ~1/3 do universo -- vale sempre checar a ESCALA do
+problema (quantos tickers, não só o que o usuário citou) antes de assumir causa pontual.
+
+
 
 ## SHAs relevantes desta sessão (06/07/2026)
 - proxy.py: 754b9a78e601e2c4fb1049602ff41332914ab8b9 (fallback nivel 3 BSLV39: proxy SLV+cambio)
