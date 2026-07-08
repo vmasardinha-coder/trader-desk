@@ -506,6 +506,11 @@ _FII_TICKERS_INATIVOS = {
                # mesmo ja nao sendo mais negociado sob esse ticker
 }
 
+# Adicionado 07/07/2026 -- guarda o ultimo diagnostico de descarte do
+# scrape_fiis_fundamentus (quais tickers foram removidos e por qual
+# motivo), consultavel via /fiis/diagnostico sem precisar re-rodar o scrape.
+_FII_ULTIMO_DIAGNOSTICO = {}
+
 def scrape_fiis_fundamentus():
     """Scraping da tabela completa de FIIs do Fundamentus. Retorna lista de
     dicts (um por FII) ou None se o sanity check falhar (layout mudou,
@@ -541,6 +546,15 @@ def scrape_fiis_fundamentus():
         # 13 <td>, primeiro com o ticker dentro de um <a>.
         linhas_raw = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL)
         fiis = []
+        # ADICIONADO 07/07/2026 -- diagnostico real (nao so contagem): usuario
+        # reportou KNCA11 (maior Fiagro do mercado, liquidez real excelente,
+        # confirmado por pesquisa externa) sumindo do universo entre a
+        # primeira chamada e a "atualizadinha". Sem rastrear POR TICKER qual
+        # filtro descartou o que, e impossivel diagnosticar sem acesso ao
+        # scrape ao vivo (que o Claude nao tem, sandbox nao acessa
+        # fundamentus.com.br). Agora qualquer descarte fica registrado com
+        # motivo, consultavel via /fiis/diagnostico.
+        descartados_diagnostico = []
         for linha in linhas_raw:
             celulas = re.findall(r'<td[^>]*>(.*?)</td>', linha, re.DOTALL)
             # CORRIGIDO 25/06/2026: pagina real tem 14 colunas (a 14a e
@@ -550,6 +564,10 @@ def scrape_fiis_fundamentus():
             # 13 OU 14 para tolerar se o site remover/adicionar essa coluna
             # de novo no futuro sem quebrar o parsing.
             if len(celulas) not in (13, 14):
+                if celulas:
+                    tk_aprox = re.sub(r'<[^>]+>', '', celulas[0]).strip()
+                    if tk_aprox and re.match(r'^[A-Z0-9]+$', tk_aprox):
+                        descartados_diagnostico.append({'ticker': tk_aprox, 'motivo': f'celulas_count_{len(celulas)}'})
                 continue
             # Limpa tags HTML internas (ex: <a href=...>MXRF11</a>) e espacos
             valores = [re.sub(r'<[^>]+>', '', c).strip() for c in celulas]
@@ -588,7 +606,8 @@ def scrape_fiis_fundamentus():
                     'vacancia_pct': _pct(valores[12]),
                     'endereco': valores[13] if len(valores) > 13 else None,
                 })
-            except (ValueError, IndexError):
+            except (ValueError, IndexError) as e:
+                descartados_diagnostico.append({'ticker': ticker, 'motivo': f'erro_parsing_{type(e).__name__}'})
                 continue
 
         # ── Filtro automatico de "fantasma": liquidez zerada/nula = fundo
@@ -600,6 +619,9 @@ def scrape_fiis_fundamentus():
         # Adicionado 01/07/2026 junto com _FII_TICKERS_INATIVOS (que cobre
         # o caso raro de liquidez cacheada != 0 mesmo estando morto).
         antes_liq = len(fiis)
+        removidos_liq0_tickers = [f['ticker'] for f in fiis if not (f['liquidez'] and f['liquidez'] > 0)]
+        for tk in removidos_liq0_tickers:
+            descartados_diagnostico.append({'ticker': tk, 'motivo': 'liquidez_zerada_ou_nula'})
         fiis = [f for f in fiis if f['liquidez'] and f['liquidez'] > 0]
         removidos_liq0 = antes_liq - len(fiis)
 
@@ -610,6 +632,9 @@ def scrape_fiis_fundamentus():
         # Adicionado 01/07/2026 apos usuario reportar CBCV11 no topo do
         # ranking mesmo ja nao sendo mais negociado (virou outro fundo).
         # Reportar novos casos aqui conforme aparecerem.
+        for f in fiis:
+            if f['ticker'] in _FII_TICKERS_INATIVOS:
+                descartados_diagnostico.append({'ticker': f['ticker'], 'motivo': 'exclusao_manual_inativo'})
         fiis = [f for f in fiis if f['ticker'] not in _FII_TICKERS_INATIVOS]
 
         # ── Sanity checks (NUNCA aceitar dado suspeito sem avisar) ──
@@ -620,6 +645,17 @@ def scrape_fiis_fundamentus():
             frac_fora_faixa = sum(1 for v in p_vps_validos if v < 0 or v > 5) / len(p_vps_validos)
             if frac_fora_faixa > 0.1:  # mais de 10% fora da faixa plausivel = layout suspeito
                 return None, f'p_vp_fora_da_faixa ({frac_fora_faixa*100:.1f}% das linhas)'
+
+        # ADICIONADO 07/07/2026 -- guarda o diagnostico completo em cache
+        # module-level, consultavel via /fiis/diagnostico sem precisar
+        # rodar o scrape de novo (que so roda 1x por ciclo de cache normal).
+        global _FII_ULTIMO_DIAGNOSTICO
+        _FII_ULTIMO_DIAGNOSTICO = {
+            'total_linhas_html': len(linhas_raw),
+            'total_aceitos': len(fiis),
+            'total_descartados': len(descartados_diagnostico),
+            'descartados': descartados_diagnostico,
+        }
 
         return fiis, None
     except Exception as e:
