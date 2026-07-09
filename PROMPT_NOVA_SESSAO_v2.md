@@ -1,4 +1,37 @@
-# Trader Desk — Prompt de Continuação (v31 — FECHAMENTO sessão 09/07/2026, processo manual de aproveitamento para rejeições)
+# Trader Desk — Prompt de Continuação (v32 — FECHAMENTO sessão 09/07/2026, backlog final + estudo de deteccao de lixo em FIIs)
+
+## Novos itens de backlog (09/07/2026, registrados apenas como estudo/direção, NAO implementar sem confirmação explícita)
+
+**Resumo do painel de aproveitamento por período**: hoje o "Somatório de aproveitamento" em
+Encerradas é só um total corrido, sem quebra por período (semana/mês). Usuário quer poder ver
+isso agrupado por período. Considerar também: rejeições (`motivo_encerramento='rejeitada'`) hoje
+NÃO entram nesse somatório automático (só ficam como texto manual na observação) -- e itens
+rejeitados somem da lista visível após ~30 dias (embora continuem contados num contador
+permanente separado). Se decidir incluir rejeições no somatório, pensar em como isso se comporta
+quando o item some da lista visível (persistir o valor calculado em algum lugar antes de sumir?).
+
+**Estudo de detecção de "lixo" no universo de FIIs (confirmado 09/07/2026: KNCA11 100% resolvido,
+passa nos dois gates, campos populados corretamente)**: usuário perguntou se há risco de fundo
+morto/lixo migrar do "bruto" (592 hoje) para o grupo que passa no Critério (403 hoje). Avaliação:
+migração é IMPROVÁVEL pelo desenho atual (exigiria fingir liquidez E DY reais ao mesmo tempo) --
+caso já conhecido e tratado manualmente é o CBCV11 (`_FII_TICKERS_INATIVOS` em `fontes.py`), fundo
+com dado cacheado antigo que passava nos dois filtros por coincidência. Mais provável é lixo
+aparecer só no bruto (Todos), corretamente cortado do Critério -- comportamento esperado, não bug.
+
+Sugestões de detecção mais robusta levantadas para avaliação futura (nenhuma implementada):
+1. Consistência temporal -- comparar liquidez de hoje com scrapes anteriores (já há cache diário);
+   fundo com liquidez zerada há semanas que "pisca" positivo um dia só é suspeito mesmo passando
+   no filtro pontual.
+2. Palavra-chave no `nome_fundo` ("em liquidação", "encerramento").
+3. Cruzar com lista oficial da B3 de fundos ativos (fonte de verdade externa, mais robusto porém
+   mais trabalho de manter).
+4. Detectar `valor_mercado` congelado (sem mudança) em múltiplos scrapes consecutivos como sinal
+   de dado cacheado parado no Fundamentus.
+
+Usuário foi explícito: "é só uma análise inicial, um estudo, pra ver se tem algo que dá pra
+melhorar" -- avaliar com calma antes de implementar, sistema já está funcionando bem como está.
+
+
 
 ## Continuação 09/07/2026 — Processo manual para "quanto ficou na mesa" em REJEIÇÕES (não encerradas)
 
