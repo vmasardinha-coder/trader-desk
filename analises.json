@@ -2381,7 +2381,8 @@
       }
     },
     "motivo_encerramento": "rejeitada",
-    "data_rejeicao": "2026-07-09"
+    "data_rejeicao": "2026-07-09",
+    "observacao": "[Análise manual 09/07/2026, Claude] Rejeitado com preço já confortavelmente acima da barreira (kdo). Preço na rejeição (~R$ 38.44) vs kdo=33.865. Simulação Monte Carlo (GBM, sigma real da foto=25.42%, 7 dias restantes de 15) deu probabilidade de ~100% de não tocar a barreira até o vencimento. Valor esperado do ganho prefixado (1.18%) que teria sido embolsado, lote de 100 ações: R$ 43.53. LIMITAÇÃO: cálculo usa preço do momento da rejeição como referência, não o caminho diário completo entre a foto e a rejeição -- não há garantia de que a barreira não foi tocada em algum ponto intermediário."
   },
   {
     "id": "an_refoto_1782944935383_h482s",
@@ -3005,7 +3006,8 @@
       }
     },
     "motivo_encerramento": "rejeitada",
-    "data_rejeicao": "2026-07-09"
+    "data_rejeicao": "2026-07-09",
+    "observacao": "[Análise manual 09/07/2026, Claude] Rejeitado com preço já confortavelmente acima da barreira (kdo). Preço na rejeição (~R$ 4.55) vs kdo=3.8372. Simulação Monte Carlo (GBM, sigma real da foto=33.22%, 7 dias restantes de 15) deu probabilidade de ~100% de não tocar a barreira até o vencimento. Valor esperado do ganho prefixado (1.9%) que teria sido embolsado, lote de 100 ações: R$ 7.94. LIMITAÇÃO: cálculo usa preço do momento da rejeição como referência, não o caminho diário completo entre a foto e a rejeição -- não há garantia de que a barreira não foi tocada em algum ponto intermediário."
   },
   {
     "id": "an_refoto2_1783077671648",
