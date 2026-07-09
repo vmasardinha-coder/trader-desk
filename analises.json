@@ -3495,10 +3495,12 @@
     "segmento": "tijolo",
     "nivel_risco": "middle_risk",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-06. P/VP=0.99, DY=9.43%, segmento=Logística, nível de risco=middle_risk. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1783349877"
+    "id": "an_1783349877",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-09"
   },
   {
     "ticker": "ENDD11.SA",
