@@ -1,4 +1,37 @@
-# Trader Desk — Prompt de Continuação (v30 — FECHAMENTO sessão 07/07/2026, incidente de travamento + reimplementação segura do enriquecimento)
+# Trader Desk — Prompt de Continuação (v31 — FECHAMENTO sessão 09/07/2026, processo manual de aproveitamento para rejeições)
+
+## Continuação 09/07/2026 — Processo manual para "quanto ficou na mesa" em REJEIÇÕES (não encerradas)
+
+**Contexto**: o painel automático de aproveitamento (Encerradas) só cobre itens com `status=encerrada`
++ `resultado` preenchido (fluxo de Posições Ativas de verdade). Quando o usuário REJEITA um
+candidato do ranking (`motivo_encerramento='rejeitada'`, sem `resultado`) porque já bateu ~100% de
+probabilidade e ele decidiu não entrar, **não existe botão nem cálculo automático** -- mesmo
+padrão de limitação já documentado para Posições Ativas.
+
+**Processo estabelecido (mesmo espírito do combinado para Posições Ativas)**: usuário avisa quais
+foram rejeitadas recentemente (ou Claude consulta `analises.json` filtrando por
+`motivo_encerramento='rejeitada'` + `data_rejeicao` do dia). Para cada uma:
+1. Busca preço atual via web_search (Claude não acessa Yahoo/Render direto do sandbox).
+2. Roda simulação Monte Carlo PRÓPRIA (numpy disponível no sandbox) usando o `sigma_pct` REAL já
+   gravado em `bandas_congeladas` daquela análise específica (não uma estimativa nova) -- GBM,
+   passos diários, probabilidade de NÃO tocar a barreira (kdo/kuo) entre a data de referência
+   (hoje) e o vencimento original.
+3. Valor esperado = probabilidade × ganho_prefixado_pct (ou payoff equivalente do tipo de
+   estrutura) × preco_foto × **lote de 100** (mesma base padrão já usada no painel automático).
+4. Grava a observação calculada diretamente na análise via GitHub API (campo `observacao`,
+   concatenado ao que já existia, nunca sobrescrevendo).
+5. **Limitação sempre exposta**: o cálculo usa o preço do MOMENTO DA REJEIÇÃO como referência, não
+   o caminho diário completo desde a foto -- não há garantia de que a barreira não foi tocada em
+   algum ponto intermediário entre a foto e a rejeição.
+
+**Exemplo real desta sessão**: PETR4 (retorno controlado, kdo=33.865, rejeitada com preço ~R$38.44,
+13.5% de folga da barreira) e CMIN3 (kdo=3.8372, rejeitada a ~R$4.55, 18.6% de folga) -- ambas
+com probabilidade simulada de ~100% de não tocar a barreira nos 7 dias restantes de 15, dado a
+distância grande e a volatilidade real (25.42% e 33.22% respectivamente). Valor esperado
+calculado: R$43.53 (PETR4) + R$7.94 (CMIN3) = R$51.47 total, lote de 100 cada. Gravado em
+`analises.json` (SHA 3a2e703dd7b5275a28f1cdfb76e2f801a8c4be68).
+
+
 
 ## SHA relevante: rotas_fiis.py 412c5cd9a19189bf53e332f1375a7c7ed3511f28
 
