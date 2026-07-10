@@ -3417,6 +3417,28 @@ def mudar_status_analise(analise_id):
                 if motivo:
                     item['motivo_encerramento'] = motivo
                     item['data_rejeicao'] = _hoje_str()
+                    # ADICIONADO 10/07/2026 (pedido do usuario) -- captura o
+                    # EV/score/probabilidade que o RANKING JA CALCULOU no
+                    # momento em que o usuario clicou em rejeitar (o front
+                    # envia esses campos, que ja estavam na tela -- nao
+                    # recalcula nada aqui, evita duplicar logica e evita o
+                    # erro que ja aconteceu de eu -- Claude -- calcular
+                    # manualmente com dado desatualizado/formula diferente
+                    # do motor real). Permite o painel de Encerradas mostrar
+                    # "deixou X na mesa" (EV positivo) ou "economizou X"
+                    # (EV negativo) SEM precisar de calculo manual toda vez.
+                    ev_rejeicao = body.get('ev_mensal_pct')
+                    score_rejeicao = body.get('score')
+                    prob_rejeicao = body.get('prob_meta_pct')
+                    preco_atual_rejeicao = body.get('preco_atual')
+                    if ev_rejeicao is not None:
+                        item['ev_mensal_na_rejeicao'] = ev_rejeicao
+                    if score_rejeicao is not None:
+                        item['score_na_rejeicao'] = score_rejeicao
+                    if prob_rejeicao is not None:
+                        item['prob_meta_na_rejeicao'] = prob_rejeicao
+                    if preco_atual_rejeicao is not None:
+                        item['preco_encerramento'] = preco_atual_rejeicao
                 if resultado:
                     item['resultado'] = resultado
                     item['data_encerramento'] = _hoje_str()
