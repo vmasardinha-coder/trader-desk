@@ -1136,6 +1136,29 @@ def run_montecarlo_condicional():
                 res['prob_retorno_faixas'] = faixas
                 res['retorno_medio_pct'] = round(float(retorno_full.mean() * 100), 2)
                 res['teto_retorno_usado_pct'] = round(teto_retorno * 100, 2)
+
+                # ADICIONADO 10/07/2026 (fix de bug real encontrado pelo
+                # usuario): o calculo ACIMA e "desde o inicio" (preco_foto,
+                # prazo_dias total) -- usado pelo painel de aproveitamento em
+                # Encerradas (precisa ficar assim, nao mexer). Mas o rotulo no
+                # front dizia "daqui pra frente", o que era FALSO -- nao
+                # descontava os dias ja passados nem usava o preco atual.
+                # Aqui vai a versao CONDICIONAL DE VERDADE (dias_restantes,
+                # preco atual S), como campo NOVO e SEPARADO, para o painel de
+                # detalhe da foto passar a mostrar o numero certo sem quebrar
+                # o que ja dependia do calculo antigo.
+                if dias_restantes > 0:
+                    z_cond = np.random.standard_normal((n_faixas, dias_restantes))
+                    paths_cond = S * np.exp(np.cumsum(drift_fan + vol_step_fan * z_cond, axis=1))
+                    max_cond = np.max(paths_cond, axis=1)
+                    min_cond = np.min(paths_cond, axis=1)
+                    tocou_baixa_cond = min_cond <= kdo
+                    tocou_alta_cond = max_cond >= kuo
+                    res['prob_sem_barreira_condicional'] = round(float((~tocou_baixa_cond & ~tocou_alta_cond).mean() * 100), 2)
+                    res['prob_barreira_baixa_condicional'] = round(float(tocou_baixa_cond.mean() * 100), 2)
+                    res['prob_barreira_alta_condicional'] = round(float(tocou_alta_cond.mean() * 100), 2)
+                else:
+                    res['prob_sem_barreira_condicional'] = None
             except Exception:
                 res['prob_retorno_faixas'] = None
 
@@ -1175,6 +1198,21 @@ def run_montecarlo_condicional():
                 res['retorno_medio_pct'] = round(float(retorno_full2.mean() * 100), 2)
                 res['teto_retorno_usado_pct'] = round(ganho_prefixado * 100, 2)
                 res['prob_ganho_prefixado'] = round(float((~tocou_barreira2).mean() * 100), 2)
+
+                # ADICIONADO 10/07/2026 (mesmo fix do bloco bidirecional acima):
+                # versao CONDICIONAL DE VERDADE (dias_restantes, preco atual S)
+                # -- o campo 'prob_ganho_prefixado' acima e "desde o inicio"
+                # (usado no painel de aproveitamento em Encerradas, NAO mexer).
+                # Este novo campo e o que devia aparecer com o rotulo "daqui
+                # pra frente" no painel de detalhe da foto.
+                if dias_restantes > 0:
+                    z_cond2 = np.random.standard_normal((n_faixas2, dias_restantes))
+                    paths_cond2 = S * np.exp(np.cumsum(drift_fan + vol_step_fan * z_cond2, axis=1))
+                    min_cond2 = np.min(paths_cond2, axis=1)
+                    tocou_cond2 = min_cond2 <= kdo
+                    res['prob_ganho_prefixado_condicional'] = round(float((~tocou_cond2).mean() * 100), 2)
+                else:
+                    res['prob_ganho_prefixado_condicional'] = None
             except Exception:
                 res['prob_retorno_faixas'] = None
 
