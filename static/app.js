@@ -3013,6 +3013,12 @@ async function loadRankingAnalises(){
 
 function tplRanking(d){
   const linhas=d.ranking||[];
+  // ADICIONADO 10/07/2026 -- cache das linhas do ranking por id, para o
+  // botao de rejeitar poder enviar o EV/score/prob JA CALCULADOS (sem
+  // recalcular nada), habilitando o painel de "deixou na mesa"/"economizou"
+  // em Encerradas sem depender de calculo manual.
+  window._rankingCache = window._rankingCache || {};
+  linhas.forEach(r=>{ if(!r.erro) window._rankingCache[r.id]=r; });
   if(!linhas.length)return '<p style="color:var(--muted)">Nenhuma análise em_analise para ranquear.</p>';
   const TIPO_CURTO={bidirecional:'BI',retorno_controlado:'RC',simples:'SI',premio:'PR'};
   const rows=linhas.map(r=>{
@@ -3191,7 +3197,18 @@ async function acaoRanking(id,acao){
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
     const body={status:novoStatus};
-    if(motivo)body.motivo_encerramento=motivo;
+    if(motivo){
+      body.motivo_encerramento=motivo;
+      // ADICIONADO 10/07/2026 -- envia o EV/score/prob que o ranking JA
+      // CALCULOU (cache de tplRanking), sem recalcular nada aqui.
+      const rCache=(window._rankingCache||{})[id];
+      if(rCache){
+        if(rCache.ev_mensal_pct!=null)body.ev_mensal_pct=rCache.ev_mensal_pct;
+        if(rCache.score!=null)body.score=rCache.score;
+        if(rCache.prob_meta_pct!=null)body.prob_meta_pct=rCache.prob_meta_pct;
+        if(rCache.preco_atual!=null)body.preco_atual=rCache.preco_atual;
+      }
+    }
     const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
       method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
       body:JSON.stringify(body)
@@ -3472,15 +3489,39 @@ async function calcularSomatorioEncerradas(lista){
   const qualificam=lista.filter(a=>
     a.status==='encerrada' && a.resultado && a.preco_encerramento!=null &&
     a.preco_foto!=null && a.data_encerramento && a.data_foto);
+  // ADICIONADO 10/07/2026 -- itens REJEITADOS (nunca ativados) com EV
+  // capturado no momento da rejeicao. Diferente do fluxo sucesso/fracasso:
+  // nao precisa de chamada de rede (o EV ja foi calculado pelo ranking e
+  // enviado no momento do clique em "Rejeitar") -- processamento e
+  // instantaneo. gap = ev_mensal_na_rejeicao diretamente: EV positivo =
+  // "deixou na mesa" (desistiu de uma expectativa boa); EV negativo =
+  // "economizou" (evitou uma expectativa ruim) -- mesma convencao de sinal
+  // e cores ja usada no restante do painel.
+  const qualificamRejeitadas=lista.filter(a=>
+    a.status==='encerrada' && a.motivo_encerramento==='rejeitada' &&
+    a.ev_mensal_na_rejeicao!=null && a.preco_foto!=null);
   const painel=document.getElementById('enc-somatorio-panel');
   if(!painel)return;
-  if(!qualificam.length){
-    painel.innerHTML='<p style="font-size:11px;color:var(--muted)">Nenhuma análise encerrada com preço de fechamento registrado ainda para calcular aproveitamento (só disponível para encerramentos a partir de 05/07/2026).</p>';
+  if(!qualificam.length && !qualificamRejeitadas.length){
+    painel.innerHTML='<p style="font-size:11px;color:var(--muted)">Nenhuma análise encerrada com dado suficiente ainda para calcular aproveitamento (só disponível para encerramentos/rejeições a partir de 05-10/07/2026).</p>';
     return;
   }
   painel.innerHTML='<div class="card" style="margin-bottom:10px"><div class="cl">Calculando aproveitamento (quanto ficou na mesa)...</div></div>';
   let somaGap=0, somaGapRs=0, contabilizados=0;
   window._gapCache = window._gapCache || {};
+
+  // Processa rejeitadas primeiro (instantaneo, sem rede)
+  for(const a of qualificamRejeitadas){
+    const gap=round2(a.ev_mensal_na_rejeicao);
+    const gapRs=round2(gap*a.preco_foto);
+    somaGap+=gap; somaGapRs+=gapRs; contabilizados++;
+    const gapEl=document.getElementById('enc-gap-'+a.id);
+    if(gapEl){
+      const corGap=gap>0.05?'var(--accent)':(gap<-0.05?'var(--green)':'var(--muted)');
+      const txtGap=gap>0.05?('deixou ~R$ '+gapRs.toFixed(2)+' na mesa ao rejeitar (lote de 100)'):(gap<-0.05?('economizou ~R$ '+Math.abs(gapRs).toFixed(2)+' ao rejeitar, evitou EV negativo (lote de 100)'):'EV próximo de zero, decisão neutra');
+      gapEl.innerHTML='<span style="color:'+corGap+'">EV mensal na rejeição: '+(a.ev_mensal_na_rejeicao>=0?'+':'')+a.ev_mensal_na_rejeicao.toFixed(2)+'% · '+txtGap+'</span>';
+    }
+  }
   for(const a of qualificam){
     // Cache de sessao: preco_encerramento/data_encerramento sao imutaveis
     // uma vez fixados, entao o resultado nunca muda -- reabrir a aba na
@@ -3560,7 +3601,8 @@ function tplAnaliseEncerrada(a){
   let rows=`<div class="sr"><span class="sl">Tipo</span><span class="sv">${_TIPO_LABEL[a.tipo_estrutura]||a.tipo_estrutura}</span></div>`;
   if(a.preco_foto!=null)rows+=`<div class="sr"><span class="sl">Preço na foto</span><span class="sv">R$ ${Number(a.preco_foto).toFixed(2).replace('.',',')}</span></div>`;
   if(a.observacao)rows+=`<div class="sr"><span class="sl">Observação</span><span class="sv" style="color:var(--muted);white-space:pre-wrap">${a.observacao.slice(0,400)}</span></div>`;
-  const qualificaGap=a.status==='encerrada'&&a.resultado&&a.preco_encerramento!=null&&a.preco_foto!=null&&a.data_encerramento&&a.data_foto;
+  const qualificaGap=(a.status==='encerrada'&&a.resultado&&a.preco_encerramento!=null&&a.preco_foto!=null&&a.data_encerramento&&a.data_foto)
+    || (a.status==='encerrada'&&a.motivo_encerramento==='rejeitada'&&a.ev_mensal_na_rejeicao!=null&&a.preco_foto!=null);
   const gapHtml=qualificaGap?`<div id="enc-gap-${a.id}" style="font-size:11px;margin-top:8px;color:var(--muted)">Calculando aproveitamento...</div>`:'';
   return `
   <div class="pos-enc" style="margin-top:10px">
