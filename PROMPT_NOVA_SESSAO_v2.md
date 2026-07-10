@@ -1,4 +1,37 @@
-# Trader Desk — Prompt de Continuação (v33 — FECHAMENTO sessão 10/07/2026, fix de bug real em /montecarlo/condicional + rejeições com EV capturado)
+# Trader Desk — Prompt de Continuação (v34 — FECHAMENTO sessão 10/07/2026, fix condicional validado + investigação de ranking para Posições Ativas)
+
+## Validação em produção do fix de /montecarlo/condicional (10/07/2026)
+Usuário testou criando uma análise clone (mesma estrutura CMIN3, data/preço de hoje) e confirmou: o
+campo novo `prob_ganho_prefixado_condicional` (painel de detalhe) e o `Prob.` do ranking agora
+BATEM (~98-99% nos dois, diferença de décimos por ruído normal de Monte Carlo) -- antes divergiam
+muito (64% vs 99%). Fluxo de rejeição com captura de EV também validado: rejeitou a análise teste,
+apareceu em Encerradas com "EV mensal na rejeição: +2,21% · deixou ~R$11,32 na mesa" e entrou no
+somatório automático corretamente.
+
+**Esclarecimento conceitual confirmado com o usuário**: os dois números (ranking vs "desde o
+início") usam a MESMA metodologia (barreira tocada em QUALQUER momento do caminho = knock-out
+permanente, sem recuperação -- `min(caminho) <= kdo`). NÃO é "nunca tocar" vs "preço final
+permite recuar" -- a única diferença é o PONTO DE REFERÊNCIA no tempo (foto original vs hoje).
+Usuário tinha uma hipótese diferente (achava que eram duas metodologias distintas), corrigida.
+
+## Investigação: ranking de probabilidade para Posições Ativas (positions.json)
+Usuário perguntou se dá pra fazer o mesmo ranking (Prob./EV/Score) para as 7 posições ativas reais,
+não só para "em análise". Investigação (SEM implementar, conforme pedido):
+- **AXIA3-A, AXIA3-B (bidirecional) e BSLV39 (retorno_controlado)**: JÁ TÊM os campos que o motor
+  do ranking usa (`kdo`, `kuo`/`teto_retorno_pct`/`alavancagem` ou `ganho_prefixado_pct`, `entry`,
+  `data_entrada`, `vencimento`) -- reaproveitamento direto seria rápido (só adaptar "prazo restante"
+  via `vencimento` real em vez de `prazo_dias` fixo).
+- **PETR4, VALE3, BBAS3, ROXO34 (tipo_posicao=simples, venda coberta de call)**: o motor do ranking
+  HOJE NÃO TEM fórmula de EV para covered call -- só cobre bidirecional e retorno_controlado.
+  Precisaria de lógica NOVA (baseada em prêmio recebido + prob. de exercício via `/montecarlo/
+  condicional` que já sabe calcular isso, mas o ranking em si nunca usa) -- não é reaproveitamento
+  simples.
+- BSLV39 também herda a limitação de dado já resolvida no gráfico (proxy SLV+câmbio) -- precisaria
+  reaproveitar aquela lógica pro preço atual usado no ranking também.
+
+**Decisão do usuário**: registrar no backlog, NÃO implementar agora.
+
+
 
 ## SHAs relevantes: proxy.py 59e516692fdfd10f3e8bda74e5d10eb9621984a1 | static/app.js f22fe1cfab18374df9db01628e18d7039c3c5e76
 
