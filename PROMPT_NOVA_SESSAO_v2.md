@@ -1,4 +1,104 @@
-# Trader Desk — Prompt de Continuação (v34 — FECHAMENTO sessão 10/07/2026, fix condicional validado + investigação de ranking para Posições Ativas)
+# Trader Desk — Prompt de Continuação (v35 — FECHAMENTO MESTRE 10/07/2026)
+
+## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
+
+Sou o Claude continuando o desenvolvimento do Trader Desk com o Victor. Antes de qualquer coisa:
+1. Puxar este arquivo (`PROMPT_NOVA_SESSAO_v2.md`) via `api.github.com` (nunca `raw.githubusercontent.com` — CDN cacheia).
+2. Puxar também `ROTINA_GATES_LOTE.md` se o usuário trouxer um lote de opções pra analisar.
+3. Verificar SHAs abaixo antes de editar qualquer arquivo (sempre buscar fresco, nunca reutilizar SHA de memória).
+4. Sistema é de TOMADA DE DECISÃO (melhorar assertividade), não controle de carteira/P&L exato — isso as corretoras já dão.
+
+## SHAs no fechamento desta sessão (10/07/2026)
+- proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
+- fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
+- fontes_etfs.py: 256cf7da182e82aea6b982e544b12960a20614fe
+- rotas_fiis.py: 42d1a29256743f61a8981eb4c76b36919b0f3a56
+- rotas_etfs.py: ab401ebbf1b12f73e6d454ded2349b3011939136
+- motor.py: 035fa085a6916080a0122d46a7c1c343a3390e35
+- static/app.js: f22fe1cfab18374df9db01628e18d7039c3c5e76
+- templates/index.html: 82b6d88df26e2464f974609435aa6e15e4ba74f8
+- static/style.css: aedb6fcbe339ede195c6e6182fec5f5da4157fe7
+- analises.json: 2f6bc7ec8163fb57ec70c657c751a89d045b7aa7
+- positions.json: 3319dd4b563058c50d4893f9b7b724b3d9d53af9
+- carteira_fiis.json: 7ae13a8040f95b99901a2564825abe0533353f99
+- etfs_estado.json: 60a538afb0d90b5a2b34c9a363230b0d1cd32c1d
+- fundamentos.json: e0dc2a4d0c3cb2bf04ebf258536e36ef2a319805
+- ROTINA_GATES_LOTE.md: 52e40aadf69df474fcc28864d58eca1041bd1970
+
+## Tokens/credenciais (NUNCA colocar valores reais neste arquivo nem em nenhum arquivo do repo)
+- `GITHUB_TOKEN` / `GITHUB_WRITE_TOKEN` / `GITHUB_REPO`: configurados no Render, usados pelo app em
+  produção para ler/escrever no próprio repositório. Não confundir com o token de sessão que o
+  usuário cola no chat para o Claude usar via `api.github.com` (esse é temporário, só da sessão).
+- `API_WRITE_TOKEN`: configurado no Render, protege rotas de escrita da API do app.
+- `BRAPI_TOKEN`: **RESOLVIDO nesta sessão** — havia um token antigo hardcoded em `proxy.py` (linha
+  ~168, como valor DEFAULT do `_os.environ.get`) que ninguém lembra de ter criado conscientemente,
+  provavelmente inserido por uma sessão anterior do Claude sem aviso claro. Confirmado que bateu o
+  limite mensal de 15.000 requisições (teste real retornou 429). Usuário criou um token PRÓPRIO no
+  brapi.dev e configurou `BRAPI_TOKEN` como variável de ambiente no Render — o código já lê essa
+  variável automaticamente antes de cair no valor antigo hardcoded, então não precisou mexer em
+  nada no código, só configurar no Render. **Usuário tem 2 contas/tokens brapi** (2 perfis Google)
+  — rotação entre eles fica em backlog (ver seção de ToS abaixo).
+- **brapi.dev `/api/v2/funds/*` (FIAGRO/FI-Infra/FIDC/FIP)**: testado com token novo, retornou
+  `403 FEATURE_NOT_AVAILABLE` — confirmado que exige plano PAGO, não resolve com token gratuito
+  novo. Não usar esse endpoint sem o usuário decidir assinar um plano.
+- **Consideração de ToS pendente**: usar múltiplos tokens/contas para multiplicar cota gratuita é
+  possivelmente contra os termos de uso do brapi.dev (comum em APIs free-tier proibirem isso) —
+  Claude avisou o usuário disso antes de qualquer implementação; ele optou por registrar em
+  backlog e pensar com calma, não implementar rotação ainda.
+
+## Resumo do que foi feito nesta sessão (visão executiva, ver seções detalhadas abaixo para o histórico completo)
+1. Modernização de layout completa: sidebar com accordion, header fixo, cards unificados.
+2. Volatilidade real (correlação) + cache diário para Carteira ETFs e Carteira FIIs.
+3. Reorganização de ETFs (Mercado vs Minha Operação, espelhando padrão de FIIs).
+4. Painel de aproveitamento em Encerradas ("quanto ficou na mesa"), com lote de 100 como base,
+   cobrindo TRÊS fluxos: (a) posições realmente encerradas (sucesso/fracasso, preço capturado
+   automaticamente), (b) rejeições do ranking (EV/score capturados no clique, sem precisar de
+   cálculo manual), (c) processo manual em chat para o caso raro sem esses dados.
+5. Fix crítico: filtro "fantasma" de liquidez em FIIs se desativa sozinho quando a fonte
+   (Fundamentus) está com dado implausível (>15% de liquidez zerada) — protege contra remover
+   fundos reais como o KNCA11 em massa por falha momentânea da fonte.
+6. Fallback em cascata para BSLV39 (BDR sem cobertura boa em nenhuma API gratuita): Yahoo → brapi
+   → proxy via ativo original (SLV) + câmbio USD/BRL, marcado como estimativa na UI.
+7. Fix de bug real em `/montecarlo/condicional`: campos rotulados "daqui pra frente" na verdade
+   simulavam desde a foto original, ignorando dias passados. Corrigido de forma ADITIVA (campos
+   novos `_condicional`, sem alterar os antigos que o painel de aproveitamento já depende).
+8. Rotina documentada de gates para análise de lote (`ROTINA_GATES_LOTE.md`) — liquidez e retorno
+   mínimo (2-2,5%/mês) cortam automaticamente; probabilidade e assimetria sempre lado a lado,
+   nunca viram filtro automático (julgamento do usuário).
+9. `GET /fiis/diagnostico` — nova rota de diagnóstico, mostra o que foi descartado no último
+   scrape de FIIs e por quê. Ferramenta permanente, não descartar.
+10. Resolução do problema de fonte de dados do brapi.dev (ver seção de tokens acima).
+
+## Lições de arquitetura registradas (não repetir)
+- `ThreadPoolExecutor` com `shutdown(wait=False)` é PERIGOSO no Render (1 worker) — pode acumular
+  threads órfãs e travar o processo INTEIRO, não só a rota que criou. Preferir sempre sequencial
+  com timeout nativo do `requests`. Incidente real nesta sessão: site travou completamente após
+  uma implementação com esse padrão; revertido e refeito sequencialmente.
+- Nunca afirmar "confirmei X" sem ter executado a verificação de verdade — já aconteceu 2x nesta
+  sessão (uma vez com dado fabricado ao inves de admitir busca vazia; outra com cálculo manual
+  desatualizado quando o motor de produção já tinha o número certo). Sempre preferir o número que
+  o app já calculou (ranking, condicional) a um cálculo manual improvisado.
+- Investigação que parece "1 caso isolado" pode ser bug estrutural maior (caso KNCA11 revelou
+  ~31% do universo de FIIs afetado, não só 1 ticker) — sempre checar a ESCALA antes de aceitar
+  causa pontual.
+- Boot real (test_client + mocks) pega bugs que `ast.parse` sozinho não pega — usado em TODOS os
+  fixes desta sessão antes de commitar.
+
+## Reflexão do usuário sobre estratégia de decisão (10/07/2026, registrar como princípio, não regra rígida)
+Usuário observou, ao ver a CMIN3 teste subir de 63,85% (desde o início) para 99,45% (hoje) em só 9
+dias: **rejeitar uma estrutura que já subiu bem e está confortavelmente longe da barreira significa
+abrir mão de uma oportunidade que JÁ SE PROVOU boa** -- ele quer, ao ver isso, buscar OUTRAS
+oportunidades em vez de ativar essa (mesmo com EV positivo agora). Racional dele: probabilidades de
+~99% no MOMENTO DA ENTRADA (foto) são raras/nunca acontecem -- se acontecessem sempre, ganhar
+dinheiro seria fácil demais. Quando o EV positivo aparece DEPOIS de dias favoráveis (não na largada),
+é sinal de que a melhor decisão já passou (o "timing" de entrada ideal foi no dia 0, não agora) --
+ativar tarde captura só o que sobrou do movimento, não a oportunidade original. Isso é consistente
+com o desconto que ele já aplica no scoring geral. NÃO documentar isso como regra de código/gate --
+é heurística de julgamento do próprio usuário, mencionada para contexto de decisões futuras.
+
+---
+
+
 
 ## Validação em produção do fix de /montecarlo/condicional (10/07/2026)
 Usuário testou criando uma análise clone (mesma estrutura CMIN3, data/preço de hoje) e confirmou: o
