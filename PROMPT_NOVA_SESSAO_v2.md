@@ -1,4 +1,20 @@
-# Trader Desk — Prompt de Continuação (v32 — FECHAMENTO sessão 09/07/2026, backlog final + estudo de deteccao de lixo em FIIs)
+# Trader Desk — Prompt de Continuação (v33 — FECHAMENTO sessão 10/07/2026, fix de bug real em /montecarlo/condicional + rejeições com EV capturado)
+
+## SHAs relevantes: proxy.py 59e516692fdfd10f3e8bda74e5d10eb9621984a1 | static/app.js f22fe1cfab18374df9db01628e18d7039c3c5e76
+
+## Continuação 10/07/2026 — Duas features novas
+
+**1. Rejeições agora capturam EV/score/prob no momento do clique** (não é o painel automático de sucesso/fracasso, é NOVO): o botão "🚫 Rejeitar" no ranking envia `ev_mensal_pct`/`score`/`prob_meta_pct`/`preco_atual` (cache das linhas do ranking, `window._rankingCache`) junto com a rejeição. Backend (`proxy.py`, rota `PUT /analises/<id>/status`) grava em `ev_mensal_na_rejeicao`/`score_na_rejeicao`/`prob_meta_na_rejeicao`/`preco_encerramento`. Painel de Encerradas (`calcularSomatorioEncerradas`) processa isso SEM chamada de rede (já tem o dado): EV positivo → "deixou na mesa"; EV negativo → "economizou, evitou EV negativo". Só vale para rejeições a partir de agora (as antigas, feitas manualmente por mim antes disso existir, não têm os campos).
+
+**2. Bug real encontrado e corrigido em `/montecarlo/condicional`**: campos rotulados "(daqui pra frente)" -- `prob_ganho_prefixado` (retorno_controlado) e `prob_retorno_faixas`/`retorno_medio_pct` (bidirecional) -- na verdade simulavam desde a FOTO ORIGINAL (`preco_foto`, `prazo_dias` total), ignorando completamente os dias já passados e o preço atual. Usuário notou a discrepância entre o Ranking (que já calculava certo, usando `dias_restantes`/preço atual) e o painel de detalhe da foto (que dava um número bem diferente e mais conservador). Investigação confirmou: bug real de implementação, não duas métricas com propósitos diferentes.
+
+**Fix ADITIVO (sem quebrar nada existente)**: os campos antigos (`prob_ganho_prefixado`, `prob_retorno_faixas`, `retorno_medio_pct`) foram MANTIDOS EXATAMENTE COMO ESTAVAM -- são a base do painel de aproveitamento em Encerradas (que compara "esperado desde a foto" vs "realizado desde a foto", ambos ancorados no mesmo preço/data de referência -- mudar isso quebraria aquele painel). Foram ADICIONADOS campos NOVOS e CORRETOS: `prob_ganho_prefixado_condicional`, `prob_sem_barreira_condicional`, `prob_barreira_baixa_condicional`, `prob_barreira_alta_condicional` -- estes sim usam `dias_restantes`/preço atual (`S`) de verdade. Frontend atualizado para mostrar o campo condicional em destaque (era o que devia ter aparecido desde o início) e o antigo como referência secundária, cinza, rotulado "desde o início".
+
+**Nota técnica**: para estruturas BIDIRECIONAIS (kdo+kuo), já existia um bloco SEPARADO e CORRETO (`prob_sem_barreira`, sem o bug) que já usava dias_restantes/S -- o bug afetava só a quebra por faixas de retorno (`prob_retorno_faixas`) e o EV (`retorno_medio_pct`) desse tipo, não a probabilidade simples de não tocar a barreira. Para RETORNO CONTROLADO (kdo sozinho, ex: CMIN3), não existia nenhum bloco correto -- o único número exibido (`prob_ganho_prefixado`) era o buggy, por isso a confusão do usuário foi mais visível nesse caso.
+
+**Testado com boot real (proxy.py completo, mocks de rede)** para os dois tipos de estrutura antes de commitar -- campos antigos inalterados, campos novos condizentes com o que o ranking já mostrava.
+
+
 
 ## Novos itens de backlog (09/07/2026, registrados apenas como estudo/direção, NAO implementar sem confirmação explícita)
 
