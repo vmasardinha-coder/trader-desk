@@ -3561,5 +3561,20 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-06. P/VP=0.97, DY=9.68%, segmento=Multicategoria, nível de risco=middle_risk. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1783353984"
+  },
+  {
+    "id": "an_teste_10072026_cmin3clone",
+    "ticker": "CMIN3.SA",
+    "nome": "CMIN3 - Retorno Controlado 41d [TESTE 10/07/2026 - clone p/ validar fix condicional]",
+    "data_foto": "2026-07-10",
+    "preco_foto": 5.1,
+    "prazo_dias": 41,
+    "tipo_estrutura": "retorno_controlado",
+    "kdo": 3.6784,
+    "ganho_prefixado_pct": 3.76,
+    "origem": "customizada",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "[Claude, 10/07/2026] Clone de teste da an_refoto_1782944938596_hitus -- mesma estrutura (kdo, ganho prefixado, prazo), so mudando data_foto e preco_foto para hoje, a pedido do usuario, para validar o fix do calculo condicional em /montecarlo/condicional."
   }
 ]
