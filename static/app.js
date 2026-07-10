@@ -3852,9 +3852,12 @@ function renderCondicional(id,d){
     probsHtml+='<div class="sr"><span class="sl">Prob. barreira alta (KUO)</span><span class="sv warn">'+d.prob_barreira_alta.toFixed(2)+'%</span></div>';
     probsHtml+='<div class="sr"><span class="sl">Prob. barreira baixa (KDO)</span><span class="sv warn">'+d.prob_barreira_baixa.toFixed(2)+'%</span></div>';
   }
+  if(d.prob_ganho_prefixado_condicional!=null){
+    probsHtml+='<div class="sr" title="Chance de NAO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, usando o preco atual e os dias restantes). Numero dinamico -- muda conforme o preco se move. E o numero que importa para decidir o proximo passo (mesmo numero usado no ranking)."><span class="sl">Prob. ganho prefixado (daqui p/ frente)</span><span class="sv ok">'+d.prob_ganho_prefixado_condicional.toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr"><span class="sl">Prob. tocar barreira (sem garantia)</span><span class="sv warn">'+(100-d.prob_ganho_prefixado_condicional).toFixed(2)+'%</span></div>';
+  }
   if(d.prob_ganho_prefixado!=null){
-    probsHtml+='<div class="sr" title="Chance de NAO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, usando o preco atual). Numero dinamico -- muda conforme o preco se move. E o numero que importa para decidir o proximo passo (mesmo numero usado no ranking)."><span class="sl">Prob. ganho prefixado (daqui p/ frente)</span><span class="sv ok">'+d.prob_ganho_prefixado.toFixed(2)+'%</span></div>';
-    probsHtml+='<div class="sr"><span class="sl">Prob. tocar barreira (sem garantia)</span><span class="sv warn">'+(100-d.prob_ganho_prefixado).toFixed(2)+'%</span></div>';
+    probsHtml+='<div class="sr" title="Probabilidade calculada DESDE O INICIO da foto (prazo total, preco original) -- usada apenas para o painel de aproveitamento em Encerradas, nao reflete o momento atual."><span class="sl">Prob. ganho prefixado (desde o início, referência)</span><span class="sv" style="color:var(--muted)">'+d.prob_ganho_prefixado.toFixed(2)+'%</span></div>';
   }
   const g=d.garch;
   const volTxt=g?('GARCH '+g.vol_garch_projetada_pct+'%'):('Vol.hist '+d.volatilidade_historica_pct+'%');
