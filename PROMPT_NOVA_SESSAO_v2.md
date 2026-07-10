@@ -84,17 +84,26 @@ Sou o Claude continuando o desenvolvimento do Trader Desk com o Victor. Antes de
 - Boot real (test_client + mocks) pega bugs que `ast.parse` sozinho não pega — usado em TODOS os
   fixes desta sessão antes de commitar.
 
-## Reflexão do usuário sobre estratégia de decisão (10/07/2026, registrar como princípio, não regra rígida)
+## Princípio do usuário sobre rejeitar casos de alta probabilidade tardia (10/07/2026, versão
+## corrigida/precisa -- substitui a formulação inicial, registrar como heurística de julgamento,
+## NÃO como regra de código/gate)
+
 Usuário observou, ao ver a CMIN3 teste subir de 63,85% (desde o início) para 99,45% (hoje) em só 9
-dias: **rejeitar uma estrutura que já subiu bem e está confortavelmente longe da barreira significa
-abrir mão de uma oportunidade que JÁ SE PROVOU boa** -- ele quer, ao ver isso, buscar OUTRAS
-oportunidades em vez de ativar essa (mesmo com EV positivo agora). Racional dele: probabilidades de
-~99% no MOMENTO DA ENTRADA (foto) são raras/nunca acontecem -- se acontecessem sempre, ganhar
-dinheiro seria fácil demais. Quando o EV positivo aparece DEPOIS de dias favoráveis (não na largada),
-é sinal de que a melhor decisão já passou (o "timing" de entrada ideal foi no dia 0, não agora) --
-ativar tarde captura só o que sobrou do movimento, não a oportunidade original. Isso é consistente
-com o desconto que ele já aplica no scoring geral. NÃO documentar isso como regra de código/gate --
-é heurística de julgamento do próprio usuário, mencionada para contexto de decisões futuras.
+dias, que faz sentido rejeitar e buscar outras oportunidades. A formulação inicial dele ("99% na
+largada nunca existe, seria fácil demais ganhar dinheiro") foi REFINADA para o motivo real:
+
+**Em estruturas de retorno controlado, o ganho é sempre travado (prefixado fixo), não importa a
+distância da barreira.** Quando a probabilidade sobe de 63% para 99% ao longo de dias passados sem
+ativar, o que mudou foi só o RISCO (menor), não o GANHO (continua o mesmo teto fixo) -- e o PRAZO
+RESTANTE encolheu. Isso significa que o retorno esperado por unidade de tempo restante (ex:
+2,21%/32 dias) fica pior do que o de uma estrutura NOVA com prazo cheio (ex: ROXO34 no ranking
+rendendo 5,90%/mês -- quase o triplo do ritmo). Não é sobre "99% ser suspeito" -- é sobre EFICIÊNCIA
+DE CAPITAL/TEMPO: com capital limitado, ativar tarde uma estrutura que já "queimou" a maior parte do
+prazo é pior uso de capital do que uma alternativa fresca com ritmo mensal melhor, mesmo que a
+tardia tenha probabilidade de sucesso mais alta e EV positivo no momento. Baixo risco sem prêmio
+proporcionalmente maior não compensa abrir mão de uma alternativa com ritmo melhor.
+
+
 
 ---
 
