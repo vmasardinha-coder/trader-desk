@@ -8,6 +8,52 @@ Sou o Claude continuando o desenvolvimento do Trader Desk com o Victor. Antes de
 3. Verificar SHAs abaixo antes de editar qualquer arquivo (sempre buscar fresco, nunca reutilizar SHA de memória).
 4. Sistema é de TOMADA DE DECISÃO (melhorar assertividade), não controle de carteira/P&L exato — isso as corretoras já dão.
 
+## 📚 Lições conceituais do Victor (não são backlog — princípios de julgamento que devem persistir entre sessões)
+
+**Alvo único de todas as operações de venda de opção (11/07/2026):** independente da estrutura
+(lançamento simples, retorno controlado, bidirecional), o objetivo primário é SEMPRE gerar
+2–2,5%/mês via prêmio. A estrutura escolhida (barreira, proteção, teto) não é a meta em si — é
+só a "embalagem de risco" que blinda esse alvo dependendo de quanto o cenário pode virar contra
+o Victor. Ao analisar qualquer operação nova ou existente, o corte de qualidade é sempre esse
+alvo de prêmio mensal — não confundir com o preço do strike, com o retorno total (prêmio +
+valorização), ou com qualquer outra métrica de retorno.
+
+**Definição de sucesso é própria do Victor, não é o retorno numérico da opção em si.** Ele não
+vende a ação — carrega no tempo. Por isso, para lançamento coberto simples (ex: BBAS3), sucesso
+= NÃO ser exercido + embolsar o prêmio, mesmo que o preço da ação tenha caído e o prêmio não
+cubra a queda. Se cair, a saída não é vender no prejuízo — é rolar (gerar novo prêmio) ou, se a
+queda for relevante, comprar mais ações no preço menor (reduz preço médio, aumenta posição).
+Isso é uma tática de recuperação, não o plano principal — e só existe porque ele critérios o
+ativo de forma a aceitar carregá-lo/aumentar posição de qualquer jeito.
+
+**Decisão de "entregar o papel" (quando exercido/no topo) é caso a caso, não regra fixa.** Se o
+Victor avalia que o papel ainda tem upside relevante (leitura gráfica/momentum), ele tenta ROLAR
+PARA CIMA (subir o strike) em vez de simplesmente entregar — isso captura parte da valorização
+já ocorrida (diferença entre strike antigo e novo) + gera novo prêmio. Só funciona "se possível"
+(depende de ter prêmio decente disponível no novo strike/prazo). Se avalia que o papel já
+esgotou o upside, aí sim entrega sem rolar e busca outro ativo. **Contra-exemplo didático:
+ROXO34** — a subida foi rápida e violenta demais para rolar dentro dos critérios normais de
+qualidade; a rolagem feita foi defensiva/emergencial ("por fora", só para sobreviver e ganhar
+tempo), não estratégica. Ou seja: rolar-capturando-alta é o plano quando cabe dentro do filtro
+de qualidade normal; quando o papel corre demais rápido demais, a rolagem vira modo de
+sobrevivência, não plano A.
+
+**Por que ele estuda estruturas diferentes (retorno controlado, bidirecional) em vez de só
+lançamento simples:** cada uma resolve um risco diferente do lançamento simples puro.
+- Retorno controlado (proteção na queda): aumenta o range em que ele ganha, absorvendo parte da
+  queda no período — troca upside acima de um teto por proteção na cauda ruim.
+- Bidirecional: ganha em ambas as direções dentro de um range, mas se a barreira de alta for
+  rompida, a alavancagem embutida faz perder o upside todo de uma vez — esse é o risco que ele
+  chama de "se alavancar e perder tudo se subir demais".
+- Lançamento simples: mais direto, mas se o papel disparar muito acima do strike, perde 100% do
+  excedente sem nenhuma rede de proteção.
+
+Essas leituras devem informar qualquer análise futura de posição ativa ou lote novo — ao montar
+uma explicação de probabilidade/cenário para o Victor, sempre traduzir os números pela régua dele
+(sucesso = não-exercício + prêmio embolsado, para ativos que ele quer carregar), não só pelo
+número bruto de retorno ou probabilidade de exercício.
+
+
 ## SHAs no fechamento desta sessão (10/07/2026)
 - proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
 - fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
