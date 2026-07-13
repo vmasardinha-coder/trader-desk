@@ -211,11 +211,11 @@ function botaoStatusFii(ticker, tituloDisponivel, estiloDisponivel){
 }
 
 const _FII_ESCOPO_LABEL={
-  todos:'Todos (universo bruto)', criterio:'Critério (liquidez + DY)'
+  todos:'Todos (universo bruto)', criterio:'Critério (liquidez + DY + vacância)'
 };
 const _FII_ESCOPO_TITLE={
   todos:'Todos os FIIs tradicionais encontrados no Fundamentus, SEM nenhum filtro -- inclui os que ficariam fora do critério padrão (liquidez baixa, DY zerado). Esses aparecem com marcador vermelho e sem classificação de segmento/risco.',
-  criterio:'Apenas FIIs que passam no critério padrão (liquidez ≥ R$50k/dia, DY > 0%) -- classificados por segmento e nível de risco.',
+  criterio:'Apenas FIIs que passam no critério padrão (liquidez ≥ R$50k/dia, DY > 0%, vacância média ≤ 25% quando disponível) -- classificados por segmento e nível de risco.',
 };
 const _FII_SEGMENTO_LABEL={
   todos:'Todos', papel:'Papel', hibrido:'Híbrido', tijolo:'Tijolo', fof:'Fundo de Fundos', 'fi-infra':'FI-Infra', outros:'Outros'
@@ -864,11 +864,30 @@ async function carregarUltimoProventoCarteira(f){
 async function encerrarFiiCarteira(id){
   const ok=confirm('Confirma ENCERRAR (vendeu) este FII da carteira?');
   if(!ok)return;
+
+  // ADICIONADO 11/07/2026 -- captura manual do resultado no encerramento
+  // (nao da pra calcular automatico: venda quase sempre parcial + proventos
+  // recebidos no meio nao sao armazenados). Segue o mesmo padrao de prompt()
+  // ja usado no app (ex: preco manual de FI-Infra). Todos os 3 campos sao
+  // OPCIONAIS -- se o usuario cancelar/deixar em branco, encerra do mesmo
+  // jeito, so sem entrar no somatorio de aproveitamento.
+  let resultado=null, valorStr=null, observacao=null;
+  const resp=prompt('Resultado desta operação? Digite: sucesso, fracasso ou parcial\n(deixe em branco para pular e encerrar sem registrar resultado)');
+  if(resp&&['sucesso','fracasso','parcial'].includes(resp.trim().toLowerCase())){
+    resultado=resp.trim().toLowerCase();
+    valorStr=prompt('Valor financeiro do resultado (R$)? Considere venda + proventos recebidos no período.\nEx: 1000 para ganho de R$1.000, -500 para perda de R$500');
+    observacao=prompt('Observação (opcional, ex: "vendeu 60% da posição"):');
+  }
+
   try{
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const bodyObj={status:'encerrada'};
+    if(resultado)bodyObj.resultado=resultado;
+    if(valorStr&&!isNaN(parseFloat(valorStr)))bodyObj.valor_financeiro_resultado=parseFloat(valorStr);
+    if(observacao)bodyObj.observacao_encerramento=observacao;
     const r=await fetch(B+'/carteira-fiis/'+encodeURIComponent(id)+'/status',{
       method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
-      body:JSON.stringify({status:'encerrada'})
+      body:JSON.stringify(bodyObj)
     });
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
