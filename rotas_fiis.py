@@ -743,12 +743,30 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
     @_requer_auth_escrita
     def mudar_status_carteira_fii(fii_id):
         """Move um FII da carteira para 'encerrada' (vendido). Espera
-        {'status': 'encerrada'} no body."""
+        {'status': 'encerrada'} no body.
+
+        ADICIONADO 11/07/2026 -- decisao do usuario: como nao ha como
+        calcular automaticamente o resultado no encerramento (venda quase
+        sempre parcial, proventos recebidos ao longo do periodo nao sao
+        armazenados historicamente), o encerramento agora aceita 3 campos
+        OPCIONAIS extras no body, preenchidos via formulario no frontend:
+        - resultado: 'sucesso' | 'fracasso' | 'parcial'
+        - valor_financeiro_resultado: numero (R$), digitado manualmente pelo
+          usuario -- NUNCA calculado automaticamente aqui, so o usuario sabe
+          o que de fato vendeu + proventos recebidos no meio do caminho.
+        - observacao_encerramento: texto livre opcional.
+        Todos opcionais para nao quebrar chamadas antigas que so mandam
+        status (compatibilidade retroativa).
+        """
         try:
             body = request.get_json() or {}
             novo_status = body.get('status')
             if novo_status not in _CARTEIRA_FII_STATUS_VALIDOS:
                 return jsonify({'error': f'status invalido: {novo_status!r}'}), 422
+
+            resultado = body.get('resultado')
+            if resultado is not None and resultado not in ('sucesso', 'fracasso', 'parcial'):
+                return jsonify({'error': f"resultado invalido: {resultado!r} (use sucesso/fracasso/parcial)"}), 422
 
             conteudo_str, sha = _github_get_file('carteira_fiis.json')
             carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
@@ -758,6 +776,12 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                     item['status'] = novo_status
                     if novo_status == 'encerrada':
                         item['data_encerramento'] = _hoje_str()
+                        if resultado is not None:
+                            item['resultado'] = resultado
+                        if body.get('valor_financeiro_resultado') is not None:
+                            item['valor_financeiro_resultado'] = float(body['valor_financeiro_resultado'])
+                        if body.get('observacao_encerramento'):
+                            item['observacao_encerramento'] = body['observacao_encerramento']
                     encontrado = True
                     break
             if not encontrado:
@@ -771,6 +795,50 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             return jsonify({'error': str(e)}), 500
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/carteira-fiis/resumo-encerradas', methods=['GET'])
+    def get_carteira_fiis_resumo_encerradas():
+        """
+        ADICIONADO 11/07/2026 -- soma os resultados financeiros informados
+        manualmente no encerramento de FIIs (ver mudar_status_carteira_fii),
+        espelhando o mesmo painel de aproveitamento ja usado para operacoes
+        estruturadas em Encerradas. So conta itens que TEM
+        valor_financeiro_resultado preenchido (encerramentos antigos, feitos
+        antes desta feature existir, nao entram aqui -- ficam so no
+        contador de status='encerrada' simples).
+        """
+        try:
+            conteudo_str, _ = _github_get_file('carteira_fiis.json')
+            carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
+            encerrados_com_valor = [
+                f for f in carteira
+                if f.get('status') == 'encerrada' and f.get('valor_financeiro_resultado') is not None
+            ]
+            total_liquido = sum(f['valor_financeiro_resultado'] for f in encerrados_com_valor)
+            por_resultado = {'sucesso': 0, 'fracasso': 0, 'parcial': 0}
+            for f in encerrados_com_valor:
+                r = f.get('resultado')
+                if r in por_resultado:
+                    por_resultado[r] += 1
+            return jsonify({
+                'total_liquido': round(total_liquido, 2),
+                'qtd_com_valor_registrado': len(encerrados_com_valor),
+                'qtd_total_encerradas': len([f for f in carteira if f.get('status') == 'encerrada']),
+                'por_resultado': por_resultado,
+                'itens': [
+                    {'id': f['id'], 'ticker': f['ticker'], 'resultado': f.get('resultado'),
+                     'valor_financeiro_resultado': f['valor_financeiro_resultado'],
+                     'observacao_encerramento': f.get('observacao_encerramento'),
+                     'data_encerramento': f.get('data_encerramento')}
+                    for f in encerrados_com_valor
+                ],
+            })
+        except RuntimeError as e:
+            return jsonify({'error': str(e)}), 500
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+
 
     @app.route('/fii-ultimo-provento', methods=['GET'])
     def get_fii_ultimo_provento():
