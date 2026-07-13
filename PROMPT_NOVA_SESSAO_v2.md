@@ -73,6 +73,56 @@ por um dia ruim pontual) sem exigir arquitetura nova de série histórica comple
 fonte (Fundamentus) exponha esse dado agregado. A verificar na próxima sessão se o Fundamentus
 já traz essa média pronta ou se precisa ser calculada a partir de dados diários armazenados.
 
+## 🧹 Backlog — Limpeza da base de FIIs ("gordura"), por nível de esforço (11/07/2026)
+
+Contexto: universo bruto real hoje é ~560 (Fundamentus) + ~30 complementares (FI-Infra) ≈ 592;
+filtro de liquidez atual (do dia, <R$50k/dia) já descarta 182 por liquidez + 4 por DY zerado,
+deixando ~374-401 válidos. Critérios abaixo foram estudados mas **nenhum implementado ainda**
+— ordem de ataque sugerida é a da lista (fácil → difícil).
+
+### 🟢 FÁCIL — próximo passo já decidido, atacar primeiro
+1. **Liquidez média (em vez de liquidez do dia)** — trocar o critério pontual por uma média
+   (ex: móvel de 30 dias, a definir). Resolve o caso de fundo escapar do filtro por 1 dia bom
+   ou ser descartado por 1 dia ruim pontual. A verificar: se o Fundamentus já expõe essa média
+   pronta ou se precisa ser calculada a partir de coleta diária armazenada (ainda não existe
+   histórico guardado hoje — scraping é sempre ao vivo, sem cache de série temporal).
+2. **Keyword no nome do fundo** ("Em Liquidação", "Incorporação", etc.) — regex simples sobre
+   o nome/razão social já disponível no scraping atual. Não exige histórico.
+
+### 🟡 MÉDIO — exige mais dado ou mais julgamento, mas não é complexo estrutural
+3. **Patrimônio líquido mínimo** — cortar fundos muito pequenos (ex: <R$30-50 milhões), sinal
+   de spread maior e risco de encerramento/incorporação. Dado provavelmente já vem no
+   scraping, só falta decidir o piso.
+4. **Idade do fundo / tempo de listagem** — fundos com <12-18 meses não têm histórico
+   suficiente pra avaliar consistência de provento/vacância. Não é "lixo", mas deveria cair
+   numa camada intermediária, não direto na líquida.
+5. **Concentração de cotistas** — poucos cotistas (ex: <500-1000) correlaciona com liquidez
+   estruturalmente baixa, não circunstancial. Depende de o Fundamentus/fonte expor esse dado.
+
+### 🔴 DIFÍCIL — exige histórico de série temporal (arquitetura nova, mais caro)
+6. **Cotação congelada** — preço parado por N pregões seguidos = sinal de fundo sem negociação
+   real, mesmo que a fonte não erre o dado pontual. Exige guardar preço diário histórico, que
+   hoje não existe (tudo é scraping ao vivo, sem cache).
+7. **Consistência de dividendo (regularidade, não valor)** — desvio-padrão dos pagamentos
+   mensais dos últimos 12 meses vs. média. Fundo que paga 8 meses e pula 4 é sinal de
+   instabilidade de caixa mesmo com DY nominal atraente. Exige histórico de proventos.
+8. **Vacância física/financeira sustentada** (só FIIs de tijolo) — vacância >20-25% por vários
+   meses seguidos é sinal de ativo problemático. Exige série histórica de vacância, não só
+   snapshot atual.
+9. **Alavancagem/dívida do fundo** (FIIs de papel/CRI) — risco de crédito que "preço parado"
+   não captura. Depende de a fonte expor esse dado — não confirmado se Fundamentus tem.
+
+### 📌 Achado técnico relacionado (ver seção acima)
+`/fiis/diagnostico` não reflete a leva complementar de FI-Infra (~30 fundos) que a tela carrega
+depois — números de diagnóstico (560/186/374) ficam sempre um pouco defasados dos números reais
+da tela (~592/~401 válidos). Não corrigido, só constatado.
+
+### 📌 Item de estudo separado (não é limpeza de base, é ranking)
+**Score não reflete risco relativo dentro da mesma categoria de risco** — Victor observou que
+um FII "middle risk" específico pode ser, na leitura dele, menos arriscado que outro da mesma
+faixa mesmo com score menor. Precisa de exemplos concretos de tickers pra estudar o que hoje
+diferencia o score deles e propor um critério de sub-ranking de risco intra-categoria.
+
 ## SHAs no fechamento desta sessão (10/07/2026)
 - proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
 - fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
