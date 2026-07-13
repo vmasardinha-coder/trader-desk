@@ -38,6 +38,13 @@ import fontes as _fontes_mod  # acesso a _FII_ULTIMO_DIAGNOSTICO (atualizada em 
 from fontes_etfs import _fetch_yahoo_series
 from motor import vol_hist
 
+# ADICIONADO 11/07/2026 -- decisao do usuario: vacancia media (ja vem pronta
+# via scraping do Fundamentus, campo vacancia_pct, sem precisar de historico
+# armazenado) acima deste piso e motivo de descarte, junto com liquidez/DY.
+# So afeta FIIs que tem o dado preenchido (tijolo); papel/FoF/fi-infra sem
+# vacancia_pct (None) NAO sao afetados por este criterio.
+VACANCIA_MAX_PCT = 25.0
+
 try:
     import numpy as _np
     _NUMPY = True
@@ -101,6 +108,8 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 motivo_descarte = f"liquidez baixa (R${encontrado_bruto['liquidez']:,.0f}/dia)" if encontrado_bruto['liquidez'] is not None else 'liquidez ausente'
             elif encontrado_bruto['dy_pct'] is None or encontrado_bruto['dy_pct'] <= 0:
                 motivo_descarte = 'DY zerado ou ausente'
+            elif encontrado_bruto.get('vacancia_pct') is not None and encontrado_bruto['vacancia_pct'] > VACANCIA_MAX_PCT:
+                motivo_descarte = f"vacancia alta ({encontrado_bruto['vacancia_pct']:.1f}%)"
 
             if motivo_descarte:
                 return jsonify({
@@ -222,6 +231,8 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                     motivo = f'liquidez baixa (R${f["liquidez"]:,.0f}/dia)' if f['liquidez'] is not None else 'liquidez ausente'
                 elif not dy_ok:
                     motivo = 'DY zerado ou ausente'
+                elif f.get('vacancia_pct') is not None and f['vacancia_pct'] > VACANCIA_MAX_PCT:
+                    motivo = f'vacancia alta ({f["vacancia_pct"]:.1f}%)'
 
                 if motivo:
                     descartados_motivos.append({'ticker': f['ticker'], 'motivo': motivo})
