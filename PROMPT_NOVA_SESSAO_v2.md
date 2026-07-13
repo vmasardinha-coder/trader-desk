@@ -176,6 +176,34 @@ frontend ao clicar "Encerrar" em Carteira FIIs + novos campos em `carteira_fiis.
 (`resultado`, `valor_financeiro_resultado`, `observacao_encerramento`) + somar no agregado
 existente de Encerradas.
 
+## ✅ CONCLUÍDO (11/07/2026) — Formulário de encerramento de FIIs
+
+Item entregue: encerramento de FIIs agora captura resultado (sucesso/fracasso/parcial) + valor
+financeiro + observação, com endpoint `/carteira-fiis/resumo-encerradas` somando o líquido.
+Testado com fundo real (`TESTE11`, depois removido). CORRIGIDO no meio do teste: a tabela de
+"Encerrados" nunca era renderizada no frontend (só a contagem aparecia) -- corrigido junto,
+agora existe uma segunda tabela abaixo da de Ativos mostrando ticker/resultado/valor/obs de cada
+FII encerrado.
+
+## 📋 Backlog novo (11/07/2026) — paralelismo ETFs x FIIs, 3 itens levantados pelo Victor
+
+1. **Botão "Encerrar" na Carteira de ETFs -- NÃO EXISTE hoje.** Confirmado no código:
+   `rotas_etfs.py` só tem `/etfs/mover` (Em Análise <-> Carteira) e
+   `/etfs/carteira/<ticker>/projecao`, nenhuma rota de saída/encerramento. Mesma lacuna que a
+   Carteira FIIs tinha antes de hoje -- resolver com o MESMO padrão já validado agora em FIIs
+   (formulário de resultado/valor/observação no encerramento).
+2. **"Em Análise" de ETFs mover pra aba única -- JÁ REGISTRADO** (ver seção de médio prazo mais
+   acima, item antigo). Sem novidade, só confirmado como ainda pendente.
+3. **Fan chart de projeção (GARCH) para Carteira de FIIs -- VIÁVEL, reaproveitamento alto, NÃO
+   PRIMORDIAL (por pedido do Victor, so registrar por ora, nao implementar).** Espelha
+   `/etfs/carteira/<ticker>/projecao`, que usa 3 funções genéricas já existentes em proxy.py
+   (`_obter_preco_sigma_garch`, `_calc_bandas_foto`, `_fetch_closes_for_foto`) -- o mesmo motor
+   de bandas p10-p90 já usado em Watchlist/Indicadores/Foto do Papel. Essas funções recebem só
+   um ticker Yahoo (`TICKER11.SA` para FII) e JÁ SÃO USADAS com FIIs hoje (base do cálculo de
+   vol/correlação em `/carteira-fiis/resumo`) -- ou seja, a peça de dados já está provada em
+   produção, falta só espelhar a rota + o gráfico Chart.js no frontend (mesmo padrão visual da
+   Foto do Papel). Prioridade baixa, revisar quando o Victor decidir atacar.
+
 ## SHAs no fechamento desta sessão (10/07/2026)
 - proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
 - fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
