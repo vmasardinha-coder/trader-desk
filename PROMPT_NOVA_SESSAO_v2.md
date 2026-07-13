@@ -54,6 +54,25 @@ uma explicação de probabilidade/cenário para o Victor, sempre traduzir os nú
 número bruto de retorno ou probabilidade de exercício.
 
 
+## 🔍 Achado técnico (11/07/2026) — diagnóstico de FIIs incompleto vs. tela
+
+`/fiis/diagnostico` só reflete o scraping do Fundamentus puro (universo bruto = 560, 186
+descartados — 182 por liquidez baixa, 4 por DY zerado/ausente, 374 válidos). A tela do app,
+porém, carrega uma segunda onda depois via `/fiis/universo-complementar` (FI-Infra não
+cobertos pelo Fundamentus), que sobe o total pra ~592 brutos e ~401 válidos — mas essa leva
+**não é capturada pelo diagnóstico**, então os dois números nunca batem. Constatado, não
+corrigido — não é bug urgente, só uma limitação de arquitetura a ter em mente ao usar o
+diagnóstico pra decisões de corte de base.
+
+**Decisão do Victor sobre o próximo passo de qualidade de base:** em vez de reformar o
+diagnóstico (mais caro) ou implementar keyword/cotação-congelada (exigem histórico que hoje
+não é guardado), o caminho mais simples e imediato é trocar o critério de liquidez de
+"liquidez do dia da consulta" para **"liquidez média"** (ex: média móvel de N dias, a definir)
+— resolve o problema mais citado (fundo escapar do filtro por um dia bom, ou ser descartado
+por um dia ruim pontual) sem exigir arquitetura nova de série histórica complexa, desde que a
+fonte (Fundamentus) exponha esse dado agregado. A verificar na próxima sessão se o Fundamentus
+já traz essa média pronta ou se precisa ser calculada a partir de dados diários armazenados.
+
 ## SHAs no fechamento desta sessão (10/07/2026)
 - proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
 - fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
