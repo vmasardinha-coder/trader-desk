@@ -720,6 +720,20 @@ function renderCarteiraFiis(carteira){
       </td>
     </tr>`;
   };
+  const linhaEncerrado=f=>{
+    const cor = f.resultado==='sucesso' ? 'var(--green,#2ecc71)' : f.resultado==='fracasso' ? 'var(--red,#e74c3c)' : 'var(--muted)';
+    const valorTxt = f.valor_financeiro_resultado!=null
+      ? (f.valor_financeiro_resultado>=0?'+':'')+'R$'+f.valor_financeiro_resultado.toFixed(2)
+      : '—';
+    return `<tr>
+      <td style="padding:6px 8px;font-weight:700">${f.ticker}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${f.nome_fundo||''}</span></td>
+      <td style="padding:6px 8px;text-align:right">R$${f.preco_ativacao.toFixed(2)}</td>
+      <td style="padding:6px 8px;text-align:right">${f.data_encerramento||'—'}</td>
+      <td style="padding:6px 8px;text-align:right;color:${cor};font-weight:600">${f.resultado||'—'}</td>
+      <td style="padding:6px 8px;text-align:right;color:${cor};font-weight:600">${valorTxt}</td>
+      <td style="padding:6px 8px;font-size:9px;color:var(--muted)" title="${f.observacao_encerramento||''}">${f.observacao_encerramento||''}</td>
+    </tr>`;
+  };
   cont.innerHTML=`
   <div style="font-size:10px;color:var(--muted);margin-bottom:8px">${ativos.length} ativos${encerrados.length?' · '+encerrados.length+' encerrados':''}</div>
   <div style="overflow-x:auto">
@@ -736,7 +750,22 @@ function renderCarteiraFiis(carteira){
     </tr></thead>
     <tbody>${ativos.map(linhaAtivo).join('')}</tbody>
   </table>
-  </div>`;
+  </div>
+  ${encerrados.length?`
+  <div style="font-size:10px;color:var(--muted);margin:16px 0 8px">📂 Encerrados (${encerrados.length})</div>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+      <th style="padding:6px 8px">Ticker</th>
+      <th style="padding:6px 8px;text-align:right">Preço ativ.</th>
+      <th style="padding:6px 8px;text-align:right">Encerrado em</th>
+      <th style="padding:6px 8px;text-align:right">Resultado</th>
+      <th style="padding:6px 8px;text-align:right">Valor (R$)</th>
+      <th style="padding:6px 8px">Obs.</th>
+    </tr></thead>
+    <tbody>${encerrados.map(linhaEncerrado).join('')}</tbody>
+  </table>
+  </div>`:''}`;
 
   // Busca histórico completo de proventos para cada FII ativo, escalonado
   // para não disparar todas as chamadas ao StatusInvest simultaneamente.
