@@ -73,6 +73,34 @@ por um dia ruim pontual) sem exigir arquitetura nova de série histórica comple
 fonte (Fundamentus) exponha esse dado agregado. A verificar na próxima sessão se o Fundamentus
 já traz essa média pronta ou se precisa ser calculada a partir de dados diários armazenados.
 
+## ✅ DECISÃO FINAL (11/07/2026) — limpeza de base de FIIs, substitui o plano de tiers abaixo
+
+Após reflexão do Victor, o plano ficou mais simples do que o estudo em tiers sugeria:
+
+1. **Liquidez: MANTER o critério atual (R$50k/dia), sem mudança.** Confirmado (via fonte externa
+   sobre a mesma tabela do Fundamentus) que a coluna "Liquidez" de ações é explicitamente uma
+   média de 2 meses ("liquidez em bolsa (2 meses)") — bem provável que a de FIIs siga a mesma
+   convenção da casa, embora não 100% confirmado por cabeçalho exato (pendente: inspecionar o
+   `<th>` da tabela real numa próxima execução, é um teste de 2 min, não bloqueante). Ou seja,
+   o critério já embute uma média por trás, não é snapshot do pregão de hoje — R$50k/dia já é
+   suficiente pro volume de operação do Victor (não teria milhões num único fundo). **Não
+   precisa criar base intermediária nem mudar nada aqui.**
+2. **Vacância: critério NOVO a implementar — corte em >25%.** Confirmado que `vacancia_pct` já
+   vem como "Vacância Média" direto da fonte (Fundamentus), pronto via scraping, SEM precisar
+   de armazenamento histórico algum. Corte recomendado (dado real de hoje, 374 válidos, 112 com
+   vacância informada): **>25%** descarta 24 fundos (vs. 27 em >20%, 19 em >30% — 25% é o
+   meio-termo, ganho marginal de ir além é pequeno). Aplicável só a FIIs de tijolo/tipos com
+   esse dado preenchido — os ~262 sem dado de vacância (papel/CRI, FoF etc.) não são afetados
+   por este corte.
+3. **Keyword no nome, PL mínimo, idade do fundo, cotistas, cotação congelada, consistência de
+   dividendo, alavancagem: NÃO entram agora.** Keyword testado com ganho ZERO na base atual
+   (descartado). Os demais ficam registrados como estudo futuro (ver detalhamento de tiers
+   abaixo, mantido só como histórico de raciocínio, não como plano ativo).
+
+**Próximo passo de implementação:** adicionar o corte de vacância >25% ao pipeline de
+`scrape_fiis_fundamentus`/classificação de risco, validando com boot real antes de commitar
+(padrão de sempre — nunca só `ast.parse`).
+
 ## 🧹 Backlog — Limpeza da base de FIIs ("gordura"), por nível de esforço (11/07/2026)
 
 Contexto: universo bruto real hoje é ~560 (Fundamentus) + ~30 complementares (FI-Infra) ≈ 592;
