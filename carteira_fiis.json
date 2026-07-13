@@ -144,5 +144,16 @@
     "preco_ativacao": 7.52,
     "dy_anual_pct_ativacao": 14.04,
     "status": "ativa"
+  },
+  {
+    "id": "fii_teste_encerramento_9999",
+    "ticker": "TESTE11",
+    "nome_fundo": "FUNDO DE TESTE (APAGAR)",
+    "segmento": "papel",
+    "nivel_risco": "middle_risk",
+    "data_ativacao": "2026-07-11",
+    "preco_ativacao": 100.0,
+    "dy_anual_pct_ativacao": 10.0,
+    "status": "ativa"
   }
 ]
