@@ -151,6 +151,31 @@ um FII "middle risk" específico pode ser, na leitura dele, menos arriscado que 
 faixa mesmo com score menor. Precisa de exemplos concretos de tickers pra estudar o que hoje
 diferencia o score deles e propor um critério de sub-ranking de risco intra-categoria.
 
+## 📋 Backlog — Encerramento de FIIs com captura de resultado (definido 11/07/2026, aguardando decisão do Victor pra implementar)
+
+Hoje `/carteira-fiis/<id>/status` só muda status pra 'encerrada' + grava data — não captura preço
+de saída, resultado nem valor financeiro. `preco_ativacao` já é salvo na ativação (confirmado no
+código), mas não há como calcular automaticamente o resultado no encerramento porque: (a) FII
+raramente encerra 100%, geralmente é venda parcial; (b) proventos recebidos ao longo do período
+não são armazenados historicamente (só últimos 12 meses + último provento — insuficiente pra
+reconstruir acumulado real).
+
+**Desenho definido (dois itens que compõem o formulário no clique de "Encerrar"):**
+1. **Resultado:** dropdown sucesso / fracasso / parcial.
+2. **Valor financeiro do resultado (R$):** campo livre, editável pelo Victor (nunca calculado
+   sozinho) — pode mostrar preço de entrada vs. preço atual como referência visual de apoio, mas
+   o valor final é sempre digitado manualmente, porque só o Victor sabe o que efetivamente vendeu
+   e quanto recebeu de provento no meio do caminho.
+3. Observação (opcional, texto livre).
+
+**Agregação:** os valores entram no mesmo somatório de "quanto ficou na mesa"/painel de
+aproveitamento já usado para Ativas — soma ganhos, subtrai perdas, resultado líquido acumulado.
+
+**Implementação (não iniciada, aguardando confirmação do Victor):** adicionar formulário no
+frontend ao clicar "Encerrar" em Carteira FIIs + novos campos em `carteira_fiis.json`
+(`resultado`, `valor_financeiro_resultado`, `observacao_encerramento`) + somar no agregado
+existente de Encerradas.
+
 ## SHAs no fechamento desta sessão (10/07/2026)
 - proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
 - fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
