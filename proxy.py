@@ -1853,6 +1853,120 @@ def run_montecarlo_posicao_ativa():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ── RANKING DE POSICOES ATIVAS POR TIPO DE ESTRUTURA (11/07/2026) ────
+# ADICIONADO 11/07/2026 -- item 15 do backlog. Taxonomia fechada com o
+# usuario: 4 categorias mutuamente exclusivas, cada uma com seu proprio
+# "lado seguro" que define sucesso (ver PROMPT_NOVA_SESSAO_v2.md secao
+# "Taxonomia FECHADA"). Reaproveita 100% a mesma engine de
+# /montecarlo/posicao_ativa (via app.test_client(), self-dispatch interno,
+# sem round-trip de rede real) -- garante que o numero mostrado no
+# ranking e SEMPRE identico ao numero mostrado no card individual da
+# posicao, nunca uma formula paralela que possa divergir.
+_TIPOS_RANKING_POSICOES = ('lancamento_coberto', 'retorno_controlado', 'bidirecional', 'put_seco')
+
+def _categoria_posicao(p):
+    tp = p.get('tipo_posicao')
+    if tp == 'simples':
+        return 'lancamento_coberto'
+    if tp == 'barreira_simples':
+        return 'retorno_controlado'
+    if tp == 'barreira':
+        return 'bidirecional'
+    # 'put_seco' nao tem tipo_posicao proprio ainda -- nenhuma posicao real
+    # hoje se encaixa aqui (nenhuma venda de put a seco ativa). Fica pronto
+    # esperando: se um dia existir campo/estrategia identificando isso,
+    # tratar aqui.
+    return None
+
+@app.route('/posicoes/ranking/<tipo>', methods=['GET'])
+def get_ranking_posicoes(tipo):
+    """
+    Ranking das Posicoes Ativas por probabilidade de sucesso, DENTRO da
+    mesma categoria de estrutura (nunca mistura lancamento coberto com
+    bidirecional -- decisao explicita do usuario, comparar coisa com
+    coisa). Ordenado ASCENDENTE por probabilidade de sucesso -- a posicao
+    mais em risco (menor chance de bater a propria regua) aparece primeiro,
+    para o usuario saber onde focar atencao.
+    """
+    if tipo not in _TIPOS_RANKING_POSICOES:
+        return jsonify({'error': f"tipo invalido, use um de {_TIPOS_RANKING_POSICOES}"}), 400
+    try:
+        r = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/positions.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        if not r.ok:
+            return jsonify({'error': 'positions.json indisponivel'}), 500
+        data = r.json()
+        candidatas = [p for p in data.get('ativas', []) if _categoria_posicao(p) == tipo]
+
+        if not candidatas:
+            return jsonify({'tipo': tipo, 'total': 0, 'itens': []})
+
+        client = app.test_client()
+        itens = []
+        for p in candidatas:
+            payload = {
+                'ticker': p['ticker'],
+                'data_entrada': p['data_entrada'],
+                'vencimento': p['vencimento'],
+            }
+            campo_sucesso = None
+            if tipo == 'lancamento_coberto':
+                payload['k_call'] = p['strike']
+                payload['exercicio'] = p.get('exercicio', 'europeia')
+                campo_sucesso = 'prob_sem_exercicio'
+            elif tipo == 'retorno_controlado':
+                payload['kdo'] = p['kdo']
+                if p.get('ganho_prefixado_pct') is not None:
+                    payload['ganho_prefixado_pct'] = p['ganho_prefixado_pct']
+                campo_sucesso = 'prob_ganho_prefixado'
+            elif tipo == 'bidirecional':
+                payload['kdo'] = p['kdo']
+                payload['kuo'] = p['kuo']
+                if p.get('alavancagem') is not None:
+                    payload['alavancagem'] = p['alavancagem']
+                if p.get('teto_retorno_pct') is not None:
+                    payload['teto_retorno_pct'] = p['teto_retorno_pct']
+                campo_sucesso = 'prob_sem_barreira'
+
+            try:
+                resp = client.post('/montecarlo/posicao_ativa', json=payload)
+                rd = resp.get_json()
+            except Exception as e:
+                rd = {'error': str(e)}
+
+            if not rd or rd.get('error'):
+                itens.append({
+                    'id': p['id'], 'ticker': p['ticker'], 'nome': p.get('nome'),
+                    'erro': (rd or {}).get('error', 'falha ao calcular'),
+                    'probabilidade_sucesso_pct': None,
+                })
+                continue
+
+            prob_sucesso = rd.get(campo_sucesso)
+            itens.append({
+                'id': p['id'],
+                'ticker': p['ticker'],
+                'nome': p.get('nome'),
+                'estrategia': p.get('estrategia'),
+                'vencimento': p.get('vencimento'),
+                'dias_restantes': rd.get('dias_restantes'),
+                'preco_atual': rd.get('preco_atual'),
+                'probabilidade_sucesso_pct': prob_sucesso,
+                'campo_origem': campo_sucesso,
+            })
+
+        # Ordena: itens com probabilidade calculada primeiro (ascendente --
+        # menor prob de sucesso = mais risco = aparece no topo), erros por
+        # ultimo (sem numero pra ordenar).
+        com_prob = [i for i in itens if i['probabilidade_sucesso_pct'] is not None]
+        sem_prob = [i for i in itens if i['probabilidade_sucesso_pct'] is None]
+        com_prob.sort(key=lambda i: i['probabilidade_sucesso_pct'])
+
+        return jsonify({'tipo': tipo, 'total': len(itens), 'itens': com_prob + sem_prob})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/montecarlo', methods=['POST'])
 def run_montecarlo():
     try:
