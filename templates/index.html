@@ -396,6 +396,17 @@
 <!-- ══ POSIÇÕES ══ -->
 <div id="tab-posicoes" class="tab-content">
   <div class="sec" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>Operações Ativas</span><button onclick="toggleAllPos()" id="btn-all-pos" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600">− Recolher Todas</button></div>
+  <!-- ADICIONADO 11/07/2026 -- item 15: ranking por tipo de estrutura, nunca
+       misturando categorias (decisao explicita do usuario). Cada botao chama
+       /posicoes/ranking/<tipo>, que reaproveita a mesma engine de
+       /montecarlo/posicao_ativa usada nos cards individuais. -->
+  <div class="sec" style="gap:8px;flex-wrap:wrap">
+    <button onclick="loadRankingPosicoes('lancamento_coberto')" class="btn-ranking-pos" style="background:var(--accent);border:none;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Ranking — Lançamento Coberto</button>
+    <button onclick="loadRankingPosicoes('retorno_controlado')" class="btn-ranking-pos" style="background:var(--accent);border:none;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Ranking — Retorno Controlado</button>
+    <button onclick="loadRankingPosicoes('bidirecional')" class="btn-ranking-pos" style="background:var(--accent);border:none;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Ranking — Bidirecional</button>
+    <button onclick="loadRankingPosicoes('put_seco')" class="btn-ranking-pos" style="background:var(--accent);border:none;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Ranking — Venda de Put a Seco</button>
+  </div>
+  <div id="ranking-posicoes-container" style="margin:8px 0 16px;font-size:11px;color:var(--muted)"></div>
   <div id="pos-container"><p style="color:var(--muted);padding:20px;text-align:center">Carregando posições...</p></div>
 </div>
 
