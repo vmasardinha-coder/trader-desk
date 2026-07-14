@@ -204,6 +204,62 @@ FII encerrado.
    produção, falta só espelhar a rota + o gráfico Chart.js no frontend (mesmo padrão visual da
    Foto do Papel). Prioridade baixa, revisar quando o Victor decidir atacar.
 
+## 📐 Taxonomia FECHADA (11/07/2026) — base conceitual para o item 15 (ranking de Posições Ativas)
+
+Refinamento do item "ranking Prob./EV/Score para Posições Ativas reais". Depois de discussão
+extensa, o critério de sucesso do Victor é sempre o MESMO princípio em todas as estruturas --
+"não ser exercido/atribuído + ficar com o prêmio" -- só muda qual é "o lado seguro" dependendo
+da estrutura. Não precisa de fórmula de EV nova por tipo; precisa de UMA fórmula de
+probabilidade de sucesso, reaproveitável, que só troca qual lado do preço final conta como
+sucesso. Métrica escolhida para o ranking: **probabilidade de sucesso pela régua própria do
+Victor (não EV em R$)** -- ele decidiu isso explicitamente porque EV mistura probabilidade com
+tamanho do resultado e pode priorizar errado frente ao que ele realmente valoriza (ver
+raciocínio completo na conversa de 11/07).
+
+**4 categorias fechadas, mutuamente exclusivas, cada uma com seu "lado seguro":**
+
+1. **Lançamento coberto (venda de call, já possui o papel)** -- família única, o que muda é só
+   a distância strike-preço:
+   - ITM (strike abaixo do preço atual, ex: BBAS3 hipotético lançando a R$18-19 com o papel a
+     R$20) -- saída quase certa, prêmio maior, usado quando já quer sair da posição de qualquer
+     jeito e quer maximizar o que recebe pra isso.
+   - ATM (strike colado no preço, ex: BBAS3 real hoje, strike R$21,65 vs preço ~R$20,58).
+   - OTM (strike bem acima do preço, ex: PETR4 hipotético vendendo a R$45 com o papel a R$40,
+     porque acha que R$45 é topo; contra-exemplo real: ROXO34 lançado a R$12 antes da disparada
+     -- deu errado porque o papel passou muito do strike).
+   - **Sucesso = fechar ABAIXO do strike** (não exercido, mantém as ações + prêmio).
+2. **Retorno controlado (com proteção na queda)** -- aposta pra baixo.
+   **Sucesso = não romper a barreira inferior.**
+3. **Bidirecional** -- aposta nos dois lados dentro de um range.
+   **Sucesso = fechar DENTRO do range** (não rompe nem a barreira de cima nem a de baixo).
+4. **Venda de put a seco (NÃO possui o papel ainda, recebe prêmio com compromisso de comprar se
+   cair)** -- raro no perfil do Victor hoje (mercado esticado), mas mapeado para o futuro (ex:
+   se PETR4/BBAS3 caírem bastante, pode fazer sentido).
+   **Sucesso = fechar ACIMA do strike** (não é atribuído, não precisa comprar, fica com o prêmio
+   inteiro).
+
+**Desenho de UI definido (não implementado ainda, aguardando decisão do Victor de quando
+atacar):** dentro de Posições Ativas, adicionar **4 botões de ranking separados** (mesmo padrão
+visual do botão "Ranking" que já existe em Em Análise), um por categoria acima -- NÃO misturar
+categorias diferentes num ranking único (comparar coisa com coisa, decisão explícita do
+Victor). Nomes sugeridos:
+- "Ranking — Lançamento Coberto"
+- "Ranking — Retorno Controlado"
+- "Ranking — Bidirecional"
+- "Ranking — Venda de Put a Seco"
+
+Cada botão lista as posições daquela categoria ordenadas por probabilidade de sucesso (pela
+régua específica de cada uma, ver acima). Categoria sem posição ativa no momento mostra lista
+vazia, não esconde o botão -- fica pronto esperando a próxima operação daquele tipo.
+
+**Pendência técnica de implementação (ainda a resolver quando for construir):** para
+lançamento coberto, a fórmula de probabilidade de sucesso já existe (prob. OTM no vencimento,
+já calculada hoje via GARCH/B&S/MC). Para retorno controlado e bidirecional, confirmar se as
+probabilidades de romper barreira já são calculadas em algum lugar do motor (ex: barrier
+Monte Carlo) e só precisam ser expostas nesse novo ranking, ou se precisam de cálculo novo.
+Para venda de put a seco, fórmula é simétrica à do lançamento coberto (prob. ITM vira prob. de
+sucesso ao invés de prob. de fracasso), reaproveitamento deve ser direto.
+
 ## SHAs no fechamento desta sessão (10/07/2026)
 - proxy.py: 59e516692fdfd10f3e8bda74e5d10eb9621984a1
 - fontes.py: 9f84505c2640c57001e97c1a913c5b408d00e93c
