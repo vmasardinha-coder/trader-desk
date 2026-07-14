@@ -204,6 +204,33 @@ FII encerrado.
    produção, falta só espelhar a rota + o gráfico Chart.js no frontend (mesmo padrão visual da
    Foto do Papel). Prioridade baixa, revisar quando o Victor decidir atacar.
 
+## ✅ CONCLUÍDO (11/07/2026) — Item 15: Ranking de Posições Ativas por tipo de estrutura
+
+Implementado, testado e commitado no mesmo dia da taxonomia fechada acima:
+
+- **Backend:** novo endpoint `GET /posicoes/ranking/<tipo>` em `proxy.py`, tipo em
+  `lancamento_coberto | retorno_controlado | bidirecional | put_seco`. Reaproveita 100% a
+  engine de `/montecarlo/posicao_ativa` via `app.test_client()` (self-dispatch interno, sem
+  round-trip de rede) -- garante que o numero do ranking e SEMPRE identico ao numero mostrado
+  no card individual da posicao. Filtra `positions.json` por `tipo_posicao` (simples ->
+  lancamento_coberto, barreira_simples -> retorno_controlado, barreira -> bidirecional; put_seco
+  ainda sem posicoes reais, retorna lista vazia). Extrai o campo de sucesso certo por categoria
+  (`prob_sem_exercicio`, `prob_ganho_prefixado`, `prob_sem_barreira`) e ordena ASCENDENTE
+  (menor prob. de sucesso primeiro = mais atencao necessaria no topo). Validado com boot test
+  real (Yahoo/GitHub mockados via `unittest.mock.patch('requests.get', ...)`, engine de
+  GARCH/Monte Carlo rodando de verdade por baixo) -- 4 categorias testadas com dados fixture
+  (PETR4/BBAS3 em lancamento_coberto, BSLV39 em retorno_controlado, AXIA3-A/B em bidirecional,
+  put_seco vazio), mais validacao de tipo invalido (400).
+- **Frontend:** 4 botões na aba Posições Ativas (`templates/index.html`, acima do
+  `pos-container`) -- "Ranking — Lançamento Coberto", "Ranking — Retorno Controlado",
+  "Ranking — Bidirecional", "Ranking — Venda de Put a Seco". Função `loadRankingPosicoes(tipo)`
+  em `app.js` busca e renderiza tabela (ticker, vencimento, dias restantes, probabilidade de
+  sucesso colorida por faixa). Categoria vazia mostra mensagem, não esconde o botão.
+
+**Estado real das 4 categorias hoje (11/07/2026):** lançamento_coberto com 4 posições (PETR4,
+VALE3, BBAS3, ROXO34), retorno_controlado com 1 (BSLV39), bidirecional com 2 (AXIA3-A, AXIA3-B),
+put_seco vazio (nenhuma posição real ainda).
+
 ## 📐 Taxonomia FECHADA (11/07/2026) — base conceitual para o item 15 (ranking de Posições Ativas)
 
 Refinamento do item "ranking Prob./EV/Score para Posições Ativas reais". Depois de discussão
