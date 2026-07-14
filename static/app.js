@@ -890,6 +890,54 @@ async function carregarUltimoProventoCarteira(f){
   await carregarProventosCarteira(f);
 }
 
+async function loadRankingPosicoes(tipo){
+  const cont=document.getElementById('ranking-posicoes-container');
+  if(!cont)return;
+  const nomes={
+    lancamento_coberto:'Lançamento Coberto', retorno_controlado:'Retorno Controlado',
+    bidirecional:'Bidirecional', put_seco:'Venda de Put a Seco'
+  };
+  cont.innerHTML='<p style="padding:10px;text-align:center">Calculando ranking...</p>';
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
+    const r=await fetch(B+'/posicoes/ranking/'+tipo,{signal:ctrl.signal});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    if(d.total===0){
+      cont.innerHTML=`<p style="padding:10px;text-align:center">Nenhuma posição ativa na categoria "${nomes[tipo]}" no momento.</p>`;
+      return;
+    }
+    const linhas=d.itens.map(i=>{
+      if(i.erro){
+        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="4" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
+      }
+      const p=i.probabilidade_sucesso_pct;
+      const cor = p>=70?'var(--green,#2ecc71)':p>=40?'var(--warn,#e6a817)':'var(--red,#e74c3c)';
+      return `<tr>
+        <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
+        <td style="padding:6px 8px;text-align:right">${i.vencimento||'—'}</td>
+        <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
+      </tr>`;
+    }).join('');
+    cont.innerHTML=`
+    <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Ranking — ${nomes[tipo]} (${d.total}) · ordenado por menor probabilidade de sucesso primeiro (mais atenção necessária no topo)</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+        <th style="padding:6px 8px">Ticker</th>
+        <th style="padding:6px 8px;text-align:right">Vencimento</th>
+        <th style="padding:6px 8px;text-align:right">Dias rest.</th>
+        <th style="padding:6px 8px;text-align:right">Prob. sucesso</th>
+      </tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+    </div>`;
+  }catch(e){
+    cont.innerHTML=`<p style="padding:10px;color:var(--red)">Erro ao calcular ranking: ${e.message}</p>`;
+  }
+}
+
 async function encerrarFiiCarteira(id){
   const ok=confirm('Confirma ENCERRAR (vendeu) este FII da carteira?');
   if(!ok)return;
