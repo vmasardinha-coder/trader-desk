@@ -974,6 +974,38 @@ async function encerrarFiiCarteira(id){
   }
 }
 
+// ADICIONADO 15/07/2026 -- mesmo padrao de encerrarFiiCarteira (rotas_fiis.py
+// 11/07/2026): 3 campos opcionais via prompt(), nenhum calculado sozinho.
+async function encerrarEtfCarteira(ticker){
+  const ok=confirm('Confirma ENCERRAR (vendeu) '+ticker+' da carteira?');
+  if(!ok)return;
+
+  let resultado=null, valorStr=null, observacao=null;
+  const resp=prompt('Resultado desta operação? Digite: sucesso, fracasso ou parcial\n(deixe em branco para pular e encerrar sem registrar resultado)');
+  if(resp&&['sucesso','fracasso','parcial'].includes(resp.trim().toLowerCase())){
+    resultado=resp.trim().toLowerCase();
+    valorStr=prompt('Valor financeiro do resultado (R$)? Considere venda no preço de hoje.\nEx: 1000 para ganho de R$1.000, -500 para perda de R$500');
+    observacao=prompt('Observação (opcional, ex: "vendeu metade da posição"):');
+  }
+
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
+    const bodyObj={status:'encerrada'};
+    if(resultado)bodyObj.resultado=resultado;
+    if(valorStr&&!isNaN(parseFloat(valorStr)))bodyObj.valor_financeiro_resultado=parseFloat(valorStr);
+    if(observacao)bodyObj.observacao_encerramento=observacao;
+    const r=await fetch(B+'/etfs/carteira/'+encodeURIComponent(ticker)+'/status',{
+      method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
+      body:JSON.stringify(bodyObj)
+    });
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    await loadETFs();
+  }catch(e){
+    alert('Erro ao encerrar: '+e.message);
+  }
+}
+
 function tg(id){
   const b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);
   if(!b)return;const op=b.style.display!=='block';
@@ -4328,13 +4360,18 @@ let _etfCarteiraProjecaoChart = null;
 
 async function renderEtfCarteira() {
   const div = document.getElementById('etf-carteira-lista');
-  const itens = _etfEstado.carteira || [];
-  if (!itens.length) {
+  const todosItens = _etfEstado.carteira || [];
+  // ADICIONADO 15/07/2026 -- itens sem 'status' sao tratados como 'ativa'
+  // (compatibilidade retroativa, mesmo padrao ja usado em FIIs).
+  const itens = todosItens.filter(c => (c.status || 'ativa') === 'ativa');
+  const encerrados = todosItens.filter(c => c.status === 'encerrada');
+  if (!itens.length && !encerrados.length) {
     div.innerHTML = '<p style="color:var(--muted);font-size:13px">Nenhum ETF na carteira ainda.</p>';
     return;
   }
 
   div.innerHTML =
+    (itens.length ? (
     '<div id="etf-carteira-resumo" style="border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px;background:var(--bg2)">' +
       '<div style="font-size:11px;color:var(--muted)">Calculando resumo da carteira (vol. real com correlação entre ativos)...</div>' +
     '</div>' +
@@ -4348,8 +4385,11 @@ async function renderEtfCarteira() {
       '<div style="position:relative;height:clamp(280px,34vh,440px);background:var(--bg1);border:1px solid var(--border);padding:8px">' +
         '<canvas id="etf-projecao-canvas"></canvas>' +
       '</div>' +
-    '</div>';
+    '</div>'
+    ) : '<p style="color:var(--muted);font-size:13px;margin-bottom:14px">Nenhum ETF ativo na carteira no momento.</p>') +
+    '<div id="etf-carteira-encerrados"></div>';
 
+  if (itens.length) {
   // Cards individuais (sincronos, usando dado ja carregado da watchlist -- rapido)
   const cardsDiv = document.getElementById('etf-carteira-cards');
   cardsDiv.innerHTML = itens.map(c => {
@@ -4357,13 +4397,54 @@ async function renderEtfCarteira() {
     const precoAtual = info.preco;
     const variacao = (c.preco_entrada && precoAtual) ? ((precoAtual / c.preco_entrada - 1) * 100) : null;
     const varColor = variacao == null ? 'var(--muted)' : (variacao >= 0 ? '#2ecc71' : '#e74c3c');
-    return '<div onclick="verEtfProjecao(\'' + c.ticker + '\')" style="cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">' +
-      '<div><b>' + c.ticker + '</b><span style="color:var(--muted);font-size:12px;margin-left:8px">' + (info.desc || '') + '</span>' +
+    return '<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">' +
+      '<div style="cursor:pointer" onclick="verEtfProjecao(\'' + c.ticker + '\')" onmouseover="this.parentElement.style.borderColor=\'var(--accent)\'" onmouseout="this.parentElement.style.borderColor=\'var(--border)\'"><b>' + c.ticker + '</b><span style="color:var(--muted);font-size:12px;margin-left:8px">' + (info.desc || '') + '</span>' +
       '<div style="font-size:11px;color:var(--muted)">Entrada: ' + (c.data_entrada || '—') + ' a R$ ' + (c.preco_entrada != null ? c.preco_entrada.toFixed(2) : '—') + ' · clique p/ ver projeção 📈</div></div>' +
-      '<div style="text-align:right"><div>R$ ' + (precoAtual != null ? precoAtual.toFixed(2) : '—') + '</div>' +
+      '<div style="text-align:right;display:flex;align-items:center;gap:10px">' +
+      '<div><div>R$ ' + (precoAtual != null ? precoAtual.toFixed(2) : '—') + '</div>' +
       '<div style="color:' + varColor + ';font-size:12px">' + (variacao != null ? _etfFmtPct(variacao) : '—') + '</div></div>' +
-      '</div>';
+      '<button onclick="encerrarEtfCarteira(\'' + c.ticker + '\')" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">Encerrar</button>' +
+      '</div></div>';
   }).join('');
+  }
+
+  // Tabela de Encerrados (mesmo padrao visual de renderCarteiraFiis)
+  const encDiv = document.getElementById('etf-carteira-encerrados');
+  if (encerrados.length) {
+    const linhaEncerrado = c => {
+      const cor = c.resultado==='sucesso' ? 'var(--green,#2ecc71)' : c.resultado==='fracasso' ? 'var(--red,#e74c3c)' : 'var(--muted)';
+      const valorTxt = c.valor_financeiro_resultado!=null
+        ? (c.valor_financeiro_resultado>=0?'+':'')+'R$'+c.valor_financeiro_resultado.toFixed(2)
+        : '—';
+      return `<tr>
+        <td style="padding:6px 8px;font-weight:700">${c.ticker}</td>
+        <td style="padding:6px 8px;text-align:right">R$${c.preco_entrada!=null?c.preco_entrada.toFixed(2):'—'}</td>
+        <td style="padding:6px 8px;text-align:right">${c.data_encerramento||'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:${cor};font-weight:600">${c.resultado||'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:${cor};font-weight:600">${valorTxt}</td>
+        <td style="padding:6px 8px;font-size:9px;color:var(--muted)" title="${c.observacao_encerramento||''}">${c.observacao_encerramento||''}</td>
+      </tr>`;
+    };
+    encDiv.innerHTML = `
+    <div style="font-size:11px;font-weight:700;margin:14px 0 6px">Encerrados (${encerrados.length})</div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
+        <th style="padding:6px 8px">Ticker</th>
+        <th style="padding:6px 8px;text-align:right">Preço entrada</th>
+        <th style="padding:6px 8px;text-align:right">Data encerr.</th>
+        <th style="padding:6px 8px;text-align:right">Resultado</th>
+        <th style="padding:6px 8px;text-align:right">Valor (R$)</th>
+        <th style="padding:6px 8px">Obs.</th>
+      </tr></thead>
+      <tbody>${encerrados.map(linhaEncerrado).join('')}</tbody>
+    </table>
+    </div>`;
+  } else if (encDiv) {
+    encDiv.innerHTML = '';
+  }
+
+  if (!itens.length) return;
 
   // Resumo agregado (assincrono, roda GARCH/correlação no backend)
   try {
