@@ -1,4 +1,70 @@
-# Trader Desk — Prompt de Continuação (v35 — FECHAMENTO MESTRE 10/07/2026)
+# Trader Desk — Prompt de Continuação (v36 — REVISÃO 15/07/2026)
+
+## 🔎 REVISÃO DE ESTADO REAL (15/07/2026) — vários itens já estavam prontos sem constar aqui
+
+No início desta sessão, comparação de SHAs reais do GitHub contra o que este documento tinha
+registrado no último fechamento (10/07/2026) mostrou que **proxy.py, static/app.js,
+templates/index.html, rotas_fiis.py e analises.json já tinham mudado** — ou seja, uma sessão
+(11/07/2026) fez trabalho real e o registrou no corpo do documento, mas o bloco de SHAs de
+fechamento no rodapé nunca foi atualizado para refletir isso. Itens abaixo foram CONFIRMADOS
+DIRETO NO CÓDIGO (não só lidos no texto do documento):
+
+1. **Corte de vacância >25% em FIIs — CONFIRMADO IMPLEMENTADO.** `VACANCIA_MAX_PCT = 25.0` em
+   `rotas_fiis.py`, aplicado no descarte inicial e no diagnóstico individual de ticker. Fundos
+   sem `vacancia_pct` (papel/CRI/FoF) não são afetados, como planejado.
+2. **Ranking de Posições Ativas por tipo de estrutura (item 15 do backlog antigo) — CONFIRMADO
+   IMPLEMENTADO.** `GET /posicoes/ranking/<tipo>` em proxy.py + 4 botões no frontend
+   (`templates/index.html`) + `loadRankingPosicoes()` em app.js. Já estava documentado como
+   concluído no corpo do texto (ver seção mais abaixo), só não refletido no SHA de fechamento.
+3. **Fan chart (GARCH) para Posições Ativas — CONFIRMADO IMPLEMENTADO.** `/montecarlo/
+   posicao_ativa` (proxy.py) já retorna `trajetorias_fan`; frontend renderiza via
+   `renderFanChartAnalise(id+'-pos', d.fan_chart)` (app.js linha ~1409). Este item também não
+   tinha um registro de conclusão explícito no documento — encontrado só pela leitura direta do
+   código.
+4. **Item "ticker do papel-objeto junto ao código da opção em Posições Ativas" — REVISADO COM O
+   VICTOR, DADO COMO RESOLVIDO/NÃO NECESSÁRIO.** Hoje o app já mostra o ticker principal e o
+   `codigo_opcao` separados no mesmo card (não no formato exato "CÓDIGO (TICKER)" que o backlog
+   antigo pedia, mas o Victor confirmou que já é suficiente como está — não fazer mais nada aqui.
+
+## ✅ CONCLUÍDO NESTA SESSÃO (15/07/2026) — Botão "Encerrar" na Carteira de ETFs
+
+Item que faltava no paralelismo ETFs x FIIs (identificado em 11/07, implementado hoje). Mesmo
+padrão já validado em FIIs (`mudar_status_carteira_fii`, 11/07/2026):
+
+- **Backend (`rotas_etfs.py`):** novo endpoint `PUT /etfs/carteira/<ticker>/status` — aceita
+  `{'status': 'encerrada', 'resultado': 'sucesso'|'fracasso'|'parcial' (opcional),
+  'valor_financeiro_resultado': numero (opcional, SEMPRE digitado manualmente, nunca calculado),
+  'observacao_encerramento': texto (opcional)}`. Novo endpoint `GET /etfs/carteira/
+  resumo-encerradas` soma os valores financeiros informados, espelhando
+  `/carteira-fiis/resumo-encerradas`. Itens de `etfs_estado.json` sem campo `status` são tratados
+  como `'ativa'` (compatibilidade retroativa — o campo nunca existiu antes desta mudança).
+  `/etfs/carteira/resumo` e `/etfs/carteira/<ticker>/projecao` agora filtram só itens com
+  `status=='ativa'` (antes contavam todo mundo, inclusive um eventual encerrado).
+- **Frontend (`static/app.js`):** `encerrarEtfCarteira(ticker)` (mesmo fluxo de `prompt()` da
+  versão FII — 3 campos opcionais, nenhum calculado sozinho). `renderEtfCarteira()` agora separa
+  itens ativos (com botão "Encerrar" em cada card) de encerrados (nova tabela abaixo dos cards,
+  mesmo visual da tabela de Encerrados de FIIs — ticker/preço entrada/data/resultado/valor/obs).
+- **Validado com boot real** (`app.test_client()` + mocks de `_github_get_file`/
+  `_github_put_file`, sem token real — regra permanente do projeto): encerramento com e sem
+  resultado, reencerramento bloqueado (404), ticker inexistente (404), status/resultado inválido
+  (422), resumo filtra corretamente só ativos, resumo-encerradas soma certo, projeção de item já
+  encerrado agora dá 404 (antes contaria mesmo encerrado). `node -c` limpo em app.js.
+- **PENDENTE DE VALIDAÇÃO NO AR pelo Victor** (nunca testado em produção real, só no sandbox) —
+  confirmar no próximo uso normal do app (encerrar um ETF de teste na Carteira) que o fluxo
+  funciona igual ao de FIIs.
+
+## SHAs reais confirmados nesta sessão (15/07/2026, via api.github.com — substituem a tabela de
+## 10/07/2026 mais abaixo, que ficou desatualizada)
+- proxy.py: d7a0c2847aa81626707e9313737bc001342a9b64 (inalterado nesta sessão, só confirmado)
+- rotas_fiis.py: 276fc51482010c872e85e740811df88269f1091e (vacância >25%, sessão 11/07)
+- rotas_etfs.py: ade7aa59d53c7db02b7edb1f0bcc651f625bcf7d (NOVO — botão Encerrar, sessão 15/07)
+- static/app.js: f065732c45238e2b386b85341ee98d649e4bbe53 (NOVO — botão Encerrar + tabela Encerrados ETFs)
+- templates/index.html: c5ff26a91274edf8efb519e0df31c3160c1b9bd4 (inalterado nesta sessão, só confirmado)
+- analises.json: 295400722f46ce82e553e7bee67df5e364dff2dc (inalterado nesta sessão, só confirmado)
+- positions.json: 3319dd4b563058c50d4893f9b7b724b3d9d53af9 (sem mudança desde 10/07)
+- carteira_fiis.json: 7ae13a8040f95b99901a2564825abe0533353f99 (sem mudança desde 10/07)
+- etfs_estado.json: SHA muda a cada encerramento real feito pelo Victor — sempre buscar fresco
+  antes de editar, não reutilizar valor daqui.
 
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
