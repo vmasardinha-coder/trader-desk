@@ -194,6 +194,104 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
+    @app.route('/etfs/carteira/<ticker>/status', methods=['PUT'])
+    @_requer_auth_escrita
+    def mudar_status_carteira_etf(ticker):
+        """
+        Encerra (vende) um ETF da Carteira. Espera {'status': 'encerrada'}
+        no body.
+
+        ADICIONADO 15/07/2026 -- mesmo padrao ja validado em
+        mudar_status_carteira_fii (rotas_fiis.py, 11/07/2026): como nao ha
+        como calcular automaticamente o resultado (venda pode ser parcial,
+        e o app nao guarda quantidade de cotas real), o encerramento aceita
+        3 campos OPCIONAIS extras no body, preenchidos via prompt() no
+        frontend, no mesmo espirito de FIIs:
+        - resultado: 'sucesso' | 'fracasso' | 'parcial'
+        - valor_financeiro_resultado: numero (R$), digitado manualmente --
+          nunca calculado aqui, so o usuario sabe o que de fato vendeu.
+        - observacao_encerramento: texto livre opcional.
+        Itens da carteira sem 'status' sao tratados como 'ativa'
+        (compatibilidade retroativa -- etfs_estado.json nunca teve esse
+        campo antes desta mudanca).
+        """
+        try:
+            ticker = ticker.upper().strip()
+            body = request.get_json() or {}
+            novo_status = body.get('status')
+            if novo_status != 'encerrada':
+                return jsonify({'error': f"status invalido: {novo_status!r} (use 'encerrada')"}), 422
+
+            resultado = body.get('resultado')
+            if resultado is not None and resultado not in ('sucesso', 'fracasso', 'parcial'):
+                return jsonify({'error': f"resultado invalido: {resultado!r} (use sucesso/fracasso/parcial)"}), 422
+
+            conteudo_str, sha = _github_get_file('etfs_estado.json')
+            estado = json.loads(conteudo_str) if conteudo_str.strip() else {'em_analise': [], 'carteira': []}
+            estado.setdefault('carteira', [])
+            encontrado = False
+            from datetime import datetime as _dt_etf2
+            for item in estado['carteira']:
+                if item.get('ticker') == ticker and item.get('status', 'ativa') == 'ativa':
+                    item['status'] = 'encerrada'
+                    item['data_encerramento'] = _dt_etf2.now().strftime('%Y-%m-%d')
+                    if resultado is not None:
+                        item['resultado'] = resultado
+                    if body.get('valor_financeiro_resultado') is not None:
+                        item['valor_financeiro_resultado'] = float(body['valor_financeiro_resultado'])
+                    if body.get('observacao_encerramento'):
+                        item['observacao_encerramento'] = body['observacao_encerramento']
+                    encontrado = True
+                    break
+            if not encontrado:
+                return jsonify({'error': f'ETF {ticker} nao encontrado (ativo) na carteira'}), 404
+
+            novo_conteudo = json.dumps(estado, ensure_ascii=False, indent=2)
+            _github_put_file('etfs_estado.json', novo_conteudo, sha,
+                f"feat: ETF {ticker} -> status=encerrada via app")
+            return jsonify({'ticker': ticker, 'status': 'encerrada'})
+        except RuntimeError as e:
+            return jsonify({'error': str(e)}), 500
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/etfs/carteira/resumo-encerradas', methods=['GET'])
+    def get_etf_carteira_resumo_encerradas():
+        """
+        ADICIONADO 15/07/2026 -- soma os resultados financeiros informados
+        manualmente no encerramento de ETFs (ver mudar_status_carteira_etf),
+        espelhando /carteira-fiis/resumo-encerradas. So conta itens com
+        valor_financeiro_resultado preenchido.
+        """
+        try:
+            estado = _ler_etfs_estado()
+            carteira = estado.get('carteira', [])
+            encerrados_com_valor = [
+                c for c in carteira
+                if c.get('status') == 'encerrada' and c.get('valor_financeiro_resultado') is not None
+            ]
+            total_liquido = sum(c['valor_financeiro_resultado'] for c in encerrados_com_valor)
+            por_resultado = {'sucesso': 0, 'fracasso': 0, 'parcial': 0}
+            for c in encerrados_com_valor:
+                r = c.get('resultado')
+                if r in por_resultado:
+                    por_resultado[r] += 1
+            return jsonify({
+                'total_liquido': round(total_liquido, 2),
+                'qtd_com_valor_registrado': len(encerrados_com_valor),
+                'qtd_total_encerradas': len([c for c in carteira if c.get('status') == 'encerrada']),
+                'por_resultado': por_resultado,
+                'itens': [
+                    {'ticker': c['ticker'], 'resultado': c.get('resultado'),
+                     'valor_financeiro_resultado': c['valor_financeiro_resultado'],
+                     'observacao_encerramento': c.get('observacao_encerramento'),
+                     'data_encerramento': c.get('data_encerramento')}
+                    for c in encerrados_com_valor
+                ],
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/etfs/carteira/<ticker>/projecao', methods=['GET'])
     def get_etf_carteira_projecao(ticker):
         """
@@ -209,9 +307,10 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
                 return jsonify({'error': 'ticker fora do universo fechado de ETFs'}), 400
             etf = next((e for e in ETF_UNIVERSO if e['ticker'] == ticker), None)
             estado = _ler_etfs_estado()
-            pos = next((c for c in estado.get('carteira', []) if c.get('ticker') == ticker), None)
+            pos = next((c for c in estado.get('carteira', [])
+                        if c.get('ticker') == ticker and c.get('status', 'ativa') == 'ativa'), None)
             if not pos:
-                return jsonify({'error': 'ETF nao esta na Carteira'}), 404
+                return jsonify({'error': 'ETF nao esta ativo na Carteira'}), 404
 
             yt = _etf_yahoo_ticker(etf)
             S, sigma, garch_info, closes = _obter_preco_sigma_garch(yt)
@@ -267,7 +366,10 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
         """
         try:
             estado = _ler_etfs_estado()
-            itens = estado.get('carteira', [])
+            # ADICIONADO 15/07/2026: so conta posicoes ATIVAS -- encerradas
+            # (ver mudar_status_carteira_etf) nao entram no total investido/
+            # valor atual/volatilidade da carteira em operacao.
+            itens = [c for c in estado.get('carteira', []) if c.get('status', 'ativa') == 'ativa']
             if not itens:
                 return jsonify({
                     'itens': [], 'total_investido': 0, 'valor_atual': 0,
