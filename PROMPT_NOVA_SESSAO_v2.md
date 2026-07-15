@@ -1,4 +1,4 @@
-# Trader Desk — Prompt de Continuação (v36 — REVISÃO 15/07/2026)
+# Trader Desk — Prompt de Continuação (v37 — FECHAMENTO 15/07/2026)
 
 ## 🔎 REVISÃO DE ESTADO REAL (15/07/2026) — vários itens já estavam prontos sem constar aqui
 
@@ -65,6 +65,81 @@ padrão já validado em FIIs (`mudar_status_carteira_fii`, 11/07/2026):
 - carteira_fiis.json: 7ae13a8040f95b99901a2564825abe0533353f99 (sem mudança desde 10/07)
 - etfs_estado.json: SHA muda a cada encerramento real feito pelo Victor — sempre buscar fresco
   antes de editar, não reutilizar valor daqui.
+
+## ✅ VALIDADO NO AR PELO VICTOR (15/07/2026) — Botão Encerrar em ETFs
+
+Item de teste (`IVVB11`, preço fictício R$100, adicionado manualmente à Carteira ETFs em
+produção) encerrado pelo próprio Victor via UI real: gravou `status=encerrada`,
+`resultado=sucesso`, `valor_financeiro_resultado=1000.0`, `observacao="100%"` — confirmado
+direto no `etfs_estado.json`. Victor validou visualmente que (a) o item some do card de total
+investido/resumo (filtro `status=='ativa'` funcionando) e (b) aparece certinho na tabela de
+Encerrados. **Item fechado, sem pendência.** Único ruído: quando o item de teste foi inserido
+manualmente via GitHub API (bypassando `/etfs/mover`), o campo "investido" do card de resumo não
+atualizou na hora — Victor entende que é resquício da inserção manual (fora do fluxo normal do
+app), não um bug da lógica de encerramento em si. Se acontecer de novo com uma entrada feita
+pelo fluxo normal (via app), investigar como bug real; por ora, não é.
+
+IVVB11 de teste REMOVIDO da carteira em produção (`etfs_estado.json` voltou ao SHA
+`60a538afb0d90b5a2b34c9a363230b0d1cd32c1d`, idêntico ao estado anterior ao teste).
+
+## ✅ CONCLUÍDO NESTA SESSÃO (15/07/2026) — "Em Análise" de ETFs movido para #tab-emanalise
+
+Item de backlog registrado em 05/07/2026 ("mais estético do que prático" na época, executado
+hoje a pedido do Victor). Mudança:
+- **Antes:** "Em Análise" de ETFs vivia como sub-aba dentro de "Carteira ETFs" (`#tab-etfscarteira`,
+  com botões `etf-subtab` para alternar Em Análise/Carteira).
+- **Depois:** seção "ETFs em Análise" (tabela com Score por faixa de risco) agora mora dentro da
+  aba única `#tab-emanalise`, posicionada logo ABAIXO do bloco "Ranking de FIIs em Análise" (mesmo
+  padrão visual de `.sec` + tabela). "Carteira ETFs" ficou só com a carteira de fato — sem mais
+  sub-abas, mesmo padrão simples já usado em Carteira FIIs.
+- **Frontend (`app.js`):** `sw()` agora dispara `_renderEtfAnaliseTabQuandoPronto()` ao abrir a aba
+  `emanalise` (espera `_etfDataPronto` antes de renderizar, mesmo padrão já usado para Carteira).
+  `_renderEtfCarteiraTabQuandoPronto()` simplificado (sem mais lógica de detectar qual sub-aba
+  estava ativa, já que não existem mais sub-abas). Função `etfSubTab()` ficou órfã no código (sem
+  nenhuma chamada) — deixada como está, código morto inofensivo, não removida para minimizar risco.
+- Botões "+ Em Análise"/"OK → Carteira" da Watchlist (`moverEtf()`) continuam funcionando sem
+  mudança — só a localização visual dos containers (`etf-analise-tbody`, `etf-carteira-lista`)
+  mudou no DOM, os IDs continuam os mesmos.
+- **Validado:** sintaxe JS (`node -c`), balanceamento de `<div>` via `html.parser.HTMLParser`
+  (parser real, não contagem de string), IDs únicos sem duplicação após a mudança.
+- **PENDENTE DE VALIDAÇÃO NO AR pelo Victor** — nunca testado em produção, só sintaxe/estrutura
+  confirmadas no sandbox. Conferir: (1) aba Em Análise mostra a seção ETFs em Análise depois do
+  ranking de FIIs; (2) aba Carteira ETFs mostra só os cards, sem sub-abas; (3) botões da Watchlist
+  continuam movendo ETFs corretamente entre os estados.
+
+## 📋 EM ABERTO (revisão completa 15/07/2026 — o que ainda falta de fato)
+
+1. **Item 12 do backlog antigo** (documentar/confirmar lógica de % de variação em R$ em Posições
+   Ativas) — Victor estava testando, resultado ainda não reportado nesta sessão.
+2. **Item 10 do backlog antigo** (Cotações: expandir/ocultar em "Abertura Mercado EUA"/"Top
+   Bovespa"/Commodities, % Nubank, divergência VIX/DXY) — documento antigo já marcava como
+   "TODOS os subitens resolvidos" em 02/07/2026, mas não foi re-confirmado no código nesta
+   revisão. Verificar se ainda procede antes de assumir 100% fechado.
+3. **Item 11 do backlog antigo** (Indicadores: lazy load por clique individual, 3 vs 4 métodos de
+   valuation em BDRs, regressão vol. simples ROXO34) — mesma situação do item acima: documento
+   antigo marca como resolvido, não re-verificado nesta sessão.
+4. **PAT fine-grained no Render sem vencimento curto** (item #1 histórico) — documento registra
+   que já foi resolvido em 02/07/2026 com token válido até 02/07/2027. Aparentemente fechado, mas
+   nunca teve uma linha de "CONCLUÍDO" explícita — vale uma confirmação rápida se for mexer em
+   variáveis de ambiente do Render de novo.
+5. **Backlog de médio/longo prazo, nunca implementado (registrado, sem trabalho ainda):**
+   - Bulk foto para watchlist de ETFs (hoje só existe para Papéis)
+   - Fan chart GARCH para Carteira de FIIs (viável, reaproveitamento alto, prioridade baixa por
+     pedido do próprio Victor)
+   - Fluxo completo Em Análise → Ativas → Encerradas para ETFs (paralelo ao que FIIs já tem)
+   - Avaliar se vale estender o conceito de encerramento com formulário (já em FIIs e ETFs) para
+     Posições Ativas gerais — NÃO mudar sem pedido explícito, hoje é fluxo conversacional por
+     decisão do Victor (05/07/2026)
+   - Limpeza de base de FIIs: liquidez média (piso já é uma média de 2 meses segundo fonte
+     externa, decisão fechada de NÃO mexer) — restam keyword no nome (testado, ganho zero,
+     descartado), PL mínimo, idade do fundo, concentração de cotistas, cotação congelada,
+     consistência de dividendo, alavancagem — todos "estudo futuro", nenhum com decisão de
+     implementar
+   - Cotações/Indicadores público (monetização via doação) — fora de escopo ativo
+   - Bot de futuros automatizado — explicitamente fora de escopo
+6. **Yahoo com preço errado para COIN11/SPYI11** — não urgente (Yahoo virou fallback secundário
+   desde a correção do investidor10), mas causa raiz nunca foi confirmada. Só investigar se
+   voltar a aparecer.
 
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
