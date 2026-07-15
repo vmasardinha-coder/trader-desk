@@ -111,6 +111,13 @@ function sw(t,el){
   if(t==='emanalise'&&!window._AL){window._AL=true;loadAnalises();}
   if(t==='encerradas'&&!window._ENCL){window._ENCL=true;loadAnalisesEncerradas();}
   if(t==='etfs'&&!window._ETL){window._ETL=true;loadETFs();}
+  if(t==='emanalise'){
+    // ADICIONADO 15/07/2026 -- "ETFs em Análise" agora mora aqui (ver
+    // _renderEtfAnaliseTabQuandoPronto abaixo). Precisa de _etfData
+    // carregado (mesma dependencia que ja existia para Carteira ETFs).
+    if(!window._ETL){window._ETL=true;loadETFs();}
+    _renderEtfAnaliseTabQuandoPronto();
+  }
   if(t==='etfscarteira'){
     if(!window._ETL){window._ETL=true;loadETFs();}
     _renderEtfCarteiraTabQuandoPronto();
@@ -122,17 +129,26 @@ function sw(t,el){
 // em Minha Operacao (#tab-etfscarteira), separada da Watchlist (que ficou
 // em Mercado). Como essa aba pode ser aberta ANTES da Watchlist (e antes
 // de loadETFs() terminar), espera _etfData estar populado antes de
-// renderizar a subtab ativa -- evita mostrar tabela vazia se o usuario
-// clicar direto em "Carteira ETFs" sem nunca ter aberto "ETFs" (Mercado).
+// renderizar -- evita mostrar tabela vazia se o usuario clicar direto em
+// "Carteira ETFs" sem nunca ter aberto "ETFs" (Mercado).
+// ATUALIZADO 15/07/2026: nao ha mais subtabs aqui (Em Analise saiu pra
+// #tab-emanalise) -- essa aba agora e so a Carteira de fato.
 function _renderEtfCarteiraTabQuandoPronto(){
   if(!window._etfDataPronto){
     setTimeout(_renderEtfCarteiraTabQuandoPronto,200);
     return;
   }
-  const btnAtivo=document.querySelector('#tab-etfscarteira .etf-subtab.active');
-  const nome=(btnAtivo&&btnAtivo.textContent.includes('Carteira'))?'carteira':'emanalise';
-  if(nome==='emanalise')renderEtfAnaliseTable();
-  else renderEtfCarteira();
+  renderEtfCarteira();
+}
+
+// ADICIONADO 15/07/2026 -- mesmo raciocinio do helper acima, mas para a
+// secao "ETFs em Análise" que passou a morar dentro de #tab-emanalise.
+function _renderEtfAnaliseTabQuandoPronto(){
+  if(!window._etfDataPronto){
+    setTimeout(_renderEtfAnaliseTabQuandoPronto,200);
+    return;
+  }
+  renderEtfAnaliseTable();
 }
 
 // Adicionado 05/07/2026 -- fase 4 da modernizacao de layout (sidebar com
