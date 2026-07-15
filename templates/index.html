@@ -301,26 +301,11 @@
   </div>
 </div>
 
-<!-- ══ CARTEIRA/EM ANÁLISE DE ETFs (movido para Minha Operação, 05/07/2026) ══ -->
+<!-- ══ CARTEIRA DE ETFs (Em Análise movida para #tab-emanalise em 15/07/2026,
+     junto do ranking de FIIs -- esta aba agora so tem a carteira de fato,
+     mesmo padrao ja usado em Carteira FIIs) ══ -->
 <div id="tab-etfscarteira" class="tab-content">
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="etf-subtab active" onclick="etfSubTab('emanalise',this)">Em Análise</button>
-    <button class="etf-subtab" onclick="etfSubTab('carteira',this)">Carteira</button>
-  </div>
-
-  <div id="etf-sub-emanalise" class="etf-subcontent">
-    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Candidatos que você está de olho. Score calculado dentro de cada faixa de risco (não mistura risco alto com baixo).</p>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px" id="etf-analise-tabela">
-        <thead><tr id="etf-analise-thead"></tr></thead>
-        <tbody id="etf-analise-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="etf-sub-carteira" class="etf-subcontent" style="display:none">
-    <div id="etf-carteira-lista"></div>
-  </div>
+  <div id="etf-carteira-lista"></div>
 </div>
 
 <!-- ══ FIIs ══ -->
@@ -390,6 +375,21 @@
       <button onclick="loadRankingFiisEmAnalise()" id="btn-ranking-fiis" style="background:var(--accent);border:none;color:#fff;padding:6px 14px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700">Rodar ranking</button>
     </div>
     <div id="ranking-fiis-container" style="margin-top:10px;font-size:11px;color:var(--muted)"></div>
+  </div>
+
+  <!-- ADICIONADO 15/07/2026: "Em Análise" de ETFs movido pra ca (antes
+       morava dentro de "Carteira ETFs") -- item de backlog registrado em
+       05/07/2026, pedido do proprio usuario ("mais estetico do que
+       pratico" na epoca, agora executado). Mesmo padrao visual das secoes
+       de Estruturas/FIIs acima, sem botao de ranking proprio (score ja e
+       calculado direto na tabela, client-side, por faixa de risco). -->
+  <div class="sec" style="justify-content:space-between;margin-top:28px"><span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>ETFs em Análise</span></div>
+  <div style="font-size:10px;color:var(--muted);padding:0 2px 10px">ETFs movidos da Watchlist (aba ETFs, botão "+ Em Análise"). Score calculado dentro de cada faixa de risco (não mistura risco alto com baixo).</div>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13px" id="etf-analise-tabela">
+      <thead><tr id="etf-analise-thead"></tr></thead>
+      <tbody id="etf-analise-tbody"></tbody>
+    </table>
   </div>
 </div>
 
