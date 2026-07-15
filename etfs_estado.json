@@ -18,16 +18,6 @@
       "ticker": "QQQI11",
       "preco_entrada": 97.59,
       "data_entrada": "2026-07-04"
-    },
-    {
-      "ticker": "IVVB11",
-      "preco_entrada": 100.0,
-      "data_entrada": "2026-07-15",
-      "status": "encerrada",
-      "data_encerramento": "2026-07-15",
-      "resultado": "sucesso",
-      "valor_financeiro_resultado": 1000.0,
-      "observacao_encerramento": "100%"
     }
   ]
 }
