@@ -233,15 +233,15 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 4 | Vol. simples ROXO34 (regressão, dentro do antigo item 11) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
 | 5 | Bulk foto para watchlist de ETFs | ❌ Não existe (só existe pra Papéis/ações) | Backlog, sem prioridade definida |
 | 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
-| 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ❌ Não existe — ETFs hoje só movem direto watchlist→carteira, sem foto | Backlog, sem prioridade definida |
-| 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ❌ Não existe — só vacância >25% foi feita | Backlog, sem prioridade definida |
+| 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ⚪ Não existe no código, mas Victor JÁ DISCUTIU e decidiu manter como backlog (não é pendência esquecida) | — |
+| 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ⚪ Não existe no código (só vacância >25% foi feita), mas Victor JÁ DISCUTIU e decidiu manter como backlog | — |
 | 9 | 5.1 — A1 (`proxy.py`, cache frio de ETFs, cold-start) | ✅ Corrigida 15/07/2026, testada por Victor (carregou devagar na 1a vez, refresh normal) | — |
 | 10 | 🚫 5.1 — A2 (`rotas_etfs.py`, `/etfs/carteira/resumo`, Yahoo em paralelo p/ até 8 tickers) | **FORA — mesma categoria do A3, não mexer, restrição permanente** | Ver ressalva abaixo |
 | 11 | 🚫 5.1 — A3 (`rotas_fiis.py`, `/carteira-fiis/resumo`, Yahoo em paralelo p/ até 12 FIIs) | **FORA — mesmo aviso explícito no código: já foi sequencial, quebrou (Render cortava resposta). Tem cache diário, roda de verdade só 1x/dia** | Ver ressalva abaixo |
 | 12 | 5.1 — B1, parte 1 (`proxy.py`, scrape investidor10 nacional+americano dentro de `_refresh_completo_background()`) | ✅ Corrigida 15/07/2026 — virou sequencial (2 chamadas, mesmo padrão do A1), PENDENTE DE VALIDAÇÃO NO AR | **Victor** valida no próximo ciclo/clique em "Atualizar" |
 | 13 | 🚫 5.1 — B2 (`fontes_etfs.py`, `_fetch_etfs_dy_yahoo_bulk()`, ~68 tickers, 25 threads) | **MANTIDO como está — decisão do Victor 15/07/2026**: sequencial levaria minutos (68 tickers), atraso desproporcional; disparo duplicado já é evitado pela trava `_dy_refresh_em_andamento` | — |
 | 14 | 🚫 5.1 — B3 (`fontes_etfs.py`, `_fetch_etfs_preco_yahoo_bulk()`, ~68 tickers, 25 threads) | **MANTIDO como está — mesma decisão do B2** | — |
-| 15 | 5.1 — C1 (`proxy.py` ~2966, rota de marketcap de ações US, `with...as executor` bloqueante, 8 threads) | 📋 Ainda não atacado — bloqueia a resposta (não empilha thread órfã, mas pode demorar/500 se travar) | Backlog, prioridade média |
+| 15 | 5.1 — C1 (`/us/concentracao`, marketcap de ações US, 7-10 tickers, 8 threads) | ✅ Corrigido 15/07/2026 — virou orçamento de tempo (budget 20s), PENDENTE DE VALIDAÇÃO NO AR | **Victor** valida ao abrir a tela de concentração US |
 | 16 | 5.1 — C2 (`rotas_fiis.py` ~1032, `/fiis/universo-complementar`, lotes de 10, bloqueante) | 📋 Ainda não atacado — mesmo tipo de risco do C1, em vários lotes seguidos | Backlog, prioridade média |
 | 17 | 5.1 — C3 (`rotas_fiis.py` ~1154, dados FI-Infra, `with...as executor`, 8 threads) | 📋 Ainda não atacado — mesmo tipo de risco do C1 | Backlog, prioridade média |
 | — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
@@ -307,6 +307,34 @@ Sem pressa, sem tentativa às cegas de novo.
 busca histórico de até 12 FIIs em paralelo, e sequencial já foi tentado antes e cortava a resposta
 no meio com o Render. Também tem cache diário (roda de verdade só 1x/dia, chave = data + tickers
 ativos), o que reduz a frequência real do risco. Mesma decisão do A2: NÃO mexer.
+
+## ✅ ITEM 5.1 — C1 CORRIGIDO (15/07/2026)
+
+`proxy.py`, rota `/us/concentracao` (marketcap agregado de grupos de ações US, ex: Magnificent 7,
+Semicondutores). Era `with ThreadPoolExecutor(max_workers=8) as executor: executor.map(...)` --
+espera TODAS as threads terminarem sem limite de tempo. Na prática quase sempre rápido (só 7-10
+tickers por grupo, 8 threads cobre quase todos em paralelo de verdade), mas sem proteção nenhuma
+pro pior caso (Yahoo v7 lento + fallback v8 + fallback 8marketcap todos lentos pra 1 ticker só
+travariam a resposta inteira, sem limite).
+
+**Fix:** mesmo padrão já validado em `_fetch_etfs_dy_yahoo_bulk`/`_fetch_etfs_preco_yahoo_bulk`
+(orçamento de tempo fixo via `concurrent.futures.wait(timeout=20)` + `shutdown(wait=False)`).
+Diferença prática do B2/B3: aqui são só 7-10 tickers (não ~68), então o número de threads
+eventualmente abandonadas no pior caso é bem menor -- risco baixo, ganho real (nunca mais fica
+esperando indefinidamente).
+
+- **Testado com mock** (respostas rápidas + 1 "travada" simulada com budget curto no teste):
+  confirma que a resposta volta com os tickers prontos + marca erro/timeout nos que não
+  terminaram a tempo, sem esperar o travado.
+- **Um bug de edição encontrado e corrigido durante a implementação**: a primeira tentativa de
+  edição deixou linhas órfãs do loop antigo (`soma_marketcap += valor` sem o `if` que pertencia)
+  -- identificado e corrigido antes do commit, sintaxe validada com `ast.parse` depois.
+- **PENDENTE DE VALIDAÇÃO NO AR pelo Victor** -- abrir a tela de concentração US (Magnificent 7,
+  Semicondutores, etc.) e confirmar que continua funcionando normal.
+
+**Restam do item 5.1:** C2 (`rotas_fiis.py`, universo complementar) e C3 (`rotas_fiis.py`, FI-
+Infra) -- mesmo tipo de correção do C1 (orçamento de tempo em vez de espera sem limite), ainda não
+atacados.
 
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
