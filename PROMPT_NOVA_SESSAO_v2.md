@@ -228,9 +228,9 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | # | Item | Status | Quem testa/faz |
 |---|------|--------|----------------|
 | 1 | Botão Encerrar em ETFs | ✅ Fechado — validado ao vivo pelo Victor | — |
-| 2 | "Em Análise" de ETFs movido pra aba única (#tab-emanalise) | 🟡 Implementado, commitado, NUNCA testado ao vivo | **Victor** |
-| 3 | Item 12 antigo — lógica de % de variação em R$ (Posições Ativas) | 🟡 Victor testando, resultado ainda não reportado | **Victor** |
-| 4 | Vol. simples ROXO34 (regressão, dentro do antigo item 11) | ⚪ Só valida com dado real do dia, não dá pra confirmar por leitura de código | **Victor** (quando aparecer de novo) |
+| 2 | "Em Análise" de ETFs movido pra aba única (#tab-emanalise) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
+| 3 | Item 12 antigo — lógica de % de variação em R$ (Posições Ativas) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
+| 4 | Vol. simples ROXO34 (regressão, dentro do antigo item 11) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
 | 5 | Bulk foto para watchlist de ETFs | ❌ Não existe (só existe pra Papéis/ações) | Backlog, sem prioridade definida |
 | 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
 | 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ❌ Não existe — ETFs hoje só movem direto watchlist→carteira, sem foto | Backlog, sem prioridade definida |
