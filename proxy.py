@@ -2963,14 +2963,41 @@ def get_us_concentracao():
                 _cache_8marketcap['paginas'] = _buscar_html_8marketcap_paginas()
             return _cache_8marketcap['paginas']
 
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        resultados = executor.map(_buscar_marketcap, tickers)
-        for t, valor, erro in resultados:
+    # CORRIGIDO 15/07/2026 (item 5.1, C1 do plano em PROMPT_NOVA_SESSAO_v2.md):
+    # era "with ThreadPoolExecutor(max_workers=8) as executor:
+    # executor.map(...)" -- esse padrao ESPERA TODAS as threads terminarem
+    # antes de responder, sem limite de tempo proprio. Na pratica quase
+    # sempre e rapido (grupo tem so 7-10 tickers, max_workers=8 cobre quase
+    # todos em paralelo de verdade), mas no PIOR CASO (Yahoo v7 lento +
+    # fallback v8 lento + fallback 8marketcap lento pra um ticker so) a
+    # resposta inteira fica presa esperando, sem limite. Convertido pro
+    # MESMO padrao ja validado em _fetch_etfs_dy_yahoo_bulk/
+    # _fetch_etfs_preco_yahoo_bulk (fontes_etfs.py): orcamento de tempo
+    # fixo via concurrent.futures.wait + shutdown(wait=False). Diferenca
+    # pratica pro caso de B2/B3: aqui sao so 7-10 tickers (nao ~68), entao
+    # o numero de threads eventualmente abandonadas no pior caso e bem
+    # menor -- risco proporcionalmente baixo, ganho real (nunca mais fica
+    # esperando indefinidamente).
+    ex_mc = ThreadPoolExecutor(max_workers=8)
+    try:
+        futuros_mc = {ex_mc.submit(_buscar_marketcap, t): t for t in tickers}
+        prontos_mc, pendentes_mc = _cf_wait(list(futuros_mc.keys()), timeout=20)
+        for fut in prontos_mc:
+            t = futuros_mc[fut]
+            try:
+                _, valor, erro = fut.result()
+            except Exception as e:
+                valor, erro = None, str(e)
             if valor is not None:
                 detalhe[t] = valor
                 soma_marketcap += valor
             else:
-                erros_por_ticker[t] = erro
+                erros_por_ticker[t] = erro or 'sem marketCap'
+        for fut in pendentes_mc:
+            t = futuros_mc[fut]
+            erros_por_ticker[t] = 'timeout (>20s) buscando marketCap'
+    finally:
+        ex_mc.shutdown(wait=False)
 
     if not detalhe:
         return jsonify({'error': f'nenhum market cap obtido do Yahoo (detalhes: {erros_por_ticker})'}), 502
