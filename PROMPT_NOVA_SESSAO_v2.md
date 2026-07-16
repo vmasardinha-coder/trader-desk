@@ -235,7 +235,7 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
 | 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ❌ Não existe — ETFs hoje só movem direto watchlist→carteira, sem foto | Backlog, sem prioridade definida |
 | 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ❌ Não existe — só vacância >25% foi feita | Backlog, sem prioridade definida |
-| 9 | **5.1 — `ThreadPoolExecutor`+`shutdown(wait=False)` (site trava ocasionalmente)** | 📋 Investigado, inventariado (6+3 ocorrências), plano de correção por etapa já escrito abaixo | **Claude** ataca na próxima sessão, Etapa 1 primeiro |
+| 9 | **5.1 — `ThreadPoolExecutor`+`shutdown(wait=False)`** — Etapa 1 (A1) CORRIGIDA em 15/07/2026 | 🟡 A1 feita e commitada, PENDENTE DE VALIDAÇÃO NO AR; A2/A3/B1-B3/C1-C3 ainda faltam | **Victor** valida A1; **Claude** ataca A2/A3 na próxima |
 | — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
 
 **Regra prática combinada com o Victor (15/07/2026):** sempre que este documento tiver múltiplas
@@ -244,6 +244,33 @@ a tabela acima é que manda. Nas próximas sessões, ao invés de escrever uma l
 ATUALIZAR esta tabela diretamente (mudar status, adicionar linha, riscar o que fechou) — não
 duplicar em outro lugar do arquivo. Isso é o que estava causando confusão de numeração/versões
 divergentes nesta sessão.
+
+## ✅ ETAPA 1 (A1) DO ITEM 5.1 — CONCLUÍDA (15/07/2026)
+
+`proxy.py` `_fetch_etfs_live()` (bloco de cache frio) reescrito: era
+`ThreadPoolExecutor(max_workers=2)` + `ex.shutdown(wait=False)` rodando nacional+americano em
+paralelo com orçamento de 20s — trocado por **2 chamadas sequenciais**
+(`_scrape_investidor10_etfs_nacional(3)` depois `_scrape_investidor10_etfs_americano(2)`), cada
+uma já com timeout NATIVO de 6s por página dentro de `fontes_etfs.py` (não precisava de
+ThreadPoolExecutor pra ter limite de tempo — o timeout de verdade já existia por chamada HTTP).
+
+- **Testado com mock de `requests.get`** (não boot completo do Flask — `proxy.py` é grande demais
+  pra importar isolado num teste rápido, então o teste validou a LÓGICA sequencial extraída,
+  reaproveitando as funções reais de `fontes_etfs.py`): confirma 5 chamadas sequenciais (3+2),
+  cada uma com `timeout=6` de verdade, e que falha em uma página não derruba as outras (try/except
+  já existia dentro dos scrapers, preservado).
+- **Trade-off aceito:** pior caso agora ~30s (era ~20s em paralelo) — mas SEM thread órfã nenhuma
+  rodando depois do request terminar. Frontend (`loadETFs()` em `app.js`) não tem timeout próprio
+  nessa chamada, então não há risco de corte prematuro no pior caso.
+- **Outras 5 ocorrências de `ThreadPoolExecutor` em `proxy.py`** (B1 e outras) continuam
+  INTOCADAS de propósito — são as próximas etapas do plano, não misturar.
+- **PENDENTE DE VALIDAÇÃO NO AR pelo Victor** — próxima vez que o cache frio disparar de verdade
+  (deploy novo, ou processo Render acordando de inatividade), confirmar que ETFs carregam
+  normalmente (só um pouco mais devagar no pior caso).
+
+**Próximo passo (quando o Victor confirmar A1 no ar):** Etapa 2 do plano — A2 (`rotas_etfs.py`,
+projeção/percentil de ETF) e A3 (`rotas_fiis.py`, histórico de FIIs ativos), um de cada vez, mesmo
+padrão sequencial.
 
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
