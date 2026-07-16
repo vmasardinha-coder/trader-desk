@@ -235,10 +235,15 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
 | 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ❌ Não existe — ETFs hoje só movem direto watchlist→carteira, sem foto | Backlog, sem prioridade definida |
 | 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ❌ Não existe — só vacância >25% foi feita | Backlog, sem prioridade definida |
-| 9 | 5.1 — Etapa 1 (A1, `proxy.py` cold-cache ETFs) | ✅ Corrigida 15/07, Victor testou (carregou devagar na 1a vez, refresh normal) — considerado validado | — |
-| 10 | 🚫 5.1 — Etapa 2, ponto A2 (`rotas_etfs.py`, resumo Carteira ETFs, busca Yahoo em paralelo p/ até 8 tickers) | **NÃO APROVADO — NÃO MEXER, restrição permanente até nova ideia** | Ver ressalva abaixo antes de qualquer tentativa futura |
-| 11 | 5.1 — Etapa 2, ponto A3 (`rotas_fiis.py`, histórico de FIIs ativos) | 📋 Ainda não atacado — Victor pede cuidado extra aqui (foi difícil de acertar da 1a vez) | **Claude** avisa antes de mexer, vai com calma |
-| 12 | 5.1 — Etapas B1-B3, C1-C3 (background + bloqueante) | 📋 Ainda não atacadas | Backlog, sem prioridade imediata |
+| 9 | 5.1 — A1 (`proxy.py`, cache frio de ETFs, cold-start) | ✅ Corrigida 15/07/2026, testada por Victor (carregou devagar na 1a vez, refresh normal) | — |
+| 10 | 🚫 5.1 — A2 (`rotas_etfs.py`, `/etfs/carteira/resumo`, Yahoo em paralelo p/ até 8 tickers) | **FORA — mesma categoria do A3, não mexer, restrição permanente** | Ver ressalva abaixo |
+| 11 | 🚫 5.1 — A3 (`rotas_fiis.py`, `/carteira-fiis/resumo`, Yahoo em paralelo p/ até 12 FIIs) | **FORA — mesmo aviso explícito no código: já foi sequencial, quebrou (Render cortava resposta). Tem cache diário, roda de verdade só 1x/dia** | Ver ressalva abaixo |
+| 12 | 5.1 — B1 (`proxy.py`, `_refresh_completo_background()`, disparado pelo botão "Atualizar" ETFs + ciclo periódico) | 📋 Próximo alvo — já roda em thread de background (fora do caminho da resposta), risco é só acumular threads se clicar "Atualizar" repetidas vezes | **Claude** ataca a seguir |
+| 13 | 5.1 — B2 (`fontes_etfs.py`, `_fetch_etfs_dy_yahoo_bulk()`, chamada de dentro do B1) | 📋 Mesma correção do B1, ligado ao mesmo fluxo | Junto com B1 |
+| 14 | 5.1 — B3 (`fontes_etfs.py`, `_fetch_etfs_preco_yahoo_bulk()`, chamada de dentro do B1) | 📋 Mesma correção do B1, ligado ao mesmo fluxo | Junto com B1 |
+| 15 | 5.1 — C1 (`proxy.py` ~2966, rota de marketcap de ações US, `with...as executor` bloqueante, 8 threads) | 📋 Ainda não atacado — bloqueia a resposta (não empilha thread órfã, mas pode demorar/500 se travar) | Backlog, prioridade média |
+| 16 | 5.1 — C2 (`rotas_fiis.py` ~1032, `/fiis/universo-complementar`, lotes de 10, bloqueante) | 📋 Ainda não atacado — mesmo tipo de risco do C1, em vários lotes seguidos | Backlog, prioridade média |
+| 17 | 5.1 — C3 (`rotas_fiis.py` ~1154, dados FI-Infra, `with...as executor`, 8 threads) | 📋 Ainda não atacado — mesmo tipo de risco do C1 | Backlog, prioridade média |
 | — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
 
 **Regra prática combinada com o Victor (15/07/2026):** sempre que este documento tiver múltiplas
@@ -275,8 +280,8 @@ ThreadPoolExecutor pra ter limite de tempo — o timeout de verdade já existia 
 projeção/percentil de ETF) e A3 (`rotas_fiis.py`, histórico de FIIs ativos), um de cada vez, mesmo
 padrão sequencial.
 
-## 🚫 RESSALVA PERMANENTE — item 5.1, ponto A2 (`rotas_etfs.py`, ~linha 432) NÃO seguir o
-## padrão sequencial simples das outras Etapas (15/07/2026)
+## 🚫 RESSALVA PERMANENTE — item 5.1, pontos A2 (`rotas_etfs.py`) e A3 (`rotas_fiis.py`) NÃO
+## seguem o padrão sequencial simples das outras Etapas (15/07/2026, A3 confirmado nesta sessão)
 
 Tentativa avaliada e **descartada nesta sessão, sem chegar a implementar** — Victor pediu
 explicitamente para não tentar de novo sem uma ideia nova, porque essa parte já foi difícil de
@@ -296,6 +301,12 @@ alguém (Victor ou uma sessão futura) trazer uma ideia genuinamente diferente �
 com um jeito mais seguro de garantir que as threads que sobrarem realmente parem, ou reduzir
 quantos tickers buscam ao mesmo tempo, ou trocar a fonte de dado pra uma que responda mais rápido.
 Sem pressa, sem tentativa às cegas de novo.
+
+**A3 confirmado na mesma categoria (15/07/2026):** `rotas_fiis.py` (~linha 562,
+`/carteira-fiis/resumo`) tem o MESMO aviso explícito no próprio código (com data 05/07/2026):
+busca histórico de até 12 FIIs em paralelo, e sequencial já foi tentado antes e cortava a resposta
+no meio com o Render. Também tem cache diário (roda de verdade só 1x/dia, chave = data + tickers
+ativos), o que reduz a frequência real do risco. Mesma decisão do A2: NÃO mexer.
 
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
