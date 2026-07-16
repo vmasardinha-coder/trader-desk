@@ -4560,19 +4560,32 @@ def _refresh_completo_background():
     na hora, nunca espera nada.
     """
     try:
-        ex = ThreadPoolExecutor(max_workers=2)
+        # CORRIGIDO 15/07/2026 (item 5.1, B1 -- parte 1 do plano registrado
+        # em PROMPT_NOVA_SESSAO_v2.md): era ThreadPoolExecutor(max_workers=2)
+        # + ex.shutdown(wait=False), mesmo padrao ja corrigido no A1
+        # (_fetch_etfs_live). Como esta funcao INTEIRA ja roda numa thread
+        # de background (disparada por _disparar_refresh_background, nunca
+        # no caminho da requisicao), nao ha nenhuma razao pra manter o
+        # paralelismo aqui -- sequencial nao atrasa resposta nenhuma pro
+        # usuario, so faz o proprio ciclo de background demorar um pouco
+        # mais (pior caso ~30s em vez de ~20s). Elimina de vez o risco de
+        # threads orfas dessa parte especifica. B2/B3 (busca de DY/preco
+        # via Yahoo, ~68 tickers, 25 threads cada) NAO seguem essa mesma
+        # correcao -- avaliado e descartado nesta sessao a pedido do
+        # Victor: sequencial ali tomaria minutos (68 tickers x ate 2 hosts),
+        # atraso desproporcional ao ganho, e o disparo duplicado por
+        # cliques repetidos ja e evitado pela trava
+        # _dy_refresh_em_andamento['flag'] logo abaixo em
+        # _disparar_refresh_background. Mantido como estava, de proposito.
+        live_novo = {}
         try:
-            fut_nac = ex.submit(_scrape_investidor10_etfs_nacional, 3)
-            fut_ame = ex.submit(_scrape_investidor10_etfs_americano, 2)
-            prontos, pendentes = _cf_wait([fut_nac, fut_ame], timeout=20)
-            live_novo = {}
-            for fut in prontos:
-                try:
-                    live_novo.update(fut.result())
-                except Exception:
-                    continue
-        finally:
-            ex.shutdown(wait=False)
+            live_novo.update(_scrape_investidor10_etfs_nacional(3))
+        except Exception:
+            pass
+        try:
+            live_novo.update(_scrape_investidor10_etfs_americano(2))
+        except Exception:
+            pass
 
         anterior = _cache_etfs_live.get('dados') or {}
         for ticker, d_ant in anterior.items():
