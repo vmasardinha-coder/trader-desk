@@ -116,10 +116,89 @@ hoje a pedido do Victor). Mudança:
 3. **Item 11 do backlog antigo** (Indicadores: lazy load por clique individual, 3 vs 4 métodos de
    valuation em BDRs, regressão vol. simples ROXO34) — mesma situação do item acima: documento
    antigo marca como resolvido, não re-verificado nesta sessão.
-4. **PAT fine-grained no Render sem vencimento curto** (item #1 histórico) — documento registra
-   que já foi resolvido em 02/07/2026 com token válido até 02/07/2027. Aparentemente fechado, mas
-   nunca teve uma linha de "CONCLUÍDO" explícita — vale uma confirmação rápida se for mexer em
-   variáveis de ambiente do Render de novo.
+4. ~~PAT fine-grained no Render~~ — **CONFIRMADO FUNCIONANDO em 15/07/2026**: todo commit desta
+   sessão (proxy.py, rotas_etfs.py, app.js, index.html, este documento, teste do IVVB11) passou
+   pelo `GITHUB_TOKEN`/`GITHUB_WRITE_TOKEN` sem nenhum erro de autenticação. Validação real, não
+   só leitura de documento antigo. Fechado.
+
+4.1. ~~Yahoo com preço errado (COIN11/SPYI11)~~ — **CONFIRMADO CORRIGIDO em 15/07/2026**:
+   investidor10 é a fonte principal de preço/DY de ETFs hoje; Yahoo entrou como fallback
+   estruturado desde 04/07/2026 (causa raiz era falha silenciosa do investidor10 pra esses dois
+   tickers especificamente). Fechado.
+
+4.2. ~~Item 11 (Indicadores)~~ — **CONFIRMADO no código em 15/07/2026**: (a) lazy load por clique
+   individual está implementado (`app.js`, comentário explícito confirma que não carrega mais
+   todos os ~16 ativos de uma vez); (b) ROXO34/Nubank mostrar só 3 de 4 métodos de valuation NÃO É
+   BUG — está na lista `sem_dy_relevante` do `proxy.py`, então o método Bazin (que depende de
+   dividendo) é pulado de propósito para esse ticker. (c) Regressão de vol. simples no ROXO34: não
+   validado (depende de dado ao vivo do dia, não dá pra confirmar via leitura estática de código).
+   Únicos 2 dos 3 subitens fechados; o terceiro fica em aberto até aparecer de novo com dado real.
+
+## 🔴 5.1 — ACHADO DE ARQUITETURA (15/07/2026): `ThreadPoolExecutor` com `shutdown(wait=False)`
+## ainda presente em 6 lugares — PLANO DE CORREÇÃO PARA PRÓXIMA SESSÃO (NÃO EXECUTADO AINDA)
+
+Contexto: o incidente de 07/07/2026 (site travou completamente após deploy do enriquecimento de
+KNCA11) já tinha identificado esse padrão como perigoso no Render (1 worker) e registrado que ele
+"já era usado em outros lugares do código (Carteira ETFs, Carteira FIIs) sem ter causado esse
+problema ainda, mas o risco existe". Essa sessão (15/07) fez um inventário completo confirmando
+que o risco continua lá, nunca foi corrigido nesses outros lugares. Padrão validado como seguro
+(usado no fix real do incidente de 07/07): SEMPRE sequencial, com timeout NATIVO do
+`requests.get(timeout=X)` por chamada (aborta de verdade, não deixa nada rodando depois) + loop
+que se auto-interrompe se o orçamento de tempo total estourar.
+
+### Inventário completo (6 ocorrências do padrão perigoso + 3 do padrão bloqueante relacionado)
+
+**GRUPO A — rodam SÍNCRONO no caminho da requisição (maior risco, prioridade de correção):**
+- `A1`: `proxy.py` `_fetch_etfs_live()` (cache frio) — 2 threads, orçamento 20s. Roda toda vez que
+  o cache expira OU o processo reinicia (Render free tier derruba por inatividade — cold start
+  pode ser mais frequente do que parece). Fix: scrape nacional→americano sequencial, aceitar pior
+  caso mais lento (~12s combinado, ainda dentro do timeout de 30s do frontend).
+- `A2`: `rotas_etfs.py` (~linha 432) — projeção/percentil de ETF, até 8 threads. Roda ao clicar
+  num ativo específico pra ver projeção. Fix: sequencial, mesmo padrão.
+- `A3`: `rotas_fiis.py` (~linha 562) — histórico de TODOS os FIIs ativos em paralelo, até 12
+  threads, orçamento 15s. Roda ao abrir/atualizar Carteira FIIs. Fix: sequencial (mesmo padrão já
+  usado no fix real do KNCA11 em 07/07 — reaproveitar o código, não reinventar).
+
+**GRUPO B — já rodam em THREAD DE BACKGROUND (fora do caminho de requisição), mas ainda usam
+`shutdown(wait=False)` internamente — risco menor mas real de acumular threads órfãs se disparado
+repetidamente (ex: usuário clica "Atualizar" várias vezes seguidas):**
+- `B1`: `proxy.py` `_refresh_completo_background()` — 2 threads, orçamento 20s, disparada pelo
+  botão "Atualizar" de ETFs e pelo ciclo periódico.
+- `B2`: `fontes_etfs.py` `_fetch_etfs_dy_yahoo_bulk()` — 25 threads, orçamento 9s.
+- `B3`: `fontes_etfs.py` `_fetch_etfs_preco_yahoo_bulk()` — 25 threads, orçamento 9s.
+
+**GRUPO C — padrão relacionado mas diferente: `with ThreadPoolExecutor(...) as executor:` SEM
+`shutdown(wait=False)` (bloqueia até TODAS as threads terminarem — risco de 502 por timeout, não
+de travar o processo inteiro, mas mesma família de problema):**
+- `C1`: `proxy.py` linha ~2966
+- `C2`: `rotas_fiis.py` linha ~1032
+- `C3`: `rotas_fiis.py` linha ~1154
+
+### Plano de correção por etapa (próxima sessão — NÃO fazer tudo de uma vez, um item por vez com
+### boot test real antes do próximo)
+
+**Etapa 1 (mais urgente, maior chance de repetir):** corrigir A1 primeiro sozinho — é o que roda
+mais perto do usuário final (primeira carga de ETFs) e o mais fácil de testar isoladamente
+(reaproveita o mesmo padrão sequencial já provado no fix do KNCA11). Commit e validação separados
+dos demais.
+
+**Etapa 2:** A2 e A3, um de cada vez, mesmo padrão. Ambos síncronos no caminho de requisição, mas
+com frequência de uso menor que A1 (cliques específicos do usuário, não toda carga de página).
+
+**Etapa 3:** B1, B2, B3 — já estão fora do caminho de requisição, então menor urgência real, mas
+arrumar para eliminar o risco de acúmulo de threads em cliques repetidos. Fazer por último porque
+o "com" da correção aqui é estender o tempo do refresh em background (de ~9-20s pra potencialmente
+mais, já que fica sequencial) — mas como já roda em background, isso não afeta a resposta ao
+usuário, só demora mais pra atualizar o cache.
+
+**Etapa 4:** C1, C2, C3 (padrão bloqueante) — trocar `with...as executor` por orçamento de tempo
+fixo (`concurrent.futures.wait` + sequencial ou thread pool com timeout monitorado), mesmo
+princípio já formalizado no bug do bulk de DY de ETFs ("nenhuma rota pode depender de fonte
+externa responder pra devolver 200 -- sempre orçamento de tempo + fallback degradado").
+
+**Regra para a próxima sessão:** um item corrigido, testado com boot real (`app.test_client()` +
+mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer refatoração em lote
+— é exatamente esse tipo de mudança ampla de uma vez que já causou o incidente de 07/07.
 5. ~~Backlog de médio/longo prazo~~ — **CONFIRMADO pelo Victor em 15/07/2026** que a lista
    abaixo está corretamente categorizada como "sem trabalho ainda / fora de escopo por ora", sem
    necessidade de ação imediata. Mantido aqui só como registro de contexto, não como pendência
