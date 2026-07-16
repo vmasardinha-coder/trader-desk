@@ -111,10 +111,8 @@ hoje a pedido do Victor). Mudança:
 
 1. **Item 12 do backlog antigo** (documentar/confirmar lógica de % de variação em R$ em Posições
    Ativas) — Victor estava testando, resultado ainda não reportado nesta sessão.
-2. **Item 10 do backlog antigo** (Cotações: expandir/ocultar em "Abertura Mercado EUA"/"Top
-   Bovespa"/Commodities, % Nubank, divergência VIX/DXY) — documento antigo já marcava como
-   "TODOS os subitens resolvidos" em 02/07/2026, mas não foi re-confirmado no código nesta
-   revisão. Verificar se ainda procede antes de assumir 100% fechado.
+2. ~~Item 10 do backlog antigo (Cotações)~~ — **CONFIRMADO FECHADO pelo Victor em 15/07/2026**,
+   sem necessidade de reverificação no código.
 3. **Item 11 do backlog antigo** (Indicadores: lazy load por clique individual, 3 vs 4 métodos de
    valuation em BDRs, regressão vol. simples ROXO34) — mesma situação do item acima: documento
    antigo marca como resolvido, não re-verificado nesta sessão.
@@ -122,7 +120,10 @@ hoje a pedido do Victor). Mudança:
    que já foi resolvido em 02/07/2026 com token válido até 02/07/2027. Aparentemente fechado, mas
    nunca teve uma linha de "CONCLUÍDO" explícita — vale uma confirmação rápida se for mexer em
    variáveis de ambiente do Render de novo.
-5. **Backlog de médio/longo prazo, nunca implementado (registrado, sem trabalho ainda):**
+5. ~~Backlog de médio/longo prazo~~ — **CONFIRMADO pelo Victor em 15/07/2026** que a lista
+   abaixo está corretamente categorizada como "sem trabalho ainda / fora de escopo por ora", sem
+   necessidade de ação imediata. Mantido aqui só como registro de contexto, não como pendência
+   ativa:
    - Bulk foto para watchlist de ETFs (hoje só existe para Papéis)
    - Fan chart GARCH para Carteira de FIIs (viável, reaproveitamento alto, prioridade baixa por
      pedido do próprio Victor)
