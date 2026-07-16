@@ -235,7 +235,10 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
 | 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ❌ Não existe — ETFs hoje só movem direto watchlist→carteira, sem foto | Backlog, sem prioridade definida |
 | 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ❌ Não existe — só vacância >25% foi feita | Backlog, sem prioridade definida |
-| 9 | **5.1 — `ThreadPoolExecutor`+`shutdown(wait=False)`** — Etapa 1 (A1) CORRIGIDA em 15/07/2026 | 🟡 A1 feita e commitada, PENDENTE DE VALIDAÇÃO NO AR; A2/A3/B1-B3/C1-C3 ainda faltam | **Victor** valida A1; **Claude** ataca A2/A3 na próxima |
+| 9 | 5.1 — Etapa 1 (A1, `proxy.py` cold-cache ETFs) | ✅ Corrigida 15/07, Victor testou (carregou devagar na 1a vez, refresh normal) — considerado validado | — |
+| 10 | 🚫 5.1 — Etapa 2, ponto A2 (`rotas_etfs.py`, resumo Carteira ETFs, busca Yahoo em paralelo p/ até 8 tickers) | **NÃO APROVADO — NÃO MEXER, restrição permanente até nova ideia** | Ver ressalva abaixo antes de qualquer tentativa futura |
+| 11 | 5.1 — Etapa 2, ponto A3 (`rotas_fiis.py`, histórico de FIIs ativos) | 📋 Ainda não atacado — Victor pede cuidado extra aqui (foi difícil de acertar da 1a vez) | **Claude** avisa antes de mexer, vai com calma |
+| 12 | 5.1 — Etapas B1-B3, C1-C3 (background + bloqueante) | 📋 Ainda não atacadas | Backlog, sem prioridade imediata |
 | — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
 
 **Regra prática combinada com o Victor (15/07/2026):** sempre que este documento tiver múltiplas
@@ -271,6 +274,28 @@ ThreadPoolExecutor pra ter limite de tempo — o timeout de verdade já existia 
 **Próximo passo (quando o Victor confirmar A1 no ar):** Etapa 2 do plano — A2 (`rotas_etfs.py`,
 projeção/percentil de ETF) e A3 (`rotas_fiis.py`, histórico de FIIs ativos), um de cada vez, mesmo
 padrão sequencial.
+
+## 🚫 RESSALVA PERMANENTE — item 5.1, ponto A2 (`rotas_etfs.py`, ~linha 432) NÃO seguir o
+## padrão sequencial simples das outras Etapas (15/07/2026)
+
+Tentativa avaliada e **descartada nesta sessão, sem chegar a implementar** — Victor pediu
+explicitamente para não tentar de novo sem uma ideia nova, porque essa parte já foi difícil de
+acertar em sessões anteriores.
+
+**Por que não é igual ao A1:** o bloco em `rotas_etfs.py` (`ThreadPoolExecutor(max_workers=min(8,
+len(tickers_com_etf)))`, dentro de `get_etf_carteira_resumo`) busca histórico de preço (Yahoo) de
+até 8 ETFs ao mesmo tempo. O próprio código documenta, com data de 04/07/2026, que essa parte JÁ
+FOI sequencial antes e quebrou: buscar um ticker de cada vez podia passar de 30s com só 2-3
+posições, e o Render matava a conexão no meio — erro real na tela pro usuário
+("Unexpected end of JSON input"). Ou seja, **o paralelo aqui é a correção de um bug real, não o
+problema em si**. Aplicar o mesmo conserto do A1 (virar sequencial) desfaria essa correção e
+traria de volta o erro antigo.
+
+**Decisão tomada:** conviver com a restrição por ora. NÃO mexer nesse ponto específico até
+alguém (Victor ou uma sessão futura) trazer uma ideia genuinamente diferente — ex: paralelo mas
+com um jeito mais seguro de garantir que as threads que sobrarem realmente parem, ou reduzir
+quantos tickers buscam ao mesmo tempo, ou trocar a fonte de dado pra uma que responda mais rápido.
+Sem pressa, sem tentativa às cegas de novo.
 
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
