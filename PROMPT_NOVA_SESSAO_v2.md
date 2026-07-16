@@ -221,6 +221,30 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
    desde a correção do investidor10), mas causa raiz nunca foi confirmada. Só investigar se
    voltar a aparecer.
 
+## 🎯 TABELA MESTRE DE PENDÊNCIAS (15/07/2026) — FONTE ÚNICA DE VERDADE
+## (se qualquer outra lista deste documento divergir desta tabela, ESTA tabela vale mais —
+## é a mais recente e foi revisada em tela com o Victor)
+
+| # | Item | Status | Quem testa/faz |
+|---|------|--------|----------------|
+| 1 | Botão Encerrar em ETFs | ✅ Fechado — validado ao vivo pelo Victor | — |
+| 2 | "Em Análise" de ETFs movido pra aba única (#tab-emanalise) | 🟡 Implementado, commitado, NUNCA testado ao vivo | **Victor** |
+| 3 | Item 12 antigo — lógica de % de variação em R$ (Posições Ativas) | 🟡 Victor testando, resultado ainda não reportado | **Victor** |
+| 4 | Vol. simples ROXO34 (regressão, dentro do antigo item 11) | ⚪ Só valida com dado real do dia, não dá pra confirmar por leitura de código | **Victor** (quando aparecer de novo) |
+| 5 | Bulk foto para watchlist de ETFs | ❌ Não existe (só existe pra Papéis/ações) | Backlog, sem prioridade definida |
+| 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
+| 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ❌ Não existe — ETFs hoje só movem direto watchlist→carteira, sem foto | Backlog, sem prioridade definida |
+| 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ❌ Não existe — só vacância >25% foi feita | Backlog, sem prioridade definida |
+| 9 | **5.1 — `ThreadPoolExecutor`+`shutdown(wait=False)` (site trava ocasionalmente)** | 📋 Investigado, inventariado (6+3 ocorrências), plano de correção por etapa já escrito abaixo | **Claude** ataca na próxima sessão, Etapa 1 primeiro |
+| — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
+
+**Regra prática combinada com o Victor (15/07/2026):** sempre que este documento tiver múltiplas
+listas de pendência espalhadas (uma seção "EM ABERTO" antiga, um "backlog de longo prazo", etc.),
+a tabela acima é que manda. Nas próximas sessões, ao invés de escrever uma lista de prosa nova,
+ATUALIZAR esta tabela diretamente (mudar status, adicionar linha, riscar o que fechou) — não
+duplicar em outro lugar do arquivo. Isso é o que estava causando confusão de numeração/versões
+divergentes nesta sessão.
+
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
 Sou o Claude continuando o desenvolvimento do Trader Desk com o Victor. Antes de qualquer coisa:
