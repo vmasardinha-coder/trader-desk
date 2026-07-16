@@ -4631,23 +4631,39 @@ def _fetch_etfs_live(forcar=False):
         _disparar_refresh_background()
         return _cache_etfs_live['dados']
 
-    # Cache frio (primeiro load desde o deploy): faz UM scrape com
-    # orcamento de tempo limitado (paralelo, nacional+americano ao mesmo
-    # tempo, ~20s no pior caso em vez de ~30s sequencial), pra nao devolver
-    # tela vazia no primeiro acesso. Ciclos seguintes usam o cache.
-    ex = ThreadPoolExecutor(max_workers=2)
+    # Cache frio (primeiro load desde o deploy, ou apos o processo dormir
+    # no free tier do Render): faz o scrape SEQUENCIAL, nao paralelo.
+    #
+    # CORRIGIDO 15/07/2026 (item 5.1, Etapa 1 do plano registrado em
+    # PROMPT_NOVA_SESSAO_v2.md): ate 15/07 este bloco usava
+    # ThreadPoolExecutor(max_workers=2) + ex.shutdown(wait=False) -- o
+    # MESMO padrao que ja causou o travamento total do site em 07/07/2026
+    # (incidente do enriquecimento de KNCA11). O risco aqui: threads que
+    # nao terminam a tempo continuam rodando OFF do caminho de resposta,
+    # mas ainda consumindo o UNICO processo/worker do Render, competindo
+    # com as proximas requisicoes. Como este bloco roda toda vez que o
+    # cache expira OU o processo acorda depois de dormir por inatividade
+    # (comum no free tier), a frequencia real e maior do que parece.
+    #
+    # Fix: chamadas sequenciais. Cada scraper ja tem timeout NATIVO por
+    # pagina (requests.get(timeout=6) dentro de
+    # _scrape_investidor10_etfs_nacional/americano, fontes_etfs.py) --
+    # ou seja, nao precisa de ThreadPoolExecutor pra ter um limite de
+    # tempo, o timeout de verdade ja existe por chamada HTTP individual.
+    # Pior caso agora: 3 paginas nacional x 6s + 2 paginas americano x 6s
+    # = ate 30s (era ~20s em paralelo). Mais lento no pior caso, mas SEM
+    # thread orfa nenhuma -- o request termina, ponto final, nada fica
+    # rodando depois. Frontend (loadETFs em app.js) nao tem timeout
+    # proprio nessa chamada, entao nao ha risco de corte prematuro.
+    live = {}
     try:
-        fut_nac = ex.submit(_scrape_investidor10_etfs_nacional, 3)
-        fut_ame = ex.submit(_scrape_investidor10_etfs_americano, 2)
-        prontos, pendentes = _cf_wait([fut_nac, fut_ame], timeout=20)
-        live = {}
-        for fut in prontos:
-            try:
-                live.update(fut.result())
-            except Exception:
-                continue
-    finally:
-        ex.shutdown(wait=False)
+        live.update(_scrape_investidor10_etfs_nacional(3))
+    except Exception:
+        pass
+    try:
+        live.update(_scrape_investidor10_etfs_americano(2))
+    except Exception:
+        pass
 
     _cache_etfs_live['dados'] = live
     _cache_etfs_live['ts'] = agora
