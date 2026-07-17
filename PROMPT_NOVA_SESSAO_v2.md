@@ -241,7 +241,7 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 12 | 5.1 — B1, parte 1 (`proxy.py`, scrape investidor10 nacional+americano dentro de `_refresh_completo_background()`) | ✅ Corrigida 15/07/2026 — virou sequencial (2 chamadas, mesmo padrão do A1), PENDENTE DE VALIDAÇÃO NO AR | **Victor** valida no próximo ciclo/clique em "Atualizar" |
 | 13 | 🚫 5.1 — B2 (`fontes_etfs.py`, `_fetch_etfs_dy_yahoo_bulk()`, ~68 tickers, 25 threads) | **MANTIDO como está — decisão do Victor 15/07/2026**: sequencial levaria minutos (68 tickers), atraso desproporcional; disparo duplicado já é evitado pela trava `_dy_refresh_em_andamento` | — |
 | 14 | 🚫 5.1 — B3 (`fontes_etfs.py`, `_fetch_etfs_preco_yahoo_bulk()`, ~68 tickers, 25 threads) | **MANTIDO como está — mesma decisão do B2** | — |
-| 15 | 5.1 — C1 (`/us/concentracao`, marketcap de ações US, 7-10 tickers, 8 threads) | ✅ Corrigido 15/07/2026 — virou orçamento de tempo (budget 20s), PENDENTE DE VALIDAÇÃO NO AR | **Victor** valida ao abrir a tela de concentração US |
+| 15 | 5.1 — C1 (`/us/concentracao`, marketcap de ações US) | ✅ Corrigido E TESTADO AO VIVO pelo Victor em 15/07/2026 | — |
 | 16 | 5.1 — C2 (`rotas_fiis.py` ~1032, `/fiis/universo-complementar`, lotes de 10, bloqueante) | 📋 Ainda não atacado — mesmo tipo de risco do C1, em vários lotes seguidos | Backlog, prioridade média |
 | 17 | 5.1 — C3 (`rotas_fiis.py` ~1154, dados FI-Infra, `with...as executor`, 8 threads) | 📋 Ainda não atacado — mesmo tipo de risco do C1 | Backlog, prioridade média |
 | — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
