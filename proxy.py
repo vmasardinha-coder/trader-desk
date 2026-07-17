@@ -1123,9 +1123,24 @@ def run_montecarlo_condicional():
                 tocou_baixa_full = min_full <= kdo
                 tocou_alta_full = max_full >= kuo
                 variacao_full = (ST_full / preco_foto - 1)
+                # CORRIGIDO 15/07/2026 (achado pelo Victor comparando com o
+                # material publicitario oficial do Itau para AXIA3): a
+                # alavancagem SO se aplica na ALTA. Na baixa, o retorno e
+                # proporcional 1:1 (nao multiplicado por 'alavancagem'). O
+                # PDF oficial confirma: -10% de variacao -> -10%(ou +10%
+                # dependendo do sentido "positivo na queda") de retorno,
+                # nao -10%*1.3. Antes desta correcao, o codigo aplicava
+                # variacao_full*alavancagem para QUALQUER sinal (dentro do
+                # range), inflando incorretamente o resultado projetado na
+                # baixa tambem. Confirmado com 2 boletos reais (AXIA3-A e
+                # AXIA3-B) + planilha de opcoes do usuario (proporcao 2
+                # PUTs pra cada 1 acao -- e o que faz o liquido dar 1:1,
+                # nao 2:1).
                 retorno_full = np.where(tocou_baixa_full, 0.0,
                                   np.where(tocou_alta_full, teto_retorno,
-                                  variacao_full * alavancagem))
+                                  np.where(variacao_full >= 0,
+                                           variacao_full * alavancagem,
+                                           variacao_full)))
                 faixas = {
                     'menor_que_0': round(float((retorno_full < 0).mean() * 100), 2),
                     'entre_0_e_1': round(float(((retorno_full >= 0) & (retorno_full < 0.01)).mean() * 100), 2),
@@ -1732,8 +1747,14 @@ def run_montecarlo_posicao_ativa():
                 ST_full = paths_full[:,-1]
                 tocou_baixa_full = min_full <= kdo; tocou_alta_full = max_full >= kuo
                 variacao_full = (ST_full/preco_entrada - 1)
+                # CORRIGIDO 15/07/2026 -- mesma correcao do bloco identico
+                # em /montecarlo/condicional acima (ver comentario la para
+                # o contexto completo): alavancagem so na alta, baixa 1:1.
                 retorno_full = np.where(tocou_baixa_full, 0.0,
-                                  np.where(tocou_alta_full, teto_retorno, variacao_full*alavancagem))
+                                  np.where(tocou_alta_full, teto_retorno,
+                                  np.where(variacao_full >= 0,
+                                           variacao_full*alavancagem,
+                                           variacao_full)))
                 faixas = {
                     'menor_que_0': round(float((retorno_full<0).mean()*100), 2),
                     'entre_0_e_1': round(float(((retorno_full>=0)&(retorno_full<0.01)).mean()*100), 2),
