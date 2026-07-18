@@ -336,6 +336,49 @@ esperando indefinidamente).
 Infra) -- mesmo tipo de correção do C1 (orçamento de tempo em vez de espera sem limite), ainda não
 atacados.
 
+## 🐛 BUG REAL CORRIGIDO (15/07/2026) — Motor bidirecional aplicava alavancagem errada
+## na baixa (achado durante análise da posição AXIA3, fora do plano original da sessão)
+
+**Contexto:** Victor trouxe uma dúvida real sobre se valia encerrar a AXIA3(A) (venc 14/09/2026)
+antecipadamente. Durante a análise comparando os números do app com os PDFs oficiais do Itaú
+(material publicitário "Operações Estruturadas: Bidirecional" para AXIA3-A e AXIA3-B), foi
+identificado que o motor de cálculo (`proxy.py`, usado em `/montecarlo/condicional` e na Foto do
+Papel de estruturas bidirecionais) aplicava a alavancagem (`alavancagem`, ex: 1,3x) **também na
+baixa**, quando na verdade essa mecânica (confirmada pelos dois PDFs oficiais, tabela de
+rentabilidade no vencimento) é:
+- **Alta:** alavancada (`variacao × alavancagem`) até a barreira, depois trava no teto fixo
+- **Baixa:** "positiva na baixa" — `retorno = -variacao` (1:1, SEM alavancagem, com o SINAL
+  invertido porque a estrutura ganha quando o papel cai), até a barreira, depois zera (protegido,
+  nem ganha nem perde)
+
+**Duas correções foram necessárias na mesma sessão** (a 1ª ficou incompleta):
+1. Removida a alavancagem da baixa (`variacao_full` em vez de `variacao_full*alavancagem`)
+2. **Corrigido o SINAL** (`-variacao_full` em vez de `variacao_full`) -- a 1ª tentativa não
+   invertia o sinal, o que geraria retorno NEGATIVO numa queda quando deveria ser POSITIVO. Só foi
+   pego porque o teste de validação foi refeito contra TODOS os 7 pontos da tabela oficial do PDF
+   (incluindo os casos de barreira tocada), não só alguns pontos soltos.
+
+**Validado:** fórmula final bate 100% com os 7 pontos da tabela "Quadro de Rentabilidade no
+Vencimento" de ambos os PDFs oficiais (AXIA3-A 15/05/2026 e AXIA3-B 03/06/2026), incluindo os 2
+cenários de barreira tocada.
+
+**Impacto real:** esse bug afetava QUALQUER estrutura bidirecional cadastrada com o formato
+`alavancagem`+`teto_retorno_pct`+`kdo`+`kuo` -- ou seja, as duas posições AXIA3 ativas (A e B), e
+qualquer bidirecional futura do mesmo tipo. Antes da correção, o "Fica dentro do range" da AXIA3(A)
+mostrava +R$51,61/100 ações; depois, +R$550,52/100 ações -- diferença de mais de 10x, porque a
+maior parte do ganho real vem da queda protegida (1:1), que antes estava sendo tratada quase como
+zero.
+
+**Regra permanente estabelecida com o Victor:** estruturas bidirecionais e de retorno controlado
+sempre virão acompanhadas do PDF oficial do banco (material publicitário) ou da tabela de
+rentabilidade na hora de cadastrar/fotografar -- nunca cadastrar só de memória ou estimativa.
+Estruturas mais simples (call/put simples) não precisam disso.
+
+**Não verificado ainda:** se alguma outra posição além de AXIA3(A)/AXIA3(B) usa esse mesmo motor
+(ex: VALE3, PETR4, ROXO34, BBAS3 são bidirecionais do Itaú também, mas com premissas diferentes --
+verificar se algum tem mecânica assimétrica parecida e se os PDFs originais delas já foram usados
+para conferir os parâmetros cadastrados).
+
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
 Sou o Claude continuando o desenvolvimento do Trader Desk com o Victor. Antes de qualquer coisa:
