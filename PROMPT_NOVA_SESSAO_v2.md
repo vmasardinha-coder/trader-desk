@@ -231,8 +231,8 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 2 | "Em Análise" de ETFs movido pra aba única (#tab-emanalise) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
 | 3 | Item 12 antigo — lógica de % de variação em R$ (Posições Ativas) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
 | 4 | Vol. simples ROXO34 (regressão, dentro do antigo item 11) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
-| 5 | Bulk foto para watchlist de ETFs | ❌ Não existe (só existe pra Papéis/ações) | Backlog, sem prioridade definida |
-| 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
+| 5 | ~~Bulk foto para watchlist de ETFs~~ | ✅ **DESCARTADO em 15/07/2026 — Victor avaliou e decidiu que não vale a pena**: ETFs são pouco voláteis, decisão de Em Análise→Carteira já é guiada pelo ranking/score, não por simulação de Monte Carlo | — |
+| 6 | ~~Fan chart GARCH — Carteira de FIIs~~ | ✅ **DESCARTADO em 15/07/2026 — mesma razão do item 5**: fator de decisão de Carteira é o ranking, não simulação agregada | — |
 | 7 | ~~Fluxo completo Em Análise→Ativas→Encerradas pra ETFs~~ | ✅ **FECHADO em 15/07/2026 — Victor confirmou que o fluxo simples (mover + Encerrar) já é suficiente**, não precisa do conceito de "foto"/probabilidade condicional pra ETFs | — |
 | 8 | ~~Limpeza de base de FIIs (PL, idade, cotistas, alavancagem, etc.)~~ | ✅ **FECHADO em 15/07/2026 — Victor confirmou que vacância >25% já é o critério suficiente**, não precisa dos critérios adicionais | — |
 | 9 | 5.1 — A1 (`proxy.py`, cache frio de ETFs, cold-start) | ✅ Corrigida 15/07/2026, testada por Victor (carregou devagar na 1a vez, refresh normal) | — |
@@ -242,8 +242,8 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 13 | 🚫 5.1 — B2 (`fontes_etfs.py`, `_fetch_etfs_dy_yahoo_bulk()`, ~68 tickers, 25 threads) | **MANTIDO como está — decisão do Victor 15/07/2026**: sequencial levaria minutos (68 tickers), atraso desproporcional; disparo duplicado já é evitado pela trava `_dy_refresh_em_andamento` | — |
 | 14 | 🚫 5.1 — B3 (`fontes_etfs.py`, `_fetch_etfs_preco_yahoo_bulk()`, ~68 tickers, 25 threads) | **MANTIDO como está — mesma decisão do B2** | — |
 | 15 | 5.1 — C1 (`/us/concentracao`, marketcap de ações US) | ✅ Corrigido E TESTADO AO VIVO pelo Victor em 15/07/2026 | — |
-| 16 | 5.1 — C2 (`rotas_fiis.py` ~1032, `/fiis/universo-complementar`, lotes de 10, bloqueante) | 📋 Ainda não atacado — mesmo tipo de risco do C1, em vários lotes seguidos | Backlog, prioridade média |
-| 17 | 5.1 — C3 (`rotas_fiis.py` ~1154, dados FI-Infra, `with...as executor`, 8 threads) | 📋 Ainda não atacado — mesmo tipo de risco do C1 | Backlog, prioridade média |
+| 16 | 🚫 5.1 — C2 (`rotas_fiis.py` ~1032, `/fiis/universo-complementar`) | **MANTIDO como está — decisão do Victor 15/07/2026**, mesma categoria do A2/A3 (aceita o risco, não corrigido) | — |
+| 17 | 🚫 5.1 — C3 (`rotas_fiis.py` ~1154, dados FI-Infra) | **MANTIDO como está — mesma decisão do C2** | — |
 | — | Cotações/Indicadores público, bot de futuros automatizado | 🚫 Fora de escopo ativo, não é pendência | — |
 
 **Regra prática combinada com o Victor (15/07/2026):** sempre que este documento tiver múltiplas
