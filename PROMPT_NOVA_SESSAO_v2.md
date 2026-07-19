@@ -233,8 +233,8 @@ mocks) E confirmado no ar pelo Victor ANTES de passar pro próximo. Não fazer r
 | 4 | Vol. simples ROXO34 (regressão, dentro do antigo item 11) | ✅ Fechado — **APROVADO pelo Victor em 15/07/2026** | — |
 | 5 | Bulk foto para watchlist de ETFs | ❌ Não existe (só existe pra Papéis/ações) | Backlog, sem prioridade definida |
 | 6 | Fan chart GARCH — Carteira de FIIs | ❌ Não existe | Backlog, sem prioridade definida |
-| 7 | Fluxo completo Em Análise→Ativas→Encerradas pra ETFs (conceito de "foto"/probabilidade condicional, igual FIIs/Papéis) | ⚪ Não existe no código, mas Victor JÁ DISCUTIU e decidiu manter como backlog (não é pendência esquecida) | — |
-| 8 | Limpeza de base de FIIs (PL mínimo, idade do fundo, concentração de cotistas, cotação congelada, consistência de dividendo, alavancagem) | ⚪ Não existe no código (só vacância >25% foi feita), mas Victor JÁ DISCUTIU e decidiu manter como backlog | — |
+| 7 | ~~Fluxo completo Em Análise→Ativas→Encerradas pra ETFs~~ | ✅ **FECHADO em 15/07/2026 — Victor confirmou que o fluxo simples (mover + Encerrar) já é suficiente**, não precisa do conceito de "foto"/probabilidade condicional pra ETFs | — |
+| 8 | ~~Limpeza de base de FIIs (PL, idade, cotistas, alavancagem, etc.)~~ | ✅ **FECHADO em 15/07/2026 — Victor confirmou que vacância >25% já é o critério suficiente**, não precisa dos critérios adicionais | — |
 | 9 | 5.1 — A1 (`proxy.py`, cache frio de ETFs, cold-start) | ✅ Corrigida 15/07/2026, testada por Victor (carregou devagar na 1a vez, refresh normal) | — |
 | 10 | 🚫 5.1 — A2 (`rotas_etfs.py`, `/etfs/carteira/resumo`, Yahoo em paralelo p/ até 8 tickers) | **FORA — mesma categoria do A3, não mexer, restrição permanente** | Ver ressalva abaixo |
 | 11 | 🚫 5.1 — A3 (`rotas_fiis.py`, `/carteira-fiis/resumo`, Yahoo em paralelo p/ até 12 FIIs) | **FORA — mesmo aviso explícito no código: já foi sequencial, quebrou (Render cortava resposta). Tem cache diário, roda de verdade só 1x/dia** | Ver ressalva abaixo |
