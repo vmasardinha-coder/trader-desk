@@ -1064,7 +1064,7 @@ def run_montecarlo_condicional():
                 res['prob_put_exercida'] = round(float(put_ex.mean() * 100), 2)
                 res['prob_sucesso'] = round(float((~put_ex).mean() * 100), 2)
                 res['exercicio'] = exercicio
-        if kdo is not None and kuo is not None:
+        if kuo is not None:
             # Para barreira, precisamos do caminho completo, nao so do ponto final —
             # roda uma simulacao de trajetoria (steps diarios) so para esse caso
             steps = max(dias_restantes, 1)
@@ -1076,7 +1076,14 @@ def run_montecarlo_condicional():
             max_p = np.max(paths, axis=1)
             min_p = np.min(paths, axis=1)
             kuo_hit = max_p >= kuo
-            kdo_hit = min_p <= kdo
+            # CORRIGIDO 15/07/2026 -- suporte a kdo=None (estrutura
+            # "Protecao Total", sem barreira de baixa nenhuma): antes,
+            # esse bloco inteiro exigia kdo != None, entao a secao 1
+            # inteira (probabilidades) sumia da tela pra essa estrutura --
+            # so achado porque o Victor reportou que faltavam as secoes 2
+            # e 3 tambem (mesma causa raiz, blocos diferentes). Com kdo
+            # None, a barreira de baixa nunca toca (prob=0%).
+            kdo_hit = (min_p <= kdo) if kdo is not None else np.zeros_like(min_p, dtype=bool)
             no_barrier = ~kuo_hit & ~kdo_hit
             res['prob_sem_barreira'] = round(float(no_barrier.mean() * 100), 2)
             res['prob_barreira_alta'] = round(float(kuo_hit.mean() * 100), 2)
@@ -1163,7 +1170,7 @@ def run_montecarlo_condicional():
         tocou_baixa_full = None
         tocou_alta_full = None
         teto_retorno = None
-        if alavancagem is not None and teto_retorno_pct is not None and kdo is not None and kuo is not None:
+        if alavancagem is not None and teto_retorno_pct is not None and kuo is not None:
             try:
                 alavancagem = float(alavancagem)
                 teto_retorno = float(teto_retorno_pct) / 100
@@ -1216,7 +1223,7 @@ def run_montecarlo_condicional():
                     paths_cond = S * np.exp(np.cumsum(drift_fan + vol_step_fan * z_cond, axis=1))
                     max_cond = np.max(paths_cond, axis=1)
                     min_cond = np.min(paths_cond, axis=1)
-                    tocou_baixa_cond = min_cond <= kdo
+                    tocou_baixa_cond = (min_cond <= kdo) if kdo is not None else np.zeros_like(min_cond, dtype=bool)
                     tocou_alta_cond = max_cond >= kuo
                     res['prob_sem_barreira_condicional'] = round(float((~tocou_baixa_cond & ~tocou_alta_cond).mean() * 100), 2)
                     res['prob_barreira_baixa_condicional'] = round(float(tocou_baixa_cond.mean() * 100), 2)
@@ -1685,7 +1692,8 @@ def run_montecarlo_posicao_ativa():
 
         # Probabilidades de barreira (mesma logica do /montecarlo/condicional,
         # mas com tempo RESTANTE a partir do preco ATUAL, nao do preco_entrada)
-        if kdo is not None and kuo is not None and dias_restantes > 0:
+        # CORRIGIDO 15/07/2026 -- suporte a kdo=None (Protecao Total).
+        if kuo is not None and dias_restantes > 0:
             n = 5000
             dt2 = 1/252.0
             drift2 = -0.5*sigma**2*dt2
@@ -1693,7 +1701,8 @@ def run_montecarlo_posicao_ativa():
             z2 = np.random.standard_normal((n, dias_restantes))
             paths = S*np.exp(np.cumsum(drift2+vol_step2*z2, axis=1))
             max_p = np.max(paths, axis=1); min_p = np.min(paths, axis=1)
-            kuo_hit = max_p >= kuo; kdo_hit = min_p <= kdo
+            kuo_hit = max_p >= kuo
+            kdo_hit = (min_p <= kdo) if kdo is not None else np.zeros_like(min_p, dtype=bool)
             no_barrier = ~kuo_hit & ~kdo_hit
             res['prob_sem_barreira'] = round(float(no_barrier.mean()*100), 2)
             res['prob_barreira_alta'] = round(float(kuo_hit.mean()*100), 2)
@@ -1785,7 +1794,7 @@ def run_montecarlo_posicao_ativa():
         retorno_full = None; tocou_baixa_full = None; tocou_alta_full = None; teto_retorno = None
         retorno_full2 = None; tocou_barreira2 = None; variacao_full2 = None; ganho_prefixado = None
 
-        if alavancagem is not None and teto_retorno_pct is not None and kdo is not None and kuo is not None:
+        if alavancagem is not None and teto_retorno_pct is not None and kuo is not None:
             try:
                 alavancagem = float(alavancagem)
                 teto_retorno = float(teto_retorno_pct)/100
@@ -1794,7 +1803,11 @@ def run_montecarlo_posicao_ativa():
                 paths_full = preco_entrada*np.exp(np.cumsum(drift_fan+vol_step_fan*z_full, axis=1))
                 max_full = np.max(paths_full, axis=1); min_full = np.min(paths_full, axis=1)
                 ST_full = paths_full[:,-1]
-                tocou_baixa_full = min_full <= kdo; tocou_alta_full = max_full >= kuo
+                # CORRIGIDO 15/07/2026 -- suporte a kdo=None (Protecao
+                # Total), mesmo motivo do bloco identico em
+                # /montecarlo/condicional.
+                tocou_baixa_full = (min_full <= kdo) if kdo is not None else None
+                tocou_alta_full = max_full >= kuo
                 variacao_full = (ST_full/preco_entrada - 1)
                 # CORRIGIDO 15/07/2026 -- delega pra funcao unica
                 # _retorno_bidirecional_full (ver docstring dela, topo do
