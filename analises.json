@@ -3650,7 +3650,9 @@
     "origem": "pronta",
     "status": "em_analise",
     "backtest": false,
-    "observacao": "PDF Itau 'Operacoes Estruturadas: Protecao Total', Material Publicitario 20/07/2026, venc 20/01/2027 (184 dias). Barreira de alta +21% (KUO), alavancagem 1,50x, teto 4,00% fixo (8,16% a.a.) se tocar barreira. Ganho maximo sem tocar barreira: 31,50% (5,25%/mes). ATENCAO: essa estrutura tem PROTECAO TOTAL INCONDICIONAL na queda (nunca perde, qualquer desvalorizacao) -- SEM barreira de baixa/KDO. O motor kdo/kuo do app nao modela esse caso (kdo=None aqui); tratar resultado do Monte Carlo/foto com cautela ate confirmar que o codigo trata kdo=None como 'sempre protegido, nunca zera' -- NAO validado ainda."
+    "observacao": "PDF Itau 'Operacoes Estruturadas: Protecao Total', Material Publicitario 20/07/2026, venc 20/01/2027 (184 dias). Barreira de alta +21% (KUO), alavancagem 1,50x, teto 4,00% fixo (8,16% a.a.) se tocar barreira. Ganho maximo sem tocar barreira: 31,50% (5,25%/mes). Protecao INCONDICIONAL na queda (kdo=None, sem barreira de baixa nenhuma) -- downside_antes='protegida' -> retorno=0% em qualquer desvalorizacao, conforme tabela oficial do PDF. CORRIGIDO 15/07/2026: funcao unica _retorno_bidirecional_full (proxy.py) agora suporta esse caso no RANKING (/posicoes/ranking/<tipo>), validado contra a tabela oficial. AINDA NAO validado no Monte Carlo Condicional / Foto do Papel (esses 2 endpoints exigem kdo != None por enquanto -- proxima etapa se for tirar a foto desta estrutura de verdade).",
+    "downside_antes": "protegida",
+    "downside_apos": "protegida"
   },
   {
     "id": "an_1784560889",
@@ -3667,7 +3669,9 @@
     "origem": "pronta",
     "status": "em_analise",
     "backtest": false,
-    "observacao": "PDF Itau 'Operacoes Estruturadas: Bidirecional', Material Publicitario 20/07/2026, venc 18/11/2026 (121 dias). Barreira alta +28% (KUO), barreira baixa -20% (KDO), alavancagem 1,30x na alta, teto 4,00% fixo se tocar KUO. Na baixa (dentro do range): positivo 1,0x a queda (mesma mecanica corrigida hoje no motor, AXIA3-A/B). Ganho maximo sem tocar barreira: 36,40% (9,1%/mes) -- maior potencial mensal das 3 opcoes deste lote. Mesma mecanica ja validada e corrigida no proxy.py (alavancagem so na alta, -variacao na baixa) -- deve calcular certo direto."
+    "observacao": "PDF Itau 'Operacoes Estruturadas: Bidirecional', Material Publicitario 20/07/2026, venc 18/11/2026 (121 dias). Barreira alta +28% (KUO), barreira baixa -20% (KDO), alavancagem 1,30x na alta, teto 4,00% fixo se tocar KUO. Na baixa (dentro do range): positivo 1,0x a queda (downside_antes='positiva'), zera se tocar KDO (downside_apos='protegida') -- mesma mecanica das AXIA3(A)/(B) ja existentes. Ganho maximo sem tocar barreira: 36,40% (9,1%/mes) -- maior potencial mensal das 3 opcoes deste lote. Motor validado nos 3 locais (condicional/posicao_ativa/ranking).",
+    "downside_antes": "positiva",
+    "downside_apos": "protegida"
   },
   {
     "id": "an_1784560890",
@@ -3684,6 +3688,8 @@
     "origem": "pronta",
     "status": "em_analise",
     "backtest": false,
-    "observacao": "PDF Itau 'Operacoes Estruturadas: Protecao Parcial', Material Publicitario 20/07/2026, venc 18/11/2026 (121 dias). Barreira alta +18,5% (KUO), barreira baixa -15% (KDO), alavancagem 1,50x na alta, teto 18,50% se tocar KUO (bem mais alto que as outras 2 -- nao trava tao baixo numa alta forte). ATENCAO: essa estrutura NAO tem protecao/ganho positivo na baixa como a Bidirecional -- entre 0 e -15% fica PROTEGIDO (0%, nao positivo), e ABAIXO de -15% perde integralmente igual acao pura (nao e so 'zera', e prejuizo real proporcional). O motor atual (kdo/kuo) modela isso como: dentro do range=0 seria o esperado SE nao tivermos corrigido a baixa como positiva -- CONFERIR se o codigo atual (que agora sempre inverte sinal na baixa) da conta desse caso ou se vai mostrar ganho positivo errado entre 0 e -15% (deveria ser 0, nao positivo, nessa estrutura especifica). Ganho maximo sem tocar barreira: 27,75% (6,94%/mes)."
+    "observacao": "PDF Itau 'Operacoes Estruturadas: Protecao Parcial', Material Publicitario 20/07/2026, venc 18/11/2026 (121 dias). Barreira alta +18,5% (KUO), barreira baixa -15% (KDO), alavancagem 1,50x na alta, teto 18,50% se tocar KUO (bem mais alto que as outras 2). Mecanica de queda DIFERENTE das outras duas: entre 0 e -15% fica PROTEGIDA (0%, downside_antes='protegida', nao positiva); abaixo de -15% perde INTEGRALMENTE, igual acao pura (downside_apos='perda_integral', sem protecao nenhuma). CORRIGIDO 15/07/2026: funcao unica _retorno_bidirecional_full (proxy.py) agora suporta essa 3a variante de mecanica, validada nos 3 locais (condicional/posicao_ativa/ranking) contra a tabela oficial do PDF. Ganho maximo sem tocar barreira: 27,75% (6,94%/mes).",
+    "downside_antes": "protegida",
+    "downside_apos": "perda_integral"
   }
 ]
