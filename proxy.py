@@ -154,6 +154,59 @@ except ImportError:
     _NUMPY = False
 
 app = Flask(__name__)
+
+def _retorno_bidirecional_full(variacao_full, tocou_alta_full, tocou_baixa_full,
+                                teto_retorno, alavancagem,
+                                downside_antes='positiva', downside_apos='protegida'):
+    """
+    ADICIONADO 15/07/2026 -- funcao UNICA e compartilhada pro payoff de
+    estruturas bidirecionais/protecao Itau, usada nos 3 lugares do codigo
+    que fazem esse calculo (/montecarlo/condicional, /montecarlo/
+    posicao_ativa, /posicoes/ranking/<tipo>). Antes desta funcao, a mesma
+    logica estava duplicada em 3 lugares -- e isso ja causou um bug real
+    nesta sessao (corrigi 2 dos 3 lugares e esqueci o 3o, so achado
+    quando o Victor reportou "tipo nao suportado" no ranking). Daqui pra
+    frente, qualquer correcao de mecanica bidirecional muda so aqui.
+
+    Modelo (confirmado contra 5 PDFs oficiais Itau -- AXIA3 Bidirecional
+    x2, Protecao Total, Protecao Parcial):
+    - Alta: sempre alavancada (variacao*alavancagem) ate tocar a barreira
+      de alta (kuo), depois trava no teto_retorno fixo.
+    - Baixa ANTES de tocar a barreira de baixa (kdo), controlado por
+      downside_antes:
+        'positiva'  -> retorno = -variacao (GANHA com a queda, 1:1) --
+                       mecanica das AXIA3(A)/(B) bidirecionais existentes
+                       e da nova "Bidirecional" 20/07/2026.
+        'protegida' -> retorno = 0 (nem ganha nem perde) -- mecanica da
+                       "Protecao Parcial" 20/07/2026.
+    - Baixa DEPOIS de tocar kdo (barreira estourada), controlado por
+      downside_apos:
+        'protegida'     -> retorno = 0 (zera, nao perde mais nada) --
+                            mecanica das AXIA3(A)/(B) e "Bidirecional".
+        'perda_integral' -> retorno = variacao (perda real, igual acao
+                            pura, SEM protecao nenhuma) -- mecanica da
+                            "Protecao Parcial".
+    - Se tocou_baixa_full for None (estrutura sem barreira de baixa
+      nenhuma, ex "Protecao Total" -- kdo=None), a baixa NUNCA toca
+      barreira; usa sempre downside_antes pra qualquer variacao negativa.
+      Para "Protecao Total" o correto e' downside_antes='protegida'
+      (capital 100% protegido em qualquer queda, conforme o PDF).
+    """
+    import numpy as np
+    alta = np.where(tocou_alta_full, teto_retorno, variacao_full * alavancagem)
+    if downside_antes == 'protegida':
+        baixa_antes = np.zeros_like(variacao_full)
+    else:
+        baixa_antes = -variacao_full
+    lado_alta_ou_baixa_antes = np.where(variacao_full >= 0, alta, baixa_antes)
+    if tocou_baixa_full is None:
+        return lado_alta_ou_baixa_antes
+    if downside_apos == 'perda_integral':
+        baixa_apos = variacao_full
+    else:
+        baixa_apos = np.zeros_like(variacao_full)
+    return np.where(tocou_baixa_full, baixa_apos, lado_alta_ou_baixa_antes)
+
 _IND_CACHE = {}
 _BTC_CACHE = {}   # cache BTC indicators e cycle
 CORS(app)
@@ -1120,27 +1173,23 @@ def run_montecarlo_condicional():
                 max_full = np.max(paths_full, axis=1)
                 min_full = np.min(paths_full, axis=1)
                 ST_full = paths_full[:, -1]
-                tocou_baixa_full = min_full <= kdo
+                tocou_baixa_full = min_full <= kdo if kdo is not None else None
                 tocou_alta_full = max_full >= kuo
                 variacao_full = (ST_full / preco_foto - 1)
-                # CORRIGIDO 15/07/2026 (achado pelo Victor comparando com o
-                # material publicitario oficial do Itau para AXIA3, 2
-                # boletos reais): a alavancagem SO se aplica na ALTA. Na
-                # baixa, a estrutura e "participa POSITIVAMENTE da queda"
-                # -- ou seja, retorno = -variacao (POSITIVO quando o papel
-                # cai), proporcional 1:1, NAO variacao*alavancagem.
-                # CORRECAO DE SINAL 15/07/2026 (2a correcao, mesma sessao):
-                # a 1a tentativa desta correcao usou retorno=variacao_full
-                # na baixa (sem inverter sinal) -- ERRADO, confirmado
-                # contra a tabela oficial do PDF: -10% de variacao ->
-                # +10% de retorno (positivo), nao -10%. O sinal tem que
-                # inverter na baixa porque a estrutura "ganha com a
-                # queda" (nao e so "nao perde tanto quanto o papel").
-                retorno_full = np.where(tocou_baixa_full, 0.0,
-                                  np.where(tocou_alta_full, teto_retorno,
-                                  np.where(variacao_full >= 0,
-                                           variacao_full * alavancagem,
-                                           -variacao_full)))
+                # CORRIGIDO 15/07/2026 -- delega pra funcao unica
+                # _retorno_bidirecional_full (ver docstring dela, topo do
+                # arquivo). Substitui a logica que estava duplicada aqui
+                # (2 correcoes de sinal ja feitas nesta sessao, mais uma
+                # variante nova -- 'downside_antes'/'downside_apos' -- pra
+                # suportar Protecao Total e Protecao Parcial). Campos
+                # opcionais no payload da posicao/analise, com default que
+                # preserva o comportamento das AXIA3(A)/(B) ja existentes:
+                # downside_antes='positiva', downside_apos='protegida'.
+                downside_antes = data.get('downside_antes', 'positiva')
+                downside_apos = data.get('downside_apos', 'protegida')
+                retorno_full = _retorno_bidirecional_full(
+                    variacao_full, tocou_alta_full, tocou_baixa_full,
+                    teto_retorno, alavancagem, downside_antes, downside_apos)
                 faixas = {
                     'menor_que_0': round(float((retorno_full < 0).mean() * 100), 2),
                     'entre_0_e_1': round(float(((retorno_full >= 0) & (retorno_full < 0.01)).mean() * 100), 2),
@@ -1747,14 +1796,19 @@ def run_montecarlo_posicao_ativa():
                 ST_full = paths_full[:,-1]
                 tocou_baixa_full = min_full <= kdo; tocou_alta_full = max_full >= kuo
                 variacao_full = (ST_full/preco_entrada - 1)
-                # CORRIGIDO 15/07/2026 -- mesma correcao de sinal do bloco
-                # identico em /montecarlo/condicional acima: alavancagem so
-                # na alta, baixa "positiva" = -variacao (nao variacao).
-                retorno_full = np.where(tocou_baixa_full, 0.0,
-                                  np.where(tocou_alta_full, teto_retorno,
-                                  np.where(variacao_full >= 0,
-                                           variacao_full*alavancagem,
-                                           -variacao_full)))
+                # CORRIGIDO 15/07/2026 -- delega pra funcao unica
+                # _retorno_bidirecional_full (ver docstring dela, topo do
+                # arquivo). Mesmo motivo do bloco identico em
+                # /montecarlo/condicional: elimina duplicacao que ja
+                # causou 1 bug real nesta sessao (2 de 3 copias corrigidas,
+                # a 3a esquecida). Suporta 'downside_antes'/'downside_apos'
+                # opcionais no payload (default preserva comportamento das
+                # AXIA3(A)/(B) existentes).
+                downside_antes = data.get('downside_antes', 'positiva')
+                downside_apos = data.get('downside_apos', 'protegida')
+                retorno_full = _retorno_bidirecional_full(
+                    variacao_full, tocou_alta_full, tocou_baixa_full,
+                    teto_retorno, alavancagem, downside_antes, downside_apos)
                 faixas = {
                     'menor_que_0': round(float((retorno_full<0).mean()*100), 2),
                     'entre_0_e_1': round(float(((retorno_full>=0)&(retorno_full<0.01)).mean()*100), 2),
@@ -3902,36 +3956,24 @@ def ranking_analises():
                     prob_meta = round(float(tocou_alta.mean()*100), 2)
                     alav = float(a.get('alavancagem', 1.0))
                     tocou_alta_full = max_full >= kuo
-                    # CORRIGIDO 15/07/2026 -- mesma correcao de sinal ja
-                    # aplicada em /montecarlo/condicional e
-                    # /montecarlo/posicao_ativa (achada nesta sessao
-                    # comparando com os PDFs oficiais Itau AXIA3): na baixa,
-                    # a estrutura "positiva na baixa" ganha -variacao (nao
-                    # variacao*alav). Este 3o local (ranking) tinha ficado
-                    # de fora das 2 correcoes anteriores -- so foi achado
-                    # porque o Victor reportou "tipo nao suportado" ao
-                    # tentar ranquear a AXIA3 Protecao Total.
-                    #
-                    # Suporte NOVO a kdo=None (estrutura "Protecao Total",
-                    # PDF Itau 20/07/2026): sem barreira de baixa nenhuma,
-                    # capital 100% protegido em QUALQUER desvalorizacao --
-                    # conforme o quadro do PDF, retorno = 0,00% pra
-                    # qualquer variacao negativa (NAO e positivo como a
-                    # Bidirecional comum). tocou_baixa_full fica sempre
-                    # False (nunca ha barreira pra tocar).
-                    if a.get('kdo') is not None:
-                        kdo = float(a['kdo'])
-                        tocou_baixa_full = min_full <= kdo
-                        retorno_full_ev = np.where(tocou_baixa_full, 0.0,
-                                           np.where(tocou_alta_full, ganho_pct/100,
-                                           np.where(variacao_full >= 0,
-                                                    variacao_full*alav,
-                                                    -variacao_full)))
-                    else:
-                        retorno_full_ev = np.where(tocou_alta_full, ganho_pct/100,
-                                           np.where(variacao_full >= 0,
-                                                    variacao_full*alav,
-                                                    0.0))
+                    # CORRIGIDO 15/07/2026 -- delega pra funcao unica
+                    # _retorno_bidirecional_full (topo do arquivo). Mesma
+                    # correcao ja aplicada em /montecarlo/condicional e
+                    # /montecarlo/posicao_ativa. Suporta 'downside_antes'/
+                    # 'downside_apos' opcionais no registro da posicao/
+                    # analise (analises.json), pra cobrir tambem
+                    # "Protecao Parcial" (protegida antes + perda integral
+                    # apos) e "Protecao Total" (kdo=None, sempre protegida).
+                    # NOTA: ganho_pct fica em pontos percentuais (4.0, nao
+                    # 0.04) porque 'retorno_mensal' mais abaixo depende
+                    # dessa escala -- so a chamada da funcao usa /100.
+                    kdo_val = a.get('kdo')
+                    tocou_baixa_full = (min_full <= float(kdo_val)) if kdo_val is not None else None
+                    downside_antes = a.get('downside_antes', 'positiva')
+                    downside_apos = a.get('downside_apos', 'protegida')
+                    retorno_full_ev = _retorno_bidirecional_full(
+                        variacao_full, tocou_alta_full, tocou_baixa_full,
+                        ganho_pct/100, alav, downside_antes, downside_apos)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
                 else:
                     resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
