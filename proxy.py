@@ -3895,19 +3895,43 @@ def ranking_analises():
                     tocou_full = min_full <= kdo
                     retorno_full_ev = np.where(~tocou_full, ganho_pct/100, variacao_full)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
-                elif tipo == 'bidirecional' and a.get('kdo') is not None and a.get('kuo') is not None and a.get('teto_retorno_pct') is not None:
+                elif tipo == 'bidirecional' and a.get('kuo') is not None and a.get('teto_retorno_pct') is not None:
                     ganho_pct = float(a['teto_retorno_pct'])
-                    kdo = float(a['kdo']); kuo = float(a['kuo'])
+                    kuo = float(a['kuo'])
                     tocou_alta = max_sim >= kuo
                     prob_meta = round(float(tocou_alta.mean()*100), 2)
-                    # EV: 0 se tocou defesa, teto se tocou alta, variacao*alavancagem
-                    # dentro do range (alavancagem default 1.0 se nao informada)
                     alav = float(a.get('alavancagem', 1.0))
-                    tocou_baixa_full = min_full <= kdo
                     tocou_alta_full = max_full >= kuo
-                    retorno_full_ev = np.where(tocou_baixa_full, 0.0,
-                                       np.where(tocou_alta_full, ganho_pct/100,
-                                       variacao_full*alav))
+                    # CORRIGIDO 15/07/2026 -- mesma correcao de sinal ja
+                    # aplicada em /montecarlo/condicional e
+                    # /montecarlo/posicao_ativa (achada nesta sessao
+                    # comparando com os PDFs oficiais Itau AXIA3): na baixa,
+                    # a estrutura "positiva na baixa" ganha -variacao (nao
+                    # variacao*alav). Este 3o local (ranking) tinha ficado
+                    # de fora das 2 correcoes anteriores -- so foi achado
+                    # porque o Victor reportou "tipo nao suportado" ao
+                    # tentar ranquear a AXIA3 Protecao Total.
+                    #
+                    # Suporte NOVO a kdo=None (estrutura "Protecao Total",
+                    # PDF Itau 20/07/2026): sem barreira de baixa nenhuma,
+                    # capital 100% protegido em QUALQUER desvalorizacao --
+                    # conforme o quadro do PDF, retorno = 0,00% pra
+                    # qualquer variacao negativa (NAO e positivo como a
+                    # Bidirecional comum). tocou_baixa_full fica sempre
+                    # False (nunca ha barreira pra tocar).
+                    if a.get('kdo') is not None:
+                        kdo = float(a['kdo'])
+                        tocou_baixa_full = min_full <= kdo
+                        retorno_full_ev = np.where(tocou_baixa_full, 0.0,
+                                           np.where(tocou_alta_full, ganho_pct/100,
+                                           np.where(variacao_full >= 0,
+                                                    variacao_full*alav,
+                                                    -variacao_full)))
+                    else:
+                        retorno_full_ev = np.where(tocou_alta_full, ganho_pct/100,
+                                           np.where(variacao_full >= 0,
+                                                    variacao_full*alav,
+                                                    0.0))
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
                 else:
                     resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
