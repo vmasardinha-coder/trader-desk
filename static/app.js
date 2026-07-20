@@ -1370,6 +1370,13 @@ async function loadEvolucaoPosicao(id){
     if(p.meta_pct!=null)body.meta_pct=p.meta_pct;
     if(p.alavancagem!=null)body.alavancagem=p.alavancagem;
     if(p.teto_retorno_pct!=null)body.teto_retorno_pct=p.teto_retorno_pct;
+    // ADICIONADO 15/07/2026 -- mesma correcao do fetch de /montecarlo/
+    // condicional (Em Analise): repassa a mecanica de queda customizada,
+    // pra caso uma posicao ATIVA no futuro use Protecao Total/Parcial em
+    // vez da Bidirecional padrao (nenhuma posicao atual usa, mas evita o
+    // mesmo bug se/quando isso acontecer).
+    if(p.downside_antes!=null)body.downside_antes=p.downside_antes;
+    if(p.downside_apos!=null)body.downside_apos=p.downside_apos;
     if(p.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=p.ganho_prefixado_pct;
     // ADICIONADO 30/06/2026 -- envia o preco de entrada REAL (positions.json,
     // confirmado pelo usuario via nota de corretagem) como prioritario sobre
@@ -3690,6 +3697,15 @@ async function calcularSomatorioEncerradas(lista){
       if(a.teto_retorno_pct!=null)body.teto_retorno_pct=a.teto_retorno_pct;
       if(a.ganho_prefixado_pct!=null)body.ganho_prefixado_pct=a.ganho_prefixado_pct;
       if(a.exercicio!=null)body.exercicio=a.exercicio;
+      // ADICIONADO 15/07/2026 -- faltava repassar esses 2 campos novos
+      // (mecanica de queda das estruturas Protecao Total/Parcial) --
+      // sem isso, o backend sempre usava o default 'positiva'/'protegida'
+      // (mecanica da Bidirecional comum) pra QUALQUER estrutura, mesmo
+      // as que tem mecanica diferente. So achado porque o Victor reparou
+      // que a Protecao Parcial mostrava 0% de chance de perda, quando
+      // deveria mostrar perda real (mecanica 'perda_integral').
+      if(a.downside_antes!=null)body.downside_antes=a.downside_antes;
+      if(a.downside_apos!=null)body.downside_apos=a.downside_apos;
       const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),18000);
       const r=await fetch(B+'/montecarlo/condicional',{
         method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
@@ -3960,6 +3976,10 @@ async function loadCondicional(id){
     if(a.meta_pct!=null)body.meta_pct=a.meta_pct;
     if(a.premio!=null)body.premio=a.premio;
     if(a.qtd_acoes!=null)body.qtd_acoes=a.qtd_acoes;
+    // ADICIONADO 15/07/2026 -- mesmo motivo do outro fetch acima pro
+    // mesmo endpoint: faltava repassar a mecanica de queda customizada.
+    if(a.downside_antes!=null)body.downside_antes=a.downside_antes;
+    if(a.downside_apos!=null)body.downside_apos=a.downside_apos;
     const r=await fetch(B+'/montecarlo/condicional',{
       method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
       body:JSON.stringify(body)
