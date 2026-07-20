@@ -3575,7 +3575,18 @@ async function loadAnalisesEncerradas(){
     const pctAprovadas=total?Math.round(jaFoiAtiva.length/total*100):0;
     const pctRejeitadas=total?Math.round(totalRejeitadasPermanente/total*100):0;
 
-    const listaCards=todasVisiveis.filter(a=>a.status==='encerrada');
+    // ADICIONADO 15/07/2026 -- ate aqui a lista nao tinha ORDENACAO
+    // nenhuma, so a ordem crua do array (que reflete quando cada
+    // registro foi CRIADO, nao quando foi encerrado/rejeitado). Achado
+    // pelo Victor: uma analise rejeitada HOJE aparecia acima de outras
+    // rejeitadas dias antes, so porque tinha sido criada mais cedo no
+    // arquivo. Ordena agora por data_rejeicao (ou data_encerramento como
+    // fallback, ou data_foto se nenhuma das duas existir), MAIS RECENTE
+    // PRIMEIRO -- assim a ordem na tela corresponde a ordem real das
+    // decisoes, nao a ordem de criacao dos registros.
+    const dataOrdenacao = a => a.data_rejeicao || a.data_encerramento || a.data_foto || '';
+    const listaCards=todasVisiveis.filter(a=>a.status==='encerrada')
+      .sort((a,b)=> dataOrdenacao(b).localeCompare(dataOrdenacao(a)));
 
     let dashboard=`
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
