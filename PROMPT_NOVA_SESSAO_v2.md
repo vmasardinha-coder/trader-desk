@@ -379,6 +379,29 @@ Estruturas mais simples (call/put simples) não precisam disso.
 verificar se algum tem mecânica assimétrica parecida e se os PDFs originais delas já foram usados
 para conferir os parâmetros cadastrados).
 
+## 📋 NOVO ITEM DE BACKLOG (15/07/2026) — Botão "Marcar como Ativa" criar posição real
+
+Hoje o botão ✓ "Marcar como Ativa" no ranking só troca `status` de `em_analise` pra `ativa` dentro
+de `analises.json` -- some da lista do ranking, mas NÃO cria nada em `positions.json`. Criar a
+posição real em Posições Ativas continua sendo um passo manual (o Victor confirma qual estrutura
+decidiu, e o Claude cria a entrada em `positions.json` na sessão).
+
+**Por que não é trivial automatizar direto:** o `preco_foto` usado pra comparar candidatas (ex:
+R$50,20) é uma ESTIMATIVA de comparação, não o preço real do contrato -- o próprio PDF do banco diz
+que o preço final trava só no leilão de fechamento, no momento da contratação de fato. Se o botão
+criasse a posição sozinho com esse preço estimado, o KDO/KUO da posição real poderiam sair
+diferentes do que o banco realmente confirmou.
+
+**Solução recomendada (ainda não implementada):** ao clicar "Marcar como Ativa", abrir um pequeno
+formulário pedindo o preço real de fechamento confirmado com o banco, ANTES de gravar a posição em
+`positions.json` -- mesmo espírito de proteção que já existe no fluxo Fase A/Fase B (nunca avançar
+com número não confirmado). Alternativa mais simples (não recomendada): criar a posição
+automaticamente com o preço estimado, marcada como "preço não confirmado", pra editar depois --
+maior risco de passar despercebido.
+
+**Prioridade:** sem decisão de quando implementar ainda -- registrado pra decidir numa sessão
+futura.
+
 ## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
 
 Sou o Claude continuando o desenvolvimento do Trader Desk com o Victor. Antes de qualquer coisa:
