@@ -3669,9 +3669,9 @@
     "origem": "pronta",
     "status": "em_analise",
     "backtest": false,
-    "observacao": "PDF Itau 'Operacoes Estruturadas: Bidirecional', Material Publicitario 20/07/2026, venc 18/11/2026 (121 dias). Barreira alta +28% (KUO), barreira baixa -20% (KDO), alavancagem 1,30x na alta, teto 4,00% fixo se tocar KUO. Na baixa (dentro do range): positivo 1,0x a queda (downside_antes='positiva'), zera se tocar KDO (downside_apos='protegida') -- mesma mecanica das AXIA3(A)/(B) ja existentes. Ganho maximo sem tocar barreira: 36,40% (9,1%/mes) -- maior potencial mensal das 3 opcoes deste lote. Motor validado nos 3 locais (condicional/posicao_ativa/ranking).",
+    "observacao": "PDF Itau 'Operacoes Estruturadas: Bidirecional', Material Publicitario 20/07/2026, venc 18/11/2026 (121 dias). Barreira alta +28% (KUO), barreira baixa -20% (KDO), alavancagem 1,30x na alta, teto 4,00% fixo se tocar KUO. Na baixa DENTRO do range: positivo 1,0x a queda (downside_antes='positiva'). CORRIGIDO 15/07/2026 (erro achado pelo proprio Victor lendo a tabela oficial com atencao): se ESTOURAR a barreira de baixa (-20%), NAO zera/protege -- o investidor 'fica suscetivel ao prejuizo equivalente a queda da acao' (downside_apos='perda_integral', igual a C, so que com barreira diferente). Confirmado na tabela oficial: -30% de variacao -> -30% de retorno, -40% -> -40% (perda real, nao 0%). ERRO ANTERIOR: estava cadastrada com downside_apos='protegida' (zera), o que e ERRADO -- foi corrigido. Ganho maximo sem tocar barreira: 36,40% (9,1%/mes).",
     "downside_antes": "positiva",
-    "downside_apos": "protegida"
+    "downside_apos": "perda_integral"
   },
   {
     "id": "an_1784560890",
