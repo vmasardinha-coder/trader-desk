@@ -1364,6 +1364,12 @@ async function loadEvolucaoPosicao(id){
     const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),25000);
     const body={ticker:p.ticker,data_entrada:p.data_entrada,vencimento:p.vencimento};
     if(p.strike!=null)body.k_call=p.strike;
+    // ADICIONADO 15/07/2026 -- faltava esse campo aqui (MCBSimples ja
+    // mandava). Sem isso, o backend tentava extrair o preco de entrada
+    // sozinho do historico esparso do Yahoo pra ativos iliquidos tipo
+    // BSLV39, podendo dar um valor errado pro "% desde a entrada" -- o
+    // preco real confirmado (boleto/nota) tem prioridade.
+    if(p.entry!=null)body.entry=p.entry;
     if(p.kdo!=null)body.kdo=p.kdo;
     if(p.kuo!=null)body.kuo=p.kuo;
     if(p.exercicio!=null)body.exercicio=p.exercicio;
