@@ -1606,7 +1606,24 @@ def run_montecarlo_posicao_ativa():
             'BSLV39.SA': 'SLV',  # iShares Silver Trust BDR -> SLV (NYSE)
         }
         precos_reais_estimados = False
-        if ticker in _BDR_PROXY_ORIGINAL and len(cl) < pontos_minimos_esperados:
+        # CORRIGIDO 15/07/2026 (2a correcao, mesmo dia -- achado pelo
+        # Victor): a condicao antiga (`len(cl) < pontos_minimos_esperados`)
+        # fazia o proxy SO entrar em acao quando o HISTORICO vinha esparso
+        # demais. Só que o Yahoo pode devolver um `regularMarketPrice`
+        # (usado em S/preco_atual) ERRADO ou desatualizado MESMO quando o
+        # historico (`cl`) tem pontos suficientes para passar dessa
+        # checagem -- foi exatamente o caso: o card no topo (via
+        # MCBSimples) mostrou R$98,55 e depois R$98,42 (raw do Yahoo,
+        # errado), enquanto "Ver evolucao desde a entrada" (mesmo
+        # endpoint, mas caindo no branch do proxy) mostrou ~R$89 (certo).
+        # Os dois deveriam SEMPRE bater, ja que e a mesma rota. Fix: pra
+        # tickers em _BDR_PROXY_ORIGINAL, SEMPRE calcula o preco via proxy
+        # (SLV+cambio) e usa ele pro preco ATUAL (S) incondicionalmente --
+        # o historico (`cl`) continua so sendo SUBSTITUIDO quando esparso
+        # (nao precisa trocar o grafico se o Yahoo já tiver pontos
+        # suficientes ali), mas o preco atual em si nunca mais confia no
+        # raw do Yahoo pra esses tickers conhecidos como problematicos.
+        if ticker in _BDR_PROXY_ORIGINAL:
             try:
                 original = _BDR_PROXY_ORIGINAL[ticker]
                 def _fetch_serie_yahoo(simbolo):
@@ -1666,7 +1683,14 @@ def run_montecarlo_posicao_ativa():
                                 preco_est = preco_entrada * (orig_v/original_entrada) * (camb_v/cambio_entrada)
                                 cl_estimado.append(round(preco_est, 2))
                                 ts_estimado.append(int(_dt.combine(dd2, _dt.min.time()).timestamp()))
-                        if len(cl_estimado) >= pontos_minimos_esperados:
+                        # Preco ATUAL: sempre via proxy quando disponivel,
+                        # independente do historico ser esparso ou nao.
+                        if cl_estimado:
+                            S = cl_estimado[-1]
+                        # Historico do grafico: so troca se o que tinha
+                        # era mesmo insuficiente (nao precisa jogar fora
+                        # um historico bom so porque o preco atual mudou).
+                        if len(cl_estimado) >= pontos_minimos_esperados and len(cl) < pontos_minimos_esperados:
                             cl = cl_estimado
                             ts = ts_estimado
                             precos_reais_estimados = True
@@ -1675,21 +1699,6 @@ def run_montecarlo_posicao_ativa():
                             vals_original_recentes = [v for _, v in serie_original[-252:]]
                             if vals_original_recentes:
                                 sigma = vol_hist(vals_original_recentes)
-                            # CORRIGIDO 15/07/2026 (bug real reportado pelo
-                            # Victor com BSLV39 -- 'preco atual' na tela
-                            # mostrando R$39,54 quando o preco de mercado
-                            # real era ~R$90-99): ate aqui, so o HISTORICO
-                            # (cl) era corrigido com o proxy SLV+cambio --
-                            # o 'preco_atual' (S) continuava vindo direto
-                            # do Yahoo pra BSLV39.SA mesmo, que pode
-                            # devolver 'regularMarketPrice' desatualizado
-                            # ou errado pra esse ticker especificamente
-                            # (mesmo motivo documentado acima pra 'cl'
-                            # vir esparso demais). Usa o ULTIMO ponto da
-                            # serie reconstruida (mais recente disponivel)
-                            # como preco atual tambem, em vez de confiar
-                            # no valor bruto do Yahoo pra esse ticker.
-                            S = cl_estimado[-1]
             except Exception:
                 pass  # se o proxy tambem falhar, segue com o que ja tinha (Yahoo/brapi esparso)
 
