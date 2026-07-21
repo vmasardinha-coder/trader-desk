@@ -1683,13 +1683,25 @@ def run_montecarlo_posicao_ativa():
                                 preco_est = preco_entrada * (orig_v/original_entrada) * (camb_v/cambio_entrada)
                                 cl_estimado.append(round(preco_est, 2))
                                 ts_estimado.append(int(_dt.combine(dd2, _dt.min.time()).timestamp()))
-                        # Preco ATUAL: sempre via proxy quando disponivel,
-                        # independente do historico ser esparso ou nao.
-                        if cl_estimado:
-                            S = cl_estimado[-1]
-                        # Historico do grafico: so troca se o que tinha
-                        # era mesmo insuficiente (nao precisa jogar fora
-                        # um historico bom so porque o preco atual mudou).
+                        # CORRIGIDO 15/07/2026 (3a tentativa, mesmo dia --
+                        # as 2 anteriores pioraram em vez de resolver).
+                        # Confirmado pelo Victor com print do home broker:
+                        # preco real da BSLV39 = R$89,99. O calculo via
+                        # proxy (SLV+cambio) anconrado no 'entry' explicito
+                        # (R$99,42) deu R$98,41 -- ERRADO. Causa provavel:
+                        # 'entry' e o PRECO DE EXERCICIO da estrutura
+                        # (strike), nao necessariamente o preco real
+                        # negociado do BDR no dia da entrada -- ancorar a
+                        # razao SLV/cambio num preco de exercicio (nao no
+                        # preco de mercado real daquele dia) quebra a
+                        # matematica da reconstrucao, mesmo que a razao em
+                        # si esteja certa. NAO sobrescreve mais 'S' com o
+                        # proxy -- volta a usar o preco bruto do Yahoo (ou
+                        # brapi, ja tratado acima) pro preco ATUAL. O
+                        # proxy continua servindo SO pra reconstruir o
+                        # HISTORICO do grafico quando esparso (abaixo),
+                        # que e um uso diferente (tendencia relativa, nao
+                        # preco pontual).
                         if len(cl_estimado) >= pontos_minimos_esperados and len(cl) < pontos_minimos_esperados:
                             cl = cl_estimado
                             ts = ts_estimado
