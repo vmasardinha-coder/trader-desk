@@ -1675,6 +1675,21 @@ def run_montecarlo_posicao_ativa():
                             vals_original_recentes = [v for _, v in serie_original[-252:]]
                             if vals_original_recentes:
                                 sigma = vol_hist(vals_original_recentes)
+                            # CORRIGIDO 15/07/2026 (bug real reportado pelo
+                            # Victor com BSLV39 -- 'preco atual' na tela
+                            # mostrando R$39,54 quando o preco de mercado
+                            # real era ~R$90-99): ate aqui, so o HISTORICO
+                            # (cl) era corrigido com o proxy SLV+cambio --
+                            # o 'preco_atual' (S) continuava vindo direto
+                            # do Yahoo pra BSLV39.SA mesmo, que pode
+                            # devolver 'regularMarketPrice' desatualizado
+                            # ou errado pra esse ticker especificamente
+                            # (mesmo motivo documentado acima pra 'cl'
+                            # vir esparso demais). Usa o ULTIMO ponto da
+                            # serie reconstruida (mais recente disponivel)
+                            # como preco atual tambem, em vez de confiar
+                            # no valor bruto do Yahoo pra esse ticker.
+                            S = cl_estimado[-1]
             except Exception:
                 pass  # se o proxy tambem falhar, segue com o que ja tinha (Yahoo/brapi esparso)
 
