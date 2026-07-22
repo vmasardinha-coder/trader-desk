@@ -3951,6 +3951,16 @@ def ranking_analises():
                     resultado.append({**_linha_ranking_base(a), 'erro': 'preco atual indisponivel'})
                     continue
 
+                # ADICIONADO 15/07/2026 -- achado pelo Victor: quando o
+                # historico (cl) vem vazio (Yahoo/brapi sem cobertura pro
+                # ticker, comum em BDRs exoticos/pouco liquidos tipo
+                # SPCX34/ITLC34/MUTC34), sigma ficava silenciosamente em
+                # 35% (generico), sem avisar em lugar nenhum -- podendo
+                # SUBESTIMAR o risco real de tocar a barreira pra ativos
+                # de fato mais volateis que isso. Agora expoe esse aviso
+                # explicitamente no resultado, em vez de esconder.
+                vol_generica_usada = (len(cl) == 0)
+
                 if len(cl) >= 50:
                     try:
                         garch_info = garch_11(cl, horizon_days=min(max(dias_restantes, 1), 60))
@@ -4063,6 +4073,7 @@ def ranking_analises():
                     'dy_anual_pct': dy_anual if tem_dy_relevante else None,
                     'cdi_mensal_pct': round(cdi_mensal, 3),
                     'colchao_dy_vs_cdi_pct': colchao_vs_cdi,
+                    'vol_generica_usada': vol_generica_usada,
                     'peso_prazo': round(peso_prazo, 3),
                     'score': round(score, 4),
                 })
