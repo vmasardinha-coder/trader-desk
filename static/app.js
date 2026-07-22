@@ -3195,8 +3195,16 @@ function tplRanking(d){
     const evVal=r.ev_mensal_pct;
     const evCor=evVal>0?'var(--green)':'var(--red)';
     const evTxt=(evVal>0?'+':'')+evVal.toFixed(2)+'%';
+    // ADICIONADO 15/07/2026 -- achado pelo Victor investigando SPCX34:
+    // quando o historico do papel vem vazio (BDR exotico/pouco liquido),
+    // o backend usava 35% de vol generica escondida, sem avisar. Agora
+    // mostra um aviso visual claro na linha, pra nao confiar cegamente
+    // no EV/score desses casos.
+    const volAviso = r.vol_generica_usada
+      ? ' <span title="Sem histórico suficiente pra calcular a volatilidade real deste papel — usando 35% genérico. EV/Score aqui podem estar subestimando o risco real." style="color:var(--orange,#f0a020);cursor:help">⚠️</span>'
+      : '';
     return `<tr id="rk-row-${r.id}">
-      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}${volAviso}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
       <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
