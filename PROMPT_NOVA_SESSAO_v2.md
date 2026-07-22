@@ -1,3 +1,105 @@
+# Trader Desk — Prompt de Continuação (v38 — FECHAMENTO MESTRE 22/07/2026)
+
+## ⭐ COMECE AQUI NA PRÓXIMA SESSÃO ⭐
+
+Sessão de 22/07/2026 foi longa e cobriu muita coisa. Resumo do que fechou, do que ficou pendente,
+e SHAs atuais de referência (buscar SHA fresco antes de editar qualquer arquivo, nunca reusar).
+
+## ✅ FECHADO NESTA SESSÃO (22/07/2026)
+
+### 1. Bug real no motor bidirecional (AXIA3) — CORRIGIDO E VALIDADO
+Alavancagem estava sendo aplicada errado na baixa (deveria só valer na alta). Corrigido com uma
+função central `_retorno_bidirecional_full` (proxy.py, topo do arquivo) reaproveitada nos 3 locais
+que faziam esse calculo (`/montecarlo/condicional`, `/montecarlo/posicao_ativa`,
+`/posicoes/ranking/<tipo>`) — antes eram 3 cópias duplicadas, isso já causou 1 bug real (corrigi 2
+de 3 e esqueci o 3º na hora). Suporta 3 mecânicas reais confirmadas contra PDFs oficiais Itaú:
+- `downside_antes='positiva'` + `downside_apos='protegida'` — Bidirecional comum (AXIA3-A/B ativas)
+- `downside_antes='protegida'` + `downside_apos='protegida'` (kdo=None) — Proteção Total
+- `downside_antes='protegida'` + `downside_apos='perda_integral'` — Proteção Parcial
+**Frontend também precisou de correção**: não repassava `downside_antes`/`downside_apos` pro
+backend (2 lugares em app.js) — sem isso, tudo caía no default errado.
+
+### 2. AXIA3(A) encerrada com sucesso
+Capturou R$1.580 em 65 dias (5,82% = 2,72%/mês) — acima do alvo de 2-2,5%/mês. Movida de `ativas`
+pra `encerradas` em `positions.json`. 500 ações liberadas.
+
+### 3. Lote de 3 candidatas AXIA3 (Proteção Total/Bidirecional/Proteção Parcial) comparadas
+Depois de corrigir o motor, ranking real: **Bidirecional tem o pior EV** (risco de perda real que
+eu tinha cadastrado errado como "protegida" — Victor achou o erro lendo a tabela do PDF com
+atenção). Proteção Total lidera em cenário neutro; Proteção Parcial só compensa com viés de alta
+forte. Decisão final de qual operar: EM ABERTO, Victor ainda avaliando.
+
+### 4. Lote de 14 candidatas "Retorno Controlado" (tabela do banco + PDFs SPCX34/ITLC34/MUTC34/
+AMZO34/CYRE3/INBR32) registradas com preço REAL (via script de console rodado pelo Victor, não
+preço fake) — todas com bandas congeladas confirmadas. Ranking rodado, achado: SPCX34/ITLC34 no
+topo, mas **SPCX34 tem histórico insuficiente (vol genérica 35% usada, não GARCH real)** — tratar
+com desconfiança. MUTC34, apesar do prefixado nominal mais alto (15,72%), teve o PIOR EV real
+(-1,93%/mês) — volatilidade real supera o prêmio.
+
+### 5. Item 5.1 (ThreadPoolExecutor) — NOVO achado + correção
+`vol_generica_usada` agora é exposto no ranking (backend + aviso ⚠️ visual no frontend) sempre que
+o histórico do papel vem vazio e o sistema cai no fallback de 35% de vol genérica — achado
+investigando por que SPCX34 parecia boa demais.
+
+### 6. Bug real de preço da BSLV39 (prata) — INVESTIGADO A FUNDO, corrigido com cautela
+Card mostrava R$39,54 quando real era ~R$90. Depois de 3 tentativas na mesma sessão (a 1ª e 2ª
+pioraram as coisas), a correção final: **removida** a tentativa de reconstruir o preço atual via
+proxy SLV+câmbio (a âncora usada — o preço de exercício — não é o preço real negociado do BDR no
+dia da entrada, quebra a matemática da razão). Preço atual volta a vir direto do brapi/Yahoo, sem
+override. Consistência entre card e "Ver evolução" corrigida (ambos mandam os mesmos parâmetros
+agora). **Validado pelo Victor com print do home broker: R$89,99 real bate com o app agora.**
+
+### 7. Watchlist de Papéis expandida
+Adicionados: ALOS3 (Construção & Incorporação), CMIG4/CPFE3/CPLE3/TAEE11 (Energia Elétrica),
+SBSP3 (Saneamento), WEGE3 (novo segmento "Bens de Capital & Industrial"). Fundamentos completos
+(P/L, P/VP, ROE, VPA, LPA, DY, EV/EBITDA, Dívida/EBITDA, Margem) adicionados em `fundamentos.json`
+pra todos os 7 (buscados no Fundamentus, ref. 22/07/2026 — 2 meses mais recentes que o resto da
+base, que é de 22/05/2026; considerar atualizar a base toda na próxima rodada trimestral).
+
+### 8. Ordenação da lista "Encerradas" corrigida
+Não tinha ordenação nenhuma (mostrava ordem crua de criação do registro, não de rejeição/
+encerramento) — achado pelo Victor vendo uma rejeição de hoje aparecer acima de rejeições de dias
+atrás. Corrigido: ordena por `data_rejeicao`/`data_encerramento`, mais recente primeiro.
+
+## 📋 PENDENTE / EM ABERTO PARA PRÓXIMA SESSÃO
+
+1. **Decisão final do lote AXIA3** (Proteção Total vs Parcial vs Bidirecional) — Victor ainda
+   avaliando seu viés de alta antes de comitar numa estrutura de verdade.
+2. **Decisão do lote de 14 Retorno Controlado** — Victor ainda vai revisar o ranking com o aviso
+   de vol genérica (SPCX34/ITLC34) antes de escolher quais executar.
+3. **Botão "Marcar como Ativa" criar posição real** (registrado como backlog, sem prioridade) —
+   precisa de confirmação de preço real antes de gravar em `positions.json`, não é trivial
+   automatizar sem esse cuidado.
+4. **5.1 — C2/C3** (universo complementar FIIs, dados FI-Infra) seguem mantidos como estão, por
+   decisão do Victor (mesma categoria do A2/A3, risco aceito).
+5. Considerar atualizar a data de referência dos fundamentos mais antigos (22/05/2026, 18
+   tickers) pra ficar alinhada com os 7 novos (22/07/2026).
+
+## 🔑 SHAs ATUAIS DE REFERÊNCIA (22/07/2026, fim de sessão — sempre buscar fresco antes de editar)
+- proxy.py: c9f2ed9c6309c174d062f8a72c186fad8a7d43f8
+- static/app.js: e9037a00cb318f37003f0cd5ba970e6ca84d9eba
+- analises.json: f6d47c74bf149cfa1164cd5eb8a85152fba6a8eb
+- positions.json: 636dbc21c9fd369a4021fbdf73ed20f6cc768d45
+- fundamentos.json: ef820507e55e13932dc49d61248db70e600cb14d
+
+## 🧭 LEMBRETES OPERACIONAIS QUE SE MANTÊM VÁLIDOS
+- Estruturas bidirecionais/retorno controlado SEMPRE vêm com PDF oficial do banco — nunca
+  cadastrar de memória.
+- Ao criar registros com dado ao vivo (preço real), preferir o script de console rodado pelo
+  próprio Victor no navegador (tem acesso real à internet do servidor) — meu sandbox não alcança
+  domínios de cotação (Yahoo, brapi, onrender.com direto).
+- Sempre buscar SHA fresco imediatamente antes de qualquer PUT no GitHub.
+- Validar sintaxe (`ast.parse`/`node -c`) e integridade estrutural (funções/rotas intactas) antes
+  de commitar qualquer mudança em `proxy.py`/`app.js`.
+- Render free tier: 502 ocasional é conhecido (servidor cold-start/sobrecarregado) — não é
+  necessariamente falha real, conferir se o dado salvou mesmo assim antes de assumir erro.
+
+
+
+---
+
+## 📜 HISTÓRICO DE SESSÕES ANTERIORES (preservado abaixo)
+
 # Trader Desk — Prompt de Continuação (v37 — FECHAMENTO 15/07/2026)
 
 ## 🔎 REVISÃO DE ESTADO REAL (15/07/2026) — vários itens já estavam prontos sem constar aqui
