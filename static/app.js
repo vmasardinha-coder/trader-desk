@@ -1661,6 +1661,7 @@ const WATCHLIST = [
     {id:'cyre3', ticker:'CYRE3.SA', nome:'CYRE3 — Cyrela ON'},
     {id:'dirr3', ticker:'DIRR3.SA', nome:'DIRR3 — Direcional ON'},
     {id:'mult3', ticker:'MULT3.SA', nome:'MULT3 — Multiplan ON'},
+    {id:'alos3', ticker:'ALOS3.SA', nome:'ALOS3 — Allos ON'},
   ]},
   {segmento:'🛡️ Seguros', ativos:[
     {id:'pssa3', ticker:'PSSA3.SA', nome:'PSSA3 — Porto Seguro ON'},
@@ -1669,6 +1670,10 @@ const WATCHLIST = [
   ]},
   {segmento:'⚡ Energia Elétrica', ativos:[
     {id:'axia3', ticker:'AXIA3.SA', nome:'AXIA3 — Axia Energia ON'},
+    {id:'cmig4', ticker:'CMIG4.SA', nome:'CMIG4 — Cemig PN'},
+    {id:'cpfe3', ticker:'CPFE3.SA', nome:'CPFE3 — CPFL Energia ON'},
+    {id:'cple3', ticker:'CPLE3.SA', nome:'CPLE3 — Copel ON'},
+    {id:'taee11', ticker:'TAEE11.SA', nome:'TAEE11 — Taesa UNT'},
   ]},
   {segmento:'🛢️ Petróleo & Gás', ativos:[
     {id:'petr4', ticker:'PETR4.SA', nome:'PETR4 — Petrobras PN'},
@@ -1683,9 +1688,13 @@ const WATCHLIST = [
   ]},
   {segmento:'💧 Saneamento', ativos:[
     {id:'sapr11', ticker:'SAPR11.SA', nome:'SAPR11 — Sanepar UNT'},
+    {id:'sbsp3', ticker:'SBSP3.SA', nome:'SBSP3 — Sabesp ON'},
   ]},
   {segmento:'🏭 Siderurgia', ativos:[
     {id:'ggbr4', ticker:'GGBR4.SA', nome:'GGBR4 — Gerdau PN'},
+  ]},
+  {segmento:'⚙️ Bens de Capital & Industrial', ativos:[
+    {id:'wege3', ticker:'WEGE3.SA', nome:'WEGE3 — WEG ON'},
   ]},
   {segmento:'💳 Fintech / BDR', ativos:[
     {id:'roxo34', ticker:'ROXO34.SA', nome:'ROXO34 — Nubank BDR'},
