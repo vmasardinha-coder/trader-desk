@@ -12090,5 +12090,129 @@
         }
       }
     }
+  },
+  {
+    "ticker": "ITLC34.SA",
+    "nome": "ITLC34 - Retorno Controlado 15d (Lote 22/07/2026 - PDF banco)",
+    "data_foto": "2026-07-22",
+    "preco_foto": 89.18,
+    "prazo_dias": 15,
+    "tipo_estrutura": "retorno_controlado",
+    "kdo": 73.75,
+    "ganho_prefixado_pct": 9,
+    "origem": "pronta",
+    "backtest": false,
+    "observacao": "Defesa (barreira KDO): -17.3%. Ganho prefixado: 9% se nao tocar a barreira (18.24%/mes). Preco de entrada = cotacao real no momento da criacao (R$89.18). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
+    "status": "em_analise",
+    "id": "an_1784737581",
+    "bandas_congeladas": {
+      "sigma_pct": 72.23,
+      "garch": {
+        "vol_garch_atual_pct": 75.16,
+        "vol_garch_projetada_pct": 72.23,
+        "vol_garch_longo_prazo_pct": 71.96,
+        "alpha": 0.08,
+        "beta": 0.72,
+        "persistencia": 0.8,
+        "horizon_days": 60
+      },
+      "periodos": [
+        15
+      ],
+      "bandas": {
+        "15": {
+          "p10": [
+            89.18,
+            84.0273,
+            81.959,
+            80.4608,
+            79.1501,
+            77.9004,
+            76.8583,
+            75.9322,
+            74.9909,
+            73.8877,
+            73.4354,
+            72.306,
+            71.7481,
+            70.5007,
+            70.2554,
+            69.5792
+          ],
+          "p25": [
+            89.18,
+            86.2298,
+            85.0784,
+            84.3673,
+            83.3858,
+            82.7992,
+            82.1627,
+            81.5906,
+            81.0298,
+            80.6652,
+            79.8717,
+            79.4275,
+            79.2359,
+            78.6148,
+            78.1628,
+            77.8921
+          ],
+          "p50": [
+            89.18,
+            88.909,
+            88.8505,
+            88.8359,
+            88.6421,
+            88.574,
+            88.6618,
+            88.2685,
+            88.2828,
+            88.2673,
+            88.1676,
+            88.0947,
+            88.0763,
+            87.9564,
+            88.4399,
+            88.2194
+          ],
+          "p75": [
+            89.18,
+            91.8975,
+            92.8357,
+            93.8208,
+            94.3411,
+            94.9173,
+            95.4142,
+            96.0954,
+            96.4667,
+            97.089,
+            97.4679,
+            97.6966,
+            98.2467,
+            98.2938,
+            98.9181,
+            99.2726
+          ],
+          "p90": [
+            89.18,
+            94.5717,
+            96.8119,
+            98.4814,
+            99.7046,
+            101.0162,
+            102.552,
+            103.8064,
+            104.429,
+            105.2801,
+            106.3481,
+            107.3263,
+            107.6696,
+            108.7964,
+            109.4217,
+            110.0403
+          ]
+        }
+      }
+    }
   }
 ]
