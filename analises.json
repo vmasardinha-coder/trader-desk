@@ -12866,7 +12866,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -10%. Ganho prefixado: 7.9% se nao tocar a barreira (5.59%/mes). Preco de entrada = cotacao real no momento da criacao (R$61.69). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737592",
     "bandas_congeladas": {
       "sigma_pct": 30.39,
@@ -13239,7 +13239,13 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-23",
+    "ev_mensal_na_rejeicao": 0.545,
+    "score_na_rejeicao": 0.5839,
+    "prob_meta_na_rejeicao": 64.15,
+    "preco_encerramento": 61.87
   },
   {
     "ticker": "CYRE3.SA",
