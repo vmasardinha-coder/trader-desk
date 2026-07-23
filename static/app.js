@@ -2562,14 +2562,15 @@ function doPos(tv){
   _posData.ativas.forEach(p=>cdHoras(p.vencimento, p.id+'-dias'));
   checkBadgeRisco();
 
-  // AXIA3 A e B — preço via /indicators, distância KDO/KUO
-  const a3=byId.a3, a3b=byId.a3b;
-  if(a3||a3b){
+  // AXIA3 A, B e C — preço via /indicators, distância KDO/KUO
+  const a3=byId.a3, a3b=byId.a3b, a3c=byId.a3c;
+  if(a3||a3b||a3c){
     setTimeout(async()=>{
       try{const r=await fetch(B+'/indicators/AXIA3.SA');if(!r.ok)return;const d=await r.json();if(!d.preco_atual)return;
         const p=d.preco_atual,pant=d.preco_anterior||p;
         if(a3){E('a3-p',fR(p));Ch('a3-c',p,pant,'r');}
         if(a3b){E('a3b-p',fR(p));Ch('a3b-c',p,pant,'r');}
+        if(a3c){E('a3c-p',fR(p));Ch('a3c-c',p,pant,'r');}
         if(a3){
           const kA=a3.kdo,kuA=a3.kuo;
           const dA=document.getElementById('a3-kdo');if(dA)dA.textContent=((p-kA)/p*100).toFixed(1)+'% acima do KDO';
@@ -2583,6 +2584,13 @@ function doPos(tv){
           const uB=document.getElementById('a3b-kuo');if(uB)uB.textContent=((kuB-p)/p*100).toFixed(1)+'% para o KUO';
           const sB=document.getElementById('a3b-st');if(sB){sB.textContent=p<=kB?'🔴 KDO ATINGIDO':p>=kuB?'⚠ KUO ATINGIDO':'✅ No range';sB.className='sv '+(p<=kB||p>=kuB?'warn':'ok');}
           checkAlertaBarreira('card-a3b', p, kB, kuB);
+        }
+        if(a3c){
+          const kC=a3c.kdo,kuC=a3c.kuo;
+          const dC=document.getElementById('a3c-kdo');if(dC)dC.textContent=((p-kC)/p*100).toFixed(1)+'% acima do KDO';
+          const uC=document.getElementById('a3c-kuo');if(uC)uC.textContent=((kuC-p)/p*100).toFixed(1)+'% para o KUO';
+          const sC=document.getElementById('a3c-st');if(sC){sC.textContent=p<=kC?'🔴 KDO ATINGIDO':p>=kuC?'⚠ KUO ATINGIDO':'✅ No range';sC.className='sv '+(p<=kC||p>=kuC?'warn':'ok');}
+          checkAlertaBarreira('card-a3c', p, kC, kuC);
         }
         checkBadgeRisco();
       }catch(e){}
