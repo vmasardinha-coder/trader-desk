@@ -8868,7 +8868,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -16%. Ganho prefixado: 7.03% se nao tocar a barreira (2.37%/mes). Preco de entrada = cotacao real no momento da criacao (R$47.8). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737563",
     "bandas_congeladas": {
       "sigma_pct": 28.6,
@@ -9794,7 +9794,13 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-23",
+    "ev_mensal_na_rejeicao": -0.079,
+    "score_na_rejeicao": -0.0817,
+    "prob_meta_na_rejeicao": 70.73,
+    "preco_encerramento": 47.9
   },
   {
     "ticker": "PETR4.SA",
