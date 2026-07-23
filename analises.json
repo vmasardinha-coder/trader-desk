@@ -13265,7 +13265,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -20%. Ganho prefixado: 5.6% se nao tocar a barreira (2.79%/mes). Preco de entrada = cotacao real no momento da criacao (R$21.17). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737596",
     "bandas_congeladas": {
       "sigma_pct": 44.23,
@@ -14046,7 +14046,13 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-07-23",
+    "ev_mensal_na_rejeicao": -1.35,
+    "score_na_rejeicao": -1.4175,
+    "prob_meta_na_rejeicao": 71.31,
+    "preco_encerramento": 21.28
   },
   {
     "ticker": "INBR32.SA",
