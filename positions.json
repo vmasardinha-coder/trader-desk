@@ -74,7 +74,9 @@
       "exercicio": "europeia",
       "teto_retorno_pct": 27.75,
       "alavancagem": 1.5,
-      "observacao": "PRECO DE ENTRADA PROVISORIO (51,68 - fechamento de 22/07/2026, dia da contratacao). Aguardando confirmacao final do usuario (pode ter ajuste de leilao). Fonte: PDF Itau 'Material Publicitario' 20/07/2026, aplicacao minima R$30.000, KDO -15% (protecao parcial), KUO +18,5%, alavancagem 1,5x ate 18,5% (cap 27,75%). Prazo 4 meses."
+      "observacao": "PRECO DE ENTRADA PROVISORIO (51,68 - fechamento de 22/07/2026, dia da contratacao). Aguardando confirmacao final do usuario (pode ter ajuste de leilao). Fonte: PDF Itau 'Material Publicitario' 20/07/2026, aplicacao minima R$30.000, KDO -15% (protecao parcial), KUO +18,5%, alavancagem 1,5x ate 18,5% (cap 27,75%). Prazo 4 meses.",
+      "kdo": 43.93,
+      "kuo": 61.24
     },
     {
       "id": "bb",
