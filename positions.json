@@ -46,9 +46,9 @@
       "tipo_posicao": "barreira",
       "estrategia": "Bidirecional ION Itaú",
       "vencimento": "2026-10-02",
-      "entry": 50.65,
-      "kdo": 40.52,
-      "kuo": 62.81,
+      "entry": 50.75,
+      "kdo": 40.55,
+      "kuo": 62.98,
       "kdo_pct": "-20%",
       "kuo_pct": "+24%",
       "ganho_sem_barreira": "até +31,2% / +20%",
@@ -56,7 +56,8 @@
       "data_entrada": "2026-06-08",
       "exercicio": "europeia",
       "teto_retorno_pct": 4.0,
-      "alavancagem": 1.3
+      "alavancagem": 1.3,
+      "observacao": "CALIBRADO 24/07/2026 via boleto da corretora: entry R$50,75 (era 50,65), KDO R$40,55 (era 40,52), KUO R$62,98 (era 62,81) -- pequenas diferencas de arredondamento/leilao corrigidas com dado oficial."
     },
     {
       "id": "a3c",
@@ -64,7 +65,7 @@
       "nome": "AXIA3 (C)",
       "tipo_posicao": "barreira",
       "estrategia": "Retorno Controlado Itaú",
-      "vencimento": "2026-11-18",
+      "vencimento": "2026-11-22",
       "entry": 51.68,
       "kdo_pct": "-15%",
       "kuo_pct": "+18,5%",
@@ -74,9 +75,9 @@
       "exercicio": "europeia",
       "teto_retorno_pct": 27.75,
       "alavancagem": 1.5,
-      "observacao": "PRECO DE ENTRADA PROVISORIO (51,68 - fechamento de 22/07/2026, dia da contratacao). Aguardando confirmacao final do usuario (pode ter ajuste de leilao). Fonte: PDF Itau 'Material Publicitario' 20/07/2026, aplicacao minima R$30.000, KDO -15% (protecao parcial), KUO +18,5%, alavancagem 1,5x ate 18,5% (cap 27,75%). Prazo 4 meses.",
-      "kdo": 43.93,
-      "kuo": 61.24
+      "observacao": "CONFIRMADO 24/07/2026 via boleto da corretora: entry R$51,68 (fechamento 22/07/2026, dia da contratacao), KUO R$61,29 (qtd 250, venc 22/11/2026), KDO R$43,88 (qtd 500, venc 22/11/2026). Vencimento oficial do boleto (22/11) prevalece sobre a data do PDF Material Publicitario (18/11). Estrutura: Retorno Controlado Itau, alavancagem 1,5x ate KUO, teto 27,75%, KDO trava perda integral abaixo de -15%.",
+      "kdo": 43.88,
+      "kuo": 61.29
     },
     {
       "id": "bb",
