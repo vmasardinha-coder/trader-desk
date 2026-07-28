@@ -80,22 +80,6 @@
       "kuo": 61.29
     },
     {
-      "id": "bb",
-      "ticker": "BBAS3.SA",
-      "nome": "Banco do Brasil ON",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "BBASH21",
-      "strike": 21.65,
-      "vol_impl": 0.262,
-      "tipo": "call",
-      "vencimento": "2026-08-20",
-      "objetivo": "Fechar abaixo de R$ 21,65",
-      "data_entrada": "2026-06-03",
-      "exercicio": "europeia",
-      "meta_pct": 2.25
-    },
-    {
       "id": "bslv39",
       "ticker": "BSLV39.SA",
       "nome": "BSLV39 - iShares Silver Trust BDR",
@@ -199,6 +183,18 @@
       "retorno_pct": 5.82,
       "retorno_mensal_pct": 2.72,
       "observacao": "Encerrada antecipadamente (nao chegou ao vencimento 14/09/2026). Resultado real das opcoes (estrutura completa de 4 pernas, incluindo PUT nao modelada pelo motor simplificado do app): R$1580.00 sobre capital de R$27155.00 (500 acoes a R$54.31) = 5.82% em 65 dias = 2.72%/mes. Acima do alvo de 2-2,5%/mes do usuario. Resultado ja excede o teto simplificado do modelo (4% fixo, R$1086.20) porque a estrutura real tem mais pernas que o app captura (ver PDF ION Itau 15/05/2026)."
+    },
+    {
+      "id": "cl-bbas-jul26",
+      "ticker": "BBAS3",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASH21",
+      "strike": 21.65,
+      "data_encerramento": null,
+      "status": "sucesso",
+      "valor_financeiro_resultado": 800.0,
+      "retorno_pct": 1.82,
+      "observacao": "Encerrada antecipadamente (nao chegou ao vencimento 20/08/2026). Resultado: R$800,00 sobre capital de R$44.000,00 = 1,82% em aproximadamente 35-40 dias (estimativa do usuario, entrada 03/06/2026). Rolada para nova posicao BBASJ222 (aguardando confirmacao de strike/premio/vencimento)."
     }
   ]
 }
