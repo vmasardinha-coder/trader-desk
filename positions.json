@@ -112,6 +112,23 @@
       "exercicio": "europeia",
       "meta_pct": 2.44,
       "observacao": "Rolagem defensiva da ROXO34 original (strike R$10,50, venc 16/07/2026, encerrada como fracasso em 01/07/2026 apos estourar a barreira). Premio gerado ~2,44% so para ganhar tempo -- nao passaria pelos criterios normais de entrada do usuario ('e uma seca', sem colchao real, so sobrevivencia). Prazo estendido ate 17/09/2026."
+    },
+    {
+      "id": "bb2",
+      "ticker": "BBAS3.SA",
+      "nome": "Banco do Brasil ON",
+      "tipo_posicao": "simples",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASJ222",
+      "strike": 21.9,
+      "vol_impl": 0.31585,
+      "tipo": "call",
+      "vencimento": "2026-10-15",
+      "objetivo": "Fechar antes do vencimento, meta ~40 dias",
+      "data_entrada": "2026-07-28",
+      "exercicio": "europeia",
+      "meta_pct": 2.25,
+      "observacao": "Rolagem da posicao anterior (BBASH21, encerrada com sucesso: R$800/1,82% em ~38 dias). Premio recebido na abertura: R$1,20. Prazo total 56 dias (venc 15/10/2026), mas usuario tenta encerrar antecipadamente por volta de 40 dias, como de costume."
     }
   ],
   "encerradas": [
