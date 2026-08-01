@@ -3057,21 +3057,23 @@ async function main(){
       }
 
       // BBAS3 cotação — via TV ou fallback /indicators
-      if(byId.bb){
-        const strikeBB=byId.bb.strike;
+      if(byId.bb||byId.bb2){
+        const posicoesBB=[byId.bb,byId.bb2].filter(Boolean);
         const bbTV=tv['BMFBOVESPA:BBAS3'];
+        const aplicarBB=(pos,preco,precoAnt)=>{
+          const pid=pos.id;
+          E(pid+'-p',fR(preco));
+          if(precoAnt!=null){Ch(pid+'-c',preco,precoAnt,'r');}else{const ec=document.getElementById(pid+'-c');if(ec)ec.textContent='—';}
+          const dist=preco-pos.strike;
+          const itm2=document.getElementById(pid+'-itm');
+          if(itm2){itm2.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(dist>=0?'itm':'ok');}
+        };
         if(bbTV?.p){
-          E('bb-p',fR(bbTV.p));Ch('bb-c',bbTV.p,bbTV.v||bbTV.p,'r');
-          const d2=bbTV.p-strikeBB;
-          const itm2=document.getElementById('bb-itm');
-          if(itm2){itm2.textContent=(d2>=0?'+ R$ ':'- R$ ')+Math.abs(d2).toFixed(2)+' '+(d2>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(d2>=0?'itm':'ok');}
+          posicoesBB.forEach(pos=>aplicarBB(pos,bbTV.p,bbTV.v||bbTV.p));
         } else {
           fetch(B+'/indicators/BBAS3.SA').then(r2=>r2.json()).then(d2=>{
             if(d2.preco_atual){
-              E('bb-p',fR(d2.preco_atual));if(d2.preco_anterior!=null){Ch('bb-c',d2.preco_atual,d2.preco_anterior,'r');}else{const ec=document.getElementById('bb-c');if(ec)ec.textContent='—';}
-              const dist=d2.preco_atual-strikeBB;
-              const itm2=document.getElementById('bb-itm');
-              if(itm2){itm2.textContent=(dist>=0?'+ R$ ':'- R$ ')+Math.abs(dist).toFixed(2)+' '+(dist>=0?'acima (ITM ⚠)':'abaixo (OTM ✅)')+' do strike';itm2.className='sv '+(dist>=0?'itm':'ok');}
+              posicoesBB.forEach(pos=>aplicarBB(pos,d2.preco_atual,d2.preco_anterior));
             }
           }).catch(()=>{});
         }
