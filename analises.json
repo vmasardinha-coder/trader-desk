@@ -12245,7 +12245,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -20%. Ganho prefixado: 14% se nao tocar a barreira (14.19%/mes). Preco de entrada = cotacao real no momento da criacao (R$89.18). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737584",
     "bandas_congeladas": {
       "sigma_pct": 72.23,
@@ -12553,7 +12553,13 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-01",
+    "ev_mensal_na_rejeicao": -0.704,
+    "score_na_rejeicao": -0.8096,
+    "prob_meta_na_rejeicao": 30.45,
+    "preco_encerramento": 76.3
   },
   {
     "ticker": "MUTC34.SA",
