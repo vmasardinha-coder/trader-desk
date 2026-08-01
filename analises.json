@@ -14096,7 +14096,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -20%. Ganho prefixado: 8.9% se nao tocar a barreira (4.44%/mes). Preco de entrada = cotacao real no momento da criacao (R$27.89). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737599",
     "bandas_congeladas": {
       "sigma_pct": 43.13,
@@ -14877,6 +14877,12 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-01",
+    "ev_mensal_na_rejeicao": -0.171,
+    "score_na_rejeicao": -0.1811,
+    "prob_meta_na_rejeicao": 76.83,
+    "preco_encerramento": 28.21
   }
 ]
