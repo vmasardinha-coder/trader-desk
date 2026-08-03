@@ -14884,5 +14884,23 @@
     "score_na_rejeicao": -0.1811,
     "prob_meta_na_rejeicao": 76.83,
     "preco_encerramento": 28.21
+  },
+  {
+    "ticker": "ITIT11.SA",
+    "nome": "ITIT11 - FII Outros",
+    "data_foto": "2026-08-03",
+    "preco_foto": 61.88,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 11.9,
+    "p_vp": 0.79,
+    "liquidez": 383116,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-08-03. P/VP=0.79, DY=11.90%, segmento=Outros, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1785756827"
   }
 ]
