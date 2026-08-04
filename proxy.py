@@ -472,31 +472,20 @@ def get_futures():
     # Commodities — futuros CME/COMEX, mesmo padrao yquote ja usado para
     # indices/vix (busca via Yahoo Finance, retorna price + prev close)
     cl = yquote('CL%3DF')      # Petroleo WTI
-    gold = yquote_estavel('GC%3DF')    # Ouro (futuro)
-    silver = yquote_estavel('SI%3DF')  # Prata (futuro)
-    copper = yquote_estavel('HG%3DF')  # Cobre (futuro)
-    # Adicionado 04/08/2026 -- usuario esclareceu que acompanha o preco A
-    # VISTA (spot), nao o futuro -- os dois sao instrumentos DIFERENTES com
-    # gap normal entre si (custo de carregamento: armazenagem + juros), o
-    # "bug" reportado nas ultimas mensagens era na verdade comparacao entre
-    # fontes diferentes, nao um erro de calculo. Usuario pediu para manter o
-    # futuro como esta E adicionar linhas novas de a vista para comparar lado
-    # a lado. Tickers padrao Yahoo para a vista (sufixo =X, convencao usada
-    # para pares tipo moeda): XAU=X (ouro), XAG=X (prata). Cobre a vista nao
-    # tem um ticker padrao tao estabelecido no Yahoo quanto ouro/prata -- se
-    # XCU=X nao retornar dado, copper_spot fica None e a linha correspondente
-    # nao aparece na tela (ver tratamento no app.js).
-    # CORRIGIDO 04/08/2026: formato inicial (XAU=X, XAG=X) veio vazio --
-    # Yahoo trata ouro/prata a vista como par tipo cambio (XAU/USD, XAG/USD),
-    # formato correto e XAUUSD=X / XAGUSD=X (com o USD explicito). Removido
-    # o fallback em cadeia (tentava 2 formatos, dobrando chamadas Yahoo) --
-    # contribuiu para estourar o timeout do /futures e derrubar a rota
-    # inteira. 1 chamada direta com o formato correto, sem sampling extra
-    # (nao ha rolagem de contrato para spot, entao nao precisa da moda de
-    # yquote_estavel -- yquote() simples e mais rapido).
-    gold_spot = yquote('XAUUSD%3DX')
-    silver_spot = yquote('XAGUSD%3DX')
-    copper_spot = yquote('XCU%3DX')    # Cobre a vista (pode nao existir no Yahoo)
+    # REVERTIDO 04/08/2026: usuario reportou que o app ficou MAIS LENTO no
+    # geral (nao so gold/silver/copper) depois do sampling paralelo + spot.
+    # Prioridade agora e estabilidade -- voltando para 1 chamada simples por
+    # ticker, sem ThreadPoolExecutor extra a cada request e sem os tickers
+    # de spot (gold_spot/silver_spot vinham vazios de qualquer forma, entao
+    # nao valem o custo). O ruido de rolagem COMEX e temporario (a propria
+    # rolagem termina de se assentar em poucos dias) -- nao vale a pena
+    # manter complexidade/risco extra por um problema que se resolve sozinho.
+    gold = yquote('GC%3DF')    # Ouro (futuro)
+    silver = yquote('SI%3DF')  # Prata (futuro)
+    copper = yquote('HG%3DF')  # Cobre (futuro)
+    gold_spot = None
+    silver_spot = None
+    copper_spot = None
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
     # principal driver de VALE3; Brent e o benchmark internacional distinto
