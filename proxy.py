@@ -216,25 +216,39 @@ _BTC_CACHE = {}   # cache BTC indicators e cycle
 # bem no meio dessa janela agora. O ticker "continuo" do Yahoo (GC=F/SI=F/HG=F)
 # pode alternar entre o contrato antigo e o novo de forma inconsistente entre
 # chamadas durante rolagem, sem ser um movimento real de mercado. Ja aconteceu
-# antes (23/06, prata citada especificamente). Cache curto (90s) suaviza esse
-# ruido momentaneo sem mascarar movimento real (ciclo de refresh do frontend
-# e 2min, entao 90s ainda garante dado fresco a cada ciclo natural).
-_COMMODITY_ROLLOVER_CACHE = {}
-_COMMODITY_ROLLOVER_TTL = 90
+# antes (23/06, prata citada especificamente).
+#
+# CORRIGIDO 04/08/2026 (v2): a v1 usava cache em memoria por processo (90s).
+# Usuario confirmou que continuou piscando MESMO com o cache -- causa provavel:
+# Render pode rodar mais de 1 processo/worker, e cache em dict Python normal
+# NAO e compartilhado entre processos, entao cada request podia cair num
+# worker com um valor cacheado diferente. Trocado para uma abordagem que
+# funciona independente de quantos processos existem: dentro da MESMA
+# requisicao, consulta o Yahoo 3 vezes seguidas e usa o valor de 'prev' que
+# aparecer mais (moda) -- se o Yahoo estiver alternando entre contrato
+# antigo/novo de forma inconsistente, a maioria das 3 amostras tende a
+# convergir no valor real, neutralizando o ruido na propria fonte em vez de
+# tentar mascarar depois.
+def yquote_estavel(ticker, n=3):
+    """Wrapper de yquote() que consulta N vezes e usa o 'prev' mais frequente
+    (moda) -- usar para tickers sujeitos a ruido de rolagem de contrato
+    (ouro/prata/cobre). Funciona mesmo com multiplos workers no servidor,
+    diferente de um cache em memoria simples."""
+    amostras = []
+    for _ in range(n):
+        val = yquote(ticker)
+        if val is not None:
+            amostras.append(val)
+    if not amostras:
+        return None
+    # moda do 'prev' (arredondado a 2 casas para agrupar valores praticamente
+    # iguais que só diferem por ruido de ponto flutuante)
+    from collections import Counter
+    contagem = Counter(round(a['prev'], 2) for a in amostras)
+    prev_mais_comum = contagem.most_common(1)[0][0]
+    # usa o preco da amostra mais recente (ultima), mas o prev vencedor da moda
+    return {'price': amostras[-1]['price'], 'prev': prev_mais_comum, 'time': amostras[-1].get('time')}
 
-def yquote_estavel(ticker):
-    """Wrapper de yquote() com cache curto (90s) -- usar apenas para tickers
-    sabidamente sujeitos a ruido de rolagem de contrato (ouro/prata/cobre).
-    Ver comentario acima de _COMMODITY_ROLLOVER_CACHE para o motivo."""
-    agora = time.time()
-    if ticker in _COMMODITY_ROLLOVER_CACHE:
-        val, ts = _COMMODITY_ROLLOVER_CACHE[ticker]
-        if agora - ts < _COMMODITY_ROLLOVER_TTL:
-            return val
-    val = yquote(ticker)
-    if val is not None:
-        _COMMODITY_ROLLOVER_CACHE[ticker] = (val, agora)
-    return val
 CORS(app)
 import logging
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
