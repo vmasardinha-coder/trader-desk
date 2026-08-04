@@ -2511,6 +2511,15 @@ function doMacro(tv,ft){
     if(ft.gold?.price)afChg('gold-p','gold-c',ft.gold.price,ft.gold.prev,'u');
     if(ft.silver?.price)afChg('silver-p','silver-c',ft.silver.price,ft.silver.prev,'u');
     if(ft.copper?.price)afChg('copper-p','copper-c',ft.copper.price,ft.copper.prev,'u');
+    // Adicionado 04/08/2026 -- usuario acompanha o preco A VISTA (spot), nao
+    // o futuro -- os dois sao instrumentos diferentes com gap normal entre
+    // si (custo de carregamento), nao um bug. Linhas novas lado a lado com
+    // o futuro para comparacao direta. copper_spot pode nao existir no
+    // Yahoo (ticker XCU=X menos padronizado que XAU=X/XAG=X) -- por isso o
+    // optional chaining, a linha so preenche se o dado vier.
+    if(ft.gold_spot?.price)afChg('gold_spot-p','gold_spot-c',ft.gold_spot.price,ft.gold_spot.prev,'u');
+    if(ft.silver_spot?.price)afChg('silver_spot-p','silver_spot-c',ft.silver_spot.price,ft.silver_spot.prev,'u');
+    if(ft.copper_spot?.price)afChg('copper_spot-p','copper_spot-c',ft.copper_spot.price,ft.copper_spot.prev,'u');
     // Adicionado 23/06/2026 -- Europa & Asia (indices, sem moeda --
     // pontos de indice, nao um valor monetario direto, por isso tipo 'n'
     // numero puro em vez de 'r'/'u').
