@@ -462,12 +462,31 @@ def get_futures():
     asx200 = yquote('%5EAXJO', prefer_chart_prev=True)    # Australia
     kospi = yquote('%5EKS11', prefer_chart_prev=True)     # Coreia do Sul
 
-    return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
+    resp = jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
                      'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
                      'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas,
-                     '_diag_europa_asia_time': {
+                     # Adicionado 04/08/2026 -- usuario reportou TUDO defasado (indices,
+                     # petroleo, ouro, futuros americanos), nao so Europa/Asia -- sintoma
+                     # amplo demais pra ser 1 ticker com problema de fonte, mais coerente
+                     # com HTTP caching (browser/proxy/CDN) servindo uma resposta antiga
+                     # do /futures em vez de rodar a rota de novo. '_diag_time' cobre TODOS
+                     # os tickers (nao so Europa/Asia) pra confirmar isso: se o timestamp
+                     # bater com agora mas o preco na tela continuar velho, e cache de
+                     # verdade (nao busca de dado); se o timestamp tambem for antigo, o
+                     # problema esta na fonte (Yahoo) ou na propria rota nao estar rodando.
+                     '_diag_time': {
+                         'dji':dji.get('time') if dji else None,
+                         'esf':esf.get('time') if esf else None,
+                         'nqf':nqf.get('time') if nqf else None,
+                         'vix':vix.get('time') if vix else None,
+                         'cl':cl.get('time') if cl else None,
+                         'gold':gold.get('time') if gold else None,
+                         'silver':silver.get('time') if silver else None,
+                         'copper':copper.get('time') if copper else None,
+                         'brent':brent.get('time') if brent else None,
+                         'natgas':natgas.get('time') if natgas else None,
                          'dax':dax.get('time') if dax else None,
                          'cac40':cac40.get('time') if cac40 else None,
                          'stoxx50':stoxx50.get('time') if stoxx50 else None,
@@ -477,7 +496,14 @@ def get_futures():
                          'sse':sse.get('time') if sse else None,
                          'asx200':asx200.get('time') if asx200 else None,
                          'kospi':kospi.get('time') if kospi else None,
-                     }})
+                     },
+                     '_diag_server_time': int(time.time())})
+    # Forca no-cache -- rota antes nao setava nenhum header de cache, entao
+    # navegador/proxy/CDN intermediario poderia legalmente reter e servir uma
+    # resposta antiga do /futures sem essa instrucao explicita.
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 # ── YIELDS DE TÍTULOS SOBERANOS ───────────────────────────────────────────────
 # Adicionado 30/06/2026 -- backlog item 1.
