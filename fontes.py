@@ -134,7 +134,13 @@ def yquote(ticker):
         # mercado (como a queda real de ~4,5% da prata no caso relatado),
         # nao so os artificiais.
         v = cl[-2] if len(cl) > 1 else m.get('chartPreviousClose', p)
-        return {'price':round(float(p),2),'prev':round(float(v),2)}
+        # Adicionado 04/08/2026 -- diagnostico de defasagem (usuario reportou
+        # indices Europa/Asia parecendo desatualizados em Cotacoes). regularMarketTime
+        # (epoch, timezone do Yahoo) permite comparar "quando o Yahoo diz que
+        # atualizou" vs o horario real -- sem isso nao da pra distinguir "Yahoo
+        # atrasado" de "nosso codigo com bug". Nao quebra nada que ja consome
+        # yquote() -- e so um campo a mais no dict de retorno.
+        return {'price':round(float(p),2),'prev':round(float(v),2),'time':m.get('regularMarketTime')}
     except: return None
 
 # Adicionado 25/06/2026 -- item 6 do backlog (Minerio de Ferro parecia
