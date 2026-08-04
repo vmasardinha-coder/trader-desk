@@ -230,15 +230,26 @@ _BTC_CACHE = {}   # cache BTC indicators e cycle
 # convergir no valor real, neutralizando o ruido na propria fonte em vez de
 # tentar mascarar depois.
 def yquote_estavel(ticker, n=3):
-    """Wrapper de yquote() que consulta N vezes e usa o 'prev' mais frequente
-    (moda) -- usar para tickers sujeitos a ruido de rolagem de contrato
-    (ouro/prata/cobre). Funciona mesmo com multiplos workers no servidor,
-    diferente de um cache em memoria simples."""
+    """Wrapper de yquote() que consulta N vezes EM PARALELO e usa o 'prev'
+    mais frequente (moda) -- usar para tickers sujeitos a ruido de rolagem de
+    contrato (ouro/prata/cobre). Funciona mesmo com multiplos workers no
+    servidor, diferente de um cache em memoria simples.
+    CORRIGIDO 04/08/2026: v1 fazia as N chamadas em SEQUENCIA (uma depois da
+    outra), o que somado as novas chamadas de spot fez o /futures inteiro
+    estourar o timeout de 14s do frontend -- quando isso acontece a rota
+    inteira falha e NADA carrega (nao so os tickers novos). Paralelizado com
+    ThreadPoolExecutor: as N chamadas disparam ao mesmo tempo, tempo total
+    fica proximo ao de 1 chamada (limitado pela mais lenta), nao a soma das N."""
     amostras = []
-    for _ in range(n):
-        val = yquote(ticker)
-        if val is not None:
-            amostras.append(val)
+    with ThreadPoolExecutor(max_workers=n) as ex:
+        futuros = [ex.submit(yquote, ticker) for _ in range(n)]
+        for f in futuros:
+            try:
+                val = f.result(timeout=8)
+                if val is not None:
+                    amostras.append(val)
+            except Exception:
+                pass
     if not amostras:
         return None
     # moda do 'prev' (arredondado a 2 casas para agrupar valores praticamente
@@ -477,12 +488,15 @@ def get_futures():
     # nao aparece na tela (ver tratamento no app.js).
     # CORRIGIDO 04/08/2026: formato inicial (XAU=X, XAG=X) veio vazio --
     # Yahoo trata ouro/prata a vista como par tipo cambio (XAU/USD, XAG/USD),
-    # formato correto e XAUUSD=X / XAGUSD=X (com o USD explicito). Fallback
-    # automatico para o formato antigo caso o novo tambem falhe -- evita
-    # mais um ciclo de teste as cegas com o usuario.
-    gold_spot = yquote_estavel('XAUUSD%3DX') or yquote_estavel('XAU%3DX')
-    silver_spot = yquote_estavel('XAGUSD%3DX') or yquote_estavel('XAG%3DX')
-    copper_spot = yquote_estavel('XCU%3DX')    # Cobre a vista (pode nao existir no Yahoo)
+    # formato correto e XAUUSD=X / XAGUSD=X (com o USD explicito). Removido
+    # o fallback em cadeia (tentava 2 formatos, dobrando chamadas Yahoo) --
+    # contribuiu para estourar o timeout do /futures e derrubar a rota
+    # inteira. 1 chamada direta com o formato correto, sem sampling extra
+    # (nao ha rolagem de contrato para spot, entao nao precisa da moda de
+    # yquote_estavel -- yquote() simples e mais rapido).
+    gold_spot = yquote('XAUUSD%3DX')
+    silver_spot = yquote('XAGUSD%3DX')
+    copper_spot = yquote('XCU%3DX')    # Cobre a vista (pode nao existir no Yahoo)
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
     # principal driver de VALE3; Brent e o benchmark internacional distinto
