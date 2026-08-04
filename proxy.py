@@ -475,8 +475,13 @@ def get_futures():
     # tem um ticker padrao tao estabelecido no Yahoo quanto ouro/prata -- se
     # XCU=X nao retornar dado, copper_spot fica None e a linha correspondente
     # nao aparece na tela (ver tratamento no app.js).
-    gold_spot = yquote_estavel('XAU%3DX')      # Ouro a vista
-    silver_spot = yquote_estavel('XAG%3DX')    # Prata a vista
+    # CORRIGIDO 04/08/2026: formato inicial (XAU=X, XAG=X) veio vazio --
+    # Yahoo trata ouro/prata a vista como par tipo cambio (XAU/USD, XAG/USD),
+    # formato correto e XAUUSD=X / XAGUSD=X (com o USD explicito). Fallback
+    # automatico para o formato antigo caso o novo tambem falhe -- evita
+    # mais um ciclo de teste as cegas com o usuario.
+    gold_spot = yquote_estavel('XAUUSD%3DX') or yquote_estavel('XAU%3DX')
+    silver_spot = yquote_estavel('XAGUSD%3DX') or yquote_estavel('XAG%3DX')
     copper_spot = yquote_estavel('XCU%3DX')    # Cobre a vista (pode nao existir no Yahoo)
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
