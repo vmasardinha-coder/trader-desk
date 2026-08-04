@@ -25,6 +25,7 @@
 
 import re
 import requests
+import time as _t
 from motor import mm
 
 # ── CDI ───────────────────────────────────────────────
@@ -113,7 +114,13 @@ def yquote(ticker, prefer_chart_prev=False):
             headers={'User-Agent':'Mozilla/5.0'},timeout=6)
         if not r.ok: return None
         d=r.json(); m=d['chart']['result'][0]['meta']
-        cl=[c for c in d['chart']['result'][0]['indicators']['quote'][0]['close'] if c]
+        raw_close=d['chart']['result'][0]['indicators']['quote'][0]['close']
+        raw_ts=d['chart']['result'][0].get('timestamp',[])
+        # pares (timestamp, close) so onde close existe -- preserva o alinhamento
+        # entre os dois arrays em vez de filtrar cl sozinho (que quebrava a
+        # correspondencia posicional quando havia None no meio, ex: feriado)
+        pares=[(t,c) for t,c in zip(raw_ts,raw_close) if c is not None]
+        cl=[c for t,c in pares]
         p=m.get('regularMarketPrice',cl[-1] if cl else None)
         if p is None: return None
         # CORRIGIDO 23/06/2026: usuario reportou variacoes implausiveis em
@@ -127,35 +134,43 @@ def yquote(ticker, prefer_chart_prev=False):
         # serie diaria) como fonte PRIMARIA -- mesma serie ja usada para
         # cl[-1]/p e para vol_hist/GARCH em outras partes do app, mais
         # verificavel que um campo de metadado calculado pelo Yahoo.
-        # chartPreviousClose fica so como fallback quando o historico nao
-        # tem pontos suficientes (ticker muito novo ou erro de fonte).
-        # NAO foi usada nenhuma heuristica de "escolher o valor mais
-        # proximo do preco atual" -- isso mascararia movimentos REAIS de
-        # mercado (como a queda real de ~4,5% da prata no caso relatado),
-        # nao so os artificiais.
         #
-        # CORRIGIDO 04/08/2026: usuario reportou indices de Europa/Asia
-        # (DAX, CAC40, Nikkei etc) com preco E variacao % claramente errados
-        # em Cotacoes (confirmado por comparacao com fontes ao vivo -- gap
-        # de centenas de pontos no DAX, nao so arredondamento). Causa raiz:
-        # a correcao de 23/06 acima foi pensada para commodities/futuros
-        # 24h (CME/COMEX), onde cl[-2] e mais confiavel que o metadado do
-        # Yahoo. Indices de bolsa (^GDAXI, ^FCHI, ^N225 etc) tem sessao
-        # fechada com fronteira de dia bem definida por fuso -- dependendo
-        # de QUANDO o Yahoo e consultado, o candle diario mais recente do
-        # array 'close' pode estar incompleto/desalinhado (sessao ainda
-        # em andamento ou fuso diferente do nosso), fazendo cl[-1]/cl[-2]
-        # nao corresponderem ao preco/fechamento real. Para esses casos,
-        # `chartPreviousClose` (calculado pelo proprio Yahoo, ciente da
-        # sessao de cada bolsa) e mais confiavel -- e o inverso do
-        # raciocinio usado para commodities, por isso o parametro
-        # `prefer_chart_prev` permite escolher por chamada em vez de mudar
-        # o comportamento padrao (que continua certo para commodities/
-        # futuros 24h ja validados).
+        # CORRIGIDO 04/08/2026 (v2 -- causa raiz de verdade): usuario
+        # reportou Nikkei, KOSPI E DAX com variacao % errada em dias
+        # diferentes/tentativas diferentes -- nao era 1 ticker especifico
+        # nem cache (ja descartado). O bug real: `cl[-2]` assume que o
+        # ULTIMO ponto do array (`cl[-1]`) e sempre "hoje". Isso so e
+        # verdade se a sessao de hoje ja apareceu como candle no array.
+        # Quando o usuario consulta com o mercado daquela bolsa ABERTO
+        # (situacao normal dele: abre de manha e olha Europa/Asia ainda
+        # em pregao), o candle de "hoje" pode nao existir ainda no range
+        # de 5 dias -- nesse caso cl[-1] e na verdade ONTEM, e cl[-2] vira
+        # ANTEONTEM, gerando uma variacao % de 2 dias em vez de 1. Fix:
+        # comparar a DATA do ultimo timestamp da serie (no fuso GMT
+        # correto via 'gmtoffset' do proprio Yahoo) com a data de hoje
+        # nesse mesmo fuso -- se baterem, cl[-1] e mesmo hoje (ainda em
+        # andamento) e cl[-2] e o fechamento de ontem, valido; se NAO
+        # baterem, cl[-1] ja E o fechamento de ontem (nao existe candle de
+        # hoje ainda) e deve ser usado como 'prev' diretamente, com 'p'
+        # (regularMarketPrice, sempre ao vivo) fazendo o papel de "hoje".
+        v = None
+        if len(pares) >= 1:
+            gmtoffset = m.get('gmtoffset', 0) or 0
+            ultimo_ts = pares[-1][0]
+            hoje_bolsa = _t.gmtime(_t.time() + gmtoffset).tm_yday, _t.gmtime(_t.time() + gmtoffset).tm_year
+            data_ultimo = _t.gmtime(ultimo_ts + gmtoffset).tm_yday, _t.gmtime(ultimo_ts + gmtoffset).tm_year
+            if data_ultimo == hoje_bolsa:
+                # candle mais recente E de hoje (mercado aberto, sessao em
+                # andamento) -- cl[-2] e o fechamento de ontem, valido
+                v = pares[-2][1] if len(pares) > 1 else m.get('chartPreviousClose', p)
+            else:
+                # nao ha candle de hoje ainda -- cl[-1] JA E o fechamento
+                # de ontem (o mais recente disponivel)
+                v = pares[-1][1]
+        if v is None:
+            v = m.get('chartPreviousClose', p)
         if prefer_chart_prev and m.get('chartPreviousClose') is not None:
             v = m['chartPreviousClose']
-        else:
-            v = cl[-2] if len(cl) > 1 else m.get('chartPreviousClose', p)
         # Adicionado 04/08/2026 -- diagnostico de defasagem (usuario reportou
         # indices Europa/Asia parecendo desatualizados em Cotacoes). regularMarketTime
         # (epoch, timezone do Yahoo) permite comparar "quando o Yahoo diz que
