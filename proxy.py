@@ -461,9 +461,23 @@ def get_futures():
     # Commodities — futuros CME/COMEX, mesmo padrao yquote ja usado para
     # indices/vix (busca via Yahoo Finance, retorna price + prev close)
     cl = yquote('CL%3DF')      # Petroleo WTI
-    gold = yquote_estavel('GC%3DF')    # Ouro
-    silver = yquote_estavel('SI%3DF')  # Prata
-    copper = yquote_estavel('HG%3DF')  # Cobre
+    gold = yquote_estavel('GC%3DF')    # Ouro (futuro)
+    silver = yquote_estavel('SI%3DF')  # Prata (futuro)
+    copper = yquote_estavel('HG%3DF')  # Cobre (futuro)
+    # Adicionado 04/08/2026 -- usuario esclareceu que acompanha o preco A
+    # VISTA (spot), nao o futuro -- os dois sao instrumentos DIFERENTES com
+    # gap normal entre si (custo de carregamento: armazenagem + juros), o
+    # "bug" reportado nas ultimas mensagens era na verdade comparacao entre
+    # fontes diferentes, nao um erro de calculo. Usuario pediu para manter o
+    # futuro como esta E adicionar linhas novas de a vista para comparar lado
+    # a lado. Tickers padrao Yahoo para a vista (sufixo =X, convencao usada
+    # para pares tipo moeda): XAU=X (ouro), XAG=X (prata). Cobre a vista nao
+    # tem um ticker padrao tao estabelecido no Yahoo quanto ouro/prata -- se
+    # XCU=X nao retornar dado, copper_spot fica None e a linha correspondente
+    # nao aparece na tela (ver tratamento no app.js).
+    gold_spot = yquote_estavel('XAU%3DX')      # Ouro a vista
+    silver_spot = yquote_estavel('XAG%3DX')    # Prata a vista
+    copper_spot = yquote_estavel('XCU%3DX')    # Cobre a vista (pode nao existir no Yahoo)
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
     # principal driver de VALE3; Brent e o benchmark internacional distinto
@@ -513,6 +527,7 @@ def get_futures():
 
     resp = jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
+                     'gold_spot':gold_spot,'silver_spot':silver_spot,'copper_spot':copper_spot,
                      'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
                      'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas,
