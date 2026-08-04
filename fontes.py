@@ -107,7 +107,7 @@ def yahoo_fundamentals(ticker, _debug=None):
     return None
 
 
-def yquote(ticker):
+def yquote(ticker, prefer_chart_prev=False):
     try:
         r=requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=5d',
             headers={'User-Agent':'Mozilla/5.0'},timeout=6)
@@ -133,7 +133,29 @@ def yquote(ticker):
         # proximo do preco atual" -- isso mascararia movimentos REAIS de
         # mercado (como a queda real de ~4,5% da prata no caso relatado),
         # nao so os artificiais.
-        v = cl[-2] if len(cl) > 1 else m.get('chartPreviousClose', p)
+        #
+        # CORRIGIDO 04/08/2026: usuario reportou indices de Europa/Asia
+        # (DAX, CAC40, Nikkei etc) com preco E variacao % claramente errados
+        # em Cotacoes (confirmado por comparacao com fontes ao vivo -- gap
+        # de centenas de pontos no DAX, nao so arredondamento). Causa raiz:
+        # a correcao de 23/06 acima foi pensada para commodities/futuros
+        # 24h (CME/COMEX), onde cl[-2] e mais confiavel que o metadado do
+        # Yahoo. Indices de bolsa (^GDAXI, ^FCHI, ^N225 etc) tem sessao
+        # fechada com fronteira de dia bem definida por fuso -- dependendo
+        # de QUANDO o Yahoo e consultado, o candle diario mais recente do
+        # array 'close' pode estar incompleto/desalinhado (sessao ainda
+        # em andamento ou fuso diferente do nosso), fazendo cl[-1]/cl[-2]
+        # nao corresponderem ao preco/fechamento real. Para esses casos,
+        # `chartPreviousClose` (calculado pelo proprio Yahoo, ciente da
+        # sessao de cada bolsa) e mais confiavel -- e o inverso do
+        # raciocinio usado para commodities, por isso o parametro
+        # `prefer_chart_prev` permite escolher por chamada em vez de mudar
+        # o comportamento padrao (que continua certo para commodities/
+        # futuros 24h ja validados).
+        if prefer_chart_prev and m.get('chartPreviousClose') is not None:
+            v = m['chartPreviousClose']
+        else:
+            v = cl[-2] if len(cl) > 1 else m.get('chartPreviousClose', p)
         # Adicionado 04/08/2026 -- diagnostico de defasagem (usuario reportou
         # indices Europa/Asia parecendo desatualizados em Cotacoes). regularMarketTime
         # (epoch, timezone do Yahoo) permite comparar "quando o Yahoo diz que
