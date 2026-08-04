@@ -209,6 +209,32 @@ def _retorno_bidirecional_full(variacao_full, tocou_alta_full, tocou_baixa_full,
 
 _IND_CACHE = {}
 _BTC_CACHE = {}   # cache BTC indicators e cycle
+# Adicionado 04/08/2026 -- usuario reportou ouro/prata/cobre "piscando" entre
+# valores diferentes a cada atualizacao automatica (2min), preco E variacao %
+# mudando sozinhos sem refresh manual. Causa raiz confirmada por pesquisa:
+# COMEX tem deadline de rolagem do contrato de agosto/2026 em 29/07 -- estamos
+# bem no meio dessa janela agora. O ticker "continuo" do Yahoo (GC=F/SI=F/HG=F)
+# pode alternar entre o contrato antigo e o novo de forma inconsistente entre
+# chamadas durante rolagem, sem ser um movimento real de mercado. Ja aconteceu
+# antes (23/06, prata citada especificamente). Cache curto (90s) suaviza esse
+# ruido momentaneo sem mascarar movimento real (ciclo de refresh do frontend
+# e 2min, entao 90s ainda garante dado fresco a cada ciclo natural).
+_COMMODITY_ROLLOVER_CACHE = {}
+_COMMODITY_ROLLOVER_TTL = 90
+
+def yquote_estavel(ticker):
+    """Wrapper de yquote() com cache curto (90s) -- usar apenas para tickers
+    sabidamente sujeitos a ruido de rolagem de contrato (ouro/prata/cobre).
+    Ver comentario acima de _COMMODITY_ROLLOVER_CACHE para o motivo."""
+    agora = time.time()
+    if ticker in _COMMODITY_ROLLOVER_CACHE:
+        val, ts = _COMMODITY_ROLLOVER_CACHE[ticker]
+        if agora - ts < _COMMODITY_ROLLOVER_TTL:
+            return val
+    val = yquote(ticker)
+    if val is not None:
+        _COMMODITY_ROLLOVER_CACHE[ticker] = (val, agora)
+    return val
 CORS(app)
 import logging
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
@@ -421,9 +447,9 @@ def get_futures():
     # Commodities — futuros CME/COMEX, mesmo padrao yquote ja usado para
     # indices/vix (busca via Yahoo Finance, retorna price + prev close)
     cl = yquote('CL%3DF')      # Petroleo WTI
-    gold = yquote('GC%3DF')    # Ouro
-    silver = yquote('SI%3DF')  # Prata
-    copper = yquote('HG%3DF')  # Cobre
+    gold = yquote_estavel('GC%3DF')    # Ouro
+    silver = yquote_estavel('SI%3DF')  # Prata
+    copper = yquote_estavel('HG%3DF')  # Cobre
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
     # principal driver de VALE3; Brent e o benchmark internacional distinto
