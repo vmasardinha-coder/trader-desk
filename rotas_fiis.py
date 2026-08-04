@@ -21,7 +21,7 @@
 # O que NAO esta aqui: os scrapers/classificadores puros (estao em
 # fontes.py), e qualquer rota nao-FII.
 
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 import re
 import json
 import math
@@ -509,7 +509,9 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
         try:
             conteudo_str, _ = _github_get_file('carteira_fiis.json')
             carteira = json.loads(conteudo_str) if conteudo_str.strip() else []
-            return jsonify({'carteira': carteira, 'total': len(carteira)})
+            r = make_response(jsonify({'carteira': carteira, 'total': len(carteira)}))
+            r.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            return r
         except RuntimeError as e:
             return jsonify({'error': str(e), 'carteira': []}), 500
         except Exception as e:
@@ -547,7 +549,17 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             if _cache_carteira_fiis_resumo['chave'] == chave_cache:
                 resp_cache = dict(_cache_carteira_fiis_resumo['resposta'])
                 resp_cache['cache'] = True
-                return jsonify(resp_cache)
+                # Adicionado 04/08/2026 -- usuario reportou preco de FII
+                # (ITRI11) travado por VARIOS DIAS, nao so 1 dia (que seria
+                # o esperado do cache diario do servidor, que reseta sozinho
+                # a virada de data). Causa provavel: rota nunca setava
+                # Cache-Control, entao o NAVEGADOR podia reter a resposta
+                # por conta propria por muito mais tempo que o cache do
+                # servidor pretendia -- mesma classe de bug ja corrigida no
+                # /futures.
+                r = make_response(jsonify(resp_cache))
+                r.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                return r
             itens = [f for f in carteira if f.get('status') == 'ativa']
             if not itens:
                 return jsonify({
@@ -666,7 +678,9 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             _cache_carteira_fiis_resumo['resposta'] = resposta
             resp_out = dict(resposta)
             resp_out['cache'] = False
-            return jsonify(resp_out)
+            r = make_response(jsonify(resp_out))
+            r.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            return r
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
