@@ -452,15 +452,24 @@ def get_futures():
     # estes ultimos parecem ser instrumentos de nicho com liquidez/
     # disponibilidade incerta no Yahoo -- os indices a vista sao
     # extremamente liquidos e ja servem como termometro intraday.
-    dax = yquote('%5EGDAXI', prefer_chart_prev=True)      # Alemanha
-    cac40 = yquote('%5EFCHI', prefer_chart_prev=True)     # Franca
-    stoxx50 = yquote('%5ESTOXX50E', prefer_chart_prev=True)  # Zona do Euro
-    ftse100 = yquote('%5EFTSE', prefer_chart_prev=True)   # Reino Unido
-    nikkei = yquote('%5EN225', prefer_chart_prev=True)    # Japao
-    hangseng = yquote('%5EHSI', prefer_chart_prev=True)   # Hong Kong
-    sse = yquote('000001.SS', prefer_chart_prev=True)     # China (Shanghai)
-    asx200 = yquote('%5EAXJO', prefer_chart_prev=True)    # Australia
-    kospi = yquote('%5EKS11', prefer_chart_prev=True)     # Coreia do Sul
+    # REVERTIDO 04/08/2026: prefer_chart_prev=True (tentativa anterior) pioroU
+    # o problema -- usuario confirmou Nikkei/KOSPI com % amplificada (5,57%
+    # exibido vs 1,62% real) depois da mudanca, nao corrigida. Causa real
+    # provavel: chartPreviousClose do Yahoo usa fronteira de dia baseada no
+    # proprio fuso do Yahoo (nao o fuso local de cada bolsa), entao pode
+    # referenciar um fechamento mais antigo que o cl[-2] da serie diaria.
+    # Voltando ao comportamento padrao (cl[-2]), que usuario confirma que
+    # "sempre funcionou" -- a defasagem real reportada era causada pelo
+    # cache HTTP do /futures (corrigido separadamente com Cache-Control).
+    dax = yquote('%5EGDAXI')      # Alemanha
+    cac40 = yquote('%5EFCHI')     # Franca
+    stoxx50 = yquote('%5ESTOXX50E')  # Zona do Euro
+    ftse100 = yquote('%5EFTSE')   # Reino Unido
+    nikkei = yquote('%5EN225')    # Japao
+    hangseng = yquote('%5EHSI')   # Hong Kong
+    sse = yquote('000001.SS')     # China (Shanghai)
+    asx200 = yquote('%5EAXJO')    # Australia
+    kospi = yquote('%5EKS11')     # Coreia do Sul
 
     resp = jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
