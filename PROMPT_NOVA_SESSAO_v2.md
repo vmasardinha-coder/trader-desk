@@ -1576,3 +1576,57 @@ Historico completo (a v20 registrou o meio do caminho; isto e o desfecho real):
 - Grades de opcoes do OpLab: sempre apresentar os 2 lados (call coberta E put vendida).
 - Perfil do usuario: ~70% posicoes ativas sao estruturas arrojadas (bidirecional/retorno controlado), ~30% sao simples derivadas (quando a estrutura arrojada rompe e vira venda de opcao pra ganhar tempo).
 - Ao registrar analises, sempre incluir a data do lote de origem no nome/observacao (ex: "Lote 01/07/2026").
+
+---
+
+## SESSÃO 04/08/2026 — resumo e handoff
+
+### Posições registradas/atualizadas
+- **AXIA3(C)** criada (id `a3c`): Retorno Controlado Itaú, entry R$51,68, KDO R$43,88, KUO R$61,29, venc **22/11/2026** (oficial do boleto, não 18/11 do PDF publicitário), teto 27,75%, alavancagem 1,5x. Confirmada com boleto real da corretora.
+- **AXIA3(B)** calibrada com boleto oficial: entry 50,75 (era 50,65), KDO 40,55 (era 40,52), KUO 62,98 (era 62,81).
+- **BBAS3 antiga** (`bb`, BBASH21) encerrada com sucesso: R$800/1,82% em ~38 dias → movida para `encerradas` (id `cl-bbas-jul26`).
+- **BBASJ222** (`bb2`) criada: rolagem da BBAS3, strike R$21,90, prêmio R$1,20, venc 15/10/2026, meta encerrar em ~40 dias.
+
+### Bugs corrigidos e VALIDADOS pelo usuário nesta sessão
+1. **AXIA3(C) sem cotação**: `app.js` tinha fetch de preço hardcoded só pra ids `a3`/`a3b` — `a3c` nunca era buscado. Corrigido para incluir `a3c`.
+2. **BBASJ222 sem cotação**: mesmo padrão de bug — bloco só reconhecia id `bb`. Corrigido para tratar `bb`/`bb2` juntos.
+3. **Índices Europa/Ásia com preço e variação % errados**: causa raiz real — `yquote()` assumia que `cl[-1]` (último ponto da série de 5 dias do Yahoo) é sempre "hoje", o que só é verdade se o candle de hoje já apareceu na série. Como o usuário consulta com essas bolsas ainda abertas, `cl[-1]` às vezes já era "ontem", inflando/invertendo a variação. **Corrigido (v3)**: compara a data real do último candle (via `gmtoffset` do Yahoo) com hoje antes de decidir qual índice usar como "ontem"; se o Yahoo não mandar `gmtoffset` confiável, cai no método simples `cl[-2]` (não assume UTC=0 por padrão, que causava erro sistemático em ouro/prata/cobre). Validado pelo usuário: índices ok, petróleo confirmado batendo com fonte externa (Investing.com).
+4. **Cache do `/futures` sem header no-cache**: navegador podia reter resposta velha. Corrigido com `Cache-Control: no-cache, no-store, must-revalidate`.
+5. **Cache do `/carteira-fiis` e `/carteira-fiis/resumo` sem header no-cache**: preço de FII (ex. ITRI11) ficava preso por dias no navegador, além do cache diário (intencional) do servidor. Corrigido com os mesmos headers no-cache. **PENDENTE DE VALIDAÇÃO**: só será confirmado quando o preço mudar sozinho na próxima virada de dia (o cache diário do servidor é por design, não é bug — usuário concordou que é aceitável pra FII).
+
+### Tentativas que NÃO funcionaram e foram revertidas
+- **Ouro/Prata/Cobre à vista (spot)**: usuário pediu pra adicionar linhas de preço à vista ao lado do futuro (COMEX). Tentativa com tickers `XAU=X`/`XAG=X` (vazio) → depois `XAUUSD=X`/`XAGUSD=X` com fallback duplo + sampling paralelo (3x) → **estourou o timeout do `/futures` e derrubou a rota inteira** (nada carregava, nem USD). **REVERTIDO**: `gold_spot`/`silver_spot`/`copper_spot` voltaram a `None` fixo, sem nenhuma chamada extra. As 3 linhas HTML (`GOLD/SILVER/COPPER (SPOT)`) continuam na tela mas sempre vazias (não atrapalham nada, só não têm dado). **Item pendente no backlog** — precisa ser feito com mais cautela numa próxima sessão, testando isoladamente antes de combinar com outras mudanças.
+- **Cache em memória (90s) para ouro/prata/cobre durante rolagem COMEX**: não funcionou porque provavelmente não é compartilhado entre processos/workers do Render. Substituído por sampling paralelo com moda de 3 amostras (`yquote_estavel`), que ficou ok, mas quando combinado com as tentativas de spot estourou o timeout. Depois do revert, `yquote_estavel` ficou sem uso (função existe no código mas não é chamada por ninguém no momento — pode ser removida ou reaproveitada depois).
+
+### Contexto de mercado do dia (não é bug, é real)
+- KOSPI em crise: caiu 10,8% + 6% + 1,23% em dias consecutivos (venda maciça ligada a ações de IA, Samsung/SK Hynix). Explica variações % que pareciam absurdas mas eram reais.
+- Rolagem de contrato COMEX (ouro/prata/cobre) com deadline 29/07/2026 — pode gerar ruído residual por mais alguns dias, tende a se resolver sozinho.
+
+### Diagnóstico adicionado (útil pra debug futuro)
+- `/futures` agora retorna `_diag_time` (timestamp de cada ticker, quando o Yahoo diz ter atualizado) e `_diag_server_time` (horário do próprio servidor no momento da resposta). Útil pra distinguir "dado desatualizado na fonte" de "bug no nosso código" sem precisar de acesso ao Render.
+
+### BACKLOG ATUALIZADO (04/08/2026)
+
+**Modelagem / Motor estatístico**
+- Tracking previsão-vs-realizado (Monte Carlo/GARCH) — registrado 24/07, ainda não implementado.
+- Mistura de volatilidade implícita (OpLab) + GARCH histórico — registrado 24/07, depende do item acima.
+- Mecânica americana vs. europeia não incorporada no modelo.
+- Fan chart / Monte Carlo condicional nas Posições Ativas (só existe em Watchlist/Indicadores hoje).
+
+**Cotações / dados de mercado**
+- **Ouro/Prata/Cobre à vista (spot)**: reintroduzir com cautela, testando isolado antes de combinar com outras mudanças (ver "tentativas que não funcionaram" acima).
+- Cobre à vista pode não ter ticker confiável no Yahoo — considerar fonte alternativa (TradingView, como já usado pro minério de ferro) se `XCU=X` continuar vazio.
+- Validar amanhã (05/08 em diante) se o fix de cache do `/carteira-fiis` realmente resolve o preço de FII travado.
+- `yquote_estavel` (sampling paralelo com moda) ficou no código sem uso — decidir se remove ou reaproveita.
+
+**UI**
+- % de variação em R$ nas Posições Ativas — usuário ainda testando (aberto desde 15/07).
+- Botão de foto em lote (bulk) pra toda a watchlist de uma vez.
+- Bandas p10/p90 com legenda de confiança na "Foto do Papel".
+- Auto-congelamento das bandas ao criar análise em Em Análise.
+
+**Longo prazo, pausado**
+- Cotações/Indicadores públicos, monetização de Encerradas, bot de futuros automatizado.
+
+### Nota de processo para a próxima sessão
+Sessão de hoje teve várias iterações de tentativa-e-erro em cima do `/futures` (índices, depois commodities, depois spot) que causaram instabilidade real no app percebida pelo usuário ("cada vez que mexe, piora"). Para próximas mudanças nessa área: **testar UMA mudança de cada vez, validar com o usuário antes de empilhar a próxima**, e ter cautela extra com qualquer coisa que aumente o número de chamadas de rede dentro do `/futures` (risco de timeout que derruba a rota inteira, não só o ticker novo).
