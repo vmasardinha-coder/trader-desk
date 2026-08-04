@@ -153,9 +153,26 @@ def yquote(ticker, prefer_chart_prev=False):
         # baterem, cl[-1] ja E o fechamento de ontem (nao existe candle de
         # hoje ainda) e deve ser usado como 'prev' diretamente, com 'p'
         # (regularMarketPrice, sempre ao vivo) fazendo o papel de "hoje".
+        # CORRIGIDO 04/08/2026 (v3 -- fix da v2): usuario reportou ouro/prata/
+        # cobre com variacao % errada de forma CONSISTENTE (nao ruido -- nem
+        # moda de 3 amostras resolveu, o que descarta ruido aleatorio e aponta
+        # pra um calculo sistematicamente errado). Causa provavel: a v2 abaixo
+        # usa `m.get('gmtoffset', 0) or 0`, que cai silenciosamente para UTC
+        # se o Yahoo nao mandar esse campo para o ticker -- possivel para
+        # GC=F/SI=F/HG=F especificamente. Isso e perigoso porque esses
+        # contratos tem pausa diaria de so 1h (17h-18h Chicago = ~22h-23h
+        # UTC), bem perto da fronteira de meia-noite UTC -- se o calculo cai
+        # em UTC errado, a comparacao de "e hoje ou nao" pode furar bem nessa
+        # janela estreita e ficar ERRADA DE FORMA CONSISTENTE (nao aleatoria)
+        # ate a proxima virada real de dia, explicando o "carrega certo,
+        # atualiza, fica errado e estabiliza errado" relatado. Fix: só usar a
+        # logica de comparacao de data quando o Yahoo realmente mandar
+        # gmtoffset (não usar default 0) -- sem esse dado, nao da pra saber a
+        # fronteira do dia com seguranca, entao volta ao cl[-2] simples (que
+        # ja era validado para commodities antes da v2).
         v = None
-        if len(pares) >= 1:
-            gmtoffset = m.get('gmtoffset', 0) or 0
+        gmtoffset = m.get('gmtoffset')
+        if gmtoffset is not None and len(pares) >= 1:
             ultimo_ts = pares[-1][0]
             hoje_bolsa = _t.gmtime(_t.time() + gmtoffset).tm_yday, _t.gmtime(_t.time() + gmtoffset).tm_year
             data_ultimo = _t.gmtime(ultimo_ts + gmtoffset).tm_yday, _t.gmtime(ultimo_ts + gmtoffset).tm_year
@@ -168,7 +185,10 @@ def yquote(ticker, prefer_chart_prev=False):
                 # de ontem (o mais recente disponivel)
                 v = pares[-1][1]
         if v is None:
-            v = m.get('chartPreviousClose', p)
+            # sem gmtoffset confiavel (ou array vazio) -- volta ao metodo
+            # simples original (valido para commodities, testado e confirmado
+            # correto para petroleo antes desta mudanca)
+            v = cl[-2] if len(cl) > 1 else m.get('chartPreviousClose', p)
         if prefer_chart_prev and m.get('chartPreviousClose') is not None:
             v = m['chartPreviousClose']
         # Adicionado 04/08/2026 -- diagnostico de defasagem (usuario reportou
