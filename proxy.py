@@ -452,15 +452,15 @@ def get_futures():
     # estes ultimos parecem ser instrumentos de nicho com liquidez/
     # disponibilidade incerta no Yahoo -- os indices a vista sao
     # extremamente liquidos e ja servem como termometro intraday.
-    dax = yquote('%5EGDAXI')      # Alemanha
-    cac40 = yquote('%5EFCHI')     # Franca
-    stoxx50 = yquote('%5ESTOXX50E')  # Zona do Euro
-    ftse100 = yquote('%5EFTSE')   # Reino Unido
-    nikkei = yquote('%5EN225')    # Japao
-    hangseng = yquote('%5EHSI')   # Hong Kong
-    sse = yquote('000001.SS')     # China (Shanghai)
-    asx200 = yquote('%5EAXJO')    # Australia
-    kospi = yquote('%5EKS11')     # Coreia do Sul
+    dax = yquote('%5EGDAXI', prefer_chart_prev=True)      # Alemanha
+    cac40 = yquote('%5EFCHI', prefer_chart_prev=True)     # Franca
+    stoxx50 = yquote('%5ESTOXX50E', prefer_chart_prev=True)  # Zona do Euro
+    ftse100 = yquote('%5EFTSE', prefer_chart_prev=True)   # Reino Unido
+    nikkei = yquote('%5EN225', prefer_chart_prev=True)    # Japao
+    hangseng = yquote('%5EHSI', prefer_chart_prev=True)   # Hong Kong
+    sse = yquote('000001.SS', prefer_chart_prev=True)     # China (Shanghai)
+    asx200 = yquote('%5EAXJO', prefer_chart_prev=True)    # Australia
+    kospi = yquote('%5EKS11', prefer_chart_prev=True)     # Coreia do Sul
 
     return jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
