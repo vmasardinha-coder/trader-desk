@@ -466,7 +466,18 @@ def get_futures():
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
                      'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
                      'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
-                     'iron_ore':iron_ore,'brent':brent,'natgas':natgas})
+                     'iron_ore':iron_ore,'brent':brent,'natgas':natgas,
+                     '_diag_europa_asia_time': {
+                         'dax':dax.get('time') if dax else None,
+                         'cac40':cac40.get('time') if cac40 else None,
+                         'stoxx50':stoxx50.get('time') if stoxx50 else None,
+                         'ftse100':ftse100.get('time') if ftse100 else None,
+                         'nikkei':nikkei.get('time') if nikkei else None,
+                         'hangseng':hangseng.get('time') if hangseng else None,
+                         'sse':sse.get('time') if sse else None,
+                         'asx200':asx200.get('time') if asx200 else None,
+                         'kospi':kospi.get('time') if kospi else None,
+                     }})
 
 # ── YIELDS DE TÍTULOS SOBERANOS ───────────────────────────────────────────────
 # Adicionado 30/06/2026 -- backlog item 1.
