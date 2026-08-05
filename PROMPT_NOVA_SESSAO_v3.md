@@ -43,10 +43,16 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 ### Cotações
 | Item | Status |
 |---|---|
-| Ouro/Prata/Cobre à vista (spot) | 🟡 CÓDIGO FEITO, AGUARDA VALIDAÇÃO REAL (04/08/2026, 2ª tentativa) — trocada a fonte de Yahoo para Hyperliquid (mercados perpétuos HIP-3, dex `xyz`, lastreados a oráculo benchmarked ao COMEX front-month). Nova função `fetch_commodities_hyperliquid()` em `fontes.py`, 1 chamada POST única e sequencial (sem `ThreadPoolExecutor` — lição do incidente anterior no mesmo dia). Testado com rede mockada (`app.test_client()`), passou. **Claude não tem acesso de rede a `api.hyperliquid.xyz` no sandbox** — não foi possível testar a chamada ao vivo. Fail-safe: qualquer erro retorna `{}` → `gold_spot`/`silver_spot`/`copper_spot` caem em `None` (mesmo comportamento de antes, zero risco de regressão). Victor precisa conferir no app publicado se os 3 valores aparecem e batem com a referência externa. |
+| Ouro/Prata/Cobre à vista (spot) | 🟡 PARCIAL — fonte trocada de Yahoo para Hyperliquid (`fetch_commodities_hyperliquid()` em fontes.py). Bug do prefixo (`xyz:GOLD` vs `GOLD` puro) corrigido em 05/08. **GOLD confirmado funcionando e batendo com referência externa (validado pelo Victor em 05/08/2026).** SILVER/COPPER: fix aplicado (mesmo código, normalização genérica), mas Victor NÃO confirmou explicitamente se apareceram — checar no app antes de dar como fechado. Campo `_spot_debug` ainda exposto no `/futures` (temporário, remover quando os 3 estiverem confirmados). |
 | `yquote_estavel()` sem nenhuma chamada no código | 🟡 ABERTO, baixa prioridade — decidir remover ou reaproveitar. |
 | Cache no-cache em `/futures` e `/carteira-fiis` (preço de FII/futuro travado no navegador) | ✅ Fechado — código confirmado e VALIDADO pelo Victor em 04/08/2026. |
 | Coluna "Preço ativ." na Carteira de FIIs parecendo desatualizada | ✅ Fechado — não é bug. É o preço CONGELADO na ativação por design (`preco_ativacao`), usado só como referência de comparação, nunca recalculado. Sistema não é pra acompanhar cotação ao vivo (Victor confirmou não precisar disso). Preço vivo já existe e é usado no card de resumo agregado (`/carteira-fiis/resumo`), não na tabela linha-a-linha. |
+
+### Arquitetura / bugs corrigidos
+| Item | Status |
+|---|---|
+| Migração Em Análise → Posições Ativas travava silenciosamente quando o papel-base já tinha outra posição ativa (ex: AXIA3.SA com `a3b`+`a3c`) | ✅ Corrigido em 05/08/2026 — `_migrar_para_positions` checava duplicidade por TICKER (errado, papel pode ter várias estruturas concorrentes); agora checa por ID, com sufixo automático em caso raro de colisão. Testado com o cenário real (AXIA3 "Proteção Parcial"). Causa raiz de uma análise que ficou presa "ativa" em Em Análise sem nunca aparecer em Posições Ativas — ver `an_1784576725` em Encerradas (fechada de forma neutra, não migrada a pedido do Victor, era teste). |
+| Não existe (e nunca existiu) botão de "tirar foto" para uma análise JÁ CRIADA em Em Análise | ℹ️ Esclarecido em 05/08/2026 — `bandas_congeladas` só nasce no momento da criação (`POST /analises` → `_congelar_bandas_analise`). `GET /analises/<id>/foto-bandas` é só visualizador, nunca gerador. Fluxo real e único: Claude discute/filtra em chat e registra a análise diretamente via GitHub API — não existe (nem nunca existiu) uma tela de "Indicadores" separada para isso. |
 
 ### Modelagem
 | Item | Status |
@@ -101,9 +107,17 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
   bugs reais (NameError, campo faltando) só apareceram rodando de verdade, não no syntax check.
 - **SHA fresco imediatamente antes de qualquer PUT no GitHub** — nunca reusar SHA de memória.
 - **NUNCA usar `raw.githubusercontent.com` para reler um arquivo de dados (analises.json, positions.json, stats_analises.json etc.) dentro da MESMA sessão logo após escrever nele** — incidente real em 05/08/2026: escrevi corretamente o fechamento de uma análise, na sequência precisei reler o arquivo pra adicionar outro registro, usei `raw.githubusercontent.com` (CDN com cache de alguns minutos), peguei a versão desatualizada de ANTES do meu próprio fechamento, colei o novo registro nela e sobrescrevi — desfazendo silenciosamente a edição anterior sem erro nenhum aparecer. Regra: para qualquer ciclo de ler→editar→escrever dentro da sessão, usar SEMPRE `api.github.com` (nunca cacheia) tanto pra leitura quanto pra escrita. `raw.githubusercontent.com` só é seguro pra uma leitura isolada de diagnóstico, nunca como base pra uma escrita subsequente na mesma sessão.
-- **Sandbox do Claude não acessa `trader-desk.onrender.com` nem domínios de cotação** (Yahoo,
-  brapi) — só `api.github.com`, `raw.githubusercontent.com` e domínios de pacotes. Preço/dado ao
-  vivo precisa vir do usuário (via app/Eruda) ou de `web_search`/`web_fetch`.
+- **Acesso de rede do sandbox do Claude**: histórico era travado em `api.github.com`,
+  `raw.githubusercontent.com` e domínios de pacotes (confirmado via teste direto em 05/08/2026 —
+  `curl` pra `trader-desk.onrender.com` e `query1.finance.yahoo.com` retornou 403 "Host not in
+  allowlist"). **Victor mudou a configuração de rede (Settings → Capabilities → Code execution →
+  Domain allowlist) em 05/08/2026 pra liberar mais domínios — vale ATÉ SER TESTADO EM UMA NOVA
+  CONVERSA** (mudança de config não se aplica à conversa em andamento no momento da troca, só a
+  partir da próxima). Primeira ação de qualquer sessão nova: testar `curl
+  https://query1.finance.yahoo.com/v8/finance/chart/PETR4.SA` e `curl
+  https://trader-desk.onrender.com/analises` pra confirmar se já libera — se sim, muita coisa
+  neste documento sobre "não dá pra calcular GARCH/pegar preço ao vivo daqui" fica obsoleta e o
+  Claude pode buscar preço/histórico direto em vez de sempre pedir pro Victor.
 - **Estruturas bidirecionais/retorno controlado sempre com PDF oficial do banco presente** —
   nunca cadastrar de memória/estimativa.
 - **ROXO34 = id `rx` sempre** (lógica hardcoded no app.js pra cotação/ITM-OTM/Monte Carlo
@@ -113,23 +127,44 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 
 ---
 
-## 📍 Posições ativas atuais (positions.json, conferir sempre no arquivo real antes de assumir)
+## 📌 Operações em andamento (checar status ao retomar)
+
+- **BSLV39 (rolagem, 05/08/2026)**: posição antiga encerrada com sucesso (retorno proporcional
+  5,7% = 8,3% × 41/60 dias decorridos, confirmado pelo Victor e pelo corretor). Nova posição aberta
+  (mesmo id `bslv39`), venc. 05/10/2026, retorno prefixado 8,20%, barreira -20% (KDO R$76,94).
+  **`entry` está PROVISÓRIO em R$96,30** (valor assumido a pedido do Victor) — NÃO corrigir por
+  conta própria, só quando ele mandar o valor real do boleto de liquidação. Ver `positions.json`
+  ativas (`bslv39`) e encerradas (`cl-bslv39-ago26`).
+- **SPCX34 (nova, 05/08/2026)**: registrada em Em Análise (`an_1785945909`), status `em_analise`
+  (ainda NÃO decidida), preço de referência R$39,20 (papel caiu -8,24% no dia do registro — vale
+  reconferir se isso muda a leitura). Retorno prefixado 19,00%/29 dias (MUITO acima do normal,
+  vol. implícita alta, BDR de empresa de capital fechado). **Faltam as bandas de Monte Carlo**
+  (`bandas_congeladas`) — não deu pra calcular por falta de acesso de rede no momento do registro.
+  Se a mudança de rede (ver Princípios de processo acima) já valer na sessão nova, recalcular e
+  preencher isso primeiro, antes de mais nada, antes do Victor rodar o ranking de novo.
+- **AXIA3 "Proteção Parcial" (`an_1784576725`)**: encerrada de forma neutra em 05/08/2026 (era
+  teste, nunca foi decisão real, não conta em stats). Não precisa de ação — só contexto caso o
+  Victor pergunte por ela de novo.
 
 | ID | Ticker | Tipo | Exercício | Vencimento | Obs |
 |---|---|---|---|---|---|
 | pt | PETR4 | simples (call vendida) | europeia | 17/12/2026 | sem meta, objetivo é rollover |
 | vl | VALE3 | bidirecional | europeia | 18/02/2027 | sem meta, objetivo é rollover |
-| a3 | AXIA3(A) | bidirecional | europeia | 14/09/2026 | entry ~54,31 |
 | a3b | AXIA3(B) | bidirecional | europeia | 02/10/2026 | entry 50,75 (boleto oficial) |
 | a3c | AXIA3(C) | retorno_controlado | europeia | 22/11/2026 | entry 51,68, teto 27,75%, alav. 1,5x |
 | bb2 | BBASJ222 (BBAS3) | simples (call vendida, rolagem) | — | 15/10/2026 | strike 21,90, prêmio 1,20 |
-| bslv39 | BSLV39 | retorno_controlado | europeia | — | preço via proxy SLV+câmbio |
+| bslv39 | BSLV39 | retorno_controlado | europeia | 05/10/2026 | entry R$96,30 PROVISÓRIO (rolagem 05/08, ver seção Operações em andamento) |
 | rx | ROXO34 (ROXOI107) | simples (call vendida, rolagem) | EUROPEIA | 17/09/2026 | meta 2,44%, rolagem defensiva — id SEMPRE `rx` |
+
+**Nota:** AXIA3(A) original (id `a3`) já não está mais em ativas — foi encerrada com sucesso em
+20/07/2026 (ver Encerradas abaixo). A tabela antiga desta seção listava ela por engano até
+05/08/2026; corrigido nesta atualização.
 
 ## Encerradas relevantes recentes
 - ROXO34 (ROXOG105, strike R$10,50): fracasso — estourou barreira, opção era AMERICANA.
 - BBAS3 antiga (BBASH21): sucesso — R$800/1,82% em ~38 dias.
-- AXIA3(A) parcial anterior à atual: sucesso — R$1.580/65 dias (2,72%/mês).
+- AXIA3(A): sucesso — R$1.580/65 dias (2,72%/mês), encerrada 20/07/2026.
+- BSLV39 antiga: sucesso — 5,7% proporcional em 41/60 dias, encerrada 05/08/2026, rolada pra nova estrutura.
 
 ---
 
@@ -148,13 +183,13 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 - Módulos: `proxy.py` (core + Monte Carlo de Papéis), `motor.py` (estatística pura), `fontes.py`
   (scrapers/fetches gerais), `fontes_etfs.py`, `rotas_fiis.py`, `rotas_etfs.py`.
 
-## 🔑 SHAs de referência (buscados frescos em 04/08/2026, fim de sessão — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
-- proxy.py: a450c73903c631569f33037426735304132331aa
-- fontes.py: 6148789c0e1b71f7677b9ec262b7be472452aff8
+## 🔑 SHAs de referência (buscados frescos em 05/08/2026, fim de sessão — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
+- proxy.py: 58a2dc95136df60ad8cada35a9301c5826f2a130
+- fontes.py: ef5791bf1159335acb7c2cec3f034deac344f6c7
 - static/app.js: 5de84a519d1cbf5d542722f7f74323f093252593
 - rotas_fiis.py: 775e21ddd51506e77fb5bd8b28da553b236c6f9b
-- positions.json: 25b0379d069282fc45ea8c1b88897fe265472cb1
-- analises.json: c6d843f23857c45ec41b983c2205f2aca3d2561d
+- positions.json: aa3fd30f82902c8be230a222189ddfae92dcad02
+- analises.json: c132ac4863955d755f3d37a83f58af0b0bbdf4b0
 
 ---
 
