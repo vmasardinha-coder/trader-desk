@@ -80,24 +80,6 @@
       "kuo": 61.29
     },
     {
-      "id": "bslv39",
-      "ticker": "BSLV39.SA",
-      "nome": "BSLV39 - iShares Silver Trust BDR",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-08-24",
-      "entry": 99.42,
-      "kdo": 73.28,
-      "kdo_pct": "-26.3%",
-      "vol_impl": null,
-      "vol_impl_fonte": "nao_calculado",
-      "data_entrada": "2026-06-25",
-      "exercicio": "europeia",
-      "ganho_sem_barreira": "8.3% fixo",
-      "ganho_prefixado_pct": 8.3,
-      "observacao": "CORRIGIDO 30/06/2026: entry/kdo/vencimento atualizados com dado REAL da corretora (boleto: PUT/CALL R$99,42, KDO R$73,28, venc. 24/08/2026). PENDENCIA RESOLVIDA 30/06/2026: a 'divergencia' entre premio (R$5,04/perna) e ganho_prefixado_pct (8.3%) NAO e erro -- BSLV39 e estrutura Retorno Controlado (PUT comprada + CALL vendida com KDO), R$5,04 e o premio de CADA perna individual, nao o resultado liquido da estrutura. 8.3% e o retorno combinado calculado pelo banco juntando as 2 pernas + financiamento embutido -- nao comparavel a premio/preco (calculo valido so para venda coberta simples)."
-    },
-    {
       "id": "rx",
       "ticker": "ROXO34.SA",
       "nome": "ROXO34 (BDR)",
@@ -129,6 +111,24 @@
       "exercicio": "europeia",
       "meta_pct": 2.25,
       "observacao": "Rolagem da posicao anterior (BBASH21, encerrada com sucesso: R$800/1,82% em ~38 dias). Premio recebido na abertura: R$1,20. Prazo total 56 dias (venc 15/10/2026), mas usuario tenta encerrar antecipadamente por volta de 40 dias, como de costume."
+    },
+    {
+      "id": "bslv39",
+      "ticker": "BSLV39.SA",
+      "nome": "BSLV39 - iShares Silver Trust BDR",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-05",
+      "entry": 96.3,
+      "kdo": 76.94,
+      "kdo_pct": "-20.1%",
+      "vol_impl": null,
+      "vol_impl_fonte": "nao_calculado",
+      "data_entrada": "2026-08-05",
+      "exercicio": "europeia",
+      "ganho_sem_barreira": "8.20% fixo",
+      "ganho_prefixado_pct": 8.2,
+      "observacao": "ENTRY PROVISORIO (R$96,30) -- valor ASSUMIDO a pedido do usuario em 05/08/2026, aguardando o preco oficial do leilao de fechamento do dia (o proprio PDF Itau define \"Valor Inicial: preco de compra da acao sera definido no leilao de fechamento do ativo, na data de contratacao\"). Usuario pediu explicitamente para so atualizar quando ele mandar o numero real -- NAO corrigir por conta propria, so mediante nova instrucao. PDF: Itau Retorno Controlado, Material Publicitario 05/08/2026, prazo 2 meses (05/08->05/10/2026), retorno prefixado 8,20% se barreira -20,00% nao for rompida (barreira = 79,90% do valor inicial), preco de exercicio das opcoes = 108,30% do valor inicial. Rolagem da posicao anterior (entry 99,42, venc. original 24/08/2026), encerrada com sucesso no mesmo dia com ganho proporcional de 5,7% -- ver registro em encerradas (id cl-bslv39-ago26)."
     }
   ],
   "encerradas": [
@@ -212,6 +212,22 @@
       "valor_financeiro_resultado": 800.0,
       "retorno_pct": 1.82,
       "observacao": "Encerrada antecipadamente (nao chegou ao vencimento 20/08/2026). Resultado: R$800,00 sobre capital de R$44.000,00 = 1,82% em aproximadamente 35-40 dias (estimativa do usuario, entrada 03/06/2026). Rolada para nova posicao BBASJ222 (aguardando confirmacao de strike/premio/vencimento)."
+    },
+    {
+      "id": "cl-bslv39-ago26",
+      "ticker": "BSLV39.SA",
+      "nome": "BSLV39 - iShares Silver Trust BDR",
+      "estrategia": "Retorno Controlado",
+      "entry": 99.42,
+      "kdo": 73.28,
+      "vencimento_original": "2026-08-24",
+      "data_entrada": "2026-06-25",
+      "ganho_prefixado_pct": 8.3,
+      "data_encerramento": "2026-08-05",
+      "status": "sucesso",
+      "retorno_pct": 5.7,
+      "resultado_texto": "Encerrada antecipadamente (faltavam 19 dias p/ vencimento original 24/08/2026). Ganho proporcional ao prazo decorrido: 8,3% prefixado x (41/60 dias corridos) = 5,7% -- calculo conferido e confirmado pelo usuario (corretor tambem chegou nesse numero). Maior parte do ganho veio da valorizacao do proprio ETF (prata em alta no dia), nao do premio das opcoes. Rolada no mesmo dia para nova estrutura Retorno Controlado (venc. 05/10/2026, retorno prefixado 8,20%) -- avaliacao: estrutura tem teto fixo (nao participa de alta acima do prefixado), entao manter a antiga pelos 19 dias restantes so capturaria mais 2,6% e deixaria a valorizacao recente do ativo \"presa\" no teto antigo; fechar e reabrir com strike/barreira recalculados no preco atual (mais alto) capta essa valorizacao como novo capital-base e destrava um novo ciclo de 2 meses ja.",
+      "observacao": "VALOR FINANCEIRO (R$) NAO REGISTRADO -- pendente de confirmacao do boleto oficial da corretora (usuario mencionou verbalmente ~R$300 s/ pernas de opcao + valorizacao do ETF, mas pediu para nao estimar em R$ ate confirmar). Retorno_pct (5,7%) e o unico numero validado nesta etapa."
     }
   ]
 }
