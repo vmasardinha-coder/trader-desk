@@ -100,6 +100,7 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
   sempre também `app.test_client()` batendo nas rotas de verdade, com mocks de rede/GitHub. Vários
   bugs reais (NameError, campo faltando) só apareceram rodando de verdade, não no syntax check.
 - **SHA fresco imediatamente antes de qualquer PUT no GitHub** — nunca reusar SHA de memória.
+- **NUNCA usar `raw.githubusercontent.com` para reler um arquivo de dados (analises.json, positions.json, stats_analises.json etc.) dentro da MESMA sessão logo após escrever nele** — incidente real em 05/08/2026: escrevi corretamente o fechamento de uma análise, na sequência precisei reler o arquivo pra adicionar outro registro, usei `raw.githubusercontent.com` (CDN com cache de alguns minutos), peguei a versão desatualizada de ANTES do meu próprio fechamento, colei o novo registro nela e sobrescrevi — desfazendo silenciosamente a edição anterior sem erro nenhum aparecer. Regra: para qualquer ciclo de ler→editar→escrever dentro da sessão, usar SEMPRE `api.github.com` (nunca cacheia) tanto pra leitura quanto pra escrita. `raw.githubusercontent.com` só é seguro pra uma leitura isolada de diagnóstico, nunca como base pra uma escrita subsequente na mesma sessão.
 - **Sandbox do Claude não acessa `trader-desk.onrender.com` nem domínios de cotação** (Yahoo,
   brapi) — só `api.github.com`, `raw.githubusercontent.com` e domínios de pacotes. Preço/dado ao
   vivo precisa vir do usuário (via app/Eruda) ou de `web_search`/`web_fetch`.
