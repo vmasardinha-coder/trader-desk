@@ -371,6 +371,7 @@ from motor import rsi, mm, ema, macd, bollinger, obv, graham, vol_hist, garch_11
 # completa e o que ficou de proposito fora dela.
 from fontes import (
     get_cdi, get_btc_onchain, yahoo_fundamentals, yquote, scrape_iron_ore_investing,
+    fetch_commodities_hyperliquid,
     _8MARKETCAP_TICKER_ALT, _parsear_marketcap_8marketcap, _buscar_html_8marketcap_paginas,
     _FII_SEGMENTO_BASE, _FII_PALAVRAS_PAPEL, _FII_PALAVRAS_FOF,
     _classificar_segmento_fii, _classificar_risco_fii, _score_fii,
@@ -472,20 +473,26 @@ def get_futures():
     # Commodities — futuros CME/COMEX, mesmo padrao yquote ja usado para
     # indices/vix (busca via Yahoo Finance, retorna price + prev close)
     cl = yquote('CL%3DF')      # Petroleo WTI
-    # REVERTIDO 04/08/2026: usuario reportou que o app ficou MAIS LENTO no
-    # geral (nao so gold/silver/copper) depois do sampling paralelo + spot.
-    # Prioridade agora e estabilidade -- voltando para 1 chamada simples por
-    # ticker, sem ThreadPoolExecutor extra a cada request e sem os tickers
-    # de spot (gold_spot/silver_spot vinham vazios de qualquer forma, entao
-    # nao valem o custo). O ruido de rolagem COMEX e temporario (a propria
-    # rolagem termina de se assentar em poucos dias) -- nao vale a pena
-    # manter complexidade/risco extra por um problema que se resolve sozinho.
+    # REVERTIDO 04/08/2026 (1a tentativa): usuario reportou que o app ficou
+    # MAIS LENTO no geral (nao so gold/silver/copper) depois do sampling
+    # paralelo + spot. Prioridade era estabilidade -- 1 chamada simples por
+    # ticker, sem ThreadPoolExecutor extra a cada request.
     gold = yquote('GC%3DF')    # Ouro (futuro)
     silver = yquote('SI%3DF')  # Prata (futuro)
     copper = yquote('HG%3DF')  # Cobre (futuro)
-    gold_spot = None
-    silver_spot = None
-    copper_spot = None
+    # RETENTADO 04/08/2026 (2a tentativa, mesma sessao): spot agora via
+    # Hyperliquid em vez de Yahoo (ver docstring de fetch_commodities_hyperliquid
+    # em fontes.py) -- 1 UNICA chamada sequencial pros 3 ativos de uma vez,
+    # sem ThreadPoolExecutor, mesma licao do incidente acima. Fail-safe: em
+    # qualquer erro a funcao retorna {}, entao gold_spot/silver_spot/
+    # copper_spot caem em None automaticamente (mesmo comportamento de antes,
+    # sem risco de regressao). PENDENTE DE VALIDACAO REAL do usuario no app
+    # publicado -- Claude nao tem acesso de rede a api.hyperliquid.xyz no
+    # sandbox de desenvolvimento pra testar a chamada ao vivo.
+    _hl_spot = fetch_commodities_hyperliquid()
+    gold_spot = _hl_spot.get('gold_spot')
+    silver_spot = _hl_spot.get('silver_spot')
+    copper_spot = _hl_spot.get('copper_spot')
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
     # principal driver de VALE3; Brent e o benchmark internacional distinto
