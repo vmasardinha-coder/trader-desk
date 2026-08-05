@@ -4606,8 +4606,8 @@
     "downside_apos": "perda_integral",
     "origem": "pronta",
     "backtest": false,
-    "observacao": "PDF Itau Protecao Parcial, 20/07/2026, venc 18/11/2026. Barreira alta +18,5%, barreira baixa -15%, alavancagem 1,5x, teto 18,5% fixo. Protegida ate -15%, depois perda real.",
-    "status": "ativa",
+    "observacao": "PDF Itau Protecao Parcial, 20/07/2026, venc 18/11/2026. Barreira alta +18,5%, barreira baixa -15%, alavancagem 1,5x, teto 18,5% fixo. Protegida ate -15%, depois perda real. | ENCERRADA 05/08/2026: era teste, ficou ambiguamente ativa em Em Analise por bug de migracao (ver PROMPT_NOVA_SESSAO_v3.md) enquanto a AXIA3 real ja tinha 2 posicoes ativas (a3b, a3c). Usuario confirmou que nunca teve 3 AXIA3 e que esta nao deve migrar nem contar como decisao (sucesso/fracasso nao setados de proposito).",
+    "status": "encerrada",
     "id": "an_1784576725",
     "bandas_congeladas": {
       "sigma_pct": 40.14,
@@ -6156,7 +6156,9 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "teste_duplicado_nao_e_decisao",
+    "data_rejeicao": "2026-08-05"
   },
   {
     "ticker": "AXIA3.SA",
