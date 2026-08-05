@@ -11712,7 +11712,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -17.4%. Ganho prefixado: 3.9% se nao tocar a barreira (8.47%/mes). Preco de entrada = cotacao real no momento da criacao (R$41.65). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737575",
     "bandas_congeladas": {
       "sigma_pct": 52.32,
@@ -11809,7 +11809,13 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-05",
+    "ev_mensal_na_rejeicao": -1.568,
+    "score_na_rejeicao": -6.272,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 42.72
   },
   {
     "ticker": "SPCX34.SA",
