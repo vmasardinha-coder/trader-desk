@@ -3787,11 +3787,29 @@ def _migrar_para_positions(item_analise):
         conteudo_pos_str, sha_pos = _github_get_file('positions.json')
         dados_pos = json.loads(conteudo_pos_str) if conteudo_pos_str.strip() else {'ativas': [], 'encerradas': []}
         dados_pos.setdefault('ativas', [])
-        # Evita duplicar se o ticker ja estiver ativo (protecao similar a
-        # ja implementada para carteira_fiis.json)
-        ja_existe = any(p.get('ticker') == ticker for p in dados_pos['ativas'])
-        if ja_existe:
-            return False, f"{ticker} ja existe em positions.json (ativas)"
+        # CORRIGIDO 05/08/2026: a checagem original bloqueava por TICKER
+        # repetido ("qualquer posicao ja ativa com esse papel-base bloqueia
+        # a migracao"), copiada do padrao usado em carteira_fiis.json -- so
+        # que la faz sentido (1 FII = 1 posicao), aqui NAO faz: o usuario ja
+        # roda LEGITIMAMENTE varias estruturas concorrentes no mesmo
+        # papel-base (ex: AXIA3.SA tem a3b E a3c ativas ao mesmo tempo).
+        # Bug real descoberto 05/08/2026: uma analise bidirecional de AXIA3
+        # ("Protecao Parcial", lote 20/07/2026) foi ativada pelo usuario e
+        # ficou PRA SEMPRE presa em analises.json com status='ativa' --
+        # nunca apareceu em Posicoes Ativas -- porque a migracao automatica
+        # falhava silenciosamente nesse bloqueio (AXIA3.SA "ja existia").
+        # Fix: protege contra duplicar a MESMA migracao (checa por ID, que
+        # e realmente unico por posicao) em vez de por ticker. Em caso raro
+        # de colisao de ID (2 migracoes do mesmo papel no mesmo minuto),
+        # gera sufixo numerico automatico em vez de bloquear.
+        ids_existentes = {p.get('id') for p in dados_pos['ativas']}
+        if novo_id in ids_existentes:
+            sufixo = 2
+            id_base = novo_id
+            while novo_id in ids_existentes:
+                novo_id = f"{id_base}{sufixo}"[:8]
+                sufixo += 1
+            novo_registro['id'] = novo_id
         dados_pos['ativas'].append(novo_registro)
         novo_conteudo_pos = json.dumps(dados_pos, indent=2, ensure_ascii=False)
         _github_put_file('positions.json', novo_conteudo_pos, sha_pos,
