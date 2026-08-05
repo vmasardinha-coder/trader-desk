@@ -4606,8 +4606,8 @@
     "downside_apos": "perda_integral",
     "origem": "pronta",
     "backtest": false,
-    "observacao": "PDF Itau Protecao Parcial, 20/07/2026, venc 18/11/2026. Barreira alta +18,5%, barreira baixa -15%, alavancagem 1,5x, teto 18,5% fixo. Protegida ate -15%, depois perda real. | ENCERRADA 05/08/2026: era teste, ficou ambiguamente ativa em Em Analise por bug de migracao (ver PROMPT_NOVA_SESSAO_v3.md) enquanto a AXIA3 real ja tinha 2 posicoes ativas (a3b, a3c). Usuario confirmou que nunca teve 3 AXIA3 e que esta nao deve migrar nem contar como decisao (sucesso/fracasso nao setados de proposito).",
-    "status": "encerrada",
+    "observacao": "PDF Itau Protecao Parcial, 20/07/2026, venc 18/11/2026. Barreira alta +18,5%, barreira baixa -15%, alavancagem 1,5x, teto 18,5% fixo. Protegida ate -15%, depois perda real.",
+    "status": "ativa",
     "id": "an_1784576725",
     "bandas_congeladas": {
       "sigma_pct": 40.14,
@@ -6156,9 +6156,7 @@
           ]
         }
       }
-    },
-    "motivo_encerramento": "teste_duplicado_nao_e_decisao",
-    "data_rejeicao": "2026-08-05"
+    }
   },
   {
     "ticker": "AXIA3.SA",
@@ -14910,5 +14908,20 @@
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-08-03. P/VP=0.79, DY=11.90%, segmento=Outros, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
     "id": "an_1785756827"
+  },
+  {
+    "id": "an_1785945909",
+    "ticker": "SPCX34.SA",
+    "nome": "SPCX34 - Retorno Controlado 29d [Lote 05/08/2026]",
+    "data_foto": "2026-08-05",
+    "preco_foto": 39.2,
+    "prazo_dias": 29,
+    "tipo_estrutura": "retorno_controlado",
+    "kdo": 31.32,
+    "ganho_prefixado_pct": 19.0,
+    "origem": "pronta",
+    "backtest": false,
+    "status": "em_analise",
+    "observacao": "PDF Itau Retorno Controlado, Material Publicitario 05/08/2026. Prazo 1 mes (05/08->03/09/2026). Retorno prefixado 19,00% se barreira -20,00% nao for rompida (barreira = 79,90% do valor inicial = R$31,32 com preco de hoje). Preco de exercicio das opcoes = 119,10% do valor inicial. Retorno excepcionalmente alto (706% a.a. no proprio PDF) reflete vol. implicita muito alta -- SPCX34 e BDR de empresa de capital fechado (SpaceX), Grau de risco Alto conforme o proprio material. Preco de referencia (R$39,20, -8,24% no dia) fornecido pelo usuario via app/corretora no momento do registro -- PROVISORIO para fins de Fase A (ranking/Monte Carlo); se o usuario decidir ativar, preco final sera o do boleto de liquidacao, a ser corrigido manualmente. Bandas de Monte Carlo (bandas_congeladas) NAO foram computadas por Claude (sandbox sem acesso a rede de cotacoes) -- o ranking em lote (/analises/ranking) calcula probabilidade ao vivo e nao depende desse campo, mas a Foto do Papel/legenda de confianca pode aparecer vazia ate uma re-foto pelo app."
   }
 ]
