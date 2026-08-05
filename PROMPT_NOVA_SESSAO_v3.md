@@ -43,10 +43,10 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 ### Cotações
 | Item | Status |
 |---|---|
-| Ouro/Prata/Cobre à vista (spot) | 🔴 ABERTO — revertido em 04/08/2026 (deixou o app mais lento). `gold_spot`/`silver_spot`/`copper_spot` fixos em `None` em `proxy.py`. Reintroduzir só testando ISOLADO, sem combinar com outra mudança. |
-| Cobre spot sem ticker confiável no Yahoo | 🔴 ABERTO — ligado ao item acima; considerar fonte alternativa (ex: Investing.com, já usado pro minério de ferro) se `HG=F` spot não existir. |
-| `yquote_estavel()` sem nenhuma chamada no código | 🟡 ABERTO, baixa prioridade — decidir remover ou reaproveitar (poderia servir de base pro spot, se reintroduzido). |
-| Cache no-cache em `/futures` e `/carteira-fiis` (preço de FII/futuro travado no navegador) | ✅ Código já corrigido (`Cache-Control: no-cache, no-store, must-revalidate` confirmado nas duas rotas). Só falta VALIDAÇÃO EMPÍRICA pelo Victor (observar se o preço muda sozinho na próxima virada de dia) — não é mais tarefa de código. |
+| Ouro/Prata/Cobre à vista (spot) | 🟡 CÓDIGO FEITO, AGUARDA VALIDAÇÃO REAL (04/08/2026, 2ª tentativa) — trocada a fonte de Yahoo para Hyperliquid (mercados perpétuos HIP-3, dex `xyz`, lastreados a oráculo benchmarked ao COMEX front-month). Nova função `fetch_commodities_hyperliquid()` em `fontes.py`, 1 chamada POST única e sequencial (sem `ThreadPoolExecutor` — lição do incidente anterior no mesmo dia). Testado com rede mockada (`app.test_client()`), passou. **Claude não tem acesso de rede a `api.hyperliquid.xyz` no sandbox** — não foi possível testar a chamada ao vivo. Fail-safe: qualquer erro retorna `{}` → `gold_spot`/`silver_spot`/`copper_spot` caem em `None` (mesmo comportamento de antes, zero risco de regressão). Victor precisa conferir no app publicado se os 3 valores aparecem e batem com a referência externa. |
+| `yquote_estavel()` sem nenhuma chamada no código | 🟡 ABERTO, baixa prioridade — decidir remover ou reaproveitar. |
+| Cache no-cache em `/futures` e `/carteira-fiis` (preço de FII/futuro travado no navegador) | ✅ Fechado — código confirmado e VALIDADO pelo Victor em 04/08/2026. |
+| Coluna "Preço ativ." na Carteira de FIIs parecendo desatualizada | ✅ Fechado — não é bug. É o preço CONGELADO na ativação por design (`preco_ativacao`), usado só como referência de comparação, nunca recalculado. Sistema não é pra acompanhar cotação ao vivo (Victor confirmou não precisar disso). Preço vivo já existe e é usado no card de resumo agregado (`/carteira-fiis/resumo`), não na tabela linha-a-linha. |
 
 ### Modelagem
 | Item | Status |
@@ -147,12 +147,13 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 - Módulos: `proxy.py` (core + Monte Carlo de Papéis), `motor.py` (estatística pura), `fontes.py`
   (scrapers/fetches gerais), `fontes_etfs.py`, `rotas_fiis.py`, `rotas_etfs.py`.
 
-## 🔑 SHAs de referência (buscados frescos em 04/08/2026 — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
-- proxy.py: 1e29e46caa5d558c311dabf767a15bc160b487b6
+## 🔑 SHAs de referência (buscados frescos em 04/08/2026, fim de sessão — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
+- proxy.py: a450c73903c631569f33037426735304132331aa
+- fontes.py: 6148789c0e1b71f7677b9ec262b7be472452aff8
 - static/app.js: 5de84a519d1cbf5d542722f7f74323f093252593
 - rotas_fiis.py: 775e21ddd51506e77fb5bd8b28da553b236c6f9b
 - positions.json: 25b0379d069282fc45ea8c1b88897fe265472cb1
-- analises.json: 14e55d0680f009cb580ff53079b66766383de296
+- analises.json: c6d843f23857c45ec41b983c2205f2aca3d2561d
 
 ---
 
