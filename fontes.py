@@ -248,11 +248,18 @@ def fetch_commodities_hyperliquid():
             return {'_debug': f'formato inesperado (nao e [meta, ctxs]): {str(payload)[:200]}'}
         meta, ctxs = payload
         universe = meta.get('universe', [])
-        nomes_encontrados = [a.get('name') for a in universe]
+        # CORRIGIDO 04/08/2026 (3a rodada): diagnostico real mostrou que o
+        # campo 'name' do universe JA VEM com o prefixo do dex embutido
+        # ('xyz:GOLD', nao 'GOLD' puro) mesmo filtrando por dex='xyz' na
+        # request -- diferente do que a documentacao/SDKs de terceiros
+        # sugeriam (prefixo so apareceria ao misturar dexes). Normaliza
+        # removendo qualquer prefixo 'algo:' antes de comparar.
         alvo_para_chave = {'GOLD': 'gold_spot', 'SILVER': 'silver_spot', 'COPPER': 'copper_spot'}
+        nomes_encontrados = [a.get('name') for a in universe]
         out = {}
         for idx, ativo in enumerate(universe):
-            nome = ativo.get('name')
+            nome_raw = ativo.get('name') or ''
+            nome = nome_raw.split(':')[-1].upper()
             chave = alvo_para_chave.get(nome)
             if not chave or idx >= len(ctxs):
                 continue
@@ -272,8 +279,19 @@ def fetch_commodities_hyperliquid():
                 except (TypeError, ValueError):
                     prev = None
             out[chave] = {'price': preco, 'prev': prev}
-        if not out:
-            out['_debug'] = f'universe do dex xyz nao tem GOLD/SILVER/COPPER -- nomes encontrados: {nomes_encontrados[:20]}'
+        faltando = [k for k in ('gold_spot', 'silver_spot', 'copper_spot') if k not in out]
+        if faltando:
+            # Busca por substring nos nomes completos, pra pegar variantes
+            # tipo 'XAG'/'SI'/'CU' caso SILVER/COPPER nao existam com esse
+            # nome exato no dex 'xyz' (ex: podem estar em outro dex HIP-3,
+            # ou nao terem sido lancados ainda).
+            pistas = [n for n in nomes_encontrados if n and any(
+                s in n.upper() for s in ('SILV', 'COPP', 'XAG', 'XCU', ':CU', ':SI', ':HG')
+            )]
+            out['_debug'] = (
+                f'faltando: {faltando} | total de ativos no universe: {len(universe)} | '
+                f'possiveis variantes encontradas: {pistas} | primeiros 25 nomes: {nomes_encontrados[:25]}'
+            )
         else:
             out['_debug'] = None
         return out
