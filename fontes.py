@@ -214,31 +214,41 @@ def yquote(ticker, prefer_chart_prev=False):
 # UMA UNICA chamada POST (metaAndAssetCtxs) traz os 3 ativos de uma vez —
 # sem ThreadPoolExecutor, licao aprendida do incidente do mesmo dia.
 # Endpoint documentado: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals
+# dex='xyz' confirmado por 3 fontes independentes (SDK oficial, quantpylib,
+# Hyperliquid-Data-Layer-API) -- nao e chute.
 #
-# NAO TESTADO AO VIVO por Claude (sandbox de desenvolvimento nao tem acesso
-# de rede a api.hyperliquid.xyz, so a dominios de pacotes/GitHub) -- feito
-# com base na documentacao oficial + SDKs de terceiros. Fail-safe total: se
-# o dex 'xyz' nao existir mais, mudar de nome, ou a API mudar de formato,
-# a funcao so retorna {} (nenhum crash, mesmo comportamento de quando
-# gold_spot/silver_spot/copper_spot eram None fixo). PRECISA DE VALIDACAO
-# REAL do usuario no app publicado antes de considerar este item fechado.
+# TESTADO 04/08/2026 (2a rodada) NO APP PUBLICADO: usuario reportou GOLD/
+# SILVER/COPPER (SPOT) aparecendo vazios ("--") na tela, mesmo com FUT
+# funcionando normal -- ou seja, a funcao esta caindo no except silenciosamente.
+# Causas mais provaveis: (1) falta de User-Agent (Hyperliquid/Cloudflare pode
+# bloquear requests sem cara de navegador, mesmo problema que o yquote() ja
+# tinha pro Yahoo), (2) IP do Render bloqueado/rate-limited por ser
+# datacenter. Adicionado User-Agent igual ao ja usado em yquote() (tentativa
+# de correcao) + campo '_debug' no retorno (excecao/status real, nunca
+# None/generico) para diagnosticar sem ficar chutando -- exposto
+# TEMPORARIAMENTE em /futures como '_spot_debug', remover depois que
+# resolver.
 def fetch_commodities_hyperliquid():
     """Busca preco a vista (spot) de ouro/prata/cobre via mercados perpetuos
     HIP-3 da Hyperliquid (dex 'xyz'). Retorna dict com chaves
-    'gold_spot'/'silver_spot'/'copper_spot', cada uma {'price':float,
-    'prev':float|None} -- ou {} se qualquer coisa falhar (rede, formato
-    inesperado, dex renomeado etc). Nunca lanca excecao pro chamador."""
+    'gold_spot'/'silver_spot'/'copper_spot' ({'price':float,'prev':float|None})
+    e '_debug' (str ou None) com o motivo do erro se algo falhou -- NUNCA
+    lanca excecao pro chamador, so degrada pra dict vazio + _debug preenchido."""
     try:
         r = requests.post(
             'https://api.hyperliquid.xyz/info',
             json={'type': 'metaAndAssetCtxs', 'dex': 'xyz'},
-            headers={'Content-Type': 'application/json'},
+            headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0'},
             timeout=6,
         )
         if not r.ok:
-            return {}
-        meta, ctxs = r.json()
+            return {'_debug': f'HTTP {r.status_code}: {r.text[:200]}'}
+        payload = r.json()
+        if not isinstance(payload, list) or len(payload) != 2:
+            return {'_debug': f'formato inesperado (nao e [meta, ctxs]): {str(payload)[:200]}'}
+        meta, ctxs = payload
         universe = meta.get('universe', [])
+        nomes_encontrados = [a.get('name') for a in universe]
         alvo_para_chave = {'GOLD': 'gold_spot', 'SILVER': 'silver_spot', 'COPPER': 'copper_spot'}
         out = {}
         for idx, ativo in enumerate(universe):
@@ -262,9 +272,13 @@ def fetch_commodities_hyperliquid():
                 except (TypeError, ValueError):
                     prev = None
             out[chave] = {'price': preco, 'prev': prev}
+        if not out:
+            out['_debug'] = f'universe do dex xyz nao tem GOLD/SILVER/COPPER -- nomes encontrados: {nomes_encontrados[:20]}'
+        else:
+            out['_debug'] = None
         return out
-    except Exception:
-        return {}
+    except Exception as e:
+        return {'_debug': f'{type(e).__name__}: {e}'}
 
 # Adicionado 25/06/2026 -- item 6 do backlog (Minerio de Ferro parecia
 # "fixo" em Cotacoes). Causa raiz confirmada: TIO=F no Yahoo e um contrato
