@@ -12592,8 +12592,8 @@
     "ganho_prefixado_pct": 15,
     "origem": "pronta",
     "backtest": false,
-    "observacao": "Defesa (barreira KDO): -20%. Ganho prefixado: 15% se nao tocar a barreira (15.72%/mes). Preco de entrada = cotacao real no momento da criacao (R$822). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "observacao": "Defesa (barreira KDO): -20%. Ganho prefixado: 15% se nao tocar a barreira (15.72%/mes). Preco de entrada = cotacao real no momento da criacao (R$822). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia. [ENCERRADA em 05/08/2026 -- Victor identificou visualmente que o KDO (R$657.60) foi rompido no historico real: fechamento de 29/07/2026 (5o dia util apos data_foto) = R$632.92, abaixo do KDO. Estrutura nunca foi ativada como posicao real, entao NAO conta em stats_analises.json (regra: so conta o que chegou a Ativas ou foi decisao real). Achado motivou auditoria das demais 7 analises em_analise com barreira em 05/08/2026 -- todas as outras confirmadas dentro do range no historico real.]",
+    "status": "encerrada",
     "id": "an_1784737588",
     "bandas_congeladas": {
       "sigma_pct": 84.66,
@@ -12896,7 +12896,11 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "barreira_rompida_historico_real",
+    "data_encerramento": "2026-08-05",
+    "data_toque_barreira": "2026-07-29",
+    "preco_no_toque": 632.92
   },
   {
     "ticker": "AMZO34.SA",
