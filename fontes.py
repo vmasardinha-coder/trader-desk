@@ -200,6 +200,72 @@ def yquote(ticker, prefer_chart_prev=False):
         return {'price':round(float(p),2),'prev':round(float(v),2),'time':m.get('regularMarketTime')}
     except: return None
 
+# Adicionado 04/08/2026 (v2) -- fonte ALTERNATIVA para spot de ouro/prata/
+# cobre, sugerida pelo usuario apos a 1a tentativa (gold_spot/silver_spot/
+# copper_spot via Yahoo) ter voltado sempre vazia e a tentativa de paralelizar
+# com ThreadPoolExecutor ter deixado o /futures mais lento (revertido no
+# mesmo dia). Fonte nova: Hyperliquid (exchange descentralizada), mercados
+# perpetuos HIP-3 do dex 'xyz' (operado pela TradeXYZ), com preco lastreado
+# a oraculo benchmarked ao COMEX front-month -- ou seja, mesma referencia de
+# mercado que o usuario ja acompanha externamente, so que via uma API
+# publica sem autenticacao/rate-limit agressivo, em vez do Yahoo (que so
+# tem futuro, sujeito a ruido de rolagem de contrato).
+#
+# UMA UNICA chamada POST (metaAndAssetCtxs) traz os 3 ativos de uma vez —
+# sem ThreadPoolExecutor, licao aprendida do incidente do mesmo dia.
+# Endpoint documentado: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals
+#
+# NAO TESTADO AO VIVO por Claude (sandbox de desenvolvimento nao tem acesso
+# de rede a api.hyperliquid.xyz, so a dominios de pacotes/GitHub) -- feito
+# com base na documentacao oficial + SDKs de terceiros. Fail-safe total: se
+# o dex 'xyz' nao existir mais, mudar de nome, ou a API mudar de formato,
+# a funcao so retorna {} (nenhum crash, mesmo comportamento de quando
+# gold_spot/silver_spot/copper_spot eram None fixo). PRECISA DE VALIDACAO
+# REAL do usuario no app publicado antes de considerar este item fechado.
+def fetch_commodities_hyperliquid():
+    """Busca preco a vista (spot) de ouro/prata/cobre via mercados perpetuos
+    HIP-3 da Hyperliquid (dex 'xyz'). Retorna dict com chaves
+    'gold_spot'/'silver_spot'/'copper_spot', cada uma {'price':float,
+    'prev':float|None} -- ou {} se qualquer coisa falhar (rede, formato
+    inesperado, dex renomeado etc). Nunca lanca excecao pro chamador."""
+    try:
+        r = requests.post(
+            'https://api.hyperliquid.xyz/info',
+            json={'type': 'metaAndAssetCtxs', 'dex': 'xyz'},
+            headers={'Content-Type': 'application/json'},
+            timeout=6,
+        )
+        if not r.ok:
+            return {}
+        meta, ctxs = r.json()
+        universe = meta.get('universe', [])
+        alvo_para_chave = {'GOLD': 'gold_spot', 'SILVER': 'silver_spot', 'COPPER': 'copper_spot'}
+        out = {}
+        for idx, ativo in enumerate(universe):
+            nome = ativo.get('name')
+            chave = alvo_para_chave.get(nome)
+            if not chave or idx >= len(ctxs):
+                continue
+            ctx = ctxs[idx]
+            preco_raw = ctx.get('markPx') or ctx.get('midPx')
+            if preco_raw is None:
+                continue
+            try:
+                preco = round(float(preco_raw), 2)
+            except (TypeError, ValueError):
+                continue
+            prev_raw = ctx.get('prevDayPx')
+            prev = None
+            if prev_raw is not None:
+                try:
+                    prev = round(float(prev_raw), 2)
+                except (TypeError, ValueError):
+                    prev = None
+            out[chave] = {'price': preco, 'prev': prev}
+        return out
+    except Exception:
+        return {}
+
 # Adicionado 25/06/2026 -- item 6 do backlog (Minerio de Ferro parecia
 # "fixo" em Cotacoes). Causa raiz confirmada: TIO=F no Yahoo e um contrato
 # de baixa liquidez sujeito a rollover de vencimento -- o sanity check
