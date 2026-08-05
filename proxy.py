@@ -486,13 +486,19 @@ def get_futures():
     # sem ThreadPoolExecutor, mesma licao do incidente acima. Fail-safe: em
     # qualquer erro a funcao retorna {}, entao gold_spot/silver_spot/
     # copper_spot caem em None automaticamente (mesmo comportamento de antes,
-    # sem risco de regressao). PENDENTE DE VALIDACAO REAL do usuario no app
-    # publicado -- Claude nao tem acesso de rede a api.hyperliquid.xyz no
-    # sandbox de desenvolvimento pra testar a chamada ao vivo.
+    # sem risco de regressao).
+    #
+    # DIAGNOSTICO TEMPORARIO (04/08/2026, 3a rodada): usuario testou no app
+    # publicado e SPOT veio vazio ("--") apesar do FUT funcionar normal --
+    # sinal de que a funcao esta caindo em algum caminho de erro. '_spot_debug'
+    # exposto no payload so pra descobrir a causa real (falta de User-Agent?
+    # IP do Render bloqueado? nomes de ativo diferentes do esperado?) em vez
+    # de ficar chutando -- REMOVER assim que a causa for confirmada e corrigida.
     _hl_spot = fetch_commodities_hyperliquid()
     gold_spot = _hl_spot.get('gold_spot')
     silver_spot = _hl_spot.get('silver_spot')
     copper_spot = _hl_spot.get('copper_spot')
+    _spot_debug = _hl_spot.get('_debug')
     # Adicionados 23/06/2026 -- selecionados por impacto direto/indireto nos
     # papeis da carteira (nao por liquidez generica): minerio de ferro e o
     # principal driver de VALE3; Brent e o benchmark internacional distinto
@@ -543,6 +549,7 @@ def get_futures():
     resp = jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
                      'gold_spot':gold_spot,'silver_spot':silver_spot,'copper_spot':copper_spot,
+                     '_spot_debug':_spot_debug,  # TEMPORARIO 04/08/2026 -- remover apos diagnosticar
                      'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
                      'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas,
