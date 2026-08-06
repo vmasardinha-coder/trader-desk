@@ -56,7 +56,7 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 ### Cotações
 | Item | Status |
 |---|---|
-| Ouro/Prata/Cobre à vista (spot) | 🟡 QUASE FECHADO — fonte trocada de Yahoo para Hyperliquid (`fetch_commodities_hyperliquid()` em fontes.py). Bug do prefixo (`xyz:GOLD` vs `GOLD` puro) corrigido em 05/08. GOLD confirmado batendo com referência externa (validado pelo Victor em 05/08/2026). Em 05/08 (sessão seguinte) confirmado via `/futures` que `silver_spot` e `copper_spot` também já vêm populados com valores plausíveis (não mais `None`) — falta só o Victor confirmar visualmente no app que os 2 batem com a referência externa dele antes de fechar de vez. Campo `_spot_debug` ainda exposto no `/futures` (temporário, remover quando os 3 estiverem confirmados). |
+| Ouro/Prata/Cobre à vista (spot) | ✅ **FECHADO em 06/08/2026** — fonte Hyperliquid (`fetch_commodities_hyperliquid()`). Os 3 (GOLD/SILVER/COPPER) confirmados batendo com referência externa pelo Victor. Campo `_spot_debug` temporário removido do `/futures` (não é mais exposto no payload). |
 | `yquote_estavel()` sem nenhuma chamada no código | 🟡 ABERTO, baixa prioridade — decidir remover ou reaproveitar. |
 | Cache no-cache em `/futures` e `/carteira-fiis` (preço de FII/futuro travado no navegador) | ✅ Fechado — código confirmado e VALIDADO pelo Victor em 04/08/2026. |
 | Coluna "Preço ativ." na Carteira de FIIs parecendo desatualizada | ✅ Fechado — não é bug. É o preço CONGELADO na ativação por design (`preco_ativacao`), usado só como referência de comparação, nunca recalculado. Sistema não é pra acompanhar cotação ao vivo (Victor confirmou não precisar disso). Preço vivo já existe e é usado no card de resumo agregado (`/carteira-fiis/resumo`), não na tabela linha-a-linha. |
