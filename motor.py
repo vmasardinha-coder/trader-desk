@@ -234,3 +234,49 @@ def _score_assertividade_bandas(historico_real, bandas_periodo):
         'pct_dentro_p25_p75': round(dentro_p50 / total * 100, 1),
         'pct_dentro_p10_p90': round(dentro_p90 / total * 100, 1),
     }
+
+def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, kdo=None, kuo=None, n_sim=5000):
+    """
+    ADICIONADO 06/08/2026 -- tracking previsao-vs-realizado (item de
+    backlog pedido pelo Victor). Calcula, no momento da FOTO (Fase B),
+    a probabilidade de a estrutura NAO tocar a barreira ate o vencimento
+    original -- mesma logica de simulacao GBM ja usada em /analises/ranking
+    (prob_meta), so que ANCORADA no preco_foto/prazo_dias/sigma congelados
+    na criacao, em vez de recalculada com o preco AO VIVO toda vez que o
+    ranking roda. Isso congela UMA previsao unica e imutavel por analise,
+    pra depois comparar contra o resultado real (sucesso/fracasso) e medir
+    se o modelo era bem calibrado -- ex: entre as analises que o modelo deu
+    80% de chance de sucesso, quantas realmente deram certo?
+
+    So aplicavel a retorno_controlado (kdo) e bidirecional (kuo). Para
+    outros tipos (simples, fii), retorna None -- nao inventa numero sem
+    logica clara de "sucesso" definida para esses casos.
+
+    Retorna float (percentual, 0-100) ou None se nao aplicavel/erro.
+    """
+    try:
+        if tipo_estrutura not in ('retorno_controlado', 'bidirecional'):
+            return None
+        if not preco_foto or not sigma or not prazo_dias or prazo_dias <= 0:
+            return None
+        import numpy as np
+        dt = 1 / 252.0
+        drift = -0.5 * sigma**2 * dt
+        vol_step = sigma * math.sqrt(dt)
+        z = np.random.standard_normal((n_sim, int(prazo_dias)))
+        paths = preco_foto * np.exp(np.cumsum(drift + vol_step * z, axis=1))
+
+        if tipo_estrutura == 'retorno_controlado':
+            if kdo is None:
+                return None
+            min_path = np.min(paths, axis=1)
+            tocou = min_path <= float(kdo)
+            return round(float((~tocou).mean() * 100), 2)
+        else:  # bidirecional
+            if kuo is None:
+                return None
+            max_path = np.max(paths, axis=1)
+            tocou = max_path >= float(kuo)
+            return round(float(tocou.mean() * 100), 2)
+    except Exception:
+        return None
