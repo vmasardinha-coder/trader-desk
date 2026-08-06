@@ -1300,6 +1300,15 @@ def scrape_fi_infra():
     # independentes, so usado de forma mais robusta (busca de substring)
     # em vez de parsing fragil de estrutura HTML.
     TICKERS_FI_INFRA_CONHECIDOS = [
+        'BCDI11',  # BTG Pactual Divida Infra CDI -- estreou na B3 em 04/08/2026
+                   # apos 2 anos no balcao (fonte: Seu Dinheiro). Adicionado
+                   # 06/08/2026 apos Victor notar ausencia -- NAO era bug de
+                   # liquidez/filtro, so faltava na whitelist manual. Fontes
+                   # externas (fiis.com.br e investidor10.com.br) ainda NAO
+                   # indexavam o papel em 06/08 (404/410 confirmados) -- os
+                   # dados (cotacao/DY/liquidez) so aparecem quando essas
+                   # fontes publicarem a pagina do fundo, sem precisar de
+                   # novo deploy.
         'BDIF11', 'BIDB11', 'BINC11', 'BODB11', 'BRZD11', 'CDII11', 'CPTI11',
         'IFRA11', 'IFRI11', 'INFA11', 'INFB11', 'IRIF11', 'JMBI11', 'JURO11',
         'KDIF11', 'NUIF11', 'OGIN11', 'RBIF11', 'RIFF11', 'SNID11', 'VANG11', 'XPID11',
