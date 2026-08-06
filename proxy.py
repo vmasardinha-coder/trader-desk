@@ -3559,6 +3559,103 @@ def get_analises_stats():
     except Exception:
         return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
+@app.route('/analises/tracking-acuracia', methods=['GET'])
+def tracking_acuracia_previsoes():
+    """
+    ADICIONADO 06/08/2026 -- item de backlog pedido pelo Victor: tracking
+    de previsao-vs-realizado do motor de Monte Carlo. Ate aqui,
+    stats_analises.json so guardava CONTADOR de rejeicoes -- nao existia
+    nenhuma comparacao entre a probabilidade que o modelo previu na Fase B
+    (prob_sucesso_prevista_pct, congelada em bandas_congeladas ou copiada
+    para positions.json na migracao) e o resultado real observado depois.
+
+    Rota SOMENTE LEITURA -- nunca escreve nada, so agrega o que ja esta
+    espalhado em analises.json (motivo_encerramento != 'rejeitada', com
+    resultado sucesso/fracasso -- ver regra de stats: rejeitadas sem
+    nunca terem sido ativadas NAO contam) e positions.json/encerradas
+    (status sucesso/fracasso). So entram itens que TEM o campo
+    prob_sucesso_prevista_pct -- registros antigos (anteriores a 06/08/2026)
+    nao tem esse campo e ficam de fora naturalmente, sem erro.
+
+    Calibracao simples: agrupa em faixas de 10pp de probabilidade prevista
+    e mostra, dentro de cada faixa, qual fracao realmente deu sucesso --
+    um modelo bem calibrado tera essa fracao proxima da propria faixa
+    (ex: analises com 70-80% de prob prevista deveriam ter em torno de
+    70-80% de taxa real de sucesso).
+    """
+    try:
+        r_an = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        lista_an = r_an.json() if r_an.ok else []
+
+        r_pos = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/positions.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        dados_pos = r_pos.json() if r_pos.ok else {}
+
+        itens = []
+
+        for a in lista_an:
+            if a.get('resultado') not in ('sucesso', 'fracasso'):
+                continue
+            prob = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
+            if prob is None:
+                continue
+            itens.append({
+                'origem': 'analise_direta', 'id': a.get('id'), 'ticker': a.get('ticker'),
+                'data_foto': a.get('data_foto'), 'data_encerramento': a.get('data_encerramento'),
+                'prob_sucesso_prevista_pct': prob,
+                'resultado_real': a.get('resultado'),
+                'acertou': (a.get('resultado') == 'sucesso') == (prob >= 50),
+            })
+
+        for p in (dados_pos.get('encerradas') or []):
+            status = p.get('status')
+            if status not in ('sucesso', 'fracasso'):
+                continue
+            prob = p.get('prob_sucesso_prevista_pct')
+            if prob is None:
+                continue
+            itens.append({
+                'origem': 'posicao_real', 'id': p.get('id'), 'ticker': p.get('ticker'),
+                'data_foto': p.get('data_entrada'), 'data_encerramento': p.get('data_encerramento'),
+                'prob_sucesso_prevista_pct': prob,
+                'resultado_real': 'sucesso' if status == 'sucesso' else 'fracasso',
+                'acertou': (status == 'sucesso') == (prob >= 50),
+            })
+
+        # Calibracao por faixa de 10pp
+        faixas = {}
+        for it in itens:
+            faixa_ini = int(it['prob_sucesso_prevista_pct'] // 10) * 10
+            chave = f"{faixa_ini}-{faixa_ini+10}%"
+            faixas.setdefault(chave, {'total': 0, 'sucessos': 0})
+            faixas[chave]['total'] += 1
+            if it['resultado_real'] == 'sucesso':
+                faixas[chave]['sucessos'] += 1
+        calibracao = []
+        for chave in sorted(faixas.keys(), key=lambda k: int(k.split('-')[0])):
+            d = faixas[chave]
+            calibracao.append({
+                'faixa_prevista': chave,
+                'total': d['total'],
+                'taxa_sucesso_real_pct': round(d['sucessos'] / d['total'] * 100, 1) if d['total'] else None,
+            })
+
+        total = len(itens)
+        acertos = sum(1 for it in itens if it['acertou'])
+
+        return jsonify({
+            'total_analises_com_previsao_e_resultado': total,
+            'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
+            'aviso': 'so inclui analises/posicoes fechadas a partir de 06/08/2026 -- registros anteriores nao tinham prob_sucesso_prevista_pct congelada' if total < 5 else None,
+            'calibracao_por_faixa': calibracao,
+            'itens': sorted(itens, key=lambda x: x.get('data_encerramento') or '', reverse=True),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/analises/checar-barreiras', methods=['GET'])
 def checar_barreiras_analises():
     """
@@ -3836,6 +3933,16 @@ def _migrar_para_positions(item_analise):
         'data_entrada': item_analise['data_foto'][:10],
         'exercicio': 'europeia',  # default -- usuario corrige manualmente se for excecao
     }
+    # ADICIONADO 06/08/2026 -- tracking previsao-vs-realizado. Carrega a
+    # probabilidade prevista congelada na Fase B (dentro de
+    # bandas_congeladas) para dentro de positions.json, ja que a analise
+    # original em analises.json e DELETADA apos a migracao ter sucesso
+    # (ver bloco logo abaixo) -- sem essa copia, o numero previsto se
+    # perderia para sempre antes do fechamento real poder comparar com ele.
+    bandas_orig = item_analise.get('bandas_congeladas') or {}
+    prob_prevista = bandas_orig.get('prob_sucesso_prevista_pct')
+    if prob_prevista is not None:
+        novo_registro['prob_sucesso_prevista_pct'] = prob_prevista
     if ganho_pct is not None:
         novo_registro['ganho_sem_barreira'] = f"{ganho_pct}% fixo"
         novo_registro['ganho_prefixado_pct'] = ganho_pct  # campo numerico, usado por /montecarlo/posicao_ativa para calcular EV completo
@@ -4415,7 +4522,7 @@ def _write_fotos(data, sha=None):
 
 # _calc_bandas_foto e _score_assertividade_bandas extraidas para
 # motor.py em 03/07/2026 (Prioridade 2, fase 1)
-from motor import _calc_bandas_foto, _score_assertividade_bandas
+from motor import _calc_bandas_foto, _score_assertividade_bandas, _calc_prob_sucesso_prevista
 
 
 def _fetch_closes_for_foto(ticker, from_date_str):
@@ -4586,12 +4693,27 @@ def _congelar_bandas_analise(novo):
         bandas = _calc_bandas_foto(preco_foto, sigma, periodos=periodos)
         if not bandas:
             return None
-        return {
+        resultado = {
             'sigma_pct': round(sigma * 100, 2),
             'garch': garch_info,
             'periodos': periodos,
             'bandas': bandas,
         }
+        # ADICIONADO 06/08/2026 -- tracking previsao-vs-realizado (pedido
+        # do Victor). Congela a probabilidade prevista de sucesso (nao
+        # tocar KDO/KUO ate o vencimento) usando o MESMO sigma/preco_foto
+        # ja calculados acima -- nunca bloqueia a criacao da analise se
+        # falhar (mesmo principio do resto da funcao, retorna None dentro
+        # do proprio campo, nao quebra a foto inteira).
+        try:
+            prob_prevista = _calc_prob_sucesso_prevista(
+                preco_foto, sigma, prazo_dias, novo.get('tipo_estrutura'),
+                kdo=novo.get('kdo'), kuo=novo.get('kuo'))
+            if prob_prevista is not None:
+                resultado['prob_sucesso_prevista_pct'] = prob_prevista
+        except Exception:
+            pass
+        return resultado
     except Exception:
         return None
 
