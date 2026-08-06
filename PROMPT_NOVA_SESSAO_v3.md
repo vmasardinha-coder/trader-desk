@@ -47,6 +47,8 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 | `yquote_estavel()` sem nenhuma chamada no código | 🟡 ABERTO, baixa prioridade — decidir remover ou reaproveitar. |
 | Cache no-cache em `/futures` e `/carteira-fiis` (preço de FII/futuro travado no navegador) | ✅ Fechado — código confirmado e VALIDADO pelo Victor em 04/08/2026. |
 | Coluna "Preço ativ." na Carteira de FIIs parecendo desatualizada | ✅ Fechado — não é bug. É o preço CONGELADO na ativação por design (`preco_ativacao`), usado só como referência de comparação, nunca recalculado. Sistema não é pra acompanhar cotação ao vivo (Victor confirmou não precisar disso). Preço vivo já existe e é usado no card de resumo agregado (`/carteira-fiis/resumo`), não na tabela linha-a-linha. |
+| **BCDI11 (FI-Infra novo) não aparecia na Carteira** | ✅ Causa identificada e corrigida em 06/08/2026 — NÃO era liquidez nem filtro. `scrape_fi_infra()` (fontes.py) usa uma whitelist fechada e manual (`TICKERS_FI_INFRA_CONHECIDOS`, 22 tickers) — o BCDI11 (BTG Pactual Dívida Infra CDI, estreou na B3 em 04/08/2026 após 2 anos no balcão) simplesmente não estava nela ainda. Adicionado à whitelist. Dados (cotação/DY/liquidez) ainda NÃO aparecem — confirmado via checagem direta que nem `fiis.com.br` nem `investidor10.com.br` indexavam a página do fundo em 06/08 (404/410) — vão aparecer sozinhos assim que essas fontes externas publicarem, sem precisar de novo deploy. **Auditoria feita na mesma data**: comparei a whitelist completa contra o que `fiis.com.br` lista hoje como "Fi-infra:" — bate 100%, nenhum outro FI-Infra novo passou batido. Universo geral de FIIs também auditado: 560–561 linhas brutas do Fundamentus (Victor lembrava de ~592 — variação normal e esperada da base, fundos entram/saem de negociação; não é sinal de problema), 343 passam nos filtros de qualidade. |
+| **🔴 Descoberta automática de FI-Infra novos (item estrutural, prioridade normal)** | 🔴 ABERTO — pedido pelo Victor em 06/08/2026. Hoje a whitelist de FI-Infra é 100% manual: quando sai um fundo novo (como o BCDI11), o app NUNCA vai detectar sozinho, mesmo que a fonte externa já liste ele — precisa de alguém notar visualmente e pedir pra atualizar o código, sempre. **Ação proposta**: construir uma rotina (pode ser leve, ex: dentro do próprio `scrape_fi_infra()` ou endpoint separado) que raspa TODOS os tickers marcados como "Fi-infra:" no `fiis.com.br` (mesmo padrão regex já usado, só sem o filtro de whitelist) e compara contra `TICKERS_FI_INFRA_CONHECIDOS` — sinaliza (não precisa auto-adicionar) quando aparece um ticker novo não catalogado. Mesmo espírito do backlog de checagem de barreiras: read-only, aditivo, avisa em vez de agir sozinho. |
 
 ### Arquitetura / bugs corrigidos
 | Item | Status |
@@ -186,13 +188,11 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 - Módulos: `proxy.py` (core + Monte Carlo de Papéis), `motor.py` (estatística pura), `fontes.py`
   (scrapers/fetches gerais), `fontes_etfs.py`, `rotas_fiis.py`, `rotas_etfs.py`.
 
-## 🔑 SHAs de referência (buscados frescos em 05/08/2026, fim de sessão — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
-- proxy.py: 58a2dc95136df60ad8cada35a9301c5826f2a130
-- fontes.py: ef5791bf1159335acb7c2cec3f034deac344f6c7
-- static/app.js: 5de84a519d1cbf5d542722f7f74323f093252593
-- rotas_fiis.py: 775e21ddd51506e77fb5bd8b28da553b236c6f9b
-- positions.json: aa3fd30f82902c8be230a222189ddfae92dcad02
-- analises.json: c132ac4863955d755f3d37a83f58af0b0bbdf4b0
+## 🔑 SHAs de referência (buscados frescos em 06/08/2026, fim de sessão — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
+- proxy.py: 4556df91b4d8db6f3750406b841679608eec0f39 (commit, não blob sha — rebuscar sempre)
+- fontes.py: 572cb85da788e0fc16edf2cfc39c05f565e97d39 (commit, não blob sha — rebuscar sempre)
+- static/app.js: 711b3fc50ada4468b68b840d4b7ce5825c6245d2 (commit, não blob sha — rebuscar sempre)
+- analises.json: última escrita foi o encerramento da MUTC34 (13a8314e4462dd477562cc2272611771da8be788, commit)
 
 ---
 
