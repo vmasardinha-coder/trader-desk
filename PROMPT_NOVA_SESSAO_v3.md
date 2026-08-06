@@ -27,6 +27,19 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
    anterior).
 4. Sistema é de TOMADA DE DECISÃO (melhorar assertividade), não controle de carteira/P&L exato —
    isso as corretoras já dão.
+5. **Checagem periódica (a cada ~15 dias — próxima a partir de 20/08/2026):** rodar de novo a
+   checagem de indexação do BCDI11 (FI-Infra novo, estreou 04/08/2026) nas 3 fontes — testar
+   `curl` direto em `fiis.com.br/lista-de-fundos-imobiliarios/` (grep "BCDI"),
+   `investidor10.com.br/fiis/bcdi11/` (status 200?), e `GET /fiis/universo-complementar` em
+   produção (ticker aparece na resposta?). Se QUALQUER uma tiver indexado, avisar o Victor — os
+   dados já vão aparecer sozinhos no app sem precisar de novo deploy (rota `universo-complementar`
+   é dinâmica; a whitelist do `scrape_fi_infra()` já foi corrigida em 06/08/2026). Aproveitar essa
+   mesma sessão pra rodar de novo a auditoria geral do universo de FIIs (bruto combinado vs.
+   validados, ver nota de memória sobre o que Victor quer dizer com "total") e conferir se algum
+   outro fundo novo (FI-Infra ou não) apareceu sem estar na whitelist. **Nota**: essa checagem só
+   roda quando o Victor abre uma sessão — não existe agendamento automático fora de sessão; se ele
+   quiser isso rodando sozinho sem precisar abrir chat, a ferramenta certa é Cowork/agendamento
+   externo, não esta conversa.
 
 ---
 
