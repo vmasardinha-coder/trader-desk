@@ -3559,6 +3559,72 @@ def get_analises_stats():
     except Exception:
         return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
+@app.route('/analises/checar-barreiras', methods=['GET'])
+def checar_barreiras_analises():
+    """
+    ADICIONADO 05/08/2026 -- achado real do usuario: MUTC34 (retorno
+    controlado, KDO R$657,60) rompeu a barreira de verdade em 29/07/2026
+    (fechou R$632,92) e o app nunca avisou, porque /analises/ranking so
+    roda Monte Carlo PROSPECTIVO (a partir do preco de HOJE pra frente) --
+    nunca compara o caminho de preco REAL desde data_foto contra kdo/kuo.
+
+    Esta rota e SOMENTE LEITURA (nunca escreve em analises.json, nunca
+    muda status de nada) -- so aponta quais analises em_analise com
+    barreira ja tocaram kdo/kuo no historico real, para o usuario decidir
+    o encerramento manualmente (mesmo fluxo ja usado para a MUTC34).
+    Reaproveita _fetch_closes_for_foto, ja testada em producao (mesma
+    funcao usada em GET /analises/<id>/foto-bandas).
+    """
+    try:
+        r = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        if not r.ok:
+            return jsonify({'error': 'analises.json indisponivel'}), 500
+        lista = r.json()
+
+        alvos = [a for a in lista if a.get('status') == 'em_analise'
+                 and a.get('tipo_estrutura') in ('retorno_controlado', 'bidirecional')
+                 and (a.get('kdo') is not None or a.get('kuo') is not None)]
+
+        resultado = []
+        for a in alvos:
+            item = {
+                'id': a.get('id'), 'ticker': a.get('ticker'), 'nome': a.get('nome'),
+                'data_foto': a.get('data_foto'), 'kdo': a.get('kdo'), 'kuo': a.get('kuo'),
+                'rompeu_barreira': False, 'erro': None,
+            }
+            try:
+                historico = _fetch_closes_for_foto(a['ticker'], a['data_foto'][:10])
+                if not historico:
+                    item['erro'] = 'historico indisponivel'
+                    resultado.append(item)
+                    continue
+                closes = [h['close'] for h in historico]
+                min_c, max_c = min(closes), max(closes)
+                item['min_close_real'] = min_c
+                item['max_close_real'] = max_c
+                kdo = a.get('kdo')
+                kuo = a.get('kuo')
+                if kdo is not None and min_c <= float(kdo):
+                    item['rompeu_barreira'] = True
+                    item['detalhe'] = f"tocou KDO: minimo real {min_c} <= kdo {kdo}"
+                if kuo is not None and max_c >= float(kuo):
+                    item['rompeu_barreira'] = True
+                    item['detalhe'] = (item.get('detalhe', '') + ' | ' if item.get('detalhe') else '') + \
+                        f"tocou KUO: maximo real {max_c} >= kuo {kuo}"
+            except Exception as e:
+                item['erro'] = str(e)
+            resultado.append(item)
+
+        return jsonify({
+            'total_verificadas': len(alvos),
+            'total_rompidas': sum(1 for i in resultado if i['rompeu_barreira']),
+            'analises': resultado,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/analises', methods=['POST'])
 @_requer_auth_escrita
 def criar_analise():
