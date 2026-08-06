@@ -549,7 +549,6 @@ def get_futures():
     resp = jsonify({'dji':dji,'esf':esf,'nqf':nqf,'win':win,'vix':vix,'dxy':dxy,'usd':usd,
                      'cl':cl,'gold':gold,'silver':silver,'copper':copper,
                      'gold_spot':gold_spot,'silver_spot':silver_spot,'copper_spot':copper_spot,
-                     '_spot_debug':_spot_debug,  # TEMPORARIO 04/08/2026 -- remover apos diagnosticar
                      'dax':dax,'cac40':cac40,'stoxx50':stoxx50,'ftse100':ftse100,
                      'nikkei':nikkei,'hangseng':hangseng,'sse':sse,'asx200':asx200,'kospi':kospi,
                      'iron_ore':iron_ore,'brent':brent,'natgas':natgas,
