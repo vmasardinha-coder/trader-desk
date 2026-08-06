@@ -3167,8 +3167,41 @@ async function loadAnalises(){
     if(data.error)throw new Error(data.error);
     _analiseData=Array.isArray(data)?data:[];
     renderAnalises();
+    checarBarreirasRompidas();
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar analises.json: '+e.message+'</p>';
+  }
+}
+
+// ADICIONADO 05/08/2026 -- achado real do usuario: MUTC34 (retorno
+// controlado) rompeu a barreira KDO no historico real e o app nunca
+// avisou, porque o ranking so simula pra FRENTE a partir do preco de
+// hoje. Esta funcao roda DEPOIS de renderAnalises() e so ACRESCENTA um
+// selo visual nos cards afetados (via DOM, sem alterar tplAnalise nem
+// o fluxo de render existente) -- se a chamada falhar por qualquer
+// motivo (rede, timeout), o card simplesmente fica como estava antes,
+// sem quebrar nada.
+async function checarBarreirasRompidas(){
+  try{
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),10000);
+    const r=await fetch(B+'/analises/checar-barreiras',{signal:ctrl.signal,cache:'no-store'});
+    if(!r.ok)return;
+    const data=await r.json();
+    const rompidas=(data.analises||[]).filter(x=>x.rompeu_barreira);
+    rompidas.forEach(x=>{
+      const seta=document.getElementById('ar-analise-'+x.id);
+      const hdr=seta&&seta.closest('.pos-enc-hdr');
+      const badgeRow=hdr&&hdr.querySelector('div[style*="display:flex"]');
+      if(!badgeRow||badgeRow.querySelector('.barreira-rompida-selo'))return;
+      const selo=document.createElement('span');
+      selo.className='enc-badge barreira-rompida-selo';
+      selo.style.cssText='background:rgba(255,80,80,.15);color:#ff5050;border:1px solid rgba(255,80,80,.4);font-weight:700';
+      selo.title=x.detalhe||'Barreira rompida no histórico real';
+      selo.textContent='⚠ BARREIRA ROMPIDA';
+      badgeRow.appendChild(selo);
+    });
+  }catch(e){
+    // silencioso de proposito -- checagem extra nao pode quebrar a aba
   }
 }
 
