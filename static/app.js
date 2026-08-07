@@ -2447,12 +2447,27 @@ function doYields(y){
     const ep=document.getElementById('brselic-p');
     if(ep){ep.textContent=Number(y.br_selic.price).toFixed(2)+'%';ep.classList.remove('loading');}
   }
-  afY('brntnb-p','brntnb-c',y.br_ntnb);
-  // NTN-B: se null, mostra "—" com tooltip explicando
-  if(!y.br_ntnb){
-    const ep=document.getElementById('brntnb-p');
-    if(ep){ep.textContent='—';ep.classList.remove('loading');ep.title='Fonte pública gratuita não disponível para NTN-B em tempo real';}
-  }
+  // NTN-B: curva 2/5/10/30Y via ANBIMA ETTJ (dado de fechamento D-1, nao
+  // intraday -- mesma natureza do br_selic acima, so mostra valor + label
+  // "ANBIMA D-1" ja fixo no HTML, sem tentar simular variacao diaria).
+  // ADICIONADO/AMPLIADO 07/08/2026 -- pedido do Victor. Fonte anterior
+  // (TradingView, um unico ponto) sempre vinha null.
+  const curva = y.br_ntnb_curve;
+  ['2','5','','30'].forEach(suf=>{
+    const chave = suf ? suf+'y' : '10y';
+    const ep = document.getElementById('brntnb'+suf+'-p');
+    if(!ep) return;
+    const val = curva?.[chave];
+    if(val!=null){
+      ep.textContent = Number(val).toFixed(2)+'%';
+      ep.classList.remove('loading');
+      ep.title = 'ANBIMA ETTJ -- referência '+(curva.data_referencia||'');
+    }else{
+      ep.textContent='—';
+      ep.classList.remove('loading');
+      ep.title='Fonte pública (ANBIMA) indisponível no momento';
+    }
+  });
 }
 async function fFund(){
   try{const r=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');if(r.ok){const d=await r.json();E('btc-fund',(parseFloat(d.lastFundingRate||0)*100).toFixed(4)+'%');return;}}catch(e){}
