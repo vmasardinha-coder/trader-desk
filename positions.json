@@ -118,17 +118,17 @@
       "nome": "BSLV39 - iShares Silver Trust BDR",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-05",
-      "entry": 96.3,
-      "kdo": 76.94,
-      "kdo_pct": "-20.1%",
+      "vencimento": "2026-10-04",
+      "entry": 96.0,
+      "kdo": 76.7,
+      "kdo_pct": -20.1,
       "vol_impl": null,
       "vol_impl_fonte": "nao_calculado",
       "data_entrada": "2026-08-05",
       "exercicio": "europeia",
       "ganho_sem_barreira": "8.20% fixo",
       "ganho_prefixado_pct": 8.2,
-      "observacao": "ENTRY PROVISORIO (R$96,30) -- valor ASSUMIDO a pedido do usuario em 05/08/2026, aguardando o preco oficial do leilao de fechamento do dia (o proprio PDF Itau define \"Valor Inicial: preco de compra da acao sera definido no leilao de fechamento do ativo, na data de contratacao\"). Usuario pediu explicitamente para so atualizar quando ele mandar o numero real -- NAO corrigir por conta propria, so mediante nova instrucao. PDF: Itau Retorno Controlado, Material Publicitario 05/08/2026, prazo 2 meses (05/08->05/10/2026), retorno prefixado 8,20% se barreira -20,00% nao for rompida (barreira = 79,90% do valor inicial), preco de exercicio das opcoes = 108,30% do valor inicial. Rolagem da posicao anterior (entry 99,42, venc. original 24/08/2026), encerrada com sucesso no mesmo dia com ganho proporcional de 5,7% -- ver registro em encerradas (id cl-bslv39-ago26)."
+      "observacao": "CONFIRMADO em 06/08/2026 com o boleto real: Valor Inicial R$96,00 (leilao de fechamento, derivado do KDO R$76,70 informado / 79,90% e do strike das opcoes R$103,97 / 108,30% -- ambas as contas batem entre si, diferenca de meio centavo por arredondamento). Estrutura sintetica real confirmada: CALL strike R$103,97 VENDIDA (320 qtd, premio R$5,22) + PUT strike R$103,97 COMPRADA (320 qtd, premio R$5,22), vencimento 04/10/2026 (ajustado de 05/10 -- boleto tem precedencia sobre a data do PDF publicitario). KDO R$76,70 -- Nao acionada (confirmado no boleto). PDF Itau Retorno Controlado, Material Publicitario 05/08/2026, prazo 2 meses, retorno prefixado 8,20% se barreira -20,00% nao for rompida. Rolagem da posicao anterior (entry 99,42, venc. original 24/08/2026), encerrada com sucesso no mesmo dia com ganho proporcional de 5,7% -- ver registro em encerradas (id cl-bslv39-ago26)."
     }
   ],
   "encerradas": [
