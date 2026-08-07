@@ -2468,6 +2468,40 @@ function doYields(y){
       ep.title='Fonte pública (ANBIMA) indisponível no momento';
     }
   });
+  renderNtnbCurveChart(curva);
+}
+let _ntnbChart=null;
+// ADICIONADO 07/08/2026 -- grafico da curva NTN-B completa (67 pontos, 0.5
+// a 33+ anos) + breakeven de inflacao sobreposto (so existe ate ~10y --
+// alem disso o mercado prefixado longo nao tem liquidez suficiente pra
+// ANBIMA calcular, fica null por design, nao e erro). So renderiza se
+// Chart.js e o canvas existirem -- nunca quebra a aba se algo faltar.
+function renderNtnbCurveChart(curva){
+  try{
+    const canvas=document.getElementById('ntnbCurveChart');
+    if(!canvas||typeof Chart==='undefined')return;
+    const pontos=curva?.curva_completa;
+    if(!pontos||!pontos.length)return;
+    const labels=pontos.map(p=>p.anos+'a');
+    const real=pontos.map(p=>p.ntnb_real);
+    const breakeven=pontos.map(p=>p.breakeven);
+    if(_ntnbChart){_ntnbChart.destroy();}
+    _ntnbChart=new Chart(canvas,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'NTN-B real',data:real,borderColor:'#2a78d6',backgroundColor:'rgba(42,120,214,0.1)',borderWidth:2,pointRadius:0,fill:true,tension:0.2},
+        {label:'Breakeven',data:breakeven,borderColor:'#eb6834',borderWidth:2,pointRadius:0,borderDash:[5,3],tension:0.2,spanGaps:false},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+        scales:{
+          x:{grid:{display:false},ticks:{maxTicksLimit:10,color:'#898781',font:{size:10}}},
+          y:{grid:{color:'#e1e0d9'},ticks:{callback:v=>v+'%',color:'#898781',font:{size:10}}},
+        },
+      },
+    });
+  }catch(e){/* nao quebra a aba se o Chart.js falhar por qualquer motivo */}
 }
 async function fFund(){
   try{const r=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');if(r.ok){const d=await r.json();E('btc-fund',(parseFloat(d.lastFundingRate||0)*100).toFixed(4)+'%');return;}}catch(e){}
