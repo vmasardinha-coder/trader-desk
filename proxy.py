@@ -639,15 +639,20 @@ def get_yields():
         except: pass
 
     # ── BRASIL ───────────────────────────────────────────
-    # SELIC meta: SGS 11 retorna % a.a. diretamente (decisão COPOM), sem conversão.
-    # Fonte primária preferida porque retorna o número exato do COPOM (ex: 13.75).
-    # get_cdi() (SGS 4389, CDI diário anualizado) fica como fallback -- valor quase
-    # idêntico à SELIC meta mas calculado a partir da taxa overnight, pode divergir
-    # levemente e tem o fallback hardcoded de 14.40 embutido.
+    # SELIC meta: SGS 432 retorna % a.a. diretamente (decisão COPOM), sem conversão.
+    # CORRIGIDO 07/08/2026 -- bug identificado pelo Victor: app ficou 1 dia inteiro
+    # mostrando 14,25% apos o corte pra 14,00% em 05/08/2026. Causa raiz: estava
+    # usando a serie 11 (achando que vinha "% a.a. direto"), mas a serie 11 na
+    # verdade retorna TAXA DIARIA (ex: 0.0517), nao anual -- o sanity check
+    # (5<=val<=25) sempre rejeitava esse numero pequeno e caia no fallback fixo.
+    # Serie 432 (Meta Selic definida pelo Copom) e a fonte certa, ja usada
+    # corretamente em outro lugar do codigo (indicadores economicos) -- unificando
+    # aqui tambem. get_cdi() (SGS 4389, ja anualizado direto -- tambem corrigido
+    # nesta mesma data, tinha bug simetrico de composicao dupla) fica como fallback.
     selic = None
     try:
         r_selic = requests.get(
-            'https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados/ultimos/1?formato=json',
+            'https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json',
             timeout=5)
         if r_selic.ok:
             val = float(r_selic.json()[0]['valor'])
@@ -655,7 +660,7 @@ def get_yields():
                 selic = round(val, 2)
     except: pass
     if selic is None:
-        selic = get_cdi()  # fallback: CDI anualizado (≈ SELIC efetiva) ou 14.40
+        selic = get_cdi()  # fallback: CDI anualizado (≈ SELIC efetiva) ou 14.00
 
     # NTN-B 2035 (IPCA+ longo) -- TradingView scanner tentativa
     # Retorna null se falhar -- não há fonte pública gratuita confiável para NTN-B em tempo real
