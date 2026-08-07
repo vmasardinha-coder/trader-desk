@@ -371,7 +371,7 @@ from motor import rsi, mm, ema, macd, bollinger, obv, graham, vol_hist, garch_11
 # completa e o que ficou de proposito fora dela.
 from fontes import (
     get_cdi, get_btc_onchain, yahoo_fundamentals, yquote, scrape_iron_ore_investing,
-    fetch_commodities_hyperliquid,
+    fetch_commodities_hyperliquid, scrape_anbima_ettj_ntnb,
     _8MARKETCAP_TICKER_ALT, _parsear_marketcap_8marketcap, _buscar_html_8marketcap_paginas,
     _FII_SEGMENTO_BASE, _FII_PALAVRAS_PAPEL, _FII_PALAVRAS_FOF,
     _classificar_segmento_fii, _classificar_risco_fii, _score_fii,
@@ -662,22 +662,24 @@ def get_yields():
     if selic is None:
         selic = get_cdi()  # fallback: CDI anualizado (≈ SELIC efetiva) ou 14.00
 
-    # NTN-B 2035 (IPCA+ longo) -- TradingView scanner tentativa
-    # Retorna null se falhar -- não há fonte pública gratuita confiável para NTN-B em tempo real
+    # NTN-B: curva completa (2/5/10/30 anos) via ETTJ da ANBIMA.
+    # CORRIGIDO/AMPLIADO 07/08/2026 -- pedido do Victor. Fonte anterior
+    # (TradingView scanner de um unico titulo NTN-B 2035) sempre retornava
+    # null -- nunca funcionou de fato. Trocado por scrape_anbima_ettj_ntnb()
+    # (fontes.py), que le o arquivo publico de Estrutura a Termo da propria
+    # ANBIMA -- dado de fechamento D-1 (nao intraday, mas e a natureza real
+    # do dado, nao uma limitacao da implementacao), com toda a curva de
+    # uma vez em vez de um unico ponto. 'br_ntnb' mantido com o vertice de
+    # 10y por compatibilidade com o campo antigo; 'br_ntnb_curve' e o novo
+    # objeto completo com os 4 vertices + data de referencia da ANBIMA.
+    ettj = scrape_anbima_ettj_ntnb()
     ntnb_10y = None
-    try:
-        r_ntnb = requests.post(
-            'https://scanner.tradingview.com/brazil/scan',
-            json={"symbols":{"tickers":["BMFBOVESPA:NTNB350101"]},"columns":["close","change_abs"]},
-            timeout=6)
-        if r_ntnb.ok:
-            items = r_ntnb.json().get('data',[])
-            if items and items[0].get('d') and items[0]['d'][0] and float(items[0]['d'][0]) > 0:
-                d3 = items[0]['d']
-                close = round(float(d3[0]),3)
-                chg = float(d3[1]) if len(d3)>1 and d3[1] else 0
-                ntnb_10y = {'price':close,'prev':round(close-chg,3),'source':'tradingview'}
-    except: pass
+    ntnb_curve = None
+    if ettj:
+        ntnb_curve = ettj
+        if ettj.get('10y') is not None:
+            ntnb_10y = {'price': ettj['10y'], 'prev': None, 'source': 'anbima_ettj',
+                        'data_referencia': ettj.get('data_referencia')}
 
     return jsonify({
         'us_3m':  us_3m,   # T-Bill 3 meses (^IRX)
@@ -686,7 +688,8 @@ def get_yields():
         'usdjpy': usdjpy,  # USD/JPY
         'jp_10y': jp_10y,  # JGB 10 anos (^JGBS)
         'br_selic': {'price': selic, 'prev': None, 'label': 'SELIC efetiva a.a.'},
-        'br_ntnb':  ntnb_10y,  # NTN-B ~10y (IPCA+) -- null se fonte indisponível
+        'br_ntnb':  ntnb_10y,  # NTN-B ~10y (IPCA+) -- mantido p/ compat, mesmo dado do vertice 10y da curva
+        'br_ntnb_curve': ntnb_curve,  # NTN-B 2y/5y/10y/30y + data_referencia (ANBIMA ETTJ, fechamento D-1)
     })
 
 @app.route('/dji', methods=['GET'])
