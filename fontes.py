@@ -55,25 +55,35 @@ def scrape_anbima_ettj_ntnb():
     ADICIONADO 07/08/2026 -- pedido do Victor: curva de NTN-B (2/5/10/30
     anos), fonte publica gratuita, a fonte anterior (TradingView scanner
     de um unico titulo NTN-B) sempre retornava null.
+    AMPLIADO 07/08/2026 (mesma sessao, 2a rodada) -- Victor pediu a curva
+    INTEIRA (nao so 4 pontos) pra grafico, mais o IPCA implicito
+    (breakeven de inflacao) que a mesma fonte ja carrega junto.
 
     Fonte: ETTJ (Estrutura a Termo da Taxa de Juros) da propria ANBIMA --
     https://www.anbima.com.br/informacoes/est-termo/CZ-down.asp -- arquivo
     .asp que retorna texto/CSV puro (nao precisa de auth, nao e endpoint
     "escondido", e o link oficial de download da ferramenta publica da
-    ANBIMA). Publicado diariamente (dado de FECHAMENTO D-1, nao intraday --
+    ANBIMA). Publicado 1x POR DIA (dado de FECHAMENTO D-1, nao intraday --
     a propria ANBIMA descreve a metodologia como media movel de 3 dias
     uteis ponderada, entao a natureza do dado e mesmo mais lenta que um
-    preco de mercado ao vivo, compativel com o que o Victor pediu:
-    "melhor espaco de tempo" possivel dentro do que existe gratis).
+    preco de mercado ao vivo -- nao e limitacao da implementacao).
 
     O arquivo tem uma secao "Vertices;ETTJ IPCA;ETTJ PREF;Inflacao
-    Implicita" com o vertice em DIAS UTEIS (252 = 1 ano) e a taxa ETTJ
-    IPCA (equivalente ao yield real de NTN-B naquele prazo) na 2a coluna.
-    Extrai os vertices mais proximos de 2/5/10/30 anos (504/1260/2520/7560
-    dias uteis, batem exato na base de 252 dias uteis/ano).
+    Implicita" com o vertice em DIAS UTEIS (252 = 1 ano): coluna 2 = yield
+    real da NTN-B (ETTJ IPCA), coluna 3 = yield do prefixado (ETTJ PREF),
+    coluna 4 = inflacao implicita/breakeven (diferenca entre os dois).
+    O prefixado/breakeven so tem liquidez de mercado suficiente pra ser
+    calculado ate ~10 anos -- alem disso a ANBIMA deixa essas 2 colunas
+    vazias (normal, nao e erro de parsing).
 
-    Retorna dict {'2y':..,'5y':..,'10y':..,'30y':..,'data_referencia':'DD/MM/AAAA'}
-    ou None se a fonte falhar/mudar de formato -- NUNCA quebra o /futures.
+    Retorna dict com:
+    - '2y'/'5y'/'10y'/'30y': yield real da NTN-B nesses 4 vertices exatos
+      (mantido p/ compatibilidade com quem ja consome so isso)
+    - 'data_referencia': data (D-1) da publicacao
+    - 'curva_completa': lista de pontos {anos, ntnb_real, prefixado,
+      breakeven} para TODOS os vertices disponiveis (~67 pontos, de 0,5
+      a 33+ anos) -- usar pra montar grafico da curva inteira
+    Ou None se a fonte falhar/mudar de formato -- NUNCA quebra o /futures.
     """
     try:
         r = requests.get('https://www.anbima.com.br/informacoes/est-termo/CZ-down.asp', timeout=8)
@@ -93,7 +103,8 @@ def scrape_anbima_ettj_ntnb():
         if idx_header is None:
             return None
 
-        curva = {}
+        curva_completa = []
+        curva_por_vertice = {}
         for l in linhas[idx_header + 1:]:
             l = l.strip()
             if not l or ';' not in l:
@@ -103,20 +114,31 @@ def scrape_anbima_ettj_ntnb():
                 break
             try:
                 vert = int(partes[0].replace('.', ''))
-                ipca = float(partes[1].replace(',', '.'))
-                curva[vert] = ipca
+                ipca = float(partes[1].replace(',', '.')) if partes[1] else None
+                pref = float(partes[2].replace(',', '.')) if len(partes) > 2 and partes[2] else None
+                breakeven = float(partes[3].replace(',', '.')) if len(partes) > 3 and partes[3] else None
             except ValueError:
                 break
+            if ipca is None or not (-5 <= ipca <= 30):  # sanity check
+                continue
+            curva_por_vertice[vert] = ipca
+            curva_completa.append({
+                'anos': round(vert / 252, 2),
+                'ntnb_real': round(ipca, 4),
+                'prefixado': round(pref, 4) if pref is not None else None,
+                'breakeven': round(breakeven, 4) if breakeven is not None else None,
+            })
+
+        if not curva_completa:
+            return None
 
         alvos = {'2y': 504, '5y': 1260, '10y': 2520, '30y': 7560}
-        resultado = {'data_referencia': data_referencia}
-        algum_encontrado = False
+        resultado = {'data_referencia': data_referencia, 'curva_completa': curva_completa}
         for label, vert in alvos.items():
-            val = curva.get(vert)
-            if val is not None and -5 <= val <= 30:  # sanity check
+            val = curva_por_vertice.get(vert)
+            if val is not None:
                 resultado[label] = round(val, 2)
-                algum_encontrado = True
-        return resultado if algum_encontrado else None
+        return resultado
     except Exception:
         return None
 
