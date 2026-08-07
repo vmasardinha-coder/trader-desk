@@ -33,12 +33,21 @@ def get_cdi():
     try:
         r = requests.get('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json', timeout=5)
         if r.ok:
-            cdi_d = float(r.json()[0]['valor'])
-            cdi_anual = ((1 + cdi_d/100)**252 - 1)*100
-            if 5 <= cdi_anual <= 20:
+            # CORRIGIDO 07/08/2026 -- bug identificado pelo Victor: o app continuava
+            # mostrando 14,25% um dia inteiro apos o Copom cortar para 14,00%
+            # (05/08/2026). Causa raiz: a serie 4389 do Bacen ja vem ANUALIZADA
+            # direto em % a.a. (confirmado testando a API ao vivo: retornou 13.90
+            # e 14.15 nos dias 06/08 e 05/08, valores plausiveis de CDI anual --
+            # nao taxas diarias). O codigo antigo aplicava
+            # ((1+cdi_d/100)**252-1)*100 em cima disso, tratando um numero ja
+            # anual como se fosse diario -- resultado virava ~10^16, sempre
+            # rejeitado pelo sanity check (5<=x<=20), sempre caindo no fallback
+            # hardcoded abaixo. Corrigido para usar o valor direto, sem composicao.
+            cdi_anual = float(r.json()[0]['valor'])
+            if 5 <= cdi_anual <= 25:
                 return round(cdi_anual, 2)
     except: pass
-    return 14.25  # SELIC meta COPOM 17/06/2026 (proxima reuniao: 05/08/2026)
+    return 14.00  # SELIC meta COPOM 05/08/2026 (corte pra 14,00%; proxima reuniao: 16/09/2026)
 
 # ── ONCHAIN (estimativas) ────────────────────────────
 def get_btc_onchain():
