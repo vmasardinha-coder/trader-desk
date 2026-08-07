@@ -49,6 +49,77 @@ def get_cdi():
     except: pass
     return 14.00  # SELIC meta COPOM 05/08/2026 (corte pra 14,00%; proxima reuniao: 16/09/2026)
 
+# ── NTN-B (curva de juros real, IPCA+) ────────────────
+def scrape_anbima_ettj_ntnb():
+    """
+    ADICIONADO 07/08/2026 -- pedido do Victor: curva de NTN-B (2/5/10/30
+    anos), fonte publica gratuita, a fonte anterior (TradingView scanner
+    de um unico titulo NTN-B) sempre retornava null.
+
+    Fonte: ETTJ (Estrutura a Termo da Taxa de Juros) da propria ANBIMA --
+    https://www.anbima.com.br/informacoes/est-termo/CZ-down.asp -- arquivo
+    .asp que retorna texto/CSV puro (nao precisa de auth, nao e endpoint
+    "escondido", e o link oficial de download da ferramenta publica da
+    ANBIMA). Publicado diariamente (dado de FECHAMENTO D-1, nao intraday --
+    a propria ANBIMA descreve a metodologia como media movel de 3 dias
+    uteis ponderada, entao a natureza do dado e mesmo mais lenta que um
+    preco de mercado ao vivo, compativel com o que o Victor pediu:
+    "melhor espaco de tempo" possivel dentro do que existe gratis).
+
+    O arquivo tem uma secao "Vertices;ETTJ IPCA;ETTJ PREF;Inflacao
+    Implicita" com o vertice em DIAS UTEIS (252 = 1 ano) e a taxa ETTJ
+    IPCA (equivalente ao yield real de NTN-B naquele prazo) na 2a coluna.
+    Extrai os vertices mais proximos de 2/5/10/30 anos (504/1260/2520/7560
+    dias uteis, batem exato na base de 252 dias uteis/ano).
+
+    Retorna dict {'2y':..,'5y':..,'10y':..,'30y':..,'data_referencia':'DD/MM/AAAA'}
+    ou None se a fonte falhar/mudar de formato -- NUNCA quebra o /futures.
+    """
+    try:
+        r = requests.get('https://www.anbima.com.br/informacoes/est-termo/CZ-down.asp', timeout=8)
+        if not r.ok:
+            return None
+        texto = r.content.decode('latin-1')
+        linhas = texto.splitlines()
+        if not linhas:
+            return None
+        data_referencia = linhas[0].split(';')[0].strip()
+
+        idx_header = None
+        for i, l in enumerate(linhas):
+            if l.startswith('Vertices;ETTJ IPCA'):
+                idx_header = i
+                break
+        if idx_header is None:
+            return None
+
+        curva = {}
+        for l in linhas[idx_header + 1:]:
+            l = l.strip()
+            if not l or ';' not in l:
+                break
+            partes = l.split(';')
+            if len(partes) < 2:
+                break
+            try:
+                vert = int(partes[0].replace('.', ''))
+                ipca = float(partes[1].replace(',', '.'))
+                curva[vert] = ipca
+            except ValueError:
+                break
+
+        alvos = {'2y': 504, '5y': 1260, '10y': 2520, '30y': 7560}
+        resultado = {'data_referencia': data_referencia}
+        algum_encontrado = False
+        for label, vert in alvos.items():
+            val = curva.get(vert)
+            if val is not None and -5 <= val <= 30:  # sanity check
+                resultado[label] = round(val, 2)
+                algum_encontrado = True
+        return resultado if algum_encontrado else None
+    except Exception:
+        return None
+
 # ── ONCHAIN (estimativas) ────────────────────────────
 def get_btc_onchain():
     try:
