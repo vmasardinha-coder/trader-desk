@@ -15223,5 +15223,23 @@
         }
       }
     }
+  },
+  {
+    "ticker": "KNHY11.SA",
+    "nome": "KNHY11 - FII Multicategoria",
+    "data_foto": "2026-08-10",
+    "preco_foto": 97.81,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 9.57,
+    "p_vp": 0.99,
+    "liquidez": 3421690,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-08-10. P/VP=0.99, DY=9.57%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1786367924"
   }
 ]
