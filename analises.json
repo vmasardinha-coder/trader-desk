@@ -3663,7 +3663,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "PDF Itau Protecao Total, 20/07/2026, venc 20/01/2027. Barreira alta +21%, alavancagem 1,5x, teto 4% fixo. Protecao incondicional na queda (sem KDO).",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784576673",
     "bandas_congeladas": {
       "sigma_pct": 40.14,
@@ -4589,7 +4589,13 @@
           ]
         }
       }
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-11",
+    "ev_mensal_na_rejeicao": 0.353,
+    "score_na_rejeicao": 0.3595,
+    "prob_meta_na_rejeicao": 52.81,
+    "preco_encerramento": 51.85
   },
   {
     "ticker": "AXIA3.SA",
