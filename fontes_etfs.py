@@ -40,6 +40,7 @@ ETF_UNIVERSO = [
     {'ticker':'QQQI11','mercado':'Nacional','categoria':'Pagador','desc':'Nasdaq-100 high income','risco':3},
     {'ticker':'DIVD11','mercado':'Nacional','categoria':'Pagador','desc':'IDIV - dividendos B3','risco':5},
     {'ticker':'NDIV11','mercado':'Nacional','categoria':'Pagador','desc':'Ibovespa Smart Dividendos','risco':5},
+    {'ticker':'UTLL11','mercado':'Nacional','categoria':'Setorial','desc':'Utilidade Pública B3 (energia/saneamento/gás)','risco':6},  # ADICIONADO 07/08/2026 -- Victor notou ausencia, ETF real da Investo/BTG lancado em 2025, so estava faltando na whitelist
     {'ticker':'BOVA11','mercado':'Nacional','categoria':'Índice Brasil','desc':'Ibovespa','risco':7},
     {'ticker':'BOVV11','mercado':'Nacional','categoria':'Índice Brasil','desc':'Ibovespa (IT Now)','risco':7},
     {'ticker':'SMAL11','mercado':'Nacional','categoria':'Índice Brasil','desc':'Small Caps','risco':8},
