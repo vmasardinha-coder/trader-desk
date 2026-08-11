@@ -1448,6 +1448,26 @@ def scrape_fi_infra():
                 tickers_vistos.add(ticker)
                 fundos.append({'ticker': ticker, 'nome_fundo': ticker, 'fonte_match': 'substring'})
 
+        # Camada 3 (fallback adicional, 07/08/2026) -- caso real: BCDI11
+        # (estreou 04/08/2026) foi indexado pelo investidor10.com.br ANTES
+        # do fiis.com.br. Sem essa camada, o fundo continuava invisivel na
+        # LISTAGEM mesmo com dados individuais ja disponiveis via
+        # scrape_fi_infra_dados(). So roda para tickers conhecidos que as
+        # camadas 1+2 NAO acharam -- checagem leve (so confirma que a
+        # pagina individual do investidor10 responde com cotacao valida,
+        # nao baixa a lista inteira de novo). Nunca bloqueia a funcao se
+        # falhar -- cada tentativa tem seu proprio try/except.
+        for ticker in TICKERS_FI_INFRA_CONHECIDOS:
+            if ticker in tickers_vistos:
+                continue
+            try:
+                dados = scrape_fi_infra_dados(ticker)
+                if dados and dados.get('cotacao'):
+                    tickers_vistos.add(ticker)
+                    fundos.append({'ticker': ticker, 'nome_fundo': ticker, 'fonte_match': 'investidor10_individual'})
+            except Exception:
+                continue
+
         if len(fundos) < 10:
             return None, f'poucos_fundos_encontrados ({len(fundos)} de {len(TICKERS_FI_INFRA_CONHECIDOS)} conhecidos, esperado 10+)'
 
