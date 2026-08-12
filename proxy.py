@@ -3566,6 +3566,142 @@ def get_analises_stats():
     except Exception:
         return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
+@app.route('/analises/tracking-hipotetico', methods=['GET'])
+def tracking_hipotetico_previsoes():
+    """
+    ADICIONADO 12/08/2026 -- pedido do Victor: alem do tracking OFICIAL
+    (/analises/tracking-acuracia, so conta o que virou posicao REAL e
+    fechou com dinheiro de verdade), ele quer um tracking HIPOTETICO --
+    "se eu tivesse pego, teria dado certo?" -- para analises que ele
+    REJEITOU ou nunca executou por falta de capital, mas que ja passaram
+    do vencimento original. Serve pra responder se o filtro de escolha
+    dele (pegar as mais assertivas quando nao da pra pegar tudo) esta
+    realmente funcionando, mesmo sem nenhum capital envolvido.
+
+    IMPORTANTE: isto e SEMPRE HIPOTETICO. Nunca envolveu dinheiro real.
+    Nao confundir com /analises/tracking-acuracia (o oficial). Retorna em
+    % (ganho prefixado hipotetico ou variacao real do papel se rompeu a
+    barreira) -- NUNCA em R$, porque nao existe aporte real associado a
+    uma analise que nunca foi executada; inventar um valor em reais seria
+    dado fabricado.
+
+    Rota SOMENTE LEITURA -- nunca escreve em analises.json.
+
+    Criterio de inclusao: tipo_estrutura in (retorno_controlado,
+    bidirecional), tem prob_sucesso_prevista_pct congelada, NAO tem
+    'resultado' (sucesso/fracasso) setado (ou seja, nunca foi decisao de
+    capital real -- isso ja vai para o tracking oficial), e ja passou do
+    vencimento original (data_foto + prazo_dias em dias corridos <= hoje)
+    -- senao ainda nao da pra saber o resultado.
+    """
+    try:
+        from datetime import datetime as _dt5, timedelta as _td5
+        r_an = requests.get(
+            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
+            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        lista_an = r_an.json() if r_an.ok else []
+
+        hoje = _dt5.now().date()
+        itens = []
+
+        for a in lista_an:
+            if a.get('tipo_estrutura') not in ('retorno_controlado', 'bidirecional'):
+                continue
+            if a.get('resultado') in ('sucesso', 'fracasso'):
+                continue  # ja e capital real -- pertence ao tracking oficial, nao a este
+            prob = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
+            if prob is None:
+                continue
+            try:
+                data_foto = _dt5.strptime(a['data_foto'][:10], '%Y-%m-%d').date()
+                prazo_dias = int(a['prazo_dias'])
+            except (KeyError, ValueError, TypeError):
+                continue
+            venc = data_foto + _td5(days=prazo_dias)
+            if venc > hoje:
+                continue  # ainda nao venceu -- resultado desconhecido
+
+            ticker = a.get('ticker')
+            kdo = a.get('kdo')
+            kuo = a.get('kuo')
+            try:
+                historico = _fetch_closes_for_foto(ticker, a['data_foto'][:10])
+            except Exception:
+                historico = None
+            if not historico:
+                itens.append({
+                    'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
+                    'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
+                    'prob_sucesso_prevista_pct': prob, 'erro': 'historico indisponivel',
+                })
+                continue
+
+            # Filtra so o trecho ate o vencimento (a funcao busca ate hoje, que pode ser bem depois)
+            trecho = [h for h in historico if h['data'] <= venc.isoformat()]
+            if not trecho:
+                trecho = historico
+            closes = [h['close'] for h in trecho]
+            min_c, max_c = min(closes), max(closes)
+            preco_final = closes[-1]
+
+            rompeu = False
+            if kdo is not None and min_c <= float(kdo):
+                rompeu = True
+            if kuo is not None and max_c >= float(kuo):
+                rompeu = True
+
+            preco_foto = a.get('preco_foto')
+            if rompeu:
+                resultado_hip = 'fracasso'
+                ganho_pct_hip = round((preco_final / preco_foto - 1) * 100, 2) if preco_foto else None
+            else:
+                resultado_hip = 'sucesso'
+                ganho_pct_hip = a.get('ganho_prefixado_pct')
+
+            itens.append({
+                'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
+                'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
+                'motivo_encerramento': a.get('motivo_encerramento'),
+                'prob_sucesso_prevista_pct': prob,
+                'resultado_hipotetico': resultado_hip,
+                'ganho_pct_hipotetico': ganho_pct_hip,
+                'acertou_previsao': (resultado_hip == 'sucesso') == (prob >= 50),
+                'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
+            })
+
+        # Calibracao por faixa de 10pp (mesmo padrao do tracking oficial)
+        faixas = {}
+        for it in itens:
+            if it.get('erro'):
+                continue
+            faixa_ini = int(it['prob_sucesso_prevista_pct'] // 10) * 10
+            chave = f"{faixa_ini}-{faixa_ini+10}%"
+            faixas.setdefault(chave, {'total': 0, 'sucessos': 0})
+            faixas[chave]['total'] += 1
+            if it['resultado_hipotetico'] == 'sucesso':
+                faixas[chave]['sucessos'] += 1
+        calibracao = []
+        for chave in sorted(faixas.keys(), key=lambda k: int(k.split('-')[0])):
+            d = faixas[chave]
+            calibracao.append({
+                'faixa_prevista': chave, 'total': d['total'],
+                'taxa_sucesso_real_pct': round(d['sucessos'] / d['total'] * 100, 1) if d['total'] else None,
+            })
+
+        validos = [it for it in itens if not it.get('erro')]
+        total = len(validos)
+        acertos = sum(1 for it in validos if it['acertou_previsao'])
+
+        return jsonify({
+            'aviso': '🧪 HIPOTETICO -- nenhuma dessas analises envolveu capital real. Serve so para medir calibracao do modelo em analises rejeitadas/nao executadas.',
+            'total_avaliadas': total,
+            'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
+            'calibracao_por_faixa': calibracao,
+            'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/analises/tracking-acuracia', methods=['GET'])
 def tracking_acuracia_previsoes():
     """
