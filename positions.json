@@ -147,6 +147,24 @@
       "prob_sucesso_prevista_pct": 66.92,
       "ganho_sem_barreira": "13.4% fixo",
       "ganho_prefixado_pct": 13.4
+    },
+    {
+      "id": "roxo34",
+      "ticker": "ROXO34.SA",
+      "nome": "ROXO34 Retorno Controlado 2m (Lote 12/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-13",
+      "entry": 11.51,
+      "kdo": 9.3231,
+      "kdo_pct": "-19.0%",
+      "vol_impl": 0.3154,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-08-12",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 81.64,
+      "ganho_sem_barreira": "9.9% fixo",
+      "ganho_prefixado_pct": 9.9
     }
   ],
   "encerradas": [
