@@ -129,6 +129,24 @@
       "ganho_sem_barreira": "8.20% fixo",
       "ganho_prefixado_pct": 8.2,
       "observacao": "CONFIRMADO em 06/08/2026 com o boleto real: Valor Inicial R$96,00 (leilao de fechamento, derivado do KDO R$76,70 informado / 79,90% e do strike das opcoes R$103,97 / 108,30% -- ambas as contas batem entre si, diferenca de meio centavo por arredondamento). Estrutura sintetica real confirmada: CALL strike R$103,97 VENDIDA (320 qtd, premio R$5,22) + PUT strike R$103,97 COMPRADA (320 qtd, premio R$5,22), vencimento 04/10/2026 (ajustado de 05/10 -- boleto tem precedencia sobre a data do PDF publicitario). KDO R$76,70 -- Nao acionada (confirmado no boleto). PDF Itau Retorno Controlado, Material Publicitario 05/08/2026, prazo 2 meses, retorno prefixado 8,20% se barreira -20,00% nao for rompida. Rolagem da posicao anterior (entry 99,42, venc. original 24/08/2026), encerrada com sucesso no mesmo dia com ganho proporcional de 5,7% -- ver registro em encerradas (id cl-bslv39-ago26)."
+    },
+    {
+      "id": "spcx34",
+      "ticker": "SPCX34.SA",
+      "nome": "SPCX34 Retorno Controlado 0,5m (Lote 12/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-08-26",
+      "entry": 48.53,
+      "kdo": 39.4549,
+      "kdo_pct": "-18.7%",
+      "vol_impl": 0.9891,
+      "vol_impl_fonte": "vol_historica_44d_baixa_amostra",
+      "data_entrada": "2026-08-12",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 66.92,
+      "ganho_sem_barreira": "13.4% fixo",
+      "ganho_prefixado_pct": 13.4
     }
   ],
   "encerradas": [
