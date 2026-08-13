@@ -1526,8 +1526,15 @@ function tplEncerrada(p){
   if(p.codigo_opcao)subParts.push(p.codigo_opcao);
   subParts.push(dataEnc?`Encerrada ${dataEnc}`:'Encerrada');
   const sub=subParts.join(' · ');
-  const badgeCls=p.status==='sucesso'?'enc-ok':'enc-warn';
-  const badgeTxt=p.status==='sucesso'?'✅ SUCESSO':'⚠ PARCIAL';
+  // CORRIGIDO 13/08/2026 -- Victor notou que 'fracasso' aparecia como
+  // "PARCIAL" -- a logica so distinguia sucesso de "tudo o resto", nunca
+  // teve badge de fracasso de verdade. Achado no fechamento da rolagem
+  // BBAS3 (cl-bbas3-rolagem-out26, primeiro status='fracasso' explicito
+  // registrado em positions.json). Agora trata os 3 estados: sucesso,
+  // fracasso, e qualquer outra coisa (ex: sem status, ou status custom
+  // futuro) continua caindo em "parcial" como fallback neutro.
+  const badgeCls=p.status==='sucesso'?'enc-ok':(p.status==='fracasso'?'enc-fracasso':'enc-warn');
+  const badgeTxt=p.status==='sucesso'?'✅ SUCESSO':(p.status==='fracasso'?'❌ FRACASSO':'⚠ PARCIAL');
 
   let rows='';
   rows+=`<div class="sr"><span class="sl">Estratégia</span><span class="sv">${p.estrategia}</span></div>`;
