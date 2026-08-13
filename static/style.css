@@ -171,6 +171,7 @@ footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);displ
 .enc-ok{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.3)}
 .enc-warn{background:rgba(255,183,77,.15);color:var(--warn);border:1px solid rgba(255,183,77,.3)}
 .enc-rejeitada{background:rgba(255,82,82,.12);color:#ff6b6b;border:1px solid rgba(255,82,82,.3)}
+.enc-fracasso{background:rgba(255,82,82,.15);color:#ff5252;border:1px solid rgba(255,82,82,.35)}
 /* ── EM ANÁLISE — SPRINT 4 ── */
 .pos-enc.is-live{opacity:1;border-left-color:var(--accent)}
 
