@@ -69,6 +69,9 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 ### Arquitetura / bugs corrigidos
 | Item | Status |
 |---|---|
+| **UI: Taxa hipotética + EV realizado no painel Encerradas** | ✅ **FECHADO em 13/08/2026** — pedido do Victor: (1) confirmado que a limpeza de 30 dias das rejeitadas é SÓ um filtro de exibição em `GET /analises` — o arquivo real nunca apaga nada, o tracking-hipotetico lê direto sem esse filtro; (2) novo card no dashboard de Encerradas: "🧪 Taxa de sucesso HIPOTÉTICA (rejeitadas já vencidas)", sempre mostrando o N junto (nunca só %, amostra pequena); (3) por item rejeitado já vencido, nova linha "EV realizado" logo abaixo do "EV na rejeição" já existente — compara o EV PROJETADO (Monte Carlo, no momento da decisão, nunca muda) com o EV REALIZADO (preço real até o vencimento). Não substituiu nada que já existia, só somou. |
+| Item | Status |
+|---|---|
 | **Badge "FRACASSO" nas Posições Encerradas mostrava "PARCIAL"** | ✅ **FECHADO em 13/08/2026** — Victor notou ao fechar a rolagem BBAS3 (`cl-bbas3-rolagem-out26`, primeiro `status='fracasso'` explícito já registrado em `positions.json`). Causa: `tplEncerrada()` (app.js) só distinguia `status==='sucesso'` de "tudo o resto" — nunca teve badge de fracasso de verdade, qualquer coisa diferente de sucesso caía em "⚠ PARCIAL". Corrigido: agora trata os 3 estados (sucesso/fracasso/outro), nova classe CSS `.enc-fracasso` (vermelho) em `style.css`. Deploy confirmado em produção. |
 | Item | Status |
 |---|---|
