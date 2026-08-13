@@ -3686,12 +3686,20 @@ async function loadAnalisesEncerradas(){
   const cont=document.getElementById('enc-analises-container');
   if(!cont)return;
   try{
-    const [rA,rS]=await Promise.all([
+    // ADICIONADO 13/08/2026 -- pedido do Victor: taxa de sucesso HIPOTETICA
+    // (rejeitadas ja vencidas) ao lado da oficial (capital real). Busca
+    // separada, tratada como best-effort -- se falhar, o resto do painel
+    // continua funcionando normal, so essa linha nova fica ausente.
+    const [rA,rS,rH]=await Promise.all([
       fetch(B+'/analises',{cache:'no-store'}),
       fetch(B+'/analises/stats',{cache:'no-store'}).catch(()=>null),
+      fetch(B+'/analises/tracking-hipotetico',{cache:'no-store'}).catch(()=>null),
     ]);
     const dataA=rA.ok?await rA.json():[];
     const stats=(rS&&rS.ok)?await rS.json():{total_rejeitadas:0,total_migradas:0};
+    const hipotetico=(rH&&rH.ok)?await rH.json():null;
+    const hipItensPorId={};
+    (hipotetico?.itens||[]).forEach(it=>{hipItensPorId[it.id]=it;});
     const todasVisiveis=Array.isArray(dataA)?dataA:[];
     const totalRejeitadasPermanente=stats.total_rejeitadas||0;
     // CORRIGIDO 13/08/2026 -- bug achado pelo Victor: o total caia toda
@@ -3755,6 +3763,22 @@ async function loadAnalisesEncerradas(){
       </div>
     </div>`;
 
+    // ADICIONADO 13/08/2026 -- linha separada (nao dentro do grid de 4,
+    // pra nao competir visualmente com o card de capital real acima) com
+    // a taxa HIPOTETICA -- sempre mostra o N junto, nunca so a
+    // porcentagem sozinha (amostra ainda pequena, pedido explicito do
+    // Victor pra nao induzir a erro). So aparece se a busca funcionou.
+    if(hipotetico && hipotetico.total_avaliadas>0){
+      dashboard+=`
+      <div class="card" style="margin-bottom:20px;border-left:2px solid var(--accent)">
+        <div class="cl" style="display:flex;align-items:center;gap:6px">
+          🧪 Taxa de sucesso HIPOTÉTICA (rejeitadas já vencidas)
+          <span style="font-size:9px;color:var(--muted);font-weight:400">nunca envolveu capital real -- so mede calibração do modelo</span>
+        </div>
+        <div class="cp">${hipotetico.taxa_acerto_binario_pct}% <span style="font-size:12px;font-weight:400;color:var(--muted)">(${hipotetico.itens.filter(i=>!i.erro&&i.acertou_previsao).length} de ${hipotetico.total_avaliadas})</span></div>
+      </div>`;
+    }
+
     if(!listaCards.length){
       cont.innerHTML=dashboard+'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
       return;
@@ -3762,7 +3786,7 @@ async function loadAnalisesEncerradas(){
 
     const cards=listaCards.map(a=>tplAnaliseEncerrada(a)).join('');
     cont.innerHTML=dashboard+'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'+cards;
-    calcularSomatorioEncerradas(listaCards);
+    calcularSomatorioEncerradas(listaCards, hipItensPorId);
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar histórico de análises: '+e.message+'</p>';
   }
@@ -3790,7 +3814,8 @@ async function loadAnalisesEncerradas(){
 // calculo de aproveitamento em Encerradas.
 function round2(n){ return Math.round(n*100)/100; }
 
-async function calcularSomatorioEncerradas(lista){
+async function calcularSomatorioEncerradas(lista, hipItensPorId){
+  hipItensPorId = hipItensPorId || {};
   const qualificam=lista.filter(a=>
     a.status==='encerrada' && a.resultado && a.preco_encerramento!=null &&
     a.preco_foto!=null && a.data_encerramento && a.data_foto);
@@ -3824,7 +3849,23 @@ async function calcularSomatorioEncerradas(lista){
     if(gapEl){
       const corGap=gap>0.05?'var(--accent)':(gap<-0.05?'var(--green)':'var(--muted)');
       const txtGap=gap>0.05?('deixou ~R$ '+gapRs.toFixed(2)+' na mesa ao rejeitar (lote de 100)'):(gap<-0.05?('economizou ~R$ '+Math.abs(gapRs).toFixed(2)+' ao rejeitar, evitou EV negativo (lote de 100)'):'EV próximo de zero, decisão neutra');
-      gapEl.innerHTML='<span style="color:'+corGap+'">EV mensal na rejeição: '+(a.ev_mensal_na_rejeicao>=0?'+':'')+a.ev_mensal_na_rejeicao.toFixed(2)+'% · '+txtGap+'</span>';
+      let html='<span style="color:'+corGap+'">EV mensal na rejeição: '+(a.ev_mensal_na_rejeicao>=0?'+':'')+a.ev_mensal_na_rejeicao.toFixed(2)+'% · '+txtGap+'</span>';
+      // ADICIONADO 13/08/2026 -- pedido do Victor: "historia completa" --
+      // alem do EV PROJETADO acima (calculado no momento da rejeicao, via
+      // Monte Carlo, nunca muda depois), mostrar tambem o EV REALIZADO
+      // (o que aconteceu de verdade, usando o preco real ate o
+      // vencimento -- so aparece se a estrutura ja venceu, ver
+      // /analises/tracking-hipotetico). Mesma convencao de R$/lote de
+      // 100 do calculo acima, pra ficar comparavel lado a lado.
+      const hip = hipItensPorId[a.id];
+      if(hip && !hip.erro){
+        const ganhoReal = round2(hip.ganho_pct_hipotetico);
+        const ganhoRealRs = round2(ganhoReal*a.preco_foto);
+        const corReal = hip.resultado_hipotetico==='sucesso'?'var(--green)':'#ff6b6b';
+        const emoji = hip.resultado_hipotetico==='sucesso'?'✅':'❌';
+        html+='<br><span style="color:'+corReal+'">EV realizado (já venceu): '+emoji+' '+hip.resultado_hipotetico+' · '+(ganhoReal>=0?'+':'')+ganhoReal.toFixed(2)+'% · ~R$ '+ganhoRealRs.toFixed(2)+' (lote de 100)</span>';
+      }
+      gapEl.innerHTML=html;
     }
   }
   for(const a of qualificam){
