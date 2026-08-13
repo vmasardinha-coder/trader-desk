@@ -80,39 +80,6 @@
       "kuo": 61.29
     },
     {
-      "id": "rx",
-      "ticker": "ROXO34.SA",
-      "nome": "ROXO34 (BDR)",
-      "tipo_posicao": "simples",
-      "estrategia": "Call Vendida (Rolagem defensiva)",
-      "codigo_opcao": "ROXOI107",
-      "strike": 10.75,
-      "vol_impl": 0.43617,
-      "tipo": "call",
-      "vencimento": "2026-09-17",
-      "data_entrada": "2026-07-02",
-      "exercicio": "europeia",
-      "meta_pct": 2.44,
-      "observacao": "Rolagem defensiva da ROXO34 original (strike R$10,50, venc 16/07/2026, encerrada como fracasso em 01/07/2026 apos estourar a barreira). Premio gerado ~2,44% so para ganhar tempo -- nao passaria pelos criterios normais de entrada do usuario ('e uma seca', sem colchao real, so sobrevivencia). Prazo estendido ate 17/09/2026."
-    },
-    {
-      "id": "bb2",
-      "ticker": "BBAS3.SA",
-      "nome": "Banco do Brasil ON",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "BBASJ222",
-      "strike": 21.9,
-      "vol_impl": 0.31585,
-      "tipo": "call",
-      "vencimento": "2026-10-15",
-      "objetivo": "Fechar antes do vencimento, meta ~40 dias",
-      "data_entrada": "2026-07-28",
-      "exercicio": "europeia",
-      "meta_pct": 2.25,
-      "observacao": "Rolagem da posicao anterior (BBASH21, encerrada com sucesso: R$800/1,82% em ~38 dias). Premio recebido na abertura: R$1,20. Prazo total 56 dias (venc 15/10/2026), mas usuario tenta encerrar antecipadamente por volta de 40 dias, como de costume."
-    },
-    {
       "id": "bslv39",
       "ticker": "BSLV39.SA",
       "nome": "BSLV39 - iShares Silver Trust BDR",
@@ -165,6 +132,39 @@
       "prob_sucesso_prevista_pct": 81.64,
       "ganho_sem_barreira": "9.9% fixo",
       "ganho_prefixado_pct": 9.9
+    },
+    {
+      "id": "rx",
+      "ticker": "ROXO34.SA",
+      "nome": "ROXO34 (BDR)",
+      "tipo_posicao": "simples",
+      "estrategia": "Call Vendida",
+      "codigo_opcao": "ROXOL112",
+      "strike": 11.25,
+      "vol_impl": 0.37315,
+      "tipo": "call",
+      "vencimento": "2026-12-17",
+      "data_entrada": "2026-08-12",
+      "exercicio": "europeia",
+      "meta_pct": 9.56,
+      "observacao": "Rolagem da posicao anterior (ROXOI107, strike R$10,75, encerrada como sucesso em 12/08/2026 -- premio+strike combinados renderam 2,27%/mes no prazo incremental, passou da diretriz de 2%/mes). Nova opcao: 88 dias, ITM (spot R$11,61 > strike R$11,25), delta 0,677, prob exercicio 59,42%, taxa 9,56%, protecao 12,66%. Quantidade: 2.500 acoes."
+    },
+    {
+      "id": "bb2",
+      "ticker": "BBAS3.SA",
+      "nome": "Banco do Brasil ON",
+      "tipo_posicao": "simples",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASL223",
+      "strike": 22.31,
+      "vol_impl": 0.32739,
+      "tipo": "call",
+      "vencimento": "2026-12-17",
+      "objetivo": "Fechar antes do vencimento se possivel",
+      "data_entrada": "2026-08-12",
+      "exercicio": "europeia",
+      "meta_pct": 3.47,
+      "observacao": "Rolagem da posicao anterior (BBASJ222, strike R$21,90, encerrada como FRACASSO em 12/08/2026 por decisao do Victor -- rolagem nao era necessaria e rendeu so 1,33%/mes no prazo incremental, abaixo da diretriz de 2%/mes). Nova opcao: 88 dias, OTM (spot R$19,00 < strike R$22,31, +17,42%), delta 0,309, prob exercicio 24,44%, taxa 3,47%, Theta forte a favor (-0,010/dia). Quantidade: 2.200 acoes. Ja executada -- registrada aqui como ativa mesmo com a rolagem anterior classificada como fracasso, pois a operacao ja e real e nao ha como desfazer."
     }
   ],
   "encerradas": [
@@ -264,6 +264,26 @@
       "retorno_pct": 5.7,
       "resultado_texto": "Encerrada antecipadamente (faltavam 19 dias p/ vencimento original 24/08/2026). Ganho proporcional ao prazo decorrido: 8,3% prefixado x (41/60 dias corridos) = 5,7% -- calculo conferido e confirmado pelo usuario (corretor tambem chegou nesse numero). Maior parte do ganho veio da valorizacao do proprio ETF (prata em alta no dia), nao do premio das opcoes. Rolada no mesmo dia para nova estrutura Retorno Controlado (venc. 05/10/2026, retorno prefixado 8,20%) -- avaliacao: estrutura tem teto fixo (nao participa de alta acima do prefixado), entao manter a antiga pelos 19 dias restantes so capturaria mais 2,6% e deixaria a valorizacao recente do ativo \"presa\" no teto antigo; fechar e reabrir com strike/barreira recalculados no preco atual (mais alto) capta essa valorizacao como novo capital-base e destrava um novo ciclo de 2 meses ja.",
       "observacao": "VALOR FINANCEIRO (R$) NAO REGISTRADO -- pendente de confirmacao do boleto oficial da corretora (usuario mencionou verbalmente ~R$300 s/ pernas de opcao + valorizacao do ETF, mas pediu para nao estimar em R$ ate confirmar). Retorno_pct (5,7%) e o unico numero validado nesta etapa."
+    },
+    {
+      "id": "cl-roxo34-rolagem-set26",
+      "ticker": "ROXO34",
+      "estrategia": "Call Vendida (Rolagem defensiva)",
+      "codigo_opcao": "ROXOI107",
+      "strike": 10.75,
+      "data_encerramento": "2026-08-12",
+      "status": "sucesso",
+      "resultado_texto": "Rolagem para ROXOL112 (strike R$11,25, venc 17/12/2026). Premio liquido capturado R$700 + aumento de strike R$0,50/acao (R$1.250 em espaco de valorizacao) sobre 2.500 acoes = R$1.950 total (6,78% da posicao), 2,27%/mes no prazo incremental (91 dias, 17/09->17/12) -- passa da diretriz de 2%/mes mesmo contando so o componente garantido+contingente combinado. Diferente da BBAS3, essa rolagem ERA necessaria (posicao nasceu de resgate apos estouro de barreira em 01/07/2026, sem colchao real) -- preco do papel ja passou do novo strike, delta 0,677/59,42% prob. exercicio, Theta forte a favor (-0,009)."
+    },
+    {
+      "id": "cl-bbas3-rolagem-out26",
+      "ticker": "BBAS3",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASJ222",
+      "strike": 21.9,
+      "data_encerramento": "2026-08-12",
+      "status": "fracasso",
+      "resultado_texto": "Rolagem para BBASL223 (strike R$22,31, venc 17/12/2026). Premio liquido capturado apenas R$250 + aumento de strike R$0,41/acao (R$902) sobre 2.200 acoes = R$1.152 total (2,76% da posicao), 1,33%/mes no prazo incremental (63 dias, 15/10->17/12) -- fica ABAIXO da diretriz de 2%/mes. Classificado fracasso por decisao do Victor: diferente da ROXO34, esta rolagem NAO era necessaria (posicao saudavel, nao era resgate/sobrevivencia) -- diretriz de 2%/mes deve prevalecer sobre contexto quando nao ha necessidade real de rolar. Analise tecnica da opcao em si era correta (OTM, baixa prob. exercicio 24,44%, Theta forte a favor) mas o retorno economico da ROLAGEM como decisao ficou abaixo do padrao esperado."
     }
   ]
 }
