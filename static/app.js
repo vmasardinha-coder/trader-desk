@@ -3691,19 +3691,31 @@ async function loadAnalisesEncerradas(){
       fetch(B+'/analises/stats',{cache:'no-store'}).catch(()=>null),
     ]);
     const dataA=rA.ok?await rA.json():[];
-    const stats=(rS&&rS.ok)?await rS.json():{total_rejeitadas:0};
+    const stats=(rS&&rS.ok)?await rS.json():{total_rejeitadas:0,total_migradas:0};
     const todasVisiveis=Array.isArray(dataA)?dataA:[];
     const totalRejeitadasPermanente=stats.total_rejeitadas||0;
+    // CORRIGIDO 13/08/2026 -- bug achado pelo Victor: o total caia toda
+    // vez que uma analise migrava pra Ativa, porque o registro e REMOVIDO
+    // de analises.json na migracao (by design) e so existia contador
+    // permanente para rejeitadas, nao para migradas -- entao o total
+    // "esquecia" quem tinha migrado. Agora soma tambem
+    // stats.total_migradas (contador permanente que nunca diminui, ver
+    // _incrementar_contador_migradas no backend).
+    const totalMigradasPermanente=stats.total_migradas||0;
     // Total = todas as visiveis + rejeitadas ja limpas da lista (>30 dias)
-    // que so existem no contador permanente
+    // que so existem no contador permanente + TODAS as migradas (essas
+    // saem de analises.json imediatamente na migracao, entao 100% delas
+    // dependem do contador permanente, nao so o excedente como as
+    // rejeitadas)
     const rejeitadasVisiveis=todasVisiveis.filter(a=>a.motivo_encerramento==='rejeitada').length;
-    const total=todasVisiveis.length+Math.max(0,totalRejeitadasPermanente-rejeitadasVisiveis);
+    const total=todasVisiveis.length+Math.max(0,totalRejeitadasPermanente-rejeitadasVisiveis)+totalMigradasPermanente;
 
     const jaFoiAtiva=todasVisiveis.filter(a=>a.status==='ativa'||(a.status==='encerrada'&&a.resultado));
+    const totalJaFoiAtivaComMigradas=jaFoiAtiva.length+totalMigradasPermanente;
     const encerradasComResultado=todasVisiveis.filter(a=>a.status==='encerrada'&&a.resultado);
     const sucessos=encerradasComResultado.filter(a=>a.resultado==='sucesso').length;
     const taxaSucesso=encerradasComResultado.length?Math.round(sucessos/encerradasComResultado.length*100):null;
-    const pctAprovadas=total?Math.round(jaFoiAtiva.length/total*100):0;
+    const pctAprovadas=total?Math.round(totalJaFoiAtivaComMigradas/total*100):0;
     const pctRejeitadas=total?Math.round(totalRejeitadasPermanente/total*100):0;
 
     // ADICIONADO 15/07/2026 -- ate aqui a lista nao tinha ORDENACAO
@@ -3729,7 +3741,7 @@ async function loadAnalisesEncerradas(){
       <div class="card g">
         <div class="cl">Aprovadas/Ativadas</div>
         <div class="cp">${pctAprovadas}%</div>
-        <div class="cc" style="color:var(--green)">${jaFoiAtiva.length} de ${total}</div>
+        <div class="cc" style="color:var(--green)">${totalJaFoiAtivaComMigradas} de ${total}</div>
       </div>
       <div class="card b">
         <div class="cl">Rejeitadas</div>
