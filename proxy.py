@@ -3489,6 +3489,39 @@ def _incrementar_contador_rejeitadas():
     else:
         _github_criar_arquivo('stats_analises.json', novo_conteudo,
             "feat: cria stats_analises.json com contador inicial de rejeitadas")
+
+def _incrementar_contador_migradas():
+    """
+    ADICIONADO 13/08/2026 -- bug achado pelo Victor: o "total de analises"
+    mostrado em Encerradas CAIA toda vez que uma analise migrava para
+    Ativa, em vez de continuar contando ela no historico. Causa: quando a
+    migracao para positions.json da certo, o registro e REMOVIDO de
+    analises.json (by design, ver mudar_status_analise) -- mas so existia
+    contador PERMANENTE para rejeitadas (_incrementar_contador_rejeitadas),
+    nao para migradas. Sem esse contador, o frontend nao tinha como saber
+    quantas analises ja migraram no passado, entao o total "esquecia"
+    delas assim que saiam de analises.json.
+
+    Mesmo padrao/arquivo que o contador de rejeitadas (stats_analises.json)
+    -- NUNCA diminui, mesmo que a posicao correspondente seja encerrada
+    depois (isso e outro evento, nao desfaz o fato dela ter sido migrada).
+    """
+    try:
+        conteudo_str, sha = _github_get_file('stats_analises.json')
+        stats = json.loads(conteudo_str) if conteudo_str.strip() else {'total_rejeitadas': 0, 'total_migradas': 0}
+    except RuntimeError:
+        stats, sha = {'total_rejeitadas': 0, 'total_migradas': 0}, None
+
+    stats['total_migradas'] = stats.get('total_migradas', 0) + 1
+    stats['ultima_atualizacao'] = _hoje_str()
+    novo_conteudo = json.dumps(stats, indent=2, ensure_ascii=False)
+
+    if sha:
+        _github_put_file('stats_analises.json', novo_conteudo, sha,
+            f"feat: incrementa contador de migradas para {stats['total_migradas']}")
+    else:
+        _github_criar_arquivo('stats_analises.json', novo_conteudo,
+            "feat: cria stats_analises.json com contador inicial de migradas")
 _TIPOS_VALIDOS = ['bidirecional', 'retorno_controlado', 'premio', 'simples', 'fii']
 _ORIGENS_VALIDAS = ['customizada', 'pronta', 'screening_fiis']
 
@@ -4234,6 +4267,8 @@ def mudar_status_analise(analise_id):
         if novo_status == 'ativa' and item_encontrado:
             sucesso_migracao, msg_migracao = _migrar_para_positions(item_encontrado)
             migracao_info = {'migrado_para_positions': sucesso_migracao, 'detalhe': msg_migracao}
+            if sucesso_migracao:
+                _incrementar_contador_migradas()
 
             # ADICIONADO 30/06/2026 (REAPLICADO -- versao anterior se
             # perdeu por cache do raw.githubusercontent.com num deploy
@@ -4285,6 +4320,8 @@ def forcar_migracao_retroativa(analise_id):
         if item.get('status') != 'ativa':
             return jsonify({'error': f"analise {analise_id} nao esta com status='ativa' (status atual: {item.get('status')})"}), 422
         sucesso, msg = _migrar_para_positions(item)
+        if sucesso:
+            _incrementar_contador_migradas()
         return jsonify({'id': analise_id, 'migrado_para_positions': sucesso, 'detalhe': msg})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
