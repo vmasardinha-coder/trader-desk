@@ -69,6 +69,9 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 ### Arquitetura / bugs corrigidos
 | Item | Status |
 |---|---|
+| **Badge "FRACASSO" nas Posições Encerradas mostrava "PARCIAL"** | ✅ **FECHADO em 13/08/2026** — Victor notou ao fechar a rolagem BBAS3 (`cl-bbas3-rolagem-out26`, primeiro `status='fracasso'` explícito já registrado em `positions.json`). Causa: `tplEncerrada()` (app.js) só distinguia `status==='sucesso'` de "tudo o resto" — nunca teve badge de fracasso de verdade, qualquer coisa diferente de sucesso caía em "⚠ PARCIAL". Corrigido: agora trata os 3 estados (sucesso/fracasso/outro), nova classe CSS `.enc-fracasso` (vermelho) em `style.css`. Deploy confirmado em produção. |
+| Item | Status |
+|---|---|
 | Migração Em Análise → Posições Ativas travava silenciosamente quando o papel-base já tinha outra posição ativa (ex: AXIA3.SA com `a3b`+`a3c`) | ✅ Corrigido em 05/08/2026 — `_migrar_para_positions` checava duplicidade por TICKER (errado, papel pode ter várias estruturas concorrentes); agora checa por ID, com sufixo automático em caso raro de colisão. Testado com o cenário real (AXIA3 "Proteção Parcial"). Causa raiz de uma análise que ficou presa "ativa" em Em Análise sem nunca aparecer em Posições Ativas — ver `an_1784576725` em Encerradas (fechada de forma neutra, não migrada a pedido do Victor, era teste). |
 | Não existe (e nunca existiu) botão de "tirar foto" para uma análise JÁ CRIADA em Em Análise | ℹ️ Esclarecido em 05/08/2026 — `bandas_congeladas` só nasce no momento da criação (`POST /analises` → `_congelar_bandas_analise`). `GET /analises/<id>/foto-bandas` é só visualizador, nunca gerador. Fluxo real e único: Claude discute/filtra em chat e registra a análise diretamente via GitHub API — não existe (nem nunca existiu) uma tela de "Indicadores" separada para isso. |
 
