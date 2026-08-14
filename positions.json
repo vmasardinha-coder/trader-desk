@@ -103,9 +103,9 @@
       "nome": "SPCX34 Retorno Controlado 0,5m (Lote 12/08/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-08-26",
-      "entry": 48.53,
-      "kdo": 39.4549,
+      "vencimento": "2026-08-25",
+      "entry": 50.65,
+      "kdo": 41.14,
       "kdo_pct": "-18.7%",
       "vol_impl": 0.9891,
       "vol_impl_fonte": "vol_historica_44d_baixa_amostra",
@@ -113,7 +113,8 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 66.92,
       "ganho_sem_barreira": "13.4% fixo",
-      "ganho_prefixado_pct": 13.4
+      "ganho_prefixado_pct": 13.4,
+      "observacao": "CONFIRMADO 13/08/2026 com o boleto real: Valor Inicial R$50,65 (leilao de fechamento, derivado do KDO R$41,14/-18,70% e do strike das opcoes R$57,50/+13,40% -- ambas as contas batem entre si, diferenca de R$0,10 por arredondamento). Estrutura sintetica: CALL strike R$57,50 VENDIDA (650 qtd, premio R$5,17) + PUT strike R$57,50 COMPRADA (650 qtd, premio R$5,17), vencimento 25/08/2026 (ajustado de 26/08 -- boleto tem precedencia sobre a estimativa do PDF publicitario). KDO R$41,14 -- Nao acionada (confirmado no boleto)."
     },
     {
       "id": "roxo34",
@@ -121,9 +122,9 @@
       "nome": "ROXO34 Retorno Controlado 2m (Lote 12/08/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-13",
-      "entry": 11.51,
-      "kdo": 9.3231,
+      "vencimento": "2026-10-12",
+      "entry": 11.61,
+      "kdo": 9.39,
       "kdo_pct": "-19.0%",
       "vol_impl": 0.3154,
       "vol_impl_fonte": "garch",
@@ -131,7 +132,8 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 81.64,
       "ganho_sem_barreira": "9.9% fixo",
-      "ganho_prefixado_pct": 9.9
+      "ganho_prefixado_pct": 9.9,
+      "observacao": "CONFIRMADO 13/08/2026 com o boleto real: Valor Inicial R$11,61 (leilao de fechamento, derivado do KDO R$9,39/-19,00% e do strike das opcoes R$12,77/+9,90% -- ambas as contas batem entre si, diferenca de R$0,03 por arredondamento). Estrutura sintetica: CALL strike R$12,77 VENDIDA (2.600 qtd, premio R$0,74) + PUT strike R$12,77 COMPRADA (2.600 qtd, premio R$0,74), vencimento 12/10/2026 (ajustado de 13/10 -- boleto tem precedencia sobre a estimativa do PDF publicitario). KDO R$9,39 -- Nao acionada (confirmado no boleto)."
     },
     {
       "id": "rx",
