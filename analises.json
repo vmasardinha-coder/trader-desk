@@ -11889,7 +11889,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -20%. Ganho prefixado: 12.5% se nao tocar a barreira (13.57%/mes). Preco de entrada = cotacao real no momento da criacao (R$41.65). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737577",
     "bandas_congeladas": {
       "sigma_pct": 52.32,
@@ -12181,7 +12181,13 @@
       },
       "prob_sucesso_prevista_pct": 81.04,
       "prob_sucesso_prevista_pct_origem": "backfill_12082026"
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-17",
+    "ev_mensal_na_rejeicao": -5.697,
+    "score_na_rejeicao": -14.2425,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 50.59
   },
   {
     "ticker": "ITLC34.SA",
