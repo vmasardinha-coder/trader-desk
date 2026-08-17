@@ -127,6 +127,24 @@
       "prob_sucesso_prevista_pct": 78.02,
       "ganho_sem_barreira": "8.2% fixo",
       "ganho_prefixado_pct": 8.2
+    },
+    {
+      "id": "spcx34",
+      "ticker": "SPCX34.SA",
+      "nome": "SPCX34 Retorno Controlado 16d (Lote 17/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-09-02",
+      "entry": 50.8,
+      "kdo": 41.3004,
+      "kdo_pct": "-18.7%",
+      "vol_impl": 0.9743,
+      "vol_impl_fonte": "vol_historica_47d_baixa_amostra",
+      "data_entrada": "2026-08-17",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 61.42,
+      "ganho_sem_barreira": "13.4% fixo",
+      "ganho_prefixado_pct": 13.4
     }
   ],
   "encerradas": [
