@@ -1892,11 +1892,11 @@ function renderFotoChart(id, periodo){
   // Datasets: bandas (preenchimento entre percentis) + linha mediana + linha real
   const dsConfig = [
     // Sombra externa: p10-p90
-    { label:'p90', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
-    { label:'p10', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
+    { label:'P90 (banda ampla)', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
+    { label:'P10 (banda ampla)', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
     // Sombra central: p25-p75
-    { label:'p75', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
-    { label:'p25', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
+    { label:'P75 (banda central)', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
+    { label:'P25 (banda central)', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
     // Mediana
     { label:'Mediana (p50)', data: bandas.p50, borderColor:'rgba(180,200,255,0.6)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
     // Preço real
@@ -1916,11 +1916,12 @@ function renderFotoChart(id, periodo){
       interaction: { mode:'index', intersect:false },
       plugins: {
         legend: { display:true, labels:{ color:'#aaa', font:{size:10},
-          filter: item => !['p90','p10','p75','p25'].includes(item.text) } },
-        tooltip: { callbacks: { label: ctx => {
-          if(['p90','p10','p75','p25'].includes(ctx.dataset.label)) return null;
-          return `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2)??'—'}`;
-        }}}
+          filter: item => !['P90 (banda ampla)','P10 (banda ampla)','P75 (banda central)','P25 (banda central)'].includes(item.text) } },
+        // CORRIGIDO 17/08/2026 -- pedido do Victor: antes as bandas p90/p10/p75/p25
+        // ficavam escondidas do tooltip (so mostrava Mediana e Preco real). Agora
+        // mostra tudo ao passar o mouse, igual o grafico de Monte Carlo condicional
+        // ja fazia -- mantido escondido so da LEGENDA (senao fica poluida), nao do tooltip.
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2)??'—'}` } }
       },
       scales: {
         x: { ticks:{ color:'#666', maxTicksLimit:10, font:{size:9} }, grid:{color:'rgba(255,255,255,0.04)'} },
@@ -3396,10 +3397,10 @@ async function verFotoAnalise(id){
     const realData = labels.map((_, i) => i < histReal.length ? histReal[i].close : null);
 
     const dsConfig = [
-      { label:'p90', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
-      { label:'p10', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
-      { label:'p75', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
-      { label:'p25', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'P90 (banda ampla)', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'P10 (banda ampla)', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'P75 (banda central)', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'P25 (banda central)', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
       { label:'Mediana (p50)', data: bandas.p50, borderColor:'rgba(180,200,255,0.6)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
       { label:'Preço real', data: realData, borderColor:'#f0c040', borderWidth:2.5, pointRadius:0, fill:false, spanGaps:false },
     ];
@@ -3414,11 +3415,8 @@ async function verFotoAnalise(id){
         interaction: { mode:'index', intersect:false },
         plugins: {
           legend: { display:true, labels:{ color:'#aaa', font:{size:10},
-            filter: item => !['p90','p10','p75','p25'].includes(item.text) } },
-          tooltip: { callbacks: { label: ctx => {
-            if(['p90','p10','p75','p25'].includes(ctx.dataset.label)) return null;
-            return `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2)??'—'}`;
-          }}}
+            filter: item => !['P90 (banda ampla)','P10 (banda ampla)','P75 (banda central)','P25 (banda central)'].includes(item.text) } },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2)??'—'}` } }
         },
         scales: {
           x: { ticks:{ color:'#666', maxTicksLimit:10, font:{size:9} }, grid:{color:'rgba(255,255,255,0.04)'} },
@@ -4728,10 +4726,10 @@ async function verEtfProjecao(ticker) {
     const realData = labels.map((_, i) => i < histReal.length ? histReal[i].close : null);
 
     const dsConfig = [
-      { label:'p90', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
-      { label:'p10', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
-      { label:'p75', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
-      { label:'p25', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'P90 (banda ampla)', data: bandas.p90, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'P10 (banda ampla)', data: bandas.p10, borderColor:'transparent', backgroundColor:'rgba(100,120,180,0.10)', fill:false, pointRadius:0, borderWidth:0 },
+      { label:'P75 (banda central)', data: bandas.p75, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:'+1', pointRadius:0, borderWidth:0 },
+      { label:'P25 (banda central)', data: bandas.p25, borderColor:'transparent', backgroundColor:'rgba(100,180,130,0.18)', fill:false, pointRadius:0, borderWidth:0 },
       { label:'Mediana (p50)', data: bandas.p50, borderColor:'rgba(180,200,255,0.6)', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
       { label:'Preço real', data: realData, borderColor:'#f0c040', borderWidth:2.5, pointRadius:0, fill:false, spanGaps:false },
     ];
@@ -4746,11 +4744,8 @@ async function verEtfProjecao(ticker) {
         interaction: { mode:'index', intersect:false },
         plugins: {
           legend: { display:true, labels:{ color:'#aaa', font:{size:10},
-            filter: item => !['p90','p10','p75','p25'].includes(item.text) } },
-          tooltip: { callbacks: { label: ctx => {
-            if (['p90','p10','p75','p25'].includes(ctx.dataset.label)) return null;
-            return `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2) ?? '—'}`;
-          }}}
+            filter: item => !['P90 (banda ampla)','P10 (banda ampla)','P75 (banda central)','P25 (banda central)'].includes(item.text) } },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: R$${ctx.raw?.toFixed(2) ?? '—'}` } }
         },
         scales: {
           x: { ticks:{ color:'#666', maxTicksLimit:10, font:{size:9} }, grid:{color:'rgba(255,255,255,0.04)'} },
