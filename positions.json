@@ -40,26 +40,6 @@
       "exercicio": "europeia"
     },
     {
-      "id": "a3b",
-      "ticker": "AXIA3.SA",
-      "nome": "AXIA3 (B)",
-      "tipo_posicao": "barreira",
-      "estrategia": "Bidirecional ION Itaú",
-      "vencimento": "2026-10-02",
-      "entry": 50.75,
-      "kdo": 40.55,
-      "kuo": 62.98,
-      "kdo_pct": "-20%",
-      "kuo_pct": "+24%",
-      "ganho_sem_barreira": "até +31,2% / +20%",
-      "ganho_barreira_alta": "+4% fixo (12,33% a.a.)",
-      "data_entrada": "2026-06-08",
-      "exercicio": "europeia",
-      "teto_retorno_pct": 4.0,
-      "alavancagem": 1.3,
-      "observacao": "CALIBRADO 24/07/2026 via boleto da corretora: entry R$50,75 (era 50,65), KDO R$40,55 (era 40,52), KUO R$62,98 (era 62,81) -- pequenas diferencas de arredondamento/leilao corrigidas com dado oficial."
-    },
-    {
       "id": "a3c",
       "ticker": "AXIA3.SA",
       "nome": "AXIA3 (C)",
@@ -96,25 +76,6 @@
       "ganho_sem_barreira": "8.20% fixo",
       "ganho_prefixado_pct": 8.2,
       "observacao": "CONFIRMADO em 06/08/2026 com o boleto real: Valor Inicial R$96,00 (leilao de fechamento, derivado do KDO R$76,70 informado / 79,90% e do strike das opcoes R$103,97 / 108,30% -- ambas as contas batem entre si, diferenca de meio centavo por arredondamento). Estrutura sintetica real confirmada: CALL strike R$103,97 VENDIDA (320 qtd, premio R$5,22) + PUT strike R$103,97 COMPRADA (320 qtd, premio R$5,22), vencimento 04/10/2026 (ajustado de 05/10 -- boleto tem precedencia sobre a data do PDF publicitario). KDO R$76,70 -- Nao acionada (confirmado no boleto). PDF Itau Retorno Controlado, Material Publicitario 05/08/2026, prazo 2 meses, retorno prefixado 8,20% se barreira -20,00% nao for rompida. Rolagem da posicao anterior (entry 99,42, venc. original 24/08/2026), encerrada com sucesso no mesmo dia com ganho proporcional de 5,7% -- ver registro em encerradas (id cl-bslv39-ago26)."
-    },
-    {
-      "id": "spcx34",
-      "ticker": "SPCX34.SA",
-      "nome": "SPCX34 Retorno Controlado 0,5m (Lote 12/08/2026)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-08-25",
-      "entry": 50.65,
-      "kdo": 41.14,
-      "kdo_pct": "-18.7%",
-      "vol_impl": 0.9891,
-      "vol_impl_fonte": "vol_historica_44d_baixa_amostra",
-      "data_entrada": "2026-08-12",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 66.92,
-      "ganho_sem_barreira": "13.4% fixo",
-      "ganho_prefixado_pct": 13.4,
-      "observacao": "CONFIRMADO 13/08/2026 com o boleto real: Valor Inicial R$50,65 (leilao de fechamento, derivado do KDO R$41,14/-18,70% e do strike das opcoes R$57,50/+13,40% -- ambas as contas batem entre si, diferenca de R$0,10 por arredondamento). Estrutura sintetica: CALL strike R$57,50 VENDIDA (650 qtd, premio R$5,17) + PUT strike R$57,50 COMPRADA (650 qtd, premio R$5,17), vencimento 25/08/2026 (ajustado de 26/08 -- boleto tem precedencia sobre a estimativa do PDF publicitario). KDO R$41,14 -- Nao acionada (confirmado no boleto)."
     },
     {
       "id": "rx",
@@ -281,6 +242,28 @@
       "status": "sucesso",
       "prob_sucesso_prevista_pct": 81.64,
       "resultado_texto": "Resgate ANTECIPADO a valor de mercado (nao aguardou o vencimento 12/10/2026). Barreira (KDO R$9,39) nunca foi tocada -- o prefixado de 9,9% estava garantido se segurasse ate o fim, mas Victor decidiu travar 5,6% de lucro agora (57% do alvo) em vez de esperar mais ~2 meses pelo resto. Papel (ROXO34) subiu bem acima do strike (R$12,77) no momento do fechamento -- preco de referencia consultado no fechamento: R$13,28. Resultado de mercado (nao recalculado por mim -- numero informado pelo Victor, mesma regra de nunca reestimar P&L real reportado pelo usuario)."
+    },
+    {
+      "id": "cl-spcx34-retctrl-ago26",
+      "ticker": "SPCX34",
+      "estrategia": "Retorno Controlado",
+      "strike": null,
+      "alvo_pct": 13.4,
+      "realizado_pct": 9.2,
+      "data_encerramento": "2026-08-17",
+      "status": "sucesso",
+      "prob_sucesso_prevista_pct": 66.92,
+      "resultado_texto": "Encerrada com sucesso, 9,2% de resultado. Barreira nunca acionada. Numero informado pelo Victor (nao recalculado -- mesma regra de sempre aceitar o resultado real reportado como fonte da verdade)."
+    },
+    {
+      "id": "cl-axia3-bidirecional-b",
+      "ticker": "AXIA3",
+      "estrategia": "Bidirecional ION Itaú",
+      "strike": null,
+      "data_encerramento": "2026-08-17",
+      "status": "fracasso",
+      "realizado_pct": 2.13,
+      "resultado_texto": "Encerrada como fracasso -- rendeu apenas 80% do CDI acumulado no periodo (08/06/2026 a 17/08/2026). CDI real acumulado no periodo (via serie diaria Bacen SGS 12): 2,66%. 80% disso = 2,13% realizado. Abaixo do esperado para uma estrutura bidirecional com alavancagem 1,3x -- classificado fracasso por ficar atras do beneficio livre de risco (CDI)."
     }
   ]
 }
