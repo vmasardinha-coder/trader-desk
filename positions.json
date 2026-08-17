@@ -145,6 +145,24 @@
       "prob_sucesso_prevista_pct": 61.42,
       "ganho_sem_barreira": "13.4% fixo",
       "ganho_prefixado_pct": 13.4
+    },
+    {
+      "id": "tsla34",
+      "ticker": "TSLA34.SA",
+      "nome": "TSLA34 Retorno Controlado 2m (Lote 17/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-16",
+      "entry": 55.23,
+      "kdo": 44.184,
+      "kdo_pct": "-20.0%",
+      "vol_impl": 0.4557,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-08-17",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 67.86,
+      "ganho_sem_barreira": "8.7% fixo",
+      "ganho_prefixado_pct": 8.7
     }
   ],
   "encerradas": [
