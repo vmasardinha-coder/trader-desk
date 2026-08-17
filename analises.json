@@ -15665,5 +15665,23 @@
       "prob_sucesso_prevista_pct": 50.04
     },
     "observacao": "Lote 12/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas (nao recalculadas): barreira -20.0%, retorno prefixado 19.0% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=48.53) e PROVISORIO -- PDF diz que o preco real e definido no leilao de fechamento na data de contratacao da estrategia, ainda nao disponivel. KDO (38.824) calculado sobre esse preco provisorio -- atualizar com o preco oficial do boleto quando chegar, mesmo protocolo ja usado para BSLV39. [CORRIGIDO 12/08/2026: prazo_dias estava em dias UTEIS por engano (convencao errada) -- todo o resto do sistema usa dias CORRIDOS. Recalculado prazo_dias, KDO, bandas e prob_sucesso_prevista_pct com a convencao correta.]"
+  },
+  {
+    "ticker": "RINV11.SA",
+    "nome": "RINV11 - FII Multicategoria",
+    "data_foto": "2026-08-17",
+    "preco_foto": 99.13,
+    "tipo_estrutura": "fii",
+    "prazo_dias": 9999,
+    "dy_anual_pct": 11.75,
+    "p_vp": 0.93,
+    "liquidez": 574958,
+    "segmento": "papel",
+    "nivel_risco": "high_grade",
+    "origem": "screening_fiis",
+    "status": "em_analise",
+    "backtest": false,
+    "observacao": "FII adicionado via screening em 2026-08-17. P/VP=0.93, DY=11.75%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
+    "id": "an_1786971409"
   }
 ]
