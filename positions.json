@@ -109,6 +109,24 @@
       "exercicio": "europeia",
       "meta_pct": 3.47,
       "observacao": "Rolagem da posicao anterior (BBASJ222, strike R$21,90, encerrada como FRACASSO em 12/08/2026 por decisao do Victor -- rolagem nao era necessaria e rendeu so 1,33%/mes no prazo incremental, abaixo da diretriz de 2%/mes). Nova opcao: 88 dias, OTM (spot R$19,00 < strike R$22,31, +17,42%), delta 0,309, prob exercicio 24,44%, taxa 3,47%, Theta forte a favor (-0,010/dia). Quantidade: 2.200 acoes. Ja executada -- registrada aqui como ativa mesmo com a rolagem anterior classificada como fracasso, pois a operacao ja e real e nao ha como desfazer."
+    },
+    {
+      "id": "tsmc34",
+      "ticker": "TSMC34.SA",
+      "nome": "TSMC34 Retorno Controlado 2m (Lote 17/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-16",
+      "entry": 280.59,
+      "kdo": 224.472,
+      "kdo_pct": "-20.0%",
+      "vol_impl": 0.3722,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-08-17",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 78.02,
+      "ganho_sem_barreira": "8.2% fixo",
+      "ganho_prefixado_pct": 8.2
     }
   ],
   "encerradas": [
