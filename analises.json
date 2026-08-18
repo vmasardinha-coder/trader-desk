@@ -20457,9 +20457,9 @@
           ]
         }
       },
-      "prob_sucesso_prevista_pct": 84.86
+      "prob_sucesso_prevista_pct": 49.86
     },
-    "observacao": "PDF Itau 'Material Publicitario' 18/08/2026, Operacoes Estruturadas Bidirecional. Prazo 9 meses. Barreira baixa -20% (KDO R$14.336) -- se tocada, perda integral da variacao negativa do papel, SEM protecao. Barreira alta +48% (KUO R$26.5216) -- se tocada, retorno capado em 9,00% total. Se nenhuma barreira tocada: participa 1,5x da alta (cap 72%) ou 1,0x da queda (max -20%). ATENCAO: prob_sucesso_prevista_pct aqui SO reflete a chance de NAO tocar a barreira de CIMA (KUO) -- 84.86% -- que nao e a metrica de risco relevante pra essa estrutura. O risco real e tocar a barreira de BAIXO: calculado separadamente via Monte Carlo completo (payoff dos 4 cenarios) em 18/08/2026 = 49,36% de chance de tocar KDO (perda integral), EV medio da estrutura = -3,99% (negativo). Victor optou por registrar mesmo assim para comparar lado a lado com as opcoes de retorno controlado curtas na tela.",
+    "observacao": "PDF Itau 'Material Publicitario' 18/08/2026, Operacoes Estruturadas Bidirecional. Prazo 9 meses. Barreira baixa -20% (KDO R$14.336) -- se tocada, perda integral da variacao negativa do papel, SEM protecao. Barreira alta +48% (KUO R$26.5216) -- se tocada, retorno capado em 9,00% total. Se nenhuma barreira tocada: participa 1,5x da alta (cap 72%) ou 1,0x da queda (max -20%). CORRIGIDO 19/08/2026: bug achado pelo Victor -- a funcao do motor so checava a barreira de CIMA (KUO) com logica invertida. Corrigida (ver motor.py). prob_sucesso_prevista_pct agora reflete corretamente a chance de NAO TOCAR a barreira de BAIXO (KDO, a que da prejuizo integral) = 49,86% -- bate com o calculo manual completo feito em 18/08/2026 (49,36%, mesma logica, diferenca so por ruido de simulacao). EV medio da estrutura completa (considerando os 4 cenarios de payoff) = -3,99% (negativo). Victor optou por registrar mesmo assim para comparar lado a lado com as opcoes de retorno controlado curtas na tela.",
     "kuo": 26.5216
   }
 ]
