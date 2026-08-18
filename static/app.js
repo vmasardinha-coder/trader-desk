@@ -3300,7 +3300,7 @@ function tplRanking(d){
     if(r.erro){
       return `<tr style="opacity:.55">
         <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
-        <td colspan="9" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+        <td colspan="10" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
       </tr>`;
     }
     const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(1)+'%':'—';
@@ -3327,6 +3327,7 @@ function tplRanking(d){
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
       <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${r.prob_meta_pct>=50?'var(--green)':'var(--muted)'}">${r.prob_meta_pct.toFixed(1)}%</td>
+      <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="${r.overshoot_medio_pct!=null?`Quando acontece, em média o papel rende ${r.overshoot_medio_pct.toFixed(2)}pp A MAIS do que o retorno travado -- dinheiro que fica na mesa`:'Só disponível para Retorno Controlado'}">${r.prob_overshoot_pct!=null?r.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${evCor}" title="Retorno médio ponderando TODOS os cenários (sucesso, parcial, rompimento da barreira) — não só prob. de bater a meta">${evTxt}</td>
       <td style="padding:6px 8px;text-align:right">${dy}</td>
       <td style="padding:6px 8px;text-align:right" title="DY mensal − CDI mensal: quanto o dividendo do papel rende a mais (ou menos) que o CDI por mês, se a estrutura quebrar e você ficar com o papel">${colchao}</td>
@@ -3348,6 +3349,7 @@ function tplRanking(d){
       <th style="padding:6px 8px;text-align:right">Prazo</th>
       <th style="padding:6px 8px;text-align:right" title="Retorno mensal equivalente SE bater a meta (ganho prefixado/teto), ignorando o cenário de romper a barreira. Veja EV mensal para o retorno médio considerando TODOS os cenários.">Ret. mensal <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="Probabilidade de NÃO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, com o preço atual) -- é dinâmica, recalcula a cada vez que você roda o ranking. Diferente do número 'desde o início' que aparece no detalhe de cada análise (esse usa o prazo total a partir do preço da foto).">Prob. <span style="opacity:.6;cursor:help">ⓘ</span></th>
+      <th style="padding:6px 8px;text-align:right" title="RISCO DE OVERSHOOT -- probabilidade de o papel fechar ACIMA do retorno travado no Retorno Controlado, deixando dinheiro na mesa. Só existe pra Retorno Controlado (Bidirecional não trava um teto único do mesmo jeito).">Overshoot <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="EV mensal -- retorno médio ponderando todos os cenários, não só se bateu a meta">EV mensal</th>
       <th style="padding:6px 8px;text-align:right">DY</th>
       <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
