@@ -4464,6 +4464,8 @@ def ranking_analises():
 
                 tipo = a.get('tipo_estrutura')
                 ganho_pct = None
+                prob_overshoot_pct = None
+                overshoot_medio_pct = None
                 prob_meta = None
 
                 n_sim = 20000
@@ -4502,6 +4504,18 @@ def ranking_analises():
                     tocou_full = min_full <= kdo
                     retorno_full_ev = np.where(~tocou_full, ganho_pct/100, variacao_full)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
+                    # ADICIONADO 19/08/2026 -- "Risco de Overshoot" (nome
+                    # pedido explicitamente pelo Victor pra nao esquecer).
+                    # Reaproveita variacao_full (ja simulado logo acima, sem
+                    # custo extra) -- prob de o papel fechar ACIMA do teto
+                    # combinado, deixando dinheiro na mesa. Complementar ao
+                    # prob_meta (risco de tocar a barreira), nao substitui.
+                    variacao_final_pct = variacao_full * 100
+                    overshoot_mask = variacao_final_pct > ganho_pct
+                    prob_overshoot_pct = round(float(overshoot_mask.mean()*100), 2)
+                    overshoot_medio_pct = (
+                        round(float((variacao_final_pct[overshoot_mask] - ganho_pct).mean()), 2)
+                        if overshoot_mask.any() else 0.0)
                 elif tipo == 'bidirecional' and a.get('kuo') is not None and a.get('teto_retorno_pct') is not None:
                     ganho_pct = float(a['teto_retorno_pct'])
                     kuo = float(a['kuo'])
@@ -4570,6 +4584,8 @@ def ranking_analises():
                     'vol_generica_usada': vol_generica_usada,
                     'peso_prazo': round(peso_prazo, 3),
                     'score': round(score, 4),
+                    'prob_overshoot_pct': prob_overshoot_pct,
+                    'overshoot_medio_pct': overshoot_medio_pct,
                 })
             except Exception as e_item:
                 resultado.append({**_linha_ranking_base(a), 'erro': str(e_item)})
