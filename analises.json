@@ -3694,7 +3694,7 @@
     "downside_apos": "protegida",
     "origem": "pronta",
     "backtest": false,
-    "observacao": "PDF Itau Protecao Total, 20/07/2026, venc 20/01/2027. Barreira alta +21%, alavancagem 1,5x, teto 4% fixo. Protecao incondicional na queda (sem KDO).",
+    "observacao": "PDF Itau Protecao Total, 20/07/2026, venc 20/01/2027. Barreira alta +21%, alavancagem 1,5x, teto 4% fixo. Protecao incondicional na queda (sem KDO). [CORRIGIDO 19/08/2026: prob_sucesso_prevista_pct estava errada (49.42%) por bug no motor (bidirecional so checava KUO, com logica invertida). Recalculado com motor.py corrigido: 50.52%.]",
     "status": "encerrada",
     "id": "an_1784576673",
     "bandas_congeladas": {
@@ -4621,8 +4621,8 @@
           ]
         }
       },
-      "prob_sucesso_prevista_pct": 49.42,
-      "prob_sucesso_prevista_pct_origem": "backfill_12082026"
+      "prob_sucesso_prevista_pct": 50.52,
+      "prob_sucesso_prevista_pct_origem": "backfill_12082026_corrigido_19082026"
     },
     "motivo_encerramento": "rejeitada",
     "data_rejeicao": "2026-08-11",
@@ -4646,7 +4646,7 @@
     "downside_apos": "perda_integral",
     "origem": "pronta",
     "backtest": false,
-    "observacao": "PDF Itau Protecao Parcial, 20/07/2026, venc 18/11/2026. Barreira alta +18,5%, barreira baixa -15%, alavancagem 1,5x, teto 18,5% fixo. Protegida ate -15%, depois perda real. | ENCERRADA 05/08/2026: era teste, ficou ambiguamente ativa em Em Analise por bug de migracao (ver PROMPT_NOVA_SESSAO_v3.md) enquanto a AXIA3 real ja tinha 2 posicoes ativas (a3b, a3c). Usuario confirmou que nunca teve 3 AXIA3 e que esta nao deve migrar nem contar como decisao (sucesso/fracasso nao setados de proposito).",
+    "observacao": "PDF Itau Protecao Parcial, 20/07/2026, venc 18/11/2026. Barreira alta +18,5%, barreira baixa -15%, alavancagem 1,5x, teto 18,5% fixo. Protegida ate -15%, depois perda real. | ENCERRADA 05/08/2026: era teste, ficou ambiguamente ativa em Em Analise por bug de migracao (ver PROMPT_NOVA_SESSAO_v3.md) enquanto a AXIA3 real ja tinha 2 posicoes ativas (a3b, a3c). Usuario confirmou que nunca teve 3 AXIA3 e que esta nao deve migrar nem contar como decisao (sucesso/fracasso nao setados de proposito). [CORRIGIDO 19/08/2026: prob_sucesso_prevista_pct estava errada (45.42%) por bug no motor (bidirecional so checava KUO, com logica invertida). Recalculado com motor.py corrigido: 43.06%.]",
     "status": "encerrada",
     "id": "an_1784576725",
     "bandas_congeladas": {
@@ -6196,8 +6196,8 @@
           ]
         }
       },
-      "prob_sucesso_prevista_pct": 45.42,
-      "prob_sucesso_prevista_pct_origem": "backfill_12082026"
+      "prob_sucesso_prevista_pct": 43.06,
+      "prob_sucesso_prevista_pct_origem": "backfill_12082026_corrigido_19082026"
     },
     "motivo_encerramento": "teste_duplicado_nao_e_decisao",
     "data_rejeicao": "2026-08-05"
@@ -6217,7 +6217,7 @@
     "downside_apos": "perda_integral",
     "origem": "pronta",
     "backtest": false,
-    "observacao": "PDF Itau Bidirecional, 20/07/2026, venc 18/11/2026. Barreira alta +28%, barreira baixa -20%, alavancagem 1,3x, teto 4% fixo. Se estourar a baixa, perda real (nao protege).",
+    "observacao": "PDF Itau Bidirecional, 20/07/2026, venc 18/11/2026. Barreira alta +28%, barreira baixa -20%, alavancagem 1,3x, teto 4% fixo. Se estourar a baixa, perda real (nao protege). [CORRIGIDO 19/08/2026: prob_sucesso_prevista_pct estava errada (30.38%) por bug no motor (bidirecional so checava KUO, com logica invertida). Recalculado com motor.py corrigido: 56.52%.]",
     "status": "encerrada",
     "id": "an_1784576979",
     "bandas_congeladas": {
@@ -7767,8 +7767,8 @@
           ]
         }
       },
-      "prob_sucesso_prevista_pct": 30.38,
-      "prob_sucesso_prevista_pct_origem": "backfill_12082026"
+      "prob_sucesso_prevista_pct": 56.52,
+      "prob_sucesso_prevista_pct_origem": "backfill_12082026_corrigido_19082026"
     },
     "motivo_encerramento": "rejeitada",
     "data_rejeicao": "2026-07-22",
