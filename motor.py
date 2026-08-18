@@ -248,11 +248,24 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
     se o modelo era bem calibrado -- ex: entre as analises que o modelo deu
     80% de chance de sucesso, quantas realmente deram certo?
 
-    So aplicavel a retorno_controlado (kdo) e bidirecional (kuo). Para
-    outros tipos (simples, fii), retorna None -- nao inventa numero sem
-    logica clara de "sucesso" definida para esses casos.
+    So aplicavel a retorno_controlado (kdo) e bidirecional (kdo e/ou kuo).
+    Para outros tipos (simples, fii), retorna None -- nao inventa numero
+    sem logica clara de "sucesso" definida para esses casos.
 
-    Retorna float (percentual, 0-100) ou None se nao aplicavel/erro.
+    CORRIGIDO 19/08/2026 -- bug achado pelo Victor (caso BBAS3 bidirecional
+    9 meses): a versao anterior, para bidirecional, so checava a barreira
+    de CIMA (kuo) e ainda com a logica invertida (retornava prob de TOCAR,
+    nao de nao tocar -- inconsistente com o retorno_controlado, que sempre
+    retornou prob de sucesso). Isso e conceitualmente errado pra bidirecional:
+    tocar o KUO normalmente so CAPA o ganho (ainda positivo, ex: 9% fixo no
+    caso BBAS3), enquanto tocar o KDO costuma ser a barreira que da PERDA
+    integral sem protecao -- essa e a barreira que realmente importa pra
+    medir "sucesso" de forma economicamente coerente com o retorno_controlado.
+    Corrigido para: bidirecional agora calcula prob de NAO tocar o KDO
+    (barreira de baixo, a que da prejuizo), com a mesma semantica de sucesso
+    do retorno_controlado. Se so kuo for fornecido (sem kdo), cai num
+    fallback que calcula prob de nao tocar o KUO, mas isso e raro -- a
+    grande maioria das bidirecionais tem KDO definido.
     """
     try:
         if tipo_estrutura not in ('retorno_controlado', 'bidirecional'):
@@ -273,10 +286,21 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
             tocou = min_path <= float(kdo)
             return round(float((~tocou).mean() * 100), 2)
         else:  # bidirecional
-            if kuo is None:
-                return None
-            max_path = np.max(paths, axis=1)
-            tocou = max_path >= float(kuo)
-            return round(float(tocou.mean() * 100), 2)
+            if kdo is not None:
+                # Metrica principal: prob de NAO tocar a barreira de baixo
+                # (a que da prejuizo integral sem protecao) -- mesma
+                # semantica de "sucesso" do retorno_controlado.
+                min_path = np.min(paths, axis=1)
+                tocou = min_path <= float(kdo)
+                return round(float((~tocou).mean() * 100), 2)
+            elif kuo is not None:
+                # Fallback raro: so tem kuo cadastrado, sem kdo. Ainda
+                # assim retorna prob de NAO tocar (semantica de sucesso
+                # consistente), mesmo sabendo que kuo normalmente nao
+                # representa perda, so limitacao de ganho.
+                max_path = np.max(paths, axis=1)
+                tocou = max_path >= float(kuo)
+                return round(float((~tocou).mean() * 100), 2)
+            return None
     except Exception:
         return None
