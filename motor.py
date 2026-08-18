@@ -304,3 +304,54 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
             return None
     except Exception:
         return None
+
+def _calc_risco_overshoot(preco_foto, sigma, prazo_dias, teto_retorno_pct, n_sim=5000):
+    """
+    ADICIONADO 19/08/2026 -- pedido explicito do Victor: "Risco de
+    Overshoot" (nome dele, para nao esquecer). Para retorno_controlado,
+    o retorno fica travado no teto combinado (ex: 2,5%) mesmo que o papel
+    suba muito mais -- o risco simetrico ao de tocar a barreira (que ja
+    calculamos) e o de "deixar dinheiro na mesa": o papel fecha tao acima
+    do esperado que o retorno fixo vira uma fracao pequena do que teria
+    dado sem nenhuma estrutura.
+
+    Calcula, via Monte Carlo (mesma simulacao GBM ja usada em toda parte
+    do sistema):
+    - prob_overshoot_pct: probabilidade de a variacao FINAL do papel (no
+      vencimento, preco final vs preco_foto) superar o teto_retorno_pct
+      combinado. Nao depende de ter tocado ou nao a barreira de baixa --
+      e simplesmente "quanto o papel efetivamente valorizou vs o teto".
+    - overshoot_medio_pct: MEDIA de quanto ficou acima do teto, CONDICIONAL
+      a ter overshoot (ou seja, so conta os casos em que aconteceu) --
+      ex: se overshoot_medio_pct=4.2, significa que quando acontece, em
+      media o papel teria rendido 4,2 pontos percentuais A MAIS do que o
+      retorno travado.
+
+    Retorna dict {'prob_overshoot_pct':.., 'overshoot_medio_pct':..} ou
+    None se parametros invalidos/erro -- nunca quebra o chamador.
+    """
+    try:
+        if not preco_foto or not sigma or not prazo_dias or prazo_dias <= 0:
+            return None
+        if teto_retorno_pct is None:
+            return None
+        import numpy as np
+        dt = 1 / 252.0
+        drift = -0.5 * sigma**2 * dt
+        vol_step = sigma * math.sqrt(dt)
+        z = np.random.standard_normal((n_sim, int(prazo_dias)))
+        paths = preco_foto * np.exp(np.cumsum(drift + vol_step * z, axis=1))
+        preco_final = paths[:, -1]
+        variacao_final_pct = (preco_final / preco_foto - 1) * 100
+
+        overshoot_mask = variacao_final_pct > float(teto_retorno_pct)
+        prob_overshoot = round(float(overshoot_mask.mean() * 100), 2)
+        if overshoot_mask.any():
+            overshoot_medio = round(
+                float((variacao_final_pct[overshoot_mask] - float(teto_retorno_pct)).mean()), 2)
+        else:
+            overshoot_medio = 0.0
+
+        return {'prob_overshoot_pct': prob_overshoot, 'overshoot_medio_pct': overshoot_medio}
+    except Exception:
+        return None
