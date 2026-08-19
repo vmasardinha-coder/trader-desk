@@ -116,9 +116,9 @@
       "nome": "TSMC34 Retorno Controlado 2m (Lote 17/08/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-16",
-      "entry": 280.59,
-      "kdo": 224.472,
+      "vencimento": "2026-10-15",
+      "entry": 280.95,
+      "kdo": 224.52,
       "kdo_pct": "-20.0%",
       "vol_impl": 0.3722,
       "vol_impl_fonte": "garch",
@@ -126,7 +126,8 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 78.02,
       "ganho_sem_barreira": "8.2% fixo",
-      "ganho_prefixado_pct": 8.2
+      "ganho_prefixado_pct": 8.2,
+      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16)."
     },
     {
       "id": "spcx34",
@@ -134,9 +135,9 @@
       "nome": "SPCX34 Retorno Controlado 16d (Lote 17/08/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-09-02",
-      "entry": 50.8,
-      "kdo": 41.3004,
+      "vencimento": "2026-09-01",
+      "entry": 50.79,
+      "kdo": 41.25,
       "kdo_pct": "-18.7%",
       "vol_impl": 0.9743,
       "vol_impl_fonte": "vol_historica_47d_baixa_amostra",
@@ -144,7 +145,8 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 61.42,
       "ganho_sem_barreira": "13.4% fixo",
-      "ganho_prefixado_pct": 13.4
+      "ganho_prefixado_pct": 13.4,
+      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$50.79 (antes provisorio R$50.8), KDO R$41.25 (antes R$41.3004), vencimento 2026-09-01 (antes estimado 2026-09-02)."
     },
     {
       "id": "tsla34",
@@ -152,9 +154,9 @@
       "nome": "TSLA34 Retorno Controlado 2m (Lote 17/08/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-16",
-      "entry": 55.23,
-      "kdo": 44.184,
+      "vencimento": "2026-10-15",
+      "entry": 54.96,
+      "kdo": 43.92,
       "kdo_pct": "-20.0%",
       "vol_impl": 0.4557,
       "vol_impl_fonte": "garch",
@@ -162,7 +164,8 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 67.86,
       "ganho_sem_barreira": "8.7% fixo",
-      "ganho_prefixado_pct": 8.7
+      "ganho_prefixado_pct": 8.7,
+      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$54.96 (antes provisorio R$55.23), KDO R$43.92 (antes R$44.184), vencimento 2026-10-15 (antes estimado 2026-10-16)."
     }
   ],
   "encerradas": [
