@@ -131,6 +131,12 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 
 ## 📚 Princípios de decisão (permanentes — não reabrir sem novo contexto real)
 
+**Critério de sucesso por tipo de estrutura (definido 19/08/2026):**
+- **Bidirecional**: sucesso = bater o CDI no mínimo, sem tocar nenhuma das duas barreiras.
+- **Venda de Put a Seco**: sucesso = prêmio recebido compensar o comprometimento de capital no strike. Rolar fica caro/difícil se o preço foge muito do strike original — nesses casos pode nem bater 1%/mês, mesmo "dando sucesso" tecnicamente.
+- **Retorno Controlado**: sucesso = pagar o retorno prometido sem tocar a barreira de baixo. Objetivo é 100% financeiro — nunca é "acumular/manter ações" (isso é consequência automática da mecânica, não uma meta). Mesmo que o preço fique parado (nem suba nem desça o suficiente pra qualquer coisa interessante), ainda é sucesso se pagou o prometido — não dá pra "acertar o preço parado", isso seria sorte, não o objetivo.
+- **Camada extra que atravessa todos os tipos**: sucesso também depende do resultado financeiro permitir montar **outra operação no ticket mínimo do banco** (normalmente R$30-50 mil por lote, e as PDFs de retorno controlado sempre citam R$30.000,00 de aplicação mínima). Não é só bater o % prometido isolado — é manter capacidade de giro pro próximo lote sem precisar completar capital do bolso. Por isso Victor se importa com quantidade de ações e valor final, não só a taxa percentual.
+
 - **Alvo único de venda de opção**: sempre 2–2,5%/mês via prêmio, independente da estrutura
   (lançamento simples, retorno controlado, bidirecional). A estrutura é a "embalagem de risco",
   não a meta em si.
