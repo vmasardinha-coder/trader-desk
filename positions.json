@@ -147,6 +147,24 @@
       "ganho_sem_barreira": "8.7% fixo",
       "ganho_prefixado_pct": 8.7,
       "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$54.96 (antes provisorio R$55.23), KDO R$43.92 (antes R$44.184), vencimento 2026-10-15 (antes estimado 2026-10-16)."
+    },
+    {
+      "id": "spcx34",
+      "ticker": "SPCX34.SA",
+      "nome": "SPCX34 Retorno Controlado 15d (Lote 24/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-09-08",
+      "entry": 46.57,
+      "kdo": 37.8614,
+      "kdo_pct": "-18.7%",
+      "vol_impl": 0.9345,
+      "vol_impl_fonte": "vol_historica_52d_baixa_amostra",
+      "data_entrada": "2026-08-24",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 65.48,
+      "ganho_sem_barreira": "3.5% fixo",
+      "ganho_prefixado_pct": 3.5
     }
   ],
   "encerradas": [
