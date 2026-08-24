@@ -3760,13 +3760,22 @@ def tracking_acuracia_previsoes():
     70-80% de taxa real de sucesso).
     """
     try:
+        # CORRIGIDO 21/08/2026 -- bug achado pelo Victor: mesmo com o
+        # header Cache-Control:no-cache, o CDN do raw.githubusercontent.com
+        # pode servir um edge desatualizado (o header do PEDIDO nem sempre
+        # forca bypass real do cache do lado do GitHub). Confirmado
+        # manualmente: buscando a mesma URL com um parametro de
+        # cache-busting (?bust=timestamp) sempre trouxe a versao fresca,
+        # enquanto a URL "limpa" ficou presa numa versao antiga por varios
+        # minutos. Adicionado parametro de timestamp em ambas as URLs.
+        _cache_bust = int(time.time())
         r_an = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
+            f'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json?bust={_cache_bust}',
             headers={'Cache-Control': 'no-cache'}, timeout=10)
         lista_an = r_an.json() if r_an.ok else []
 
         r_pos = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/positions.json',
+            f'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/positions.json?bust={_cache_bust}',
             headers={'Cache-Control': 'no-cache'}, timeout=10)
         dados_pos = r_pos.json() if r_pos.ok else {}
 
