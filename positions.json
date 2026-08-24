@@ -130,25 +130,6 @@
       "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16)."
     },
     {
-      "id": "spcx34",
-      "ticker": "SPCX34.SA",
-      "nome": "SPCX34 Retorno Controlado 16d (Lote 17/08/2026)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-09-01",
-      "entry": 50.79,
-      "kdo": 41.25,
-      "kdo_pct": "-18.7%",
-      "vol_impl": 0.9743,
-      "vol_impl_fonte": "vol_historica_47d_baixa_amostra",
-      "data_entrada": "2026-08-17",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 61.42,
-      "ganho_sem_barreira": "13.4% fixo",
-      "ganho_prefixado_pct": 13.4,
-      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$50.79 (antes provisorio R$50.8), KDO R$41.25 (antes R$41.3004), vencimento 2026-09-01 (antes estimado 2026-09-02)."
-    },
-    {
       "id": "tsla34",
       "ticker": "TSLA34.SA",
       "nome": "TSLA34 Retorno Controlado 2m (Lote 17/08/2026)",
@@ -322,6 +303,18 @@
       "status": "fracasso",
       "realizado_pct": 2.13,
       "resultado_texto": "Encerrada como fracasso -- rendeu apenas 80% do CDI acumulado no periodo (08/06/2026 a 17/08/2026). CDI real acumulado no periodo (via serie diaria Bacen SGS 12): 2,66%. 80% disso = 2,13% realizado. Abaixo do esperado para uma estrutura bidirecional com alavancagem 1,3x -- classificado fracasso por ficar atras do beneficio livre de risco (CDI)."
+    },
+    {
+      "id": "cl-spcx34-retctrl-set26",
+      "ticker": "SPCX34",
+      "estrategia": "Retorno Controlado",
+      "strike": null,
+      "alvo_pct": 13.4,
+      "realizado_pct": 8.24,
+      "data_encerramento": "2026-08-21",
+      "status": "sucesso",
+      "prob_sucesso_prevista_pct": 61.42,
+      "resultado_texto": "Resgate ANTECIPADO a valor de mercado em 21/08/2026 (nao aguardou o vencimento 01/09/2026). Barreira (KDO R$41,25) nunca foi tocada -- o prefixado de 13,4% estava garantido se segurasse ate o fim, mas Victor decidiu travar 8,24% de lucro agora (R$2.800 sobre ~R$34.000, proporcional ao tempo decorrido) em vez de esperar mais ~11 dias pelo resto. Numero informado pelo Victor, nao recalculado por mim."
     }
   ]
 }
