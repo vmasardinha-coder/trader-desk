@@ -22833,7 +22833,10 @@
     "preco_foto": 12.8,
     "prazo_dias": 24,
     "vencimento": "2026-09-18",
-    "observacao": "Lote 25/08/2026 -- Venda Coberta de Call (fonte externa, nao PDF Itau). Strike R$13,54 (+5,78% do preco atual), premio R$0,28, renda anualizada 27,43% (2,29%/mes) -- a UNICA das 27 opcoes analisadas no lote que bateu a diretriz de 2%/mes. ATENCAO: prob. destoante das outras pode refletir vol. implicita elevada de verdade -- ALPA4 subiu ~120% em 12 meses (acordo de distribuicao exclusiva EUA com Eastman Footwear + queda de custo de insumos/butadieno-estireno beneficiando margem, segundo pesquisa feita em 25/08/2026). Risco maior que o normal, nao so premio bom. tipo_estrutura=premium -- SEM MODELO DE CALCULO IMPLEMENTADO no sistema ainda (slot reservado desde sessao anterior, nunca teve logica por tras -- confirmado ao Victor em 25/08/2026). So dados brutos registrados, sem prob_sucesso_prevista_pct nem participacao no ranking por enquanto."
+    "observacao": "Lote 25/08/2026 -- Venda Coberta de Call (fonte externa, nao PDF Itau). Strike R$13,54 (+5,78% do preco atual), premio R$0,28, renda anualizada 27,43% (2,29%/mes) -- a UNICA das 27 opcoes analisadas no lote que bateu a diretriz de 2%/mes. ATENCAO: prob. destoante das outras pode refletir vol. implicita elevada de verdade -- ALPA4 subiu ~120% em 12 meses (acordo de distribuicao exclusiva EUA com Eastman Footwear + queda de custo de insumos/butadieno-estireno beneficiando margem, segundo pesquisa feita em 25/08/2026). Risco maior que o normal, nao so premio bom. tipo_estrutura=premium -- MODELO IMPLEMENTADO em 25/08/2026 (_calc_venda_opcao_premium, motor.py + branch no ranking, proxy.py) -- motivado por este proprio caso. Campos strike/premio/direcao adicionados, ja participa do ranking normalmente.",
+    "strike": 13.54,
+    "premio": 0.28,
+    "direcao": "call"
   },
   {
     "id": "an_1787672038",
@@ -22845,6 +22848,9 @@
     "preco_foto": 12.71,
     "prazo_dias": 24,
     "vencimento": "2026-09-18",
-    "observacao": "Lote 25/08/2026 -- Venda Coberta de Call. Strike R$13,50 (+6,22% do preco atual), premio R$0,21, renda anualizada 20,63% (1,72%/mes) -- 2o lugar do lote, nao bate diretriz de 2%/mes mas perto. tipo_estrutura=premium -- SEM MODELO DE CALCULO IMPLEMENTADO no sistema ainda, mesmo caso da ALPA4 acima."
+    "observacao": "Lote 25/08/2026 -- Venda Coberta de Call. Strike R$13,50 (+6,22% do preco atual), premio R$0,21, renda anualizada 20,63% (1,72%/mes) -- 2o lugar do lote, nao bate diretriz de 2%/mes mas perto. MODELO IMPLEMENTADO em 25/08/2026, mesma atualizacao da ALPA4. Campos strike/premio/direcao adicionados.",
+    "strike": 13.5,
+    "premio": 0.21,
+    "direcao": "call"
   }
 ]
