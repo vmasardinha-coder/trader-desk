@@ -3691,6 +3691,23 @@ def tracking_hipotetico_previsoes():
                 resultado_hip = 'sucesso'
                 ganho_pct_hip = a.get('ganho_prefixado_pct')
 
+            # ADICIONADO 25/08/2026 -- pedido do Victor: alem de sucesso/
+            # fracasso (tocou ou nao a barreira), ele quer saber se o
+            # OVERSHOOT aconteceu DE VERDADE -- ou seja, se o preco no dia
+            # do vencimento (nao o maximo do caminho, especificamente o
+            # fechamento no vencimento) ficou ACIMA do teto combinado.
+            # Isso muda a leitura financeira de quem ja tinha o papel
+            # (rejeitar so significa que ele participou da alta inteira,
+            # nao perdeu nada) vs quem compraria so pra estrutura (ai sim
+            # "perdeu" o overshoot de verdade). NAO tenta resolver essa
+            # interpretacao aqui -- so expoe o dado bruto (aconteceu ou
+            # nao, e o tamanho), a leitura financeira fica pro Victor.
+            variacao_no_vencimento_pct = round((preco_final / preco_foto - 1) * 100, 2) if preco_foto else None
+            overshoot_ocorreu = None
+            teto = a.get('ganho_prefixado_pct')
+            if variacao_no_vencimento_pct is not None and teto is not None:
+                overshoot_ocorreu = variacao_no_vencimento_pct > float(teto)
+
             itens.append({
                 'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
                 'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
@@ -3698,6 +3715,8 @@ def tracking_hipotetico_previsoes():
                 'prob_sucesso_prevista_pct': prob,
                 'resultado_hipotetico': resultado_hip,
                 'ganho_pct_hipotetico': ganho_pct_hip,
+                'overshoot_ocorreu': overshoot_ocorreu,
+                'variacao_no_vencimento_pct': variacao_no_vencimento_pct,
                 'acertou_previsao': (resultado_hip == 'sucesso') == (prob >= 50),
                 'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
             })
