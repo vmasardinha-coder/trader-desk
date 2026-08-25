@@ -4551,6 +4551,36 @@ def ranking_analises():
                         variacao_full, tocou_alta_full, tocou_baixa_full,
                         ganho_pct/100, alav, downside_antes, downside_apos)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
+                elif tipo == 'premium' and a.get('strike') is not None and a.get('premio') is not None and a.get('direcao') in ('call', 'put'):
+                    # ADICIONADO 25/08/2026 -- pedido do Victor: fecha o
+                    # backlog de Venda Coberta de Call/Put (motivado pelo
+                    # caso ALPA4). Diferente das outras estruturas, sao
+                    # opcoes LISTADAS simples -- so o preco TERMINAL importa
+                    # (sem barreira monitorada no caminho), entao reaproveita
+                    # ST_full (ja simulado acima a partir de preco_foto) em
+                    # vez de min/max_full. Mesma logica de
+                    # _calc_venda_opcao_premium (motor.py), so que aqui
+                    # inline pra reaproveitar a simulacao ja feita sem
+                    # rodar Monte Carlo de novo.
+                    strike = float(a['strike'])
+                    premio = float(a['premio'])
+                    direcao = a['direcao']
+                    premio_pct_base = premio / (preco_foto if direcao == 'call' else strike) * 100
+                    ganho_pct = premio_pct_base  # referencia p/ retorno_mensal legado abaixo
+                    if direcao == 'call':
+                        exercido_full = ST_full > strike
+                        retorno_full_ev = np.where(
+                            exercido_full,
+                            (premio_pct_base + (strike - preco_foto) / preco_foto * 100) / 100,
+                            premio_pct_base / 100)
+                    else:  # put
+                        exercido_full = ST_full < strike
+                        retorno_full_ev = np.where(
+                            exercido_full,
+                            (premio_pct_base - (strike - ST_full) / strike * 100) / 100,
+                            premio_pct_base / 100)
+                    prob_meta = round(float((~exercido_full).mean() * 100), 2)  # prob NAO exercicio
+                    retorno_medio_pct = round(float(retorno_full_ev.mean() * 100), 3)
                 else:
                     resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
                     continue
