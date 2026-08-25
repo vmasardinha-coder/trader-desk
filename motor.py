@@ -355,3 +355,84 @@ def _calc_risco_overshoot(preco_foto, sigma, prazo_dias, teto_retorno_pct, n_sim
         return {'prob_overshoot_pct': prob_overshoot, 'overshoot_medio_pct': overshoot_medio}
     except Exception:
         return None
+
+def _calc_venda_opcao_premium(preco_foto, sigma, prazo_dias, strike, premio, direcao, n_sim=5000):
+    """
+    ADICIONADO 25/08/2026 -- pedido do Victor: fecha o item de backlog
+    "Venda de Put a Seco / Covered Call" (tipo_estrutura='premium'), usando
+    o caso da ALPA4 como motivador (unica opcao do lote que bateu a
+    diretriz de 2%/mes, mas sem nenhum modelo de calculo por tras).
+
+    Diferente do retorno_controlado/bidirecional (opcoes flexiveis OTC com
+    barreira monitorada o tempo todo), isso aqui sao opcoes LISTADAS
+    normais -- o que importa e' so o preco no vencimento (nao ha barreira
+    Knock-Out monitorada durante o caminho), entao a simulacao roda so o
+    PRECO FINAL (nao o caminho inteiro), mais simples e mais rapida que o
+    resto do motor.
+
+    direcao='call' (Venda Coberta de Call -- Victor ja tem a acao,
+    vende a call, compromete a entrega se o preco final passar do strike):
+        - Se preco final <= strike: NAO exercido. Ganho = so o premio
+          (rendimento), fica com a acao.
+        - Se preco final > strike: EXERCIDO, entrega a acao no strike.
+          Ganho = premio + (strike-preco_foto)/preco_foto (capado no strike,
+          perde a alta que passou dali).
+    direcao='put' (Venda de Put a Seco -- Victor reserva caixa no strike,
+    vende a put, compromete a compra se o preco final cair abaixo do strike):
+        - Se preco final >= strike: NAO exercido. Ganho = premio/strike
+          (capital reservado nunca sai do caixa).
+        - Se preco final < strike: EXERCIDO, compra a acao no strike (caro
+          em relacao ao preco final). Perda = premio/strike - (strike-final)/strike.
+
+    Retorna dict {'prob_nao_exercicio_pct':.., 'ev_total_pct':.., 
+    'ev_se_nao_exercido_pct':.., 'ev_se_exercido_pct':..} ou None se
+    parametros invalidos.
+
+    NAO tenta modelar exercicio americano antecipado (a maioria das opcoes
+    listadas na B3 sobre acoes e' americana) -- assume o caso mais simples
+    e mais comum na pratica de venda coberta (fixing no vencimento), como
+    primeira aproximacao. Se Victor reportar exercicio antecipado
+    frequente, revisitar.
+    """
+    try:
+        if not preco_foto or not sigma or not prazo_dias or prazo_dias <= 0:
+            return None
+        if strike is None or premio is None or direcao not in ('call', 'put'):
+            return None
+        import numpy as np
+        dt = 1 / 252.0
+        drift = -0.5 * sigma**2 * dt
+        vol_step = sigma * math.sqrt(dt)
+        z = np.random.standard_normal((n_sim, int(prazo_dias)))
+        preco_final = preco_foto * np.exp(np.sum(drift + vol_step * z, axis=1))
+
+        premio_pct_base = float(premio) / float(preco_foto if direcao == 'call' else strike) * 100
+
+        if direcao == 'call':
+            exercido = preco_final > float(strike)
+            resultado = np.where(
+                exercido,
+                premio_pct_base + (float(strike) - preco_foto) / preco_foto * 100,
+                premio_pct_base
+            )
+        else:  # put
+            exercido = preco_final < float(strike)
+            resultado = np.where(
+                exercido,
+                premio_pct_base - (float(strike) - preco_final) / float(strike) * 100,
+                premio_pct_base
+            )
+
+        prob_nao_exercicio = round(float((~exercido).mean() * 100), 2)
+        ev_total = round(float(resultado.mean()), 3)
+        ev_nao_exerc = round(premio_pct_base, 3)
+        ev_exerc = round(float(resultado[exercido].mean()), 3) if exercido.any() else None
+
+        return {
+            'prob_nao_exercicio_pct': prob_nao_exercicio,
+            'ev_total_pct': ev_total,
+            'ev_se_nao_exercido_pct': ev_nao_exerc,
+            'ev_se_exercido_pct': ev_exerc,
+        }
+    except Exception:
+        return None
