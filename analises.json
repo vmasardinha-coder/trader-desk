@@ -7789,7 +7789,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -18%. Ganho prefixado: 3.37% se nao tocar a barreira (2.5%/mes). Preco de entrada = cotacao real no momento da criacao (R$59.28). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737548",
     "bandas_congeladas": {
       "sigma_pct": 31.0,
@@ -8154,7 +8154,13 @@
       },
       "prob_sucesso_prevista_pct": 89.08,
       "prob_sucesso_prevista_pct_origem": "backfill_12082026"
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-25",
+    "ev_mensal_na_rejeicao": -0.374,
+    "score_na_rejeicao": -0.5343,
+    "prob_meta_na_rejeicao": 99.98,
+    "preco_encerramento": 60.66
   },
   {
     "ticker": "DIRR3.SA",
