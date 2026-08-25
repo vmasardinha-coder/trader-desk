@@ -112,6 +112,9 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 ### Modelagem
 | Item | Status |
 |---|---|
+| **Auto-rejeição quando o prazo vence sem decisão** | 🔵 Ideia registrada 25/08/2026, baixa prioridade — Victor notou que análises em `em_analise` que passam do vencimento sem serem aceitas ficam "penduradas" indefinidamente (ex: BBAS3/PRIO3 perto de 100% de prob., faltando poucos dias). Hoje ele fecha manualmente essas na mão (rejeita, entra no tracking hipotético normalmente, já validado). Ideia pra depois: rotina que auto-rejeita (ou pelo menos sinaliza) análises com vencimento já passado sem decisão — mas Victor disse explicitamente que não é urgente, o fluxo manual atual funciona bem. Não implementar sem pedido explícito. |
+| Item | Status |
+|---|---|
 | **Papel do EV na decisão do Victor (esclarecido 13/08/2026)** | ℹ️ **Importante pra não reavaliar errado no futuro.** O Victor NÃO usa `ev_mensal_na_rejeicao` como preditor isolado de sucesso/fracasso — ele usa a **probabilidade prevista** como filtro principal, e o EV como **desempate** entre candidatas com probabilidade PRÓXIMA (duas opções com prob. parecida → pega a de EV positivo). Teste feito em 13/08 comparando "EV>0 previu sucesso?" (60% de acerto em 5 casos, vs. 75% da probabilidade sozinha em 8 casos) estava testando a pergunta ERRADA — EV nunca teve o papel de prever resultado sozinho. **A pergunta certa pra medir no futuro**: dado um PAR de candidatas com probabilidade próxima na mesma decisão, escolher a de EV positivo levou a resultado real melhor que a alternativa? Isso exige pares de candidatas concorrentes na mesma decisão (não só uma lista solta de rejeitadas) — precisa de mais volume/tempo pra ter amostra significativa. Ainda não há infraestrutura pra isso (não sabemos hoje quais análises "competiram" entre si na mesma decisão) — considerar campo `lote_concorrentes` ou similar se o padrão se repetir. |
 | Item | Status |
 |---|---|
