@@ -616,6 +616,22 @@ def get_yields():
     # americano, equivalente ao VIX mas pra renda fixa. ADICIONADO
     # 25/08/2026 -- pedido do Victor, junto dos yields americanos.
     move_index = yquote('%5EMOVE', prefer_chart_prev=True)  # ^MOVE -- prefer_chart_prev pq MOVE nao tem preco intraday continuo (bug testado e confirmado no default)
+    # ADICIONADO 26/08/2026 -- pedido do Victor: classificacao de estresse
+    # baseada em niveis convergentes de multiplos analistas de mercado
+    # (KenMacro, TradingView, material publico de mesas macro) --
+    # <80 calmo, 80-120 normal, 120-150 estresse, >=150 crise. Niveis nao
+    # sao de uma unica fonte especifica, sao um consenso observado em
+    # varias analises independentes que batiam entre si.
+    if move_index and move_index.get('price') is not None:
+        _mv = move_index['price']
+        if _mv < 80:
+            move_index['nivel_estresse'] = 'calmo'
+        elif _mv < 120:
+            move_index['nivel_estresse'] = 'normal'
+        elif _mv < 150:
+            move_index['nivel_estresse'] = 'estresse'
+        else:
+            move_index['nivel_estresse'] = 'crise'
 
     # ── USD/JPY ───────────────────────────────────────────
     usdjpy = yquote('USDJPY%3DX')  # USDJPY=X
