@@ -2439,6 +2439,18 @@ function doYields(y){
   afY('us10y-p','us10y-c',y.us_10y);
   afY('us30y-p','us30y-c',y.us_30y);
   afY('moveidx-p','moveidx-c',y.move_index);
+  // ADICIONADO 26/08/2026 -- pedido do Victor: selo de nivel de estresse
+  // ao lado do MOVE Index (calmo/normal/estresse/crise, ver proxy.py).
+  if(y.move_index?.nivel_estresse){
+    const elp = document.getElementById('moveidx-p');
+    if(elp){
+      const cores = {calmo:'var(--green)', normal:'var(--muted)', estresse:'var(--warn)', crise:'#ff5252'};
+      const labels = {calmo:'calmo', normal:'normal', estresse:'⚠ estresse', crise:'🔴 crise'};
+      const nivel = y.move_index.nivel_estresse;
+      elp.title = 'Nivel: '+labels[nivel]+' (níveis: <80 calmo, 80-120 normal, 120-150 estresse, ≥150 crise)';
+      elp.style.color = cores[nivel] || '';
+    }
+  }
   afY('jp10y-p','jp10y-c',y.jp_10y);
   // USD/JPY: não é yield, é câmbio -- exibe como número puro sem %
   if(y.usdjpy?.price){
