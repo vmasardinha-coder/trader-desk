@@ -612,6 +612,11 @@ def get_yields():
     us_10y = yquote('%5ETNX')   # ^TNX
     us_30y = yquote('%5ETYX')   # ^TYX
 
+    # MOVE Index (ICE BofAML) -- vol. implicita do mercado de bonds
+    # americano, equivalente ao VIX mas pra renda fixa. ADICIONADO
+    # 25/08/2026 -- pedido do Victor, junto dos yields americanos.
+    move_index = yquote('%5EMOVE', prefer_chart_prev=True)  # ^MOVE -- prefer_chart_prev pq MOVE nao tem preco intraday continuo (bug testado e confirmado no default)
+
     # ── USD/JPY ───────────────────────────────────────────
     usdjpy = yquote('USDJPY%3DX')  # USDJPY=X
 
@@ -685,6 +690,7 @@ def get_yields():
         'us_3m':  us_3m,   # T-Bill 3 meses (^IRX)
         'us_10y': us_10y,  # T-Note 10 anos (^TNX)
         'us_30y': us_30y,  # T-Bond 30 anos (^TYX)
+        'move_index': move_index,  # ICE BofAML MOVE -- vol. implicita de bonds EUA
         'usdjpy': usdjpy,  # USD/JPY
         'jp_10y': jp_10y,  # JGB 10 anos (^JGBS)
         'br_selic': {'price': selic, 'prev': None, 'label': 'SELIC efetiva a.a.'},
