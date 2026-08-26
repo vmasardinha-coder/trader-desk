@@ -33,8 +33,8 @@
       "pl": 7.36,
       "ev_ebitda": null,
       "debt_ebitda": null,
-      "margem": null,
-      "_nota": "margem liquida do Fundamentus veio 0,0% -- artefato conhecido da fonte pra bancos, nao confiavel. Deixado None em vez de propagar numero errado."
+      "margem": 5.3,
+      "_nota": "margem liquida do Fundamentus vinha 0,0% (artefato conhecido pra bancos). Corrigido com fonte alternativa (meusdividendos.com, base balanco anual 2025): 5,3%."
     },
     "AXIA3": {
       "pvp": 1.26,
