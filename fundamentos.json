@@ -1,6 +1,6 @@
 {
   "_comentario": "Fonte UNICA de fundamentos hardcoded do Trader Desk (Prioridade 1 da modularizacao, 03/07/2026). Antes desses dados existiam 6 copias espalhadas no proxy.py (FUND, SETORES, vol_defaults, FUND_OVERRIDE, SETOR_MAP, FUND_EXTRA, FUND_OVERRIDE_GLOBAL). Atualizar SOMENTE aqui. O proxy.py le este arquivo no startup (_carregar_fundamentos) com fallback embutido minimo se o arquivo faltar. Atualizacao trimestral = 1 commit neste arquivo, sem tocar em codigo.",
-  "fund_data_ref": "2026-05-22",
+  "fund_data_ref": "2026-08-26",
   "fundamentos": {
     "PETR4": {
       "pvp": 1.13,
@@ -205,59 +205,59 @@
       "margem": 10.5
     },
     "CPFE3": {
-      "pvp": 2.05,
-      "dy": 8.6,
-      "lpa": 5.0,
-      "vpa": 21.09,
-      "roe": 23.7,
-      "pl": 8.66,
+      "pvp": 2.24,
+      "dy": 8.4,
+      "lpa": 5.21,
+      "vpa": 19.72,
+      "roe": 26.4,
+      "pl": 8.49,
       "ev_ebitda": 5.63,
-      "debt_ebitda": 1.93,
-      "margem": 13.4
+      "debt_ebitda": 1.65,
+      "margem": 13.8
     },
     "CPLE3": {
       "pvp": 1.81,
       "dy": 7.3,
-      "lpa": 0.91,
-      "vpa": 7.99,
-      "roe": 11.4,
-      "pl": 15.93,
-      "ev_ebitda": 9.57,
-      "debt_ebitda": 2.83,
-      "margem": 10.0
+      "lpa": 1.05,
+      "vpa": 8.09,
+      "roe": 13.0,
+      "pl": 13.94,
+      "ev_ebitda": 9.1,
+      "debt_ebitda": 2.2,
+      "margem": 11.4
     },
     "TAEE11": {
-      "pvp": 1.78,
-      "dy": 8.0,
-      "lpa": 4.55,
-      "vpa": 23.1,
-      "roe": 19.7,
-      "pl": 9.02,
-      "ev_ebitda": 10.24,
-      "debt_ebitda": 4.26,
-      "margem": 33.5
+      "pvp": 1.66,
+      "dy": 7.7,
+      "lpa": 4.72,
+      "vpa": 23.43,
+      "roe": 20.1,
+      "pl": 8.24,
+      "ev_ebitda": 9.43,
+      "debt_ebitda": 1.09,
+      "margem": 36.2
     },
     "SBSP3": {
-      "pvp": 2.17,
-      "dy": 2.5,
-      "lpa": 2.48,
-      "vpa": 12.4,
-      "roe": 20.0,
-      "pl": 10.89,
-      "ev_ebitda": 8.4,
-      "debt_ebitda": 2.14,
-      "margem": 22.0
+      "pvp": 1.86,
+      "dy": 2.8,
+      "lpa": 2.28,
+      "vpa": 12.82,
+      "roe": 17.8,
+      "pl": 10.46,
+      "ev_ebitda": 7.8,
+      "debt_ebitda": 0.71,
+      "margem": 19.7
     },
     "WEGE3": {
-      "pvp": 10.99,
-      "dy": 4.7,
-      "lpa": 1.5,
-      "vpa": 4.23,
-      "roe": 35.4,
-      "pl": 31.03,
-      "ev_ebitda": 20.11,
-      "debt_ebitda": -0.35,
-      "margem": 16.7
+      "pvp": 11.03,
+      "dy": 4.0,
+      "lpa": 1.49,
+      "vpa": 4.49,
+      "roe": 33.2,
+      "pl": 33.27,
+      "ev_ebitda": 21.64,
+      "debt_ebitda": -0.18,
+      "margem": 16.6
     }
   },
   "dy_extra": {
