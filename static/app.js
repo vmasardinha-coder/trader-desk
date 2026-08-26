@@ -2438,6 +2438,7 @@ function doYields(y){
   afY('us3m-p','us3m-c',y.us_3m);
   afY('us10y-p','us10y-c',y.us_10y);
   afY('us30y-p','us30y-c',y.us_30y);
+  afY('moveidx-p','moveidx-c',y.move_index);
   afY('jp10y-p','jp10y-c',y.jp_10y);
   // USD/JPY: não é yield, é câmbio -- exibe como número puro sem %
   if(y.usdjpy?.price){
