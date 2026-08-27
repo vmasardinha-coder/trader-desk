@@ -151,21 +151,21 @@
     {
       "id": "spcx34",
       "ticker": "SPCX34.SA",
-      "nome": "SPCX34 Retorno Controlado 15d (Lote 25/08/2026 - ajuste)",
+      "nome": "SPCX34 Retorno Controlado 15d (Lote 24/08/2026 - confirmado)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-09-09",
-      "entry": 46.57,
-      "kdo": 37.8614,
+      "vencimento": "2026-09-08",
+      "entry": 47.37,
+      "kdo": 38.49,
       "kdo_pct": "-18.7%",
       "vol_impl": 0.9345,
       "vol_impl_fonte": "vol_historica_52d_baixa_amostra",
       "data_entrada": "2026-08-24",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 66.96,
-      "ganho_sem_barreira": "3.4% fixo",
-      "ganho_prefixado_pct": 3.4,
-      "observacao": "AJUSTADO 25/08/2026: Victor nao conseguiu fechar a operacao no dia 24/08 -- PDF novo chegou hoje com pequeno ajuste: vencimento 08/09->09/09, retorno prefixado 3,50%->3,40% (barreira -18,70% inalterada). Preco de entrada mantido provisorio (R$46,57) a pedido do Victor -- ele confirma o preco real do leilao assim que liquidar (previsto para amanha)."
+      "prob_sucesso_prevista_pct": 71.48,
+      "ganho_sem_barreira": "3.5% fixo",
+      "ganho_prefixado_pct": 3.5,
+      "observacao": "CORRIGIDO 26/08/2026: confirmado com o Victor que a operacao que realmente entrou foi a PRIMEIRA opcao do lote 24/08 (15d, teto 3,50%, venc 08/09/2026), nao a versao ajustada de 25/08 que eu tinha migrado por engano (teto 3,40%, venc 09/09). Valor Inicial real derivado do strike (R$49,06) e KDO (R$38,49) do boleto: R$47,37 (as duas contas bateram entre si, diferenca de poucos centavos por arredondamento)."
     }
   ],
   "encerradas": [
