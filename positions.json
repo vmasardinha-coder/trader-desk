@@ -94,23 +94,6 @@
       "observacao": "Rolagem da posicao anterior (ROXOI107, strike R$10,75, encerrada como sucesso em 12/08/2026 -- premio+strike combinados renderam 2,27%/mes no prazo incremental, passou da diretriz de 2%/mes). Nova opcao: 88 dias, ITM (spot R$11,61 > strike R$11,25), delta 0,677, prob exercicio 59,42%, taxa 9,56%, protecao 12,66%. Quantidade: 2.500 acoes."
     },
     {
-      "id": "bb2",
-      "ticker": "BBAS3.SA",
-      "nome": "Banco do Brasil ON",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "BBASL223",
-      "strike": 22.31,
-      "vol_impl": 0.32739,
-      "tipo": "call",
-      "vencimento": "2026-12-17",
-      "objetivo": "Fechar antes do vencimento se possivel",
-      "data_entrada": "2026-08-12",
-      "exercicio": "europeia",
-      "meta_pct": 3.47,
-      "observacao": "Rolagem da posicao anterior (BBASJ222, strike R$21,90, encerrada como FRACASSO em 12/08/2026 por decisao do Victor -- rolagem nao era necessaria e rendeu so 1,33%/mes no prazo incremental, abaixo da diretriz de 2%/mes). Nova opcao: 88 dias, OTM (spot R$19,00 < strike R$22,31, +17,42%), delta 0,309, prob exercicio 24,44%, taxa 3,47%, Theta forte a favor (-0,010/dia). Quantidade: 2.200 acoes. Ja executada -- registrada aqui como ativa mesmo com a rolagem anterior classificada como fracasso, pois a operacao ja e real e nao ha como desfazer."
-    },
-    {
       "id": "tsmc34",
       "ticker": "TSMC34.SA",
       "nome": "TSMC34 Retorno Controlado 2m (Lote 17/08/2026)",
@@ -166,6 +149,23 @@
       "ganho_sem_barreira": "3.5% fixo",
       "ganho_prefixado_pct": 3.5,
       "observacao": "CORRIGIDO 26/08/2026: confirmado com o Victor que a operacao que realmente entrou foi a PRIMEIRA opcao do lote 24/08 (15d, teto 3,50%, venc 08/09/2026), nao a versao ajustada de 25/08 que eu tinha migrado por engano (teto 3,40%, venc 09/09). Valor Inicial real derivado do strike (R$49,06) e KDO (R$38,49) do boleto: R$47,37 (as duas contas bateram entre si, diferenca de poucos centavos por arredondamento)."
+    },
+    {
+      "id": "bb2",
+      "ticker": "BBAS3.SA",
+      "nome": "Banco do Brasil ON",
+      "tipo_posicao": "simples",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASL212",
+      "strike": 20.81,
+      "vol_impl": 0.33833,
+      "tipo": "call",
+      "vencimento": "2026-12-17",
+      "objetivo": "Fechar antes do vencimento se possivel",
+      "data_entrada": "2026-08-27",
+      "exercicio": "europeia",
+      "meta_pct": 7.55,
+      "observacao": "Rolagem da BBASL223 (strike R$22,31, encerrada como PARCIAL em 27/08/2026 -- ver cl-bbas3-rolagem-dez26). Delta 54%, prob. exercício 46,47%, custo R$18,50, proteção 7,55%, taxa 7,55%. Quantidade: 2.200 ações. Risco elevado de exercício -- BBAS3 mostrando força, tendência de subir rumo ao strike antigo (R$22,31)."
     }
   ],
   "encerradas": [
@@ -334,6 +334,16 @@
       "status": "sucesso",
       "prob_sucesso_prevista_pct": 61.42,
       "resultado_texto": "Resgate ANTECIPADO a valor de mercado em 21/08/2026 (nao aguardou o vencimento 01/09/2026). Barreira (KDO R$41,25) nunca foi tocada -- o prefixado de 13,4% estava garantido se segurasse ate o fim, mas Victor decidiu travar 8,24% de lucro agora (R$2.800 sobre ~R$34.000, proporcional ao tempo decorrido) em vez de esperar mais ~11 dias pelo resto. Numero informado pelo Victor, nao recalculado por mim."
+    },
+    {
+      "id": "cl-bbas3-rolagem-dez26",
+      "ticker": "BBAS3",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASL223",
+      "strike": 22.31,
+      "data_encerramento": "2026-08-27",
+      "status": "parcial",
+      "resultado_texto": "Rolagem para BBASL212 (strike R$20,81, mesmo vencimento 17/12/2026). Prêmio líquido capturado ~R$700 sobre 2.200 ações (~1,75% da posição). Recompra R$1,12, venda nova R$1,51. EV calculado NEGATIVO (-R$686 a -R$1.082, dependendo do delta usado) -- delta quase dobrou (30%->54%) com o strike mais baixo, tornando o risco de perder o espaço de valorização (R$3.300 até R$22,31) maior que o prêmio capturado. Classificado PARCIAL por decisão do Victor: reconhece que a decisão isolada teve EV negativo, mas contextualiza como correção de uma posição já comprometida por rolagem anterior (BBASJ222->BBASL223, já classificada fracasso em 12/08/2026) -- objetivo era sair rápido capturando algum prêmio no caminho, não maximizar EV dessa perna isolada."
     }
   ]
 }
