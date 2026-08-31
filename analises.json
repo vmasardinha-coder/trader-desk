@@ -15011,7 +15011,7 @@
     "ganho_prefixado_pct": 19.0,
     "origem": "pronta",
     "backtest": false,
-    "status": "em_analise",
+    "status": "encerrada",
     "observacao": "PDF Itau Retorno Controlado, Material Publicitario 05/08/2026. Prazo 1 mes (05/08->03/09/2026). Retorno prefixado 19,00% se barreira -20,00% nao for rompida (barreira = 79,90% do valor inicial = R$31,32 com preco de hoje). Preco de exercicio das opcoes = 119,10% do valor inicial. Retorno excepcionalmente alto (706% a.a. no proprio PDF) reflete vol. implicita muito alta -- SPCX34 e BDR de empresa de capital fechado (SpaceX), Grau de risco Alto conforme o proprio material. Preco de referencia (R$39,20, -8,24% no dia) fornecido pelo usuario via app/corretora no momento do registro -- PROVISORIO para fins de Fase A (ranking/Monte Carlo); se o usuario decidir ativar, preco final sera o do boleto de liquidacao, a ser corrigido manualmente. Bandas de Monte Carlo (bandas_congeladas) NAO foram computadas por Claude (sandbox sem acesso a rede de cotacoes) -- o ranking em lote (/analises/ranking) calcula probabilidade ao vivo e nao depende desse campo, mas a Foto do Papel/legenda de confianca pode aparecer vazia ate uma re-foto pelo app. [Bandas de Monte Carlo preenchidas em 05/08/2026 apos liberacao de rede -- preco_foto fixo R$39.20 usado como base, sigma 70.16% via vol historica (GARCH nao convergiu), periodos 21/29d.]",
     "bandas_congeladas": {
       "sigma_pct": 70.16,
@@ -15308,7 +15308,13 @@
       },
       "prob_sucesso_prevista_pct": 66.68,
       "prob_sucesso_prevista_pct_origem": "backfill_12082026"
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-31",
+    "ev_mensal_na_rejeicao": -1.048,
+    "score_na_rejeicao": -2.096,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 49.24
   },
   {
     "ticker": "KNHY11.SA",
