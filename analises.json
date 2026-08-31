@@ -8174,7 +8174,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -18%. Ganho prefixado: 3.39% se nao tocar a barreira (2.51%/mes). Preco de entrada = cotacao real no momento da criacao (R$11.58). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737552",
     "bandas_congeladas": {
       "sigma_pct": 41.82,
@@ -8539,7 +8539,13 @@
       },
       "prob_sucesso_prevista_pct": 76.54,
       "prob_sucesso_prevista_pct_origem": "backfill_12082026"
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-08-31",
+    "ev_mensal_na_rejeicao": -1.507,
+    "score_na_rejeicao": -6.028,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 11.04
   },
   {
     "ticker": "VIVA3.SA",
