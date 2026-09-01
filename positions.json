@@ -40,26 +40,6 @@
       "exercicio": "europeia"
     },
     {
-      "id": "a3c",
-      "ticker": "AXIA3.SA",
-      "nome": "AXIA3 (C)",
-      "tipo_posicao": "barreira",
-      "estrategia": "Retorno Controlado Itaú",
-      "vencimento": "2026-11-22",
-      "entry": 51.68,
-      "kdo_pct": "-15%",
-      "kuo_pct": "+18,5%",
-      "ganho_sem_barreira": "1,5x a alta, ate +18,5% (max 27,75%)",
-      "ganho_barreira_alta": "18,5% fixo (limitado)",
-      "data_entrada": "2026-07-22",
-      "exercicio": "europeia",
-      "teto_retorno_pct": 27.75,
-      "alavancagem": 1.5,
-      "observacao": "CONFIRMADO 24/07/2026 via boleto da corretora: entry R$51,68 (fechamento 22/07/2026, dia da contratacao), KUO R$61,29 (qtd 250, venc 22/11/2026), KDO R$43,88 (qtd 500, venc 22/11/2026). Vencimento oficial do boleto (22/11) prevalece sobre a data do PDF Material Publicitario (18/11). Estrutura: Retorno Controlado Itau, alavancagem 1,5x ate KUO, teto 27,75%, KDO trava perda integral abaixo de -15%.",
-      "kdo": 43.88,
-      "kuo": 61.29
-    },
-    {
       "id": "bslv39",
       "ticker": "BSLV39.SA",
       "nome": "BSLV39 - iShares Silver Trust BDR",
@@ -170,20 +150,21 @@
     {
       "id": "sbsp3",
       "ticker": "SBSP3.SA",
-      "nome": "SBSP3 Retorno Controlado 64d (Lote 31/08/2026)",
+      "nome": "SBSP3 Retorno Controlado 64d (Lote 01/09/2026 - ajuste)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
       "vencimento": "2026-11-04",
       "entry": 25.28,
-      "kdo": 21.4122,
-      "kdo_pct": "-15.3%",
+      "kdo": 21.3869,
+      "kdo_pct": "-15.4%",
       "vol_impl": 0.2815,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-09-01",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 76.78,
-      "ganho_sem_barreira": "8.0% fixo",
-      "ganho_prefixado_pct": 8.0
+      "prob_sucesso_prevista_pct": 77.28,
+      "ganho_sem_barreira": "7.8% fixo",
+      "ganho_prefixado_pct": 7.8,
+      "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$25,28) ate boleto oficial."
     }
   ],
   "encerradas": [
@@ -362,6 +343,16 @@
       "data_encerramento": "2026-08-27",
       "status": "parcial",
       "resultado_texto": "Rolagem para BBASL212 (strike R$20,81, mesmo vencimento 17/12/2026). Prêmio líquido capturado ~R$700 sobre 2.200 ações (~1,75% da posição). Recompra R$1,12, venda nova R$1,51. EV calculado NEGATIVO (-R$686 a -R$1.082, dependendo do delta usado) -- delta quase dobrou (30%->54%) com o strike mais baixo, tornando o risco de perder o espaço de valorização (R$3.300 até R$22,31) maior que o prêmio capturado. Classificado PARCIAL por decisão do Victor: reconhece que a decisão isolada teve EV negativo, mas contextualiza como correção de uma posição já comprometida por rolagem anterior (BBASJ222->BBASL223, já classificada fracasso em 12/08/2026) -- objetivo era sair rápido capturando algum prêmio no caminho, não maximizar EV dessa perna isolada."
+    },
+    {
+      "id": "cl-axia3-bidirecional-c",
+      "ticker": "AXIA3",
+      "estrategia": "Bidirecional ION Itaú",
+      "strike": 51.68,
+      "data_encerramento": "2026-09-01",
+      "status": "sucesso",
+      "realizado_pct": 2.96,
+      "resultado_texto": "Encerrada com sucesso, 2,96% de resultado em 40 dias. CDI real acumulado no periodo (22/07 a 01/09/2026, via serie diaria Bacen SGS 12): 1,52%. Resultado = 195% do CDI (Victor estimou 200%, bate dentro da margem). Estrutura alavancada favoreceu a alta do papel. Migrado para SBSP3 (retorno controlado, id sbsp3)."
     }
   ]
 }
