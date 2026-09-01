@@ -166,6 +166,24 @@
       "exercicio": "europeia",
       "meta_pct": 7.55,
       "observacao": "Rolagem da BBASL223 (strike R$22,31, encerrada como PARCIAL em 27/08/2026 -- ver cl-bbas3-rolagem-dez26). Delta 54%, prob. exercício 46,47%, custo R$18,50, proteção 7,55%, taxa 7,55%. Quantidade: 2.200 ações. Risco elevado de exercício -- BBAS3 mostrando força, tendência de subir rumo ao strike antigo (R$22,31)."
+    },
+    {
+      "id": "sbsp3",
+      "ticker": "SBSP3.SA",
+      "nome": "SBSP3 Retorno Controlado 64d (Lote 31/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-04",
+      "entry": 25.28,
+      "kdo": 21.4122,
+      "kdo_pct": "-15.3%",
+      "vol_impl": 0.2815,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-09-01",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 76.78,
+      "ganho_sem_barreira": "8.0% fixo",
+      "ganho_prefixado_pct": 8.0
     }
   ],
   "encerradas": [
