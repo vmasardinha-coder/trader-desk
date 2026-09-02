@@ -17427,7 +17427,7 @@
     "id": "an_1787070642",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 40d - Opcao A (Lote 18/08 Itau Mesa)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-08-19",
     "preco_foto": 17.92,
@@ -17785,7 +17785,13 @@
       },
       "prob_sucesso_prevista_pct": 75.66
     },
-    "observacao": "Lote 18/08/2026 -- planilha Itau Mesa Assessoria (Caique Meza). Barreira -12.0%, retorno prefixado fixo 3.23% se barreira nao rompida. Valor Inicial (preco_foto=17.92) provisorio. Analisado em conjunto com recompra da BBASL212 atual (custo ~R$1.210 pra liberar 2.200 acoes) -- decisao de trocar depende do conjunto, nao so dessa perna isolada."
+    "observacao": "Lote 18/08/2026 -- planilha Itau Mesa Assessoria (Caique Meza). Barreira -12.0%, retorno prefixado fixo 3.23% se barreira nao rompida. Valor Inicial (preco_foto=17.92) provisorio. Analisado em conjunto com recompra da BBASL212 atual (custo ~R$1.210 pra liberar 2.200 acoes) -- decisao de trocar depende do conjunto, nao so dessa perna isolada.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-02",
+    "ev_mensal_na_rejeicao": -0.738,
+    "score_na_rejeicao": -0.8232,
+    "prob_meta_na_rejeicao": 99.99,
+    "preco_encerramento": 22.36
   },
   {
     "id": "an_1787070643",
