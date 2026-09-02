@@ -112,25 +112,6 @@
       "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$54.96 (antes provisorio R$55.23), KDO R$43.92 (antes R$44.184), vencimento 2026-10-15 (antes estimado 2026-10-16)."
     },
     {
-      "id": "spcx34",
-      "ticker": "SPCX34.SA",
-      "nome": "SPCX34 Retorno Controlado 15d (Lote 24/08/2026 - confirmado)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-09-08",
-      "entry": 47.37,
-      "kdo": 38.49,
-      "kdo_pct": "-18.7%",
-      "vol_impl": 0.9345,
-      "vol_impl_fonte": "vol_historica_52d_baixa_amostra",
-      "data_entrada": "2026-08-24",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 71.48,
-      "ganho_sem_barreira": "3.5% fixo",
-      "ganho_prefixado_pct": 3.5,
-      "observacao": "CORRIGIDO 26/08/2026: confirmado com o Victor que a operacao que realmente entrou foi a PRIMEIRA opcao do lote 24/08 (15d, teto 3,50%, venc 08/09/2026), nao a versao ajustada de 25/08 que eu tinha migrado por engano (teto 3,40%, venc 09/09). Valor Inicial real derivado do strike (R$49,06) e KDO (R$38,49) do boleto: R$47,37 (as duas contas bateram entre si, diferenca de poucos centavos por arredondamento)."
-    },
-    {
       "id": "bb2",
       "ticker": "BBAS3.SA",
       "nome": "Banco do Brasil ON",
@@ -353,6 +334,18 @@
       "status": "sucesso",
       "realizado_pct": 2.96,
       "resultado_texto": "Encerrada com sucesso, 2,96% de resultado em 40 dias. CDI real acumulado no periodo (22/07 a 01/09/2026, via serie diaria Bacen SGS 12): 1,52%. Resultado = 195% do CDI (Victor estimou 200%, bate dentro da margem). Estrutura alavancada favoreceu a alta do papel. Migrado para SBSP3 (retorno controlado, id sbsp3)."
+    },
+    {
+      "id": "cl-spcx34-retctrl-set26-b",
+      "ticker": "SPCX34",
+      "estrategia": "Retorno Controlado",
+      "strike": null,
+      "alvo_pct": 3.7,
+      "realizado_pct": 2.0,
+      "data_encerramento": "2026-09-02",
+      "status": "sucesso",
+      "prob_sucesso_prevista_pct": 71.48,
+      "resultado_texto": "Resgate ANTECIPADO a valor de mercado, sucesso, 2% de lucro. Barreira nunca foi tocada. Victor reportou teto de 3,7% (registro do sistema tinha 3,5% -- pequena divergencia, mantido o numero informado por ele sem recalcular)."
     }
   ]
 }
