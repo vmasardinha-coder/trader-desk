@@ -27290,7 +27290,7 @@
     "id": "an_1788368558",
     "ticker": "INBR32.SA",
     "nome": "INBR32 (Banco Inter) Retorno Controlado 63d (Lote 02/09/2026)",
-    "status": "em_analise",
+    "status": "ativa",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-02",
     "preco_foto": 30.1,
