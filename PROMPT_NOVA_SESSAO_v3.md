@@ -72,6 +72,9 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
 ### Arquitetura / bugs corrigidos
 | Item | Status |
 |---|---|
+| **Ranking em lote travando com muitas análises (502/JSON vazio)** | ✅ **FECHADO em 03/09/2026** — causa raiz: **limite de timeout do gateway do Render (~30s)**, não é bug do nosso código. Backend já tinha paginação (offset/limit) pronta desde 25/06/2026 (primeiro incidente, com 17 análises), mas o frontend nunca foi atualizado pra usar. Voltou a quebrar com 58 análises simultâneas. Corrigido: `loadRankingAnalises()` no app.js agora pagina automaticamente em lotes de 10 (testado: ~14s por lote de 10, ~25s por lote de 15 -- 15 ficava perto demais do limite). **Se o volume de análises continuar crescendo e lotes de 10 pararem de ser suficientes**, as opções são: (1) reduzir o lote ainda mais, (2) upgrade do plano Render pra timeout maior, ou (3) reestruturar pra processamento assíncrono em fila. Nenhuma dessas é necessária agora. |
+| Item | Status |
+|---|---|
 | **UI: Taxa hipotética + EV realizado no painel Encerradas** | ✅ **FECHADO em 13/08/2026** — pedido do Victor: (1) confirmado que a limpeza de 30 dias das rejeitadas é SÓ um filtro de exibição em `GET /analises` — o arquivo real nunca apaga nada, o tracking-hipotetico lê direto sem esse filtro; (2) novo card no dashboard de Encerradas: "🧪 Taxa de sucesso HIPOTÉTICA (rejeitadas já vencidas)", sempre mostrando o N junto (nunca só %, amostra pequena); (3) por item rejeitado já vencido, nova linha "EV realizado" logo abaixo do "EV na rejeição" já existente — compara o EV PROJETADO (Monte Carlo, no momento da decisão, nunca muda) com o EV REALIZADO (preço real até o vencimento). Não substituiu nada que já existia, só somou. |
 | Item | Status |
 |---|---|
