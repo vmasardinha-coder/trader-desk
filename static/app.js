@@ -3280,18 +3280,40 @@ async function checarBarreirasRompidas(){
 // completa ordenada por score (ordenacao, NUNCA filtro -- todas as linhas
 // aparecem, mesmo as com erro de calculo). Usuario decide manualmente
 // olhando todas as colunas (prob, retorno mensal, prazo, DY vs CDI).
+//
+// CORRIGIDO 03/09/2026 -- o backend ja tinha paginacao pronta desde
+// 25/06/2026 (mesmo dia que esse painel foi criado -- primeiro incidente
+// de timeout foi com so 17 analises), mas o FRONTEND nunca foi
+// atualizado pra usar offset/limit -- sempre pedia tudo de uma vez.
+// Voltou a quebrar agora com 58 analises simultaneas (erro 502 do
+// gateway do Render em ~32s, antes mesmo do timeout de 60s do cliente
+// aqui embaixo disparar). Agora pagina automaticamente em lotes de 15,
+// concatena os resultados de cada pagina, e so renderiza a tabela quando
+// tudo tiver chegado -- sem precisar mudar nada no backend, que ja
+// suportava isso.
 async function loadRankingAnalises(){
   const area=document.getElementById('ranking-container');
   const btn=document.getElementById('btn-ranking');
   if(!area)return;
-  area.innerHTML='Calculando probabilidade de todas as análises em aberto (Monte Carlo em lote, pode levar alguns segundos)...';
   if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  const LOTE=10;
+  let offset=0, totalGeral=null, todasLinhas=[], primeiraResposta=null;
   try{
-    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),60000);
-    const r=await fetch(B+'/analises/ranking',{signal:ctrl.signal,cache:'no-store'});
-    const d=await r.json();
-    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
-    area.innerHTML=tplRanking(d);
+    while(true){
+      area.innerHTML=`Calculando probabilidade das análises em aberto (Monte Carlo em lote)... ${offset} de ${totalGeral!=null?totalGeral:'?'} processadas`;
+      const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),45000);
+      const r=await fetch(B+`/analises/ranking?offset=${offset}&limit=${LOTE}`,{signal:ctrl.signal,cache:'no-store'});
+      clearTimeout(to);
+      const d=await r.json();
+      if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+      if(!primeiraResposta)primeiraResposta=d;
+      todasLinhas=todasLinhas.concat(d.ranking||[]);
+      totalGeral=d.total_geral!=null?d.total_geral:todasLinhas.length;
+      offset+=LOTE;
+      if(!d.proxima_pagina_existe || offset>=totalGeral)break;
+    }
+    const merged={...primeiraResposta, ranking:todasLinhas};
+    area.innerHTML=tplRanking(merged);
   }catch(e){
     area.innerHTML='<p style="color:var(--red)">⚠ Erro ao rodar ranking: '+e.message+'</p>';
   }finally{
