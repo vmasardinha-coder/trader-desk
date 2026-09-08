@@ -134,9 +134,9 @@
       "nome": "SBSP3 Retorno Controlado 64d (Lote 01/09/2026 - ajuste)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-04",
-      "entry": 25.28,
-      "kdo": 21.3869,
+      "vencimento": "2026-11-03",
+      "entry": 25.1,
+      "kdo": 21.21,
       "kdo_pct": "-15.4%",
       "vol_impl": 0.2815,
       "vol_impl_fonte": "garch",
@@ -145,7 +145,7 @@
       "prob_sucesso_prevista_pct": 77.28,
       "ganho_sem_barreira": "7.8% fixo",
       "ganho_prefixado_pct": 7.8,
-      "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$25,28) ate boleto oficial."
+      "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$25,28) ate boleto oficial. CONFIRMADO 04/09/2026: Valor Inicial R$25,10 (antes provisorio R$25.28), KDO R$21,21 (antes R$21.3869), vencimento 2026-11-03 (antes 2026-11-04)."
     },
     {
       "id": "inbr32",
@@ -153,9 +153,9 @@
       "nome": "INBR32 (Banco Inter) Retorno Controlado 63d (Lote 02/09/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-04",
-      "entry": 30.1,
-      "kdo": 24.08,
+      "vencimento": "2026-11-05",
+      "entry": 29.97,
+      "kdo": 23.58,
       "kdo_pct": "-20.0%",
       "vol_impl": 0.4372,
       "vol_impl_fonte": "garch",
@@ -163,7 +163,8 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 70.16,
       "ganho_sem_barreira": "10.5% fixo",
-      "ganho_prefixado_pct": 10.5
+      "ganho_prefixado_pct": 10.5,
+      "observacao": " CONFIRMADO 04/09/2026: Valor Inicial R$29,97 (antes provisorio R$30.1), KDO R$23,58 (antes R$24.08), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$30,47 e via KDO R$29,48) tiveram diferenca maior que o normal (~R$1,00, vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao."
     }
   ],
   "encerradas": [
