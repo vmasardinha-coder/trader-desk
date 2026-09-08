@@ -1138,6 +1138,35 @@ def scrape_statusinvest_ultimo_provento(ticker, segmento=None):
                 return {'data_pagamento': m.group(2), 'valor': valor if valor > 0 else None}
         except Exception:
             continue
+    # CORRIGIDO 04/09/2026 -- StatusInvest ativou protecao Cloudflare
+    # ("Just a moment...", HTTP 403 com desafio JS) que bloqueia
+    # requests.get() simples -- nao e mais so um problema de parsing,
+    # e bloqueio de acesso mesmo. Achado pelo Victor (colunas de
+    # provento na Carteira de FIIs pararam de carregar). Fallback pra
+    # fundsexplorer.com.br, que nao tem essa protecao (confirmado
+    # 04/09/2026, HTTP 200 normal, testado com KNCR11 e HGLG11). Formato
+    # do texto e diferente: so da mes/ano da data-com, nao o dia exato
+    # (ex: "09/26" em vez de "13/08/26") -- perda de precisao aceita
+    # dado que a fonte antiga esta bloqueada por completo, nao so
+    # degradada.
+    try:
+        r = requests.get(
+            f'https://www.fundsexplorer.com.br/funds/{ticker.lower()}',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+            timeout=10)
+        if r.ok:
+            texto = re.sub(r'<[^>]+>', ' ', r.text)
+            texto = _html_mod.unescape(texto)
+            texto = re.sub(r'\s+', ' ', texto)
+            m = re.search(
+                r'atual dividendo do \w+ foi de R\$\s*([\d.,]+)\s*por cota na data\s*(\d{2}/\d{2})',
+                texto, re.IGNORECASE)
+            if m:
+                valor = float(m.group(1).replace('.', '').replace(',', '.'))
+                return {'data_pagamento': m.group(2), 'valor': valor if valor > 0 else None,
+                        'data_aproximada': True}
+    except Exception:
+        pass
     return None
 
 
