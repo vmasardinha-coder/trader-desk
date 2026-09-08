@@ -904,10 +904,19 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
 
         hist = scrape_statusinvest_historico_proventos(ticker, segmento)
         if not hist:
-            return jsonify({'ticker': ticker, 'encontrado': False,
+            # CORRIGIDO 04/09/2026 -- StatusInvest bloqueado por Cloudflare
+            # afeta essa funcao tambem (mesma fonte). O fallback pra
+            # fundsexplorer so foi implementado em
+            # scrape_statusinvest_ultimo_provento (semestres/total_12m
+            # exigiriam raspar uma pagina de historico separada, nao feito
+            # ainda) -- por enquanto, se o historico completo falhar,
+            # tenta pelo menos o ultimo provento via essa outra funcao
+            # (que ja tem o fallback), pra nao devolver tudo vazio.
+            ultimo_fallback = scrape_statusinvest_ultimo_provento(ticker, segmento)
+            return jsonify({'ticker': ticker, 'encontrado': bool(ultimo_fallback),
                             'total_12m': None, 'dy_12m_pct': None,
                             'acumulado_ativacao': None, 'dy_ativacao_pct': None,
-                            'semestres': [], 'ultimo_provento': None})
+                            'semestres': [], 'ultimo_provento': ultimo_fallback})
 
         total_12m = hist['total_12m']
         dy_12m_pct = round(total_12m / preco_ativacao * 100, 2) if preco_ativacao > 0 else None
