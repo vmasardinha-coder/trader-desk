@@ -15380,7 +15380,7 @@
     "id": "an_1786550093",
     "ticker": "SPCX34.SA",
     "nome": "SPCX34 Retorno Controlado 1m (Lote 12/08/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-08-12",
     "preco_foto": 48.53,
@@ -15688,7 +15688,13 @@
       },
       "prob_sucesso_prevista_pct": 50.04
     },
-    "observacao": "Lote 12/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas (nao recalculadas): barreira -20.0%, retorno prefixado 19.0% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=48.53) e PROVISORIO -- PDF diz que o preco real e definido no leilao de fechamento na data de contratacao da estrategia, ainda nao disponivel. KDO (38.824) calculado sobre esse preco provisorio -- atualizar com o preco oficial do boleto quando chegar, mesmo protocolo ja usado para BSLV39. [CORRIGIDO 12/08/2026: prazo_dias estava em dias UTEIS por engano (convencao errada) -- todo o resto do sistema usa dias CORRIDOS. Recalculado prazo_dias, KDO, bandas e prob_sucesso_prevista_pct com a convencao correta.]"
+    "observacao": "Lote 12/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas (nao recalculadas): barreira -20.0%, retorno prefixado 19.0% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=48.53) e PROVISORIO -- PDF diz que o preco real e definido no leilao de fechamento na data de contratacao da estrategia, ainda nao disponivel. KDO (38.824) calculado sobre esse preco provisorio -- atualizar com o preco oficial do boleto quando chegar, mesmo protocolo ja usado para BSLV39. [CORRIGIDO 12/08/2026: prazo_dias estava em dias UTEIS por engano (convencao errada) -- todo o resto do sistema usa dias CORRIDOS. Recalculado prazo_dias, KDO, bandas e prob_sucesso_prevista_pct com a convencao correta.]",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-08",
+    "ev_mensal_na_rejeicao": 3.346,
+    "score_na_rejeicao": 6.692,
+    "prob_meta_na_rejeicao": 99.89,
+    "preco_encerramento": 50.63
   },
   {
     "ticker": "RINV11.SA",
