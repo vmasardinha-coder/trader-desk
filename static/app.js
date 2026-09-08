@@ -886,7 +886,12 @@ async function carregarProventosCarteira(f){
     // Último provento
     if(celProv&&d.ultimo_provento?.valor!=null){
       const pct=f.preco_ativacao>0?` <span style="color:var(--green);font-size:10px">(${(d.ultimo_provento.valor/f.preco_ativacao*100).toFixed(2)}%/mês)</span>`:'';
-      celProv.innerHTML=`R$${d.ultimo_provento.valor.toFixed(2)}<br><span style="font-size:9px;color:var(--muted)">${d.ultimo_provento.data_pagamento||''}</span>${pct}`;
+      // ADICIONADO 04/09/2026 -- fonte trocou (StatusInvest bloqueado por
+      // Cloudflare, fallback pra fundsexplorer.com.br) e a nova so da
+      // mes/ano da data-com, nao o dia exato -- marca com "~" quando for
+      // o caso, pra nao passar falsa precisao de dia que nao existe.
+      const prefixoData=d.ultimo_provento.data_aproximada?'~':'';
+      celProv.innerHTML=`R$${d.ultimo_provento.valor.toFixed(2)}<br><span style="font-size:9px;color:var(--muted)">${prefixoData}${d.ultimo_provento.data_pagamento||''}</span>${pct}`;
       celProv.classList.remove('loading');celProv.style.color='var(--text)';
     } else limpar(celProv);
     // Total 12M
