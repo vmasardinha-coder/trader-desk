@@ -36,6 +36,7 @@ from datetime import datetime as _dt_ys
 # segue a mesma convencao -- se mudar aqui, mudar la tambem.
 ETF_UNIVERSO = [
     {'ticker':'COIN11','mercado':'Nacional','categoria':'Pagador','desc':'Bitcoin high income','risco':10},
+    {'ticker':'XBCI11','mercado':'Nacional','categoria':'Pagador','desc':'Bitcoin ate 150% exposicao + covered call (NEOS/Buena Vista, lancado mar/2026)','risco':10},
     {'ticker':'SPYI11','mercado':'Nacional','categoria':'Pagador','desc':'S&P 500 EUA high income','risco':3},
     {'ticker':'QQQI11','mercado':'Nacional','categoria':'Pagador','desc':'Nasdaq-100 high income','risco':3},
     {'ticker':'DIVD11','mercado':'Nacional','categoria':'Pagador','desc':'IDIV - dividendos B3','risco':5},
