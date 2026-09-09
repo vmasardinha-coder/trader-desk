@@ -165,6 +165,24 @@
       "ganho_sem_barreira": "10.5% fixo",
       "ganho_prefixado_pct": 10.5,
       "observacao": " CONFIRMADO 04/09/2026: Valor Inicial R$29,97 (antes provisorio R$30.1), KDO R$23,58 (antes R$24.08), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$30,47 e via KDO R$29,48) tiveram diferenca maior que o normal (~R$1,00, vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao."
+    },
+    {
+      "id": "tsla342",
+      "ticker": "TSLA34.SA",
+      "nome": "TSLA34 Retorno Controlado 62d (Lote 09/09/2026 - candidata rolagem)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-10",
+      "entry": 59.05,
+      "kdo": 47.24,
+      "kdo_pct": "-20.0%",
+      "vol_impl": 0.4722,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-09-09",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 65.94,
+      "ganho_sem_barreira": "5.3% fixo",
+      "ganho_prefixado_pct": 5.3
     }
   ],
   "encerradas": [
