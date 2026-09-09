@@ -165,8 +165,8 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
             destino = body.get('destino')
             if not ticker or ticker not in _ETF_TICKERS_TODOS:
                 return jsonify({'error': 'ticker invalido ou fora do universo fechado de ETFs'}), 400
-            if destino not in ('em_analise', 'carteira'):
-                return jsonify({'error': "destino deve ser 'em_analise' ou 'carteira'"}), 400
+            if destino not in ('em_analise', 'carteira', 'remover'):
+                return jsonify({'error': "destino deve ser 'em_analise', 'carteira' ou 'remover'"}), 400
             try:
                 conteudo, sha = _github_get_file('etfs_estado.json')
                 estado = json.loads(conteudo)
@@ -179,12 +179,16 @@ def registrar_rotas(app, _fetch_etfs_live, _cache_etfs_live, _dy_refresh_em_anda
             if destino == 'em_analise':
                 if ticker not in estado['em_analise']:
                     estado['em_analise'].append(ticker)
-            else:
+            elif destino == 'carteira':
                 from datetime import datetime as _dt_etf
                 preco_entrada = body.get('preco_entrada')
                 data_entrada = body.get('data_entrada') or _dt_etf.now().strftime('%Y-%m-%d')
                 estado['carteira'] = [c for c in estado['carteira'] if c.get('ticker') != ticker]
                 estado['carteira'].append({'ticker': ticker, 'preco_entrada': preco_entrada, 'data_entrada': data_entrada})
+            # destino == 'remover': ja foi removido de em_analise acima
+            # (linha do filtro), nao faz mais nada -- ADICIONADO 04/09/2026,
+            # bug achado pelo Victor: nao existia jeito de rejeitar/remover
+            # um ETF que foi pra em_analise, so tinha caminho pra carteira.
             conteudo_novo = json.dumps(estado, ensure_ascii=False, indent=2)
             if sha:
                 _github_put_file('etfs_estado.json', conteudo_novo, sha, f'Move ETF {ticker} -> {destino}')
