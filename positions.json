@@ -40,24 +40,6 @@
       "exercicio": "europeia"
     },
     {
-      "id": "bslv39",
-      "ticker": "BSLV39.SA",
-      "nome": "BSLV39 - iShares Silver Trust BDR",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-04",
-      "entry": 96.0,
-      "kdo": 76.7,
-      "kdo_pct": -20.1,
-      "vol_impl": null,
-      "vol_impl_fonte": "nao_calculado",
-      "data_entrada": "2026-08-05",
-      "exercicio": "europeia",
-      "ganho_sem_barreira": "8.20% fixo",
-      "ganho_prefixado_pct": 8.2,
-      "observacao": "CONFIRMADO em 06/08/2026 com o boleto real: Valor Inicial R$96,00 (leilao de fechamento, derivado do KDO R$76,70 informado / 79,90% e do strike das opcoes R$103,97 / 108,30% -- ambas as contas batem entre si, diferenca de meio centavo por arredondamento). Estrutura sintetica real confirmada: CALL strike R$103,97 VENDIDA (320 qtd, premio R$5,22) + PUT strike R$103,97 COMPRADA (320 qtd, premio R$5,22), vencimento 04/10/2026 (ajustado de 05/10 -- boleto tem precedencia sobre a data do PDF publicitario). KDO R$76,70 -- Nao acionada (confirmado no boleto). PDF Itau Retorno Controlado, Material Publicitario 05/08/2026, prazo 2 meses, retorno prefixado 8,20% se barreira -20,00% nao for rompida. Rolagem da posicao anterior (entry 99,42, venc. original 24/08/2026), encerrada com sucesso no mesmo dia com ganho proporcional de 5,7% -- ver registro em encerradas (id cl-bslv39-ago26)."
-    },
-    {
       "id": "rx",
       "ticker": "ROXO34.SA",
       "nome": "ROXO34 (BDR)",
@@ -91,25 +73,6 @@
       "ganho_sem_barreira": "8.2% fixo",
       "ganho_prefixado_pct": 8.2,
       "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16)."
-    },
-    {
-      "id": "tsla34",
-      "ticker": "TSLA34.SA",
-      "nome": "TSLA34 Retorno Controlado 2m (Lote 17/08/2026)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-15",
-      "entry": 54.96,
-      "kdo": 43.92,
-      "kdo_pct": "-20.0%",
-      "vol_impl": 0.4557,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-08-17",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 67.86,
-      "ganho_sem_barreira": "8.7% fixo",
-      "ganho_prefixado_pct": 8.7,
-      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$54.96 (antes provisorio R$55.23), KDO R$43.92 (antes R$44.184), vencimento 2026-10-15 (antes estimado 2026-10-16)."
     },
     {
       "id": "bb2",
@@ -401,6 +364,30 @@
       "status": "sucesso",
       "prob_sucesso_prevista_pct": 71.48,
       "resultado_texto": "Resgate ANTECIPADO a valor de mercado, sucesso, 2% de lucro. Barreira nunca foi tocada. Victor reportou teto de 3,7% (registro do sistema tinha 3,5% -- pequena divergencia, mantido o numero informado por ele sem recalcular)."
+    },
+    {
+      "id": "cl-bslv39-retctrl-out26",
+      "ticker": "BSLV39",
+      "estrategia": "Retorno Controlado",
+      "strike": null,
+      "alvo_pct": 8.2,
+      "realizado_pct": 6.0,
+      "data_encerramento": "2026-09-09",
+      "status": "sucesso",
+      "prob_sucesso_prevista_pct": null,
+      "resultado_texto": "Encerrada com sucesso, 6,0% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id bslv392, venc 10/11/2026)."
+    },
+    {
+      "id": "cl-tsla34-retctrl-out26",
+      "ticker": "TSLA34",
+      "estrategia": "Retorno Controlado",
+      "strike": null,
+      "alvo_pct": 8.7,
+      "realizado_pct": 5.2,
+      "data_encerramento": "2026-09-09",
+      "status": "sucesso",
+      "prob_sucesso_prevista_pct": 67.86,
+      "resultado_texto": "Encerrada com sucesso, 5,2% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id tsla342, venc 10/11/2026)."
     }
   ]
 }
