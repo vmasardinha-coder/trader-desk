@@ -183,6 +183,24 @@
       "prob_sucesso_prevista_pct": 65.94,
       "ganho_sem_barreira": "5.3% fixo",
       "ganho_prefixado_pct": 5.3
+    },
+    {
+      "id": "bslv392",
+      "ticker": "BSLV39.SA",
+      "nome": "BSLV39 Retorno Controlado 62d (Lote 09/09/2026 - candidata rolagem)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-10",
+      "entry": 103.22,
+      "kdo": 82.576,
+      "kdo_pct": "-20.0%",
+      "vol_impl": null,
+      "vol_impl_fonte": "nao_calculado",
+      "data_entrada": "2026-09-09",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 79.6,
+      "ganho_sem_barreira": "8.2% fixo",
+      "ganho_prefixado_pct": 8.2
     }
   ],
   "encerradas": [
