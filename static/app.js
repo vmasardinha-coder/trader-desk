@@ -4622,7 +4622,8 @@ function renderEtfAnaliseTable() {
       '<td style="color:var(--muted)">' + _etfFmtCap(d.cap) + '</td>' +
       '<td style="color:var(--muted)">' + d.risco + '</td>' +
       '<td><span class="etf-tag-score">' + score + '</span></td>' +
-      '<td><button style="font-size:11px;background:var(--accent);border:none;color:#fff;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'carteira\',' + (d.preco || 'null') + ',this)">OK → Carteira</button></td>';
+      '<td><button style="font-size:11px;background:var(--accent);border:none;color:#fff;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:3px;margin-right:4px" onclick="moverEtf(\'' + d.ticker + '\',\'carteira\',' + (d.preco || 'null') + ',this)">OK → Carteira</button>' +
+      '<button style="font-size:11px;background:transparent;border:1px solid var(--red);color:var(--red);padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:700;border-radius:3px" onclick="moverEtf(\'' + d.ticker + '\',\'remover\',null,this)">✕ Rejeitar</button></td>';
     tb.appendChild(tr);
   });
 }
@@ -4839,7 +4840,7 @@ async function moverEtf(ticker, destino, precoEntrada, btnEl) {
     if (!r.ok) { alert('Erro: ' + (j.error || r.status)); return; }
     _etfEstado = j.estado;
     renderEtfTable();
-    if (destino === 'em_analise') renderEtfAnaliseTable();
+    if (destino === 'em_analise' || destino === 'remover') renderEtfAnaliseTable();
     if (destino === 'carteira') renderEtfCarteira();
   } catch (e) {
     alert('Erro ao mover ETF: ' + e.message);
