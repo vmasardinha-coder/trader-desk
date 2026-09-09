@@ -33,6 +33,7 @@ from fontes import (
     scrape_fi_infra, scrape_fi_infra_dados,
     scrape_statusinvest_ultimo_provento, scrape_statusinvest_historico_proventos,
     scrape_statusinvest_tickers_listagem, scrape_statusinvest_fundo_dados,
+    scrape_fundamentus_fii_proventos,
 )
 import fontes as _fontes_mod  # acesso a _FII_ULTIMO_DIAGNOSTICO (atualizada em tempo real)
 from fontes_etfs import _fetch_yahoo_series
@@ -905,13 +906,25 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
         hist = scrape_statusinvest_historico_proventos(ticker, segmento)
         if not hist:
             # CORRIGIDO 04/09/2026 -- StatusInvest bloqueado por Cloudflare
-            # afeta essa funcao tambem (mesma fonte). O fallback pra
-            # fundsexplorer so foi implementado em
-            # scrape_statusinvest_ultimo_provento (semestres/total_12m
-            # exigiriam raspar uma pagina de historico separada, nao feito
-            # ainda) -- por enquanto, se o historico completo falhar,
-            # tenta pelo menos o ultimo provento via essa outra funcao
-            # (que ja tem o fallback), pra nao devolver tudo vazio.
+            # afeta essa funcao tambem (mesma fonte). Fallback agora usa
+            # scrape_fundamentus_fii_proventos -- fonte melhor que o
+            # fundsexplorer usado antes (data exata, nao so mes/ano, e
+            # total_12m calculado de verdade somando pagamentos reais dos
+            # ultimos 365 dias, nao uma frase-resumo com bug). Testado com
+            # KNCR11 (bate com o DY de 13,33% mostrado na tela) e VGIR11.
+            fundamentus_fallback = scrape_fundamentus_fii_proventos(ticker)
+            if fundamentus_fallback:
+                dy_12m = (fundamentus_fallback['total_12m']/preco_ativacao*100
+                          if preco_ativacao else None)
+                return jsonify({'ticker': ticker, 'encontrado': True,
+                                'total_12m': fundamentus_fallback['total_12m'],
+                                'dy_12m_pct': round(dy_12m,2) if dy_12m else None,
+                                'acumulado_ativacao': None, 'dy_ativacao_pct': None,
+                                'semestres': [],
+                                'ultimo_provento': fundamentus_fallback['ultimo_provento']})
+            # se ate o Fundamentus falhar (ticker nao encontrado, etc),
+            # tenta pelo menos o ultimo provento via fundsexplorer (que
+            # ja tinha fallback proprio em scrape_statusinvest_ultimo_provento)
             ultimo_fallback = scrape_statusinvest_ultimo_provento(ticker, segmento)
             return jsonify({'ticker': ticker, 'encontrado': bool(ultimo_fallback),
                             'total_12m': None, 'dy_12m_pct': None,
