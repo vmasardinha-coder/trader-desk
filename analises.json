@@ -40669,7 +40669,7 @@
     "id": "an_1788970554",
     "ticker": "TSLA34.SA",
     "nome": "TSLA34 Retorno Controlado 62d (Lote 09/09/2026 - candidata rolagem)",
-    "status": "em_analise",
+    "status": "ativa",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-09",
     "preco_foto": 59.05,
