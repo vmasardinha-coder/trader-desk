@@ -1503,3 +1503,61 @@ def scrape_fi_infra():
         return fundos, None
     except Exception as e:
         return None, str(e)
+
+
+def scrape_fundamentus_fii_proventos(ticker):
+    """
+    ADICIONADO 04/09/2026 -- fonte melhor pra proventos de FII do que o
+    fundsexplorer (usado como fallback de emergencia antes). StatusInvest
+    esta bloqueado por Cloudflare (403, "Just a moment..."), e o
+    fundsexplorer so da mes/ano na data (nao o dia exato) e nao tem jeito
+    confiavel de somar 12 meses (a frase-resumo da pagina tem bug,
+    reciclando o preco da cota como se fosse total de dividendos).
+
+    Fundamentus tem uma pagina dedicada (fii_proventos.php) com tabela
+    completa e real de pagamentos mensais, historico de anos, sem
+    protecao Cloudflare (mesma fonte ja usada e validada nesta sessao
+    pra revisar fundamentos de acoes). Da data exata (nao so mes/ano) e
+    permite somar os ultimos 12 meses de verdade, olhando data de
+    pagamento.
+
+    Retorna dict {'ultimo_provento': {'data_pagamento': 'DD/MM/AAAA',
+    'valor': float}, 'total_12m': float} ou None se nao conseguir
+    extrair nada (ticker nao encontrado, tabela vazia, etc).
+    """
+    import re as _re_fp
+    from datetime import datetime as _dt_fp
+
+    try:
+        r = requests.get(
+            f'https://www.fundamentus.com.br/fii_proventos.php?papel={ticker.upper()}',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+            timeout=10)
+        if not r.ok:
+            return None
+        texto = r.content.decode('latin-1', errors='ignore')
+        m_tabela = _re_fp.search(r'<table[^>]*id="resultado"[^>]*>(.*?)</table>', texto, _re_fp.DOTALL)
+        if not m_tabela:
+            return None
+        tabela = m_tabela.group(1)
+        # linhas alternam classe "" e "par" -- confirmado testando KNCR11
+        linhas = _re_fp.findall(
+            r'<tr class="(?:par)?">\s*<td>(\d{2}/\d{2}/\d{4})</td>\s*<td>([^<]+)</td>'
+            r'\s*<td>(\d{2}/\d{2}/\d{4})</td>\s*<td>([\d.,]+)</td>',
+            tabela)
+        if not linhas:
+            return None
+        hoje = _dt_fp.now()
+        total_12m = 0.0
+        for _data_com, _tipo, data_pgto, valor in linhas:
+            dt = _dt_fp.strptime(data_pgto, '%d/%m/%Y')
+            if dt <= hoje and (hoje - dt).days <= 365:
+                total_12m += float(valor.replace('.', '').replace(',', '.'))
+        primeiro = linhas[0]
+        ultimo_provento = {
+            'data_pagamento': primeiro[2],
+            'valor': float(primeiro[3].replace('.', '').replace(',', '.')),
+        }
+        return {'ultimo_provento': ultimo_provento, 'total_12m': round(total_12m, 2)}
+    except Exception:
+        return None
