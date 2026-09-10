@@ -27,7 +27,7 @@ Este documento é deliberadamente CURTO. Regra permanente daqui pra frente:
    anterior).
 4. Sistema é de TOMADA DE DECISÃO (melhorar assertividade), não controle de carteira/P&L exato —
    isso as corretoras já dão.
-5. **Checagem periódica (a cada ~15 dias — próxima a partir de 20/08/2026):** rodar de novo a
+5. **Checagem periódica (a cada ~15 dias — ⚠️ ATRASADA: prevista a partir de 20/08/2026, não rodada até 09/09/2026):** rodar de novo a
    checagem de indexação do BCDI11 (FI-Infra novo, estreou 04/08/2026) nas 3 fontes — testar
    `curl` direto em `fiis.com.br/lista-de-fundos-imobiliarios/` (grep "BCDI"),
    `investidor10.com.br/fiis/bcdi11/` (status 200?), e `GET /fiis/universo-complementar` em
@@ -92,7 +92,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | Estrutura (nome oficial Itaú) | O que é | Status no sistema |
 |---|---|---|
 | **Retorno Controlado** (Forward Knock Out) | Retorno prefixado fixo se barreira de baixa não rompida; senão fica com o ativo | ✅ **Sólido** — bandas, probabilidade, tracking oficial+hipotético, tudo testado com volume real de casos |
-| **Bidirecional** | Participação alavancada na alta + proteção/participação na queda, dentro de duas barreiras | 🟡 **Corrigido hoje, mas ainda capenga** — probabilidade agora calcula certo (barreira de baixo), mas o payoff completo com os 4 cenários (o cálculo de EV que fiz manualmente pra BBAS3 essa sessão) **não é uma função reutilizável do sistema** — foi feito na mão, uma vez. Precisa virar endpoint/função de verdade, testada, não recalculada manualmente toda vez. **Prioridade alta pra próxima sessão.** |
+| **Bidirecional** | Participação alavancada na alta + proteção/participação na queda, dentro de duas barreiras | ✅ **FECHADO — na verdade já estava, auditoria de 09/09/2026.** A nota de 19/08 ("não é função reutilizável, feito na mão") já nasceu desatualizada: `_retorno_bidirecional_full()` existe no `proxy.py` desde **15/07/2026**, é a função única compartilhada pelos 3 lugares que fazem esse cálculo (`/montecarlo/condicional`, `/montecarlo/posicao_ativa`, `/analises/ranking`), e no ranking ela alimenta `retorno_full_ev` → `retorno_medio_pct`, que é exatamente o EV dos 4 cenários. Cobre `downside_antes`/`downside_apos`, então pega Proteção Parcial e Proteção Total (kdo=None) também. **Ressalva que continua valendo**: mora no `proxy.py`, não no `motor.py`, e não tem caso de sanidade automatizado — se um dia for movida, mover com teste junto. |
 | **Lançamento Coberto** (Covered Call) | Venda de call sobre ação em custódia | ✅ Usado em posições reais (BBAS3, ROXO34 `rx`) via `tipo_posicao='simples'`. Não tem probabilidade prevista formal (correto, por design — não é estrutura binária sucesso/fracasso) |
 | **Venda Coberta de Call/Put** (tipo `premium`) | Vender call coberta ou put a seco, recebendo prêmio | ✅ **FECHADO em 25/08/2026** — motivado pelo caso real da ALPA4 (única de 27 opções que bateu a diretriz de 2%/mês, mas sem modelo de cálculo). `_calc_venda_opcao_premium()` (motor.py) + branch no ranking (`proxy.py`, tipo `premium`) — testado contra 4 casos de sanidade antes do deploy, validado em produção com dados reais (ALPA4: 68,88% prob. não-exercício, EV 5,05%/mês; ROXO34: 74,12%, 4,13%/mês). Cobre tanto Venda Coberta de Call quanto Venda de Put a Seco (campo `direcao`: 'call'/'put') — fecha os dois itens de uma vez. **Limitação conhecida**: assume fixing simples no vencimento (padrão europeu/OTC), não modela exercício antecipado americano — a maioria das opções listadas na B3 é americana na prática. Revisitar se Victor reportar exercício antecipado com frequência. |
 | **Booster** (categoria "Acelerador") | Compra ação + compra call + venda 2x call em strike superior — ganho amplificado em alta moderada, capado acima do strike vendido | 🔴 **Não existe no sistema.** Estrutura de 3 pernas com alavancagem assimétrica — precisaria de payoff simulator próprio. |
@@ -105,8 +105,8 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 
 **Ação proposta pra próxima sessão** (ordem de prioridade):
 0. ✅ **[FECHADO 19/08/2026] "Risco de Overshoot" no retorno controlado** — implementado NO MESMO DIA a pedido do Victor (não ficou só no backlog). `_calc_risco_overshoot()` em motor.py, testada contra 3 casos de sanidade (teto alto→overshoot raro, teto baixo→overshoot quase certo) antes do deploy. Conectado no ranking ao vivo (`/analises/ranking`), reaproveitando a simulação que já existia (sem custo computacional extra) -- novos campos `prob_overshoot_pct` e `overshoot_medio_pct` em cada item retorno_controlado. Validado em produção com dados reais (ex: BBAS3 0,8% teto -> 43,68% chance de overshoot, média de 5,42pp deixados na mesa quando acontece).
-0.1. **[ACHADO HOJE, bug real, JÁ CORRIGIDO] Campos errados na análise bidirecional BBAS3** — registrei com `ganho_prefixado_pct` (nome usado no retorno_controlado) em vez de `teto_retorno_pct` + `alavancagem` + `downside_antes`/`downside_apos`, que é o que o ranking ao vivo espera pra bidirecional (função `_retorno_bidirecional_full`). Isso fazia a tela mostrar números sem sentido (tudo em ~50%, sintoma de fallback/erro silencioso). Corrigido manualmente pra esse caso -- mas é um sinal de que **falta validação no momento de criar a análise**: hoje `_TIPOS_VALIDOS` só checa se `tipo_estrutura` é uma string aceita, não checa se os campos OBRIGATÓRIOS daquele tipo específico estão presentes. Adicionar validação: se `tipo_estrutura=='bidirecional'`, exigir `teto_retorno_pct`, `alavancagem`, `downside_antes`, `downside_apos` (com defaults sensatos se ausentes, não silenciosamente quebrar).
-1. Transformar o cálculo manual de EV da bidirecional (4 cenários: tocou baixa / tocou alta sem tocar baixa / ficou dentro positivo / ficou dentro negativo) numa função testada em `motor.py`, com os mesmos princípios de auditoria que a gente aplicou hoje (rodar contra caso conhecido antes de considerar correto)
+0.1. ✅ **[FECHADO 09/09/2026] Validação de campos obrigatórios por `tipo_estrutura`** — origem: a bidirecional da BBAS3 foi registrada em 19/08 com `ganho_prefixado_pct` (nome usado no retorno_controlado) em vez de `teto_retorno_pct`/`alavancagem`/`kuo`, passou batido na validação e o ranking caiu em fallback silencioso (tela mostrando tudo em ~50%). Causa estrutural: `_validar_analise` só checava se `tipo_estrutura` era uma string aceita, nunca se os campos DAQUELE tipo estavam presentes — e os branches do ranking são `elif tipo == X and a.get(campo) is not None`, então campo faltando não casa com branch nenhum e o item sai sem EV, sem erro. Implementado: `_CAMPOS_POR_TIPO` (retorno_controlado → `kdo`+`ganho_prefixado_pct`; bidirecional → `kuo`+`teto_retorno_pct`+`alavancagem`; premio → `strike`+`premio`+`direcao`) e `_ENUM_POR_CAMPO` (`direcao`, `downside_antes`, `downside_apos`), com checagem de tipo numérico. Retorna 422 com mensagem explicando o efeito prático. `simples` e `fii` não exigem nada extra de propósito. `kdo` NÃO é exigido na bidirecional — "Proteção Total" é bidirecional legítima sem barreira de baixa. Validado em 2 camadas: 14/14 casos de sanidade (incluindo reprodução do bug real da BBAS3) + `app.test_client()` batendo em `POST /analises` e regressão de `GET /analises`, `/analises/stats`, `/analises/tracking-hipotetico`. **Regressão contra dado real: as 55 análises `em_analise` de produção foram passadas pela nova regra, 0 reprovações** — a lista de campos bate com o que o Victor realmente registra. Commit `b07bdac8`.
+1. ✅ **[FECHADO — já estava feito, auditoria 09/09/2026]** Ver a linha "Bidirecional" na tabela de cobertura acima: `_retorno_bidirecional_full()` cobre isso desde 15/07/2026.
 2. Definir o mínimo necessário pra "Venda de Put a Seco" ter tracking próprio (provavelmente similar ao retorno_controlado invertido — sucesso = não ser exercido, ou dependendo da visão de Victor, sucesso = ser exercido a um preço que ele queria comprar mesmo)
 3. Deixar Trava de Alta/Baixa e Collar documentados prontos pra implementar rápido quando/se aparecerem (payoff simples, baixo risco de bug)
 4. Straddle/Strangle e Autocall/COE ficam no fim da fila — mecânica bem diferente do resto, exigem desenho novo, só valem o esforço se Victor realmente for usar
@@ -115,7 +115,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 ### Modelagem
 | Item | Status |
 |---|---|
-| **Jump-Diffusion (Merton) — sinal de que vale a pena, teste preliminar 01/09/2026** | 🟡 **Elevado de "estudo futuro sem prioridade" para "vale investigar mais a serio"** — motivado pela faixa 70-80% do tracking de calibração dando persistentemente ~50% de acerto (vs. os 70-80% prometidos). Rodei um rascunho de Jump-Diffusion (deteccao de saltos via MAD robusto sobre retornos historicos do Yahoo -- dado gratuito, ja disponivel, SEM precisar de MT5 ou fonte paga) nos 6 casos dessa faixa. Resultado: os 2 casos que davam fracasso (TSLA34, DIRR3 curto) foram corretamente rebaixados pra faixa 60-70% pelo Jump-Diffusion, deixando a faixa 70-80% remanescente com 75% de acerto (3 sucessos de 4) -- MUITO mais proxima do prometido. Amostra pequena (6 casos), nao prova nada estatisticamente ainda, mas a DIRECAO do efeito bate exatamente com a hipotese (GBM puro subestima risco em papeis de vol alta/prazo curto, que sao justamente os que mais aparecem nessa faixa intermediaria). **Proximo passo, quando o tracking tiver mais volume na faixa 70-80% (sugestao: esperar chegar a uns 15-20 casos antes de decidir)**: se o padrao se confirmar, promover de rascunho pra implementacao real no motor.py (funcao `_calc_prob_sucesso_prevista` ganharia um parametro opcional usando Jump-Diffusion em vez de GBM puro quando houver dado historico suficiente do ativo). Codigo do rascunho ficou só no chat dessa sessao, nao commitado -- se for prosseguir, reescrever como funcao testada de verdade, seguindo o mesmo padrao de auditoria (testar contra casos conhecidos antes de considerar pronta).
+| **Jump-Diffusion (Merton) — sinal de que vale a pena, teste preliminar 01/09/2026** | 🟡 **Elevado de "estudo futuro sem prioridade" para "vale investigar mais a serio"** — motivado pela faixa 70-80% do tracking de calibração dando persistentemente ~50% de acerto (vs. os 70-80% prometidos). Rodei um rascunho de Jump-Diffusion (deteccao de saltos via MAD robusto sobre retornos historicos do Yahoo -- dado gratuito, ja disponivel, SEM precisar de MT5 ou fonte paga) nos 6 casos dessa faixa. Resultado: os 2 casos que davam fracasso (TSLA34, DIRR3 curto) foram corretamente rebaixados pra faixa 60-70% pelo Jump-Diffusion, deixando a faixa 70-80% remanescente com 75% de acerto (3 sucessos de 4) -- MUITO mais proxima do prometido. Amostra pequena (6 casos), nao prova nada estatisticamente ainda, mas a DIRECAO do efeito bate exatamente com a hipotese (GBM puro subestima risco em papeis de vol alta/prazo curto, que sao justamente os que mais aparecem nessa faixa intermediaria). **LEITURA DE 09/09/2026** (`GET /analises/tracking-hipotetico` em producao): 21 avaliadas, 76,2% de acerto binario. Calibracao por faixa: 50-60% n=1 (0%), 60-70% n=5 (80%), **70-80% n=6 (50%)**, 80-90% n=7 (100%), 90-100% n=2 (100%). A faixa 70-80% continua com **exatamente os mesmos 6 casos** de 01/09 (DIRR3 x2, VIVA3, TSLA34, ITLC34, CMIN3) -- nenhuma nova venceu em 8 dias. Extremas bem calibradas, o buraco segue sendo o meio, que e justamente a hipotese. **Nao reprocessar ainda.** **Proximo passo, quando o tracking tiver mais volume na faixa 70-80% (sugestao: esperar chegar a uns 15-20 casos antes de decidir)**: se o padrao se confirmar, promover de rascunho pra implementacao real no motor.py (funcao `_calc_prob_sucesso_prevista` ganharia um parametro opcional usando Jump-Diffusion em vez de GBM puro quando houver dado historico suficiente do ativo). Codigo do rascunho ficou só no chat dessa sessao, nao commitado -- se for prosseguir, reescrever como funcao testada de verdade, seguindo o mesmo padrao de auditoria (testar contra casos conhecidos antes de considerar pronta).
 | Item | Status |
 |---|---|
 | **Auto-rejeição quando o prazo vence sem decisão** | 🔵 Ideia registrada 25/08/2026, baixa prioridade — Victor notou que análises em `em_analise` que passam do vencimento sem serem aceitas ficam "penduradas" indefinidamente (ex: BBAS3/PRIO3 perto de 100% de prob., faltando poucos dias). Hoje ele fecha manualmente essas na mão (rejeita, entra no tracking hipotético normalmente, já validado). Ideia pra depois: rotina que auto-rejeita (ou pelo menos sinaliza) análises com vencimento já passado sem decisão — mas Victor disse explicitamente que não é urgente, o fluxo manual atual funciona bem. Não implementar sem pedido explícito. |
@@ -183,17 +183,15 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
   bugs reais (NameError, campo faltando) só apareceram rodando de verdade, não no syntax check.
 - **SHA fresco imediatamente antes de qualquer PUT no GitHub** — nunca reusar SHA de memória.
 - **NUNCA usar `raw.githubusercontent.com` para reler um arquivo de dados (analises.json, positions.json, stats_analises.json etc.) dentro da MESMA sessão logo após escrever nele** — incidente real em 05/08/2026: escrevi corretamente o fechamento de uma análise, na sequência precisei reler o arquivo pra adicionar outro registro, usei `raw.githubusercontent.com` (CDN com cache de alguns minutos), peguei a versão desatualizada de ANTES do meu próprio fechamento, colei o novo registro nela e sobrescrevi — desfazendo silenciosamente a edição anterior sem erro nenhum aparecer. Regra: para qualquer ciclo de ler→editar→escrever dentro da sessão, usar SEMPRE `api.github.com` (nunca cacheia) tanto pra leitura quanto pra escrita. `raw.githubusercontent.com` só é seguro pra uma leitura isolada de diagnóstico, nunca como base pra uma escrita subsequente na mesma sessão.
-- **Acesso de rede do sandbox do Claude**: histórico era travado em `api.github.com`,
-  `raw.githubusercontent.com` e domínios de pacotes (confirmado via teste direto em 05/08/2026 —
-  `curl` pra `trader-desk.onrender.com` e `query1.finance.yahoo.com` retornou 403 "Host not in
-  allowlist"). **Victor mudou a configuração de rede (Settings → Capabilities → Code execution →
-  Domain allowlist) em 05/08/2026 pra liberar mais domínios — vale ATÉ SER TESTADO EM UMA NOVA
-  CONVERSA** (mudança de config não se aplica à conversa em andamento no momento da troca, só a
-  partir da próxima). Primeira ação de qualquer sessão nova: testar `curl
-  https://query1.finance.yahoo.com/v8/finance/chart/PETR4.SA` e `curl
-  https://trader-desk.onrender.com/analises` pra confirmar se já libera — se sim, muita coisa
-  neste documento sobre "não dá pra calcular GARCH/pegar preço ao vivo daqui" fica obsoleta e o
-  Claude pode buscar preço/histórico direto em vez de sempre pedir pro Victor.
+- **Acesso de rede do sandbox do Claude**: ✅ **LIBERADO — confirmado por teste direto em
+  09/09/2026**, primeira sessão nova depois da mudança de allowlist que o Victor fez em 05/08.
+  Resultados: `query1.finance.yahoo.com` (PETR4.SA) → 200, `trader-desk.onrender.com/analises` →
+  200 (298 KB), `api.hyperliquid.xyz/info` → 200. **Isso obsoleta toda menção neste documento a
+  "não dá pra calcular GARCH / pegar preço ao vivo daqui"** — o Claude agora busca preço e
+  histórico direto, roda GARCH no sandbox, consulta produção e recalcula bandas na hora de
+  registrar uma análise, sem depender do Victor colar número. Era esse o gargalo do caso SPCX34
+  (registrada em 05/08 sem `bandas_congeladas`). Se voltar a dar 403 "Host not in allowlist",
+  a config foi revertida — testar de novo antes de assumir.
 - **Estruturas bidirecionais/retorno controlado sempre com PDF oficial do banco presente** —
   nunca cadastrar de memória/estimativa.
 - **ROXO34 = id `rx` sempre** (lógica hardcoded no app.js pra cotação/ITM-OTM/Monte Carlo
@@ -203,38 +201,32 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 
 ---
 
-## 📌 Operações em andamento (checar status ao retomar)
+## 📌 Operações em andamento (RECONSTRUÍDA 09/09/2026 direto do `positions.json`)
 
-- **BSLV39 (rolagem, 05/08/2026)**: posição antiga encerrada com sucesso (retorno proporcional
-  5,7% = 8,3% × 41/60 dias decorridos, confirmado pelo Victor e pelo corretor). Nova posição aberta
-  (mesmo id `bslv39`), venc. 05/10/2026, retorno prefixado 8,20%, barreira -20% (KDO R$76,94).
-  **`entry` está PROVISÓRIO em R$96,30** (valor assumido a pedido do Victor) — NÃO corrigir por
-  conta própria, só quando ele mandar o valor real do boleto de liquidação. Ver `positions.json`
-  ativas (`bslv39`) e encerradas (`cl-bslv39-ago26`).
-- **SPCX34 (nova, 05/08/2026)**: registrada em Em Análise (`an_1785945909`), status `em_analise`
-  (ainda NÃO decidida), preço de referência R$39,20 (papel caiu -8,24% no dia do registro — vale
-  reconferir se isso muda a leitura). Retorno prefixado 19,00%/29 dias (MUITO acima do normal,
-  vol. implícita alta, BDR de empresa de capital fechado). **Faltam as bandas de Monte Carlo**
-  (`bandas_congeladas`) — não deu pra calcular por falta de acesso de rede no momento do registro.
-  Se a mudança de rede (ver Princípios de processo acima) já valer na sessão nova, recalcular e
-  preencher isso primeiro, antes de mais nada, antes do Victor rodar o ranking de novo.
-- **AXIA3 "Proteção Parcial" (`an_1784576725`)**: encerrada de forma neutra em 05/08/2026 (era
-  teste, nunca foi decisão real, não conta em stats). Não precisa de ação — só contexto caso o
-  Victor pergunte por ela de novo.
+**A versão anterior desta seção estava travada em 05/08/2026 e não batia mais com a realidade** —
+listava `a3b`/`a3c` (já encerradas), `bslv39` venc. 05/10, `rx` venc. 17/09, `bb2` venc. 15/10.
+Nenhum desses estava certo. Tabela abaixo lida do arquivo real (9 ativas, 18 encerradas).
 
-| ID | Ticker | Tipo | Exercício | Vencimento | Obs |
+| ID | Ticker | Tipo | Exercício | Vencimento | Números |
 |---|---|---|---|---|---|
-| pt | PETR4 | simples (call vendida) | europeia | 17/12/2026 | sem meta, objetivo é rollover |
-| vl | VALE3 | bidirecional | europeia | 18/02/2027 | sem meta, objetivo é rollover |
-| a3b | AXIA3(B) | bidirecional | europeia | 02/10/2026 | entry 50,75 (boleto oficial) |
-| a3c | AXIA3(C) | retorno_controlado | europeia | 22/11/2026 | entry 51,68, teto 27,75%, alav. 1,5x |
-| bb2 | BBASJ222 (BBAS3) | simples (call vendida, rolagem) | — | 15/10/2026 | strike 21,90, prêmio 1,20 |
-| bslv39 | BSLV39 | retorno_controlado | europeia | 05/10/2026 | entry R$96,30 PROVISÓRIO (rolagem 05/08, ver seção Operações em andamento) |
-| rx | ROXO34 (ROXOI107) | simples (call vendida, rolagem) | EUROPEIA | 17/09/2026 | meta 2,44%, rolagem defensiva — id SEMPRE `rx` |
+| `pt` | PETR4 | simples (call vendida) | europeia | 17/12/2026 | PETRL319, strike 30,85 — objetivo é rollover |
+| `vl` | VALE3 | simples (call vendida) | europeia | 18/02/2027 | VALEB574, strike 57,40 — objetivo é rollover |
+| `rx` | ROXO34 | simples (call vendida) | europeia | 17/12/2026 | ROXOL112, strike 11,25, 2.500 ações, delta 0,677 — **id SEMPRE `rx`** |
+| `bb2` | BBAS3 | simples (call vendida) | europeia | 17/12/2026 | BBASL212, strike 20,81, 2.200 ações — risco elevado de exercício, papel com força |
+| `tsmc34` | TSMC34 | retorno_controlado | europeia | 15/10/2026 | entry 280,95, KDO 224,52, prefixado 8,20% — boleto confirmado 19/08 |
+| `sbsp3` | SBSP3 | retorno_controlado | europeia | 03/11/2026 | entry 25,10, KDO 21,21, prefixado 7,80% — boleto confirmado 04/09 |
+| `inbr32` | INBR32 | retorno_controlado | europeia | 05/11/2026 | entry 29,97, KDO 23,58, prefixado 10,50% — boleto confirmado 04/09 |
+| `tsla342` | TSLA34 | retorno_controlado | europeia | 10/11/2026 | entry 59,05, KDO 47,24, prefixado 5,30% — lote 09/09/2026 |
+| `bslv392` | BSLV39 | retorno_controlado | europeia | 10/11/2026 | entry 103,22, KDO 82,58, prefixado 8,20% — lote 09/09/2026 |
 
-**Nota:** AXIA3(A) original (id `a3`) já não está mais em ativas — foi encerrada com sucesso em
-20/07/2026 (ver Encerradas abaixo). A tabela antiga desta seção listava ela por engano até
-05/08/2026; corrigido nesta atualização.
+**Ponto de atenção (09/09/2026):** `tsla342` e `bslv392` entraram como "candidata rolagem" no lote
+de 09/09 e, diferente de `tsmc34`/`sbsp3`/`inbr32`, **não têm nota de "CONFIRMADO com o boleto
+real"** na observação. Se os `entry` ainda forem provisórios, marcar como tal e corrigir só quando
+o documento oficial de liquidação chegar — regra permanente de nunca fixar número financeiro por
+estimativa. Confirmar com o Victor.
+
+**Nota histórica:** `bslv39` (venc. 05/10) e `a3b`/`a3c` (AXIA3) saíram de ativas entre 05/08 e
+09/09 — ver `encerradas` no `positions.json` para o desfecho de cada uma.
 
 ## Encerradas relevantes recentes
 - ROXO34 (ROXOG105, strike R$10,50): fracasso — estourou barreira, opção era AMERICANA.
@@ -260,11 +252,11 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
 - Módulos: `proxy.py` (core + Monte Carlo de Papéis), `motor.py` (estatística pura), `fontes.py`
   (scrapers/fetches gerais), `fontes_etfs.py`, `rotas_fiis.py`, `rotas_etfs.py`.
 
-## 🔑 SHAs de referência (buscados frescos em 06/08/2026, fim de sessão — SEMPRE rebuscar antes de editar, nunca reusar estes de memória)
-- proxy.py: 4556df91b4d8db6f3750406b841679608eec0f39 (commit, não blob sha — rebuscar sempre)
-- fontes.py: 572cb85da788e0fc16edf2cfc39c05f565e97d39 (commit, não blob sha — rebuscar sempre)
-- static/app.js: 711b3fc50ada4468b68b840d4b7ce5825c6245d2 (commit, não blob sha — rebuscar sempre)
-- analises.json: última escrita foi o encerramento da MUTC34 (13a8314e4462dd477562cc2272611771da8be788, commit)
+## 🔑 SHAs de referência (09/09/2026 — SEMPRE rebuscar antes de editar, nunca reusar de memória)
+- Último commit desta sessão: `b07bdac8` (proxy.py — validação por `tipo_estrutura`)
+- Os SHAs antigos listados aqui (06/08/2026) foram removidos: estavam com um mês de idade e o
+  próprio cabeçalho já dizia pra nunca reusá-los. Manter uma lista que não deve ser usada só
+  convida a ser usada. Buscar fresco via `api.github.com/repos/vmasardinha-coder/trader-desk/contents/{arquivo}?ref=main`.
 
 ---
 
