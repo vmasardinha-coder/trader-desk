@@ -25590,7 +25590,7 @@
     "id": "an_1788281105",
     "ticker": "ITLC34.SA",
     "nome": "ITLC34 Retorno Controlado 15d (Lote 01/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-01",
     "preco_foto": 76.29,
@@ -25700,7 +25700,13 @@
       },
       "prob_sucesso_prevista_pct": 78.64
     },
-    "observacao": "Lote 01/09/2026, PDF Itau 'Material Publicitario', Retorno Controlado. Barreira -18.7%, retorno prefixado 5.8%. Valor Inicial provisorio, sem boleto oficial ainda. ATENCAO: ITLC34 ja apareceu 2x como fracasso no tracking hipotetico anteriormente (-12,82% e -4,29%) -- historico de risco real nesse papel, nao so a vol. atual."
+    "observacao": "Lote 01/09/2026, PDF Itau 'Material Publicitario', Retorno Controlado. Barreira -18.7%, retorno prefixado 5.8%. Valor Inicial provisorio, sem boleto oficial ainda. ATENCAO: ITLC34 ja apareceu 2x como fracasso no tracking hipotetico anteriormente (-12,82% e -4,29%) -- historico de risco real nesse papel, nao so a vol. atual.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-10",
+    "ev_mensal_na_rejeicao": 0.272,
+    "score_na_rejeicao": 0.408,
+    "prob_meta_na_rejeicao": 99.97,
+    "preco_encerramento": 90.5
   },
   {
     "id": "an_1788281106",
