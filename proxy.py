@@ -3547,6 +3547,37 @@ def _incrementar_contador_migradas():
 _TIPOS_VALIDOS = ['bidirecional', 'retorno_controlado', 'premio', 'simples', 'fii']
 _ORIGENS_VALIDAS = ['customizada', 'pronta', 'screening_fiis']
 
+# ADICIONADO 09/09/2026 -- fecha o item 0.1 do backlog de 19/08/2026.
+# Ate aqui _validar_analise so checava se tipo_estrutura era uma STRING
+# aceita, nunca se os campos que AQUELE tipo especifico precisa estavam
+# presentes. Bug real que isso permitiu: a bidirecional da BBAS3 foi
+# registrada com 'ganho_prefixado_pct' (nome do retorno_controlado) em
+# vez de teto_retorno_pct/alavancagem/kuo -- passou na validacao, e o
+# ranking ao vivo caiu no fallback silencioso (retorno_medio_pct = None,
+# tela mostrando tudo em ~50%). Nada estourava erro: o branch do ranking
+# e um `elif tipo == X and a.get(campo) is not None`, entao campo
+# faltando simplesmente nao casa com nenhum branch e o item sai sem EV.
+#
+# Os campos abaixo sao exatamente os que cada branch do ranking consome
+# (ver /analises/ranking): se faltar qualquer um deles, aquele tipo NAO
+# calcula EV. 'simples' e 'fii' nao entram -- 'simples' nao tem payoff
+# estruturado (nao e binario sucesso/fracasso, por design) e 'fii' usa
+# a convencao prazo_dias=9999 sem barreira nenhuma.
+_CAMPOS_POR_TIPO = {
+    'retorno_controlado': ['kdo', 'ganho_prefixado_pct'],
+    'bidirecional': ['kuo', 'teto_retorno_pct', 'alavancagem'],
+    'premio': ['strike', 'premio', 'direcao'],
+}
+# Valores fechados de campos enumerados (so validados se o campo existir).
+# kdo NAO entra em _CAMPOS_POR_TIPO['bidirecional'] de proposito: a
+# "Protecao Total" do Itau e uma bidirecional legitima SEM barreira de
+# baixa (kdo=None), e _retorno_bidirecional_full ja trata esse caso.
+_ENUM_POR_CAMPO = {
+    'direcao': ('call', 'put'),
+    'downside_antes': ('positiva', 'protegida'),
+    'downside_apos': ('protegida', 'perda_integral'),
+}
+
 def _validar_analise(item):
     erros = []
     for campo in _CAMPOS_OBRIGATORIOS_ANALISE:
@@ -3558,6 +3589,23 @@ def _validar_analise(item):
         erros.append(f"tipo_estrutura invalido: {item.get('tipo_estrutura')!r} (validos: {_TIPOS_VALIDOS})")
     if item.get('origem') not in _ORIGENS_VALIDAS:
         erros.append(f"origem invalida: {item.get('origem')!r} (validas: {_ORIGENS_VALIDAS})")
+
+    tipo = item.get('tipo_estrutura')
+    for campo in _CAMPOS_POR_TIPO.get(tipo, []):
+        if item.get(campo) is None:
+            erros.append(
+                f"tipo_estrutura='{tipo}' exige o campo '{campo}' "
+                f"(sem ele o ranking nao calcula EV e o item aparece zerado na tela)")
+        elif campo not in _ENUM_POR_CAMPO:
+            try:
+                float(item[campo])
+            except (TypeError, ValueError):
+                erros.append(f"campo '{campo}' deve ser numerico, veio {item[campo]!r}")
+
+    for campo, validos in _ENUM_POR_CAMPO.items():
+        if item.get(campo) is not None and item[campo] not in validos:
+            erros.append(f"campo '{campo}' invalido: {item[campo]!r} (validos: {list(validos)})")
+
     return erros
 
 @app.route('/analises', methods=['GET'])
