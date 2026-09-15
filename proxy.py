@@ -4591,6 +4591,7 @@ def ranking_analises():
                 ST_full = paths_full[:, -1]
                 variacao_full = (ST_full/preco_foto - 1)
                 retorno_medio_pct = None
+                retorno_medio_fwd_pct = None
 
                 if tipo == 'retorno_controlado' and a.get('kdo') is not None and a.get('ganho_prefixado_pct') is not None:
                     ganho_pct = float(a['ganho_prefixado_pct'])
@@ -4602,6 +4603,24 @@ def ranking_analises():
                     tocou_full = min_full <= kdo
                     retorno_full_ev = np.where(~tocou_full, ganho_pct/100, variacao_full)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
+                    # ADICIONADO 15/09/2026 -- bug reportado pelo Victor.
+                    # O EV acima parte do preco_foto e simula o prazo TOTAL,
+                    # como se a operacao ainda nao tivesse comecado. Ja o
+                    # prob_meta parte do preco de HOJE e simula so os dias que
+                    # FALTAM. Os dois descreviam momentos diferentes e eram
+                    # exibidos lado a lado como se fossem do mesmo instante.
+                    # Caso que expos isso: CYRE3 com 99,0% de prob (2 dias pro
+                    # fim, barreira intacta) e EV de -5,46%/mes -- o EV ainda
+                    # refletia a incerteza dos 77 dias originais, ja resolvida.
+                    # Agora existe tambem o EV DAQUI PRA FRENTE, reaproveitando
+                    # paths_sim (ja simulado, custo zero) e com a mesma ancora
+                    # do prob_meta. O EV desde a foto NAO foi removido --
+                    # continua como coluna separada, porque e ele que serve pra
+                    # decidir ENTRADA (decisao de 25/06/2026, alinhada com
+                    # /montecarlo/condicional).
+                    variacao_sim_rc = (paths_sim[:, -1]/S - 1)
+                    retorno_medio_fwd_pct = round(float(
+                        np.where(~tocou, ganho_pct/100, variacao_sim_rc).mean()*100), 3)
                     # ADICIONADO 19/08/2026 -- "Risco de Overshoot" (nome
                     # pedido explicitamente pelo Victor pra nao esquecer).
                     # Reaproveita variacao_full (ja simulado logo acima, sem
@@ -4677,6 +4696,19 @@ def ranking_analises():
                 retorno_mensal = round(ganho_pct / meses_restantes, 3)  # mantido para referencia/coluna antiga
                 meses_totais = max(prazo_dias / 30.4, 0.1)
                 ev_mensal_pct = round(retorno_medio_pct / meses_totais, 3)
+                # EV daqui pra frente, normalizado pelos meses que FALTAM --
+                # e este que entra no score, porque o score ordena "o que
+                # fazer agora", nao "valia a pena ter entrado".
+                # NORMALIZA POR meses_totais, NAO por meses_restantes: o
+                # ganho prefixado e ganho do PRAZO INTEIRO -- o que muda com o
+                # tempo e so a probabilidade de chegar la, nao o tamanho do
+                # premio. Dividir o ganho cheio pelos dias que faltam produz
+                # numeros absurdos perto do vencimento (ex: SPCX34 a 8 dias
+                # daria 38%/mes). O bonus por estar perto de receber ja e
+                # tratado, separadamente, pelo peso_prazo.
+                ev_mensal_fwd_pct = (round(retorno_medio_fwd_pct / meses_totais, 3)
+                                     if retorno_medio_fwd_pct is not None else None)
+                ev_score = ev_mensal_fwd_pct if ev_mensal_fwd_pct is not None else ev_mensal_pct
                 # CORRIGIDO 15/09/2026 -- bug reportado pelo Victor.
                 # peso_prazo nasceu como BONUS para quem esta perto de
                 # receber (capital libera antes). Como era aplicado por
@@ -4691,7 +4723,7 @@ def ranking_analises():
                 # Agora o bonus e simetrico na INTENCAO: aproxima o score
                 # de zero quando o EV e negativo, em vez de afastar.
                 peso_prazo = 1 + (30/dias_restantes)*0.1
-                score = (ev_mensal_pct * peso_prazo) if ev_mensal_pct >= 0 else (ev_mensal_pct / peso_prazo)
+                score = (ev_score * peso_prazo) if ev_score >= 0 else (ev_score / peso_prazo)
 
                 dy_anual = FUND_OVERRIDE_GLOBAL.get(symbol)
                 tem_dy_relevante = (symbol not in _SEM_DY_RELEVANTE and dy_anual is not None and dy_anual > 0)
@@ -4719,6 +4751,8 @@ def ranking_analises():
                     'prob_meta_pct': prob_meta,
                     'retorno_medio_pct': retorno_medio_pct,
                     'ev_mensal_pct': ev_mensal_pct,
+                    'ev_mensal_fwd_pct': ev_mensal_fwd_pct,
+                    'retorno_medio_fwd_pct': retorno_medio_fwd_pct,
                     'dy_anual_pct': dy_anual if tem_dy_relevante else None,
                     'cdi_mensal_pct': round(cdi_mensal, 3),
                     'colchao_dy_vs_cdi_pct': colchao_vs_cdi,
