@@ -16178,7 +16178,8 @@
    },
    "prob_sucesso_prevista_pct": 82.22
   },
-  "observacao": "Lote 17/08/2026. Premissas aceitas como fixas: barreira -20.0%, retorno prefixado 6.6% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=24.43) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel."
+  "observacao": "Lote 17/08/2026. Premissas aceitas como fixas: barreira -20.0%, retorno prefixado 6.6% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=24.43) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1786995175",
@@ -16517,7 +16518,8 @@
    },
    "prob_sucesso_prevista_pct": 81.9
   },
-  "observacao": "Lote 17/08/2026. Premissas aceitas como fixas: barreira -18.0%, retorno prefixado 3.06% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=10.67) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Fonte: planilha 'Estruturas' Itau Mesa Assessoria (Caique Meza, cotacoes 11/08/2026). Delta informado pelo banco (prob. sob medida risco-neutro/vol implicita): 64.77% -- diverge da prob_sucesso_prevista_pct calculada aqui (GARCH/vol historica): 81.9%. Divergencia normal (fontes de vol diferentes), mantida registrada pra comparacao futura."
+  "observacao": "Lote 17/08/2026. Premissas aceitas como fixas: barreira -18.0%, retorno prefixado 3.06% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=10.67) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Fonte: planilha 'Estruturas' Itau Mesa Assessoria (Caique Meza, cotacoes 11/08/2026). Delta informado pelo banco (prob. sob medida risco-neutro/vol implicita): 64.77% -- diverge da prob_sucesso_prevista_pct calculada aqui (GARCH/vol historica): 81.9%. Divergencia normal (fontes de vol diferentes), mantida registrada pra comparacao futura. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1786995176",
@@ -20521,12 +20523,13 @@
    },
    "prob_sucesso_prevista_pct": 49.86
   },
-  "observacao": "PDF Itau 'Material Publicitario' 18/08/2026, Operacoes Estruturadas Bidirecional. Prazo 9 meses. Barreira baixa -20% (KDO R$14.336) -- se tocada, perda integral da variacao negativa do papel, SEM protecao. Barreira alta +48% (KUO R$26.5216) -- se tocada, retorno capado em 9,00% total. Se nenhuma barreira tocada: participa 1,5x da alta (cap 72%) ou 1,0x da queda (max -20%). CORRIGIDO 19/08/2026: bug achado pelo Victor -- a funcao do motor so checava a barreira de CIMA (KUO) com logica invertida. Corrigida (ver motor.py). prob_sucesso_prevista_pct agora reflete corretamente a chance de NAO TOCAR a barreira de BAIXO (KDO, a que da prejuizo integral) = 49,86% -- bate com o calculo manual completo feito em 18/08/2026 (49,36%, mesma logica, diferenca so por ruido de simulacao). EV medio da estrutura completa (considerando os 4 cenarios de payoff) = -3,99% (negativo). Victor optou por registrar mesmo assim para comparar lado a lado com as opcoes de retorno controlado curtas na tela. [CORRIGIDO 19/08/2026: registro estava usando o nome de campo errado (ganho_prefixado_pct) que o ranking ao vivo nao reconhece pra bidirecional -- precisa de teto_retorno_pct + alavancagem + downside_antes/downside_apos. Adicionados: teto_retorno_pct=9.0, alavancagem=1.5, downside_antes=positiva (perde 1:1 com a queda ANTES de tocar KDO), downside_apos=perda_integral (continua perdendo 1:1 DEPOIS de tocar KDO tambem -- essa estrutura especifica NAO tem protecao nenhuma na queda, confirmado no texto do PDF: \"participa integralmente da queda\" tanto antes quanto depois da barreira -- diferente do padrao AXIA3 que zera a perda apos tocar.]",
+  "observacao": "PDF Itau 'Material Publicitario' 18/08/2026, Operacoes Estruturadas Bidirecional. Prazo 9 meses. Barreira baixa -20% (KDO R$14.336) -- se tocada, perda integral da variacao negativa do papel, SEM protecao. Barreira alta +48% (KUO R$26.5216) -- se tocada, retorno capado em 9,00% total. Se nenhuma barreira tocada: participa 1,5x da alta (cap 72%) ou 1,0x da queda (max -20%). CORRIGIDO 19/08/2026: bug achado pelo Victor -- a funcao do motor so checava a barreira de CIMA (KUO) com logica invertida. Corrigida (ver motor.py). prob_sucesso_prevista_pct agora reflete corretamente a chance de NAO TOCAR a barreira de BAIXO (KDO, a que da prejuizo integral) = 49,86% -- bate com o calculo manual completo feito em 18/08/2026 (49,36%, mesma logica, diferenca so por ruido de simulacao). EV medio da estrutura completa (considerando os 4 cenarios de payoff) = -3,99% (negativo). Victor optou por registrar mesmo assim para comparar lado a lado com as opcoes de retorno controlado curtas na tela. [CORRIGIDO 19/08/2026: registro estava usando o nome de campo errado (ganho_prefixado_pct) que o ranking ao vivo nao reconhece pra bidirecional -- precisa de teto_retorno_pct + alavancagem + downside_antes/downside_apos. Adicionados: teto_retorno_pct=9.0, alavancagem=1.5, downside_antes=positiva (perde 1:1 com a queda ANTES de tocar KDO), downside_apos=perda_integral (continua perdendo 1:1 DEPOIS de tocar KDO tambem -- essa estrutura especifica NAO tem protecao nenhuma na queda, confirmado no texto do PDF: \"participa integralmente da queda\" tanto antes quanto depois da barreira -- diferente do padrao AXIA3 que zera a perda apos tocar.] | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
   "kuo": 26.5216,
   "teto_retorno_pct": 9.0,
   "alavancagem": 1.5,
   "downside_antes": "positiva",
-  "downside_apos": "perda_integral"
+  "downside_apos": "perda_integral",
+  "origem": "pronta"
  },
  {
   "id": "an_1787596415",
@@ -20840,7 +20843,8 @@
    },
    "prob_sucesso_prevista_pct": 50.74
   },
-  "observacao": "Lote 24/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas: barreira -20.0%, retorno prefixado 10.6% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=46.57) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Vol. implicita altissima (97.37%) reflete situacao atual da SPCX34."
+  "observacao": "Lote 24/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas: barreira -20.0%, retorno prefixado 10.6% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=46.57) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Vol. implicita altissima (97.37%) reflete situacao atual da SPCX34. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1787596416",
@@ -21304,7 +21308,8 @@
    },
    "prob_sucesso_prevista_pct": 52.42
   },
-  "observacao": "Lote 24/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas: barreira -31.4%, retorno prefixado 15.4% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=46.57) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Vol. implicita altissima (97.37%) reflete situacao atual da SPCX34."
+  "observacao": "Lote 24/08/2026 -- PDF Itau 'Material Publicitario', Operacoes Estruturadas: Retorno Controlado. Premissas do PDF aceitas como fixas: barreira -31.4%, retorno prefixado 15.4% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=46.57) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Vol. implicita altissima (97.37%) reflete situacao atual da SPCX34. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1787672012",
@@ -22883,7 +22888,8 @@
    },
    "prob_sucesso_prevista_pct": 54.7
   },
-  "observacao": "PDF Itau \"Material Publicitario\" 25/08/2026, Operacoes Estruturadas: Protecao Parcial (NAO e a Bidirecional classica -- mecanica diferente, ja mapeada em _retorno_bidirecional_full: downside_antes=protegida, downside_apos=perda_integral). Prazo 4 meses (125 dias corridos). Se desvalorizar ATE -18,10% (sem tocar KDO R$219.148): capital 100% protegido (0% de perda, nao acompanha a queda). Se romper KDO: perda integral, sem protecao nenhuma dali pra frente. Se valorizar ate +19,10% (sem tocar KUO R$318.6878): participa 2x da alta (cap 38%). Se romper KUO: trava em 19,00% fixo. Registrada A PEDIDO DO VICTOR para comparar contra a posicao TSMC34 Retorno Controlado ja ATIVA (id tsmc34, entry R$280,95, venc 2026-10-15, teto 8,20% fixo) -- decisao em aberto se vale migrar da atual pra essa. prob_sucesso_prevista_pct = 54.7% (chance de NAO tocar a barreira de baixo)."
+  "observacao": "PDF Itau \"Material Publicitario\" 25/08/2026, Operacoes Estruturadas: Protecao Parcial (NAO e a Bidirecional classica -- mecanica diferente, ja mapeada em _retorno_bidirecional_full: downside_antes=protegida, downside_apos=perda_integral). Prazo 4 meses (125 dias corridos). Se desvalorizar ATE -18,10% (sem tocar KDO R$219.148): capital 100% protegido (0% de perda, nao acompanha a queda). Se romper KDO: perda integral, sem protecao nenhuma dali pra frente. Se valorizar ate +19,10% (sem tocar KUO R$318.6878): participa 2x da alta (cap 38%). Se romper KUO: trava em 19,00% fixo. Registrada A PEDIDO DO VICTOR para comparar contra a posicao TSMC34 Retorno Controlado ja ATIVA (id tsmc34, entry R$280,95, venc 2026-10-15, teto 8,20% fixo) -- decisao em aberto se vale migrar da atual pra essa. prob_sucesso_prevista_pct = 54.7% (chance de NAO tocar a barreira de baixo). | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1787672037",
@@ -22895,10 +22901,11 @@
   "preco_foto": 12.8,
   "prazo_dias": 24,
   "vencimento": "2026-09-18",
-  "observacao": "Lote 25/08/2026 -- Venda Coberta de Call (fonte externa, nao PDF Itau). Strike R$13,54 (+5,78% do preco atual), premio R$0,28, renda anualizada 27,43% (2,29%/mes) -- a UNICA das 27 opcoes analisadas no lote que bateu a diretriz de 2%/mes. ATENCAO: prob. destoante das outras pode refletir vol. implicita elevada de verdade -- ALPA4 subiu ~120% em 12 meses (acordo de distribuicao exclusiva EUA com Eastman Footwear + queda de custo de insumos/butadieno-estireno beneficiando margem, segundo pesquisa feita em 25/08/2026). Risco maior que o normal, nao so premio bom. tipo_estrutura=premium -- MODELO IMPLEMENTADO em 25/08/2026 (_calc_venda_opcao_premium, motor.py + branch no ranking, proxy.py) -- motivado por este proprio caso. Campos strike/premio/direcao adicionados, ja participa do ranking normalmente. | CORRIGIDO 15/09/2026: tipo_estrutura era 'premium', valor que NAO existe em _TIPOS_VALIDOS (o correto e 'premio'). Efeito do erro: a tela do ranking mostrava '?' na coluna Tipo. Efeito PIOR, ainda latente: o branch do ranking testava tipo=='premium', entao uma venda coberta cadastrada com o valor CORRETO passaria na validacao e nao calcularia no ranking. Backend ajustado para aceitar ambos; dado migrado para 'premio'.",
+  "observacao": "Lote 25/08/2026 -- Venda Coberta de Call (fonte externa, nao PDF Itau). Strike R$13,54 (+5,78% do preco atual), premio R$0,28, renda anualizada 27,43% (2,29%/mes) -- a UNICA das 27 opcoes analisadas no lote que bateu a diretriz de 2%/mes. ATENCAO: prob. destoante das outras pode refletir vol. implicita elevada de verdade -- ALPA4 subiu ~120% em 12 meses (acordo de distribuicao exclusiva EUA com Eastman Footwear + queda de custo de insumos/butadieno-estireno beneficiando margem, segundo pesquisa feita em 25/08/2026). Risco maior que o normal, nao so premio bom. tipo_estrutura=premium -- MODELO IMPLEMENTADO em 25/08/2026 (_calc_venda_opcao_premium, motor.py + branch no ranking, proxy.py) -- motivado por este proprio caso. Campos strike/premio/direcao adicionados, ja participa do ranking normalmente. | CORRIGIDO 15/09/2026: tipo_estrutura era 'premium', valor que NAO existe em _TIPOS_VALIDOS (o correto e 'premio'). Efeito do erro: a tela do ranking mostrava '?' na coluna Tipo. Efeito PIOR, ainda latente: o branch do ranking testava tipo=='premium', entao uma venda coberta cadastrada com o valor CORRETO passaria na validacao e nao calcularia no ranking. Backend ajustado para aceitar ambos; dado migrado para 'premio'. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
   "strike": 13.54,
   "premio": 0.28,
-  "direcao": "call"
+  "direcao": "call",
+  "origem": "pronta"
  },
  {
   "id": "an_1787672038",
@@ -22910,10 +22917,11 @@
   "preco_foto": 12.71,
   "prazo_dias": 24,
   "vencimento": "2026-09-18",
-  "observacao": "Lote 25/08/2026 -- Venda Coberta de Call. Strike R$13,50 (+6,22% do preco atual), premio R$0,21, renda anualizada 20,63% (1,72%/mes) -- 2o lugar do lote, nao bate diretriz de 2%/mes mas perto. MODELO IMPLEMENTADO em 25/08/2026, mesma atualizacao da ALPA4. Campos strike/premio/direcao adicionados. | CORRIGIDO 15/09/2026: tipo_estrutura era 'premium', valor que NAO existe em _TIPOS_VALIDOS (o correto e 'premio'). Efeito do erro: a tela do ranking mostrava '?' na coluna Tipo. Efeito PIOR, ainda latente: o branch do ranking testava tipo=='premium', entao uma venda coberta cadastrada com o valor CORRETO passaria na validacao e nao calcularia no ranking. Backend ajustado para aceitar ambos; dado migrado para 'premio'.",
+  "observacao": "Lote 25/08/2026 -- Venda Coberta de Call. Strike R$13,50 (+6,22% do preco atual), premio R$0,21, renda anualizada 20,63% (1,72%/mes) -- 2o lugar do lote, nao bate diretriz de 2%/mes mas perto. MODELO IMPLEMENTADO em 25/08/2026, mesma atualizacao da ALPA4. Campos strike/premio/direcao adicionados. | CORRIGIDO 15/09/2026: tipo_estrutura era 'premium', valor que NAO existe em _TIPOS_VALIDOS (o correto e 'premio'). Efeito do erro: a tela do ranking mostrava '?' na coluna Tipo. Efeito PIOR, ainda latente: o branch do ranking testava tipo=='premium', entao uma venda coberta cadastrada com o valor CORRETO passaria na validacao e nao calcularia no ranking. Backend ajustado para aceitar ambos; dado migrado para 'premio'. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
   "strike": 13.5,
   "premio": 0.21,
-  "direcao": "call"
+  "direcao": "call",
+  "origem": "pronta"
  },
  {
   "id": "an_1787856577",
@@ -23705,7 +23713,8 @@
    },
    "prob_sucesso_prevista_pct": 79.6
   },
-  "observacao": "PDF Itau \"Material Publicitario\" 27/08/2026, Retorno Controlado. Barreira -20%, retorno prefixado 8,20% (MESMOS termos da posicao ja ativa bslv39, so que com vencimento mais longo -- atual vence 04/10/2026, esta nova venceria 28/10/2026). Provavelmente candidata natural de rolagem quando a posicao atual vencer. Valor Inicial (preco_foto=107,36) provisorio, ao vivo -- ainda nao ha boleto oficial."
+  "observacao": "PDF Itau \"Material Publicitario\" 27/08/2026, Retorno Controlado. Barreira -20%, retorno prefixado 8,20% (MESMOS termos da posicao ja ativa bslv39, so que com vencimento mais longo -- atual vence 04/10/2026, esta nova venceria 28/10/2026). Provavelmente candidata natural de rolagem quando a posicao atual vencer. Valor Inicial (preco_foto=107,36) provisorio, ao vivo -- ainda nao ha boleto oficial. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788225901",
@@ -25584,7 +25593,8 @@
    },
    "prob_sucesso_prevista_pct": 47.82
   },
-  "observacao": "PDF Itau \"Material Publicitario\" 31/08/2026, Protecao Parcial. Prazo 6 meses (185 dias corridos, mais longo que a versao de 4 meses analisada em 25/08/2026). Se desvalorizar ATE -20,10% (sem tocar KDO): capital 100% protegido (0% perda). Se romper KDO: perda integral. Se valorizar ate +26,10% (sem tocar KUO): participa 2x da alta (cap 52%). Se romper KUO: trava em 26,00% fixo. prob_sucesso_prevista_pct = 47.82% (nao tocar KDO) -- BAIXA comparada as outras estruturas, prazo longo (185d) com vol. alta (36,75%) deixa risco de barreira elevado. ATENCAO: essa metrica reflete so a barreira de baixo, nao o EV completo -- calcular payoff dos 4 cenarios (como fizemos em 25/08) antes de comparar com a posicao TSMC34 Retorno Controlado ja ATIVA (id tsmc34, entry R$280,95, teto 8,20% fixo) se Victor quiser essa comparacao."
+  "observacao": "PDF Itau \"Material Publicitario\" 31/08/2026, Protecao Parcial. Prazo 6 meses (185 dias corridos, mais longo que a versao de 4 meses analisada em 25/08/2026). Se desvalorizar ATE -20,10% (sem tocar KDO): capital 100% protegido (0% perda). Se romper KDO: perda integral. Se valorizar ate +26,10% (sem tocar KUO): participa 2x da alta (cap 52%). Se romper KUO: trava em 26,00% fixo. prob_sucesso_prevista_pct = 47.82% (nao tocar KDO) -- BAIXA comparada as outras estruturas, prazo longo (185d) com vol. alta (36,75%) deixa risco de barreira elevado. ATENCAO: essa metrica reflete so a barreira de baixo, nao o EV completo -- calcular payoff dos 4 cenarios (como fizemos em 25/08) antes de comparar com a posicao TSMC34 Retorno Controlado ja ATIVA (id tsmc34, entry R$280,95, teto 8,20% fixo) se Victor quiser essa comparacao. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788281105",
@@ -26508,7 +26518,8 @@
    },
    "prob_sucesso_prevista_pct": 46.9
   },
-  "observacao": "Lote 01/09/2026, PDF Itau 'Material Publicitario', Retorno Controlado. Barreira -20.0%, retorno prefixado 10.0%. Valor Inicial provisorio, sem boleto oficial ainda. ATENCAO: probabilidade BAIXA (46,9%) -- vol. de 68,32% e alta demais pra 64 dias mesmo com barreira generosa de -20%. A1MD34 = BDR da AMD (semicondutores), subiu ~253% em 12 meses, historicamente volatil."
+  "observacao": "Lote 01/09/2026, PDF Itau 'Material Publicitario', Retorno Controlado. Barreira -20.0%, retorno prefixado 10.0%. Valor Inicial provisorio, sem boleto oficial ainda. ATENCAO: probabilidade BAIXA (46,9%) -- vol. de 68,32% e alta demais pra 64 dias mesmo com barreira generosa de -20%. A1MD34 = BDR da AMD (semicondutores), subiu ~253% em 12 meses, historicamente volatil. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788281107",
@@ -27310,7 +27321,8 @@
    },
    "prob_sucesso_prevista_pct": 79.04
   },
-  "observacao": "Lote 01/09/2026, PDF Itau 'Material Publicitario', Retorno Controlado. Barreira -18.4%, retorno prefixado 8.6%. Valor Inicial provisorio, sem boleto oficial ainda."
+  "observacao": "Lote 01/09/2026, PDF Itau 'Material Publicitario', Retorno Controlado. Barreira -18.4%, retorno prefixado 8.6%. Valor Inicial provisorio, sem boleto oficial ainda. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788368559",
@@ -28107,7 +28119,8 @@
    },
    "prob_sucesso_prevista_pct": 68.84
   },
-  "observacao": "Lote 02/09/2026, PDF Itau, Retorno Controlado. Barreira -19.9%, retorno prefixado 7.9%. Valor Inicial provisorio."
+  "observacao": "Lote 02/09/2026, PDF Itau, Retorno Controlado. Barreira -19.9%, retorno prefixado 7.9%. Valor Inicial provisorio. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788457745",
@@ -28904,7 +28917,8 @@
    },
    "prob_sucesso_prevista_pct": 69.28
   },
-  "observacao": "Lote 03/09/2026, PDF Itau, Retorno Controlado. Barreira -20.0%, retorno prefixado 6.4%. Valor Inicial provisorio."
+  "observacao": "Lote 03/09/2026, PDF Itau, Retorno Controlado. Barreira -20.0%, retorno prefixado 6.4%. Valor Inicial provisorio. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788457746",
@@ -29701,7 +29715,8 @@
    },
    "prob_sucesso_prevista_pct": 75.36
   },
-  "observacao": "Lote 03/09/2026, PDF Itau, Retorno Controlado. Barreira -18.6%, retorno prefixado 5.6%. Valor Inicial provisorio."
+  "observacao": "Lote 03/09/2026, PDF Itau, Retorno Controlado. Barreira -18.6%, retorno prefixado 5.6%. Valor Inicial provisorio. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458227",
@@ -29812,7 +29827,8 @@
    },
    "prob_sucesso_prevista_pct": 71.22
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 10.43%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 10.43%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458228",
@@ -29923,7 +29939,8 @@
    },
    "prob_sucesso_prevista_pct": 68.16
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 2.15%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 2.15%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458229",
@@ -30287,7 +30304,8 @@
    },
    "prob_sucesso_prevista_pct": 74.62
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 5.97%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 5.97%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458230",
@@ -31214,7 +31232,8 @@
    },
    "prob_sucesso_prevista_pct": 54.32
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 13.26%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 13.26%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458231",
@@ -31695,7 +31714,8 @@
    },
    "prob_sucesso_prevista_pct": 60.78
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 5.39%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 5.39%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458233",
@@ -32059,7 +32079,8 @@
    },
    "prob_sucesso_prevista_pct": 57.82
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 5.34%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 5.34%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458234",
@@ -32986,7 +33007,8 @@
    },
    "prob_sucesso_prevista_pct": 39.1
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 11.82%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 11.82%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458235",
@@ -33097,7 +33119,8 @@
    },
    "prob_sucesso_prevista_pct": 82.5
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.77%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.77%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458236",
@@ -33578,7 +33601,8 @@
    },
    "prob_sucesso_prevista_pct": 74.04
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 4.69%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 4.69%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458238",
@@ -34505,7 +34529,8 @@
    },
    "prob_sucesso_prevista_pct": 46.5
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 10.34%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 10.34%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458239",
@@ -34616,7 +34641,8 @@
    },
    "prob_sucesso_prevista_pct": 71.64
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.56%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.56%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458240",
@@ -34980,7 +35006,8 @@
    },
    "prob_sucesso_prevista_pct": 60.32
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 4.1%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 4.1%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458241",
@@ -35344,7 +35371,8 @@
    },
    "prob_sucesso_prevista_pct": 65.96
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 3.98%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 3.98%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458242",
@@ -35455,7 +35483,8 @@
    },
    "prob_sucesso_prevista_pct": 63.6
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.32%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.32%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458243",
@@ -36382,7 +36411,8 @@
    },
    "prob_sucesso_prevista_pct": 41.5
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 7.8%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 7.8%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458244",
@@ -37309,7 +37339,8 @@
    },
    "prob_sucesso_prevista_pct": 41.18
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 7.27%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 7.27%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458245",
@@ -38236,7 +38267,8 @@
    },
    "prob_sucesso_prevista_pct": 53.78
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 7.17%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 7.17%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458246",
@@ -38600,7 +38632,8 @@
    },
    "prob_sucesso_prevista_pct": 53.42
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 2.97%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 2.97%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458247",
@@ -39527,7 +39560,8 @@
    },
    "prob_sucesso_prevista_pct": 35.34
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 6.56%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 6.56%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788458248",
@@ -39891,7 +39925,8 @@
    },
    "prob_sucesso_prevista_pct": 85.78
   },
-  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 2.76%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+  "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -12.0%, retorno prefixado 2.76%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1788970555",
@@ -41470,7 +41505,8 @@
    },
    "prob_sucesso_prevista_pct": 54.68
   },
-  "observacao": "PDF Itau 09/09/2026, Protecao Parcial. Candidata a rolagem da posicao ativa tsmc34 (venc 15/10, 36d restantes, ~88,2% prob de manter garantido 8,20% se ficar). Victor sinalizou que esse caso e diferente dos outros dois -- nao tem alternativa de retorno controlado mais curta disponivel no momento (so essa Protecao Parcial de 4 meses), vai questionar/buscar outra opcao antes de decidir. prob de nao tocar KDO = 54.68% -- baixa, prazo longo com vol. ainda elevada."
+  "observacao": "PDF Itau 09/09/2026, Protecao Parcial. Candidata a rolagem da posicao ativa tsmc34 (venc 15/10, 36d restantes, ~88,2% prob de manter garantido 8,20% se ficar). Victor sinalizou que esse caso e diferente dos outros dois -- nao tem alternativa de retorno controlado mais curta disponivel no momento (so essa Protecao Parcial de 4 meses), vai questionar/buscar outra opcao antes de decidir. prob de nao tocar KDO = 54.68% -- baixa, prazo longo com vol. ainda elevada. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
+  "origem": "pronta"
  },
  {
   "id": "an_1789000000",
