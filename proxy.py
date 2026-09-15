@@ -4640,7 +4640,7 @@ def ranking_analises():
                         variacao_full, tocou_alta_full, tocou_baixa_full,
                         ganho_pct/100, alav, downside_antes, downside_apos)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
-                elif tipo == 'premium' and a.get('strike') is not None and a.get('premio') is not None and a.get('direcao') in ('call', 'put'):
+                elif tipo in ('premio', 'premium') and a.get('strike') is not None and a.get('premio') is not None and a.get('direcao') in ('call', 'put'):
                     # ADICIONADO 25/08/2026 -- pedido do Victor: fecha o
                     # backlog de Venda Coberta de Call/Put (motivado pelo
                     # caso ALPA4). Diferente das outras estruturas, sao
