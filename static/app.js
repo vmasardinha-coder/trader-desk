@@ -3355,7 +3355,7 @@ function tplRanking(d){
     if(r.erro){
       return `<tr style="opacity:.55">
         <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
-        <td colspan="10" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+        <td colspan="12" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
       </tr>`;
     }
     const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(1)+'%':'—';
@@ -3365,9 +3365,29 @@ function tplRanking(d){
     const loteTag=r.lote?`<span style="font-size:9px;color:var(--muted)"> · ${r.lote}</span>`:'';
     const tipoLabel=TIPO_CURTO[r.tipo_estrutura]||'?';
     const tipoFull=_TIPO_LABEL[r.tipo_estrutura]||r.tipo_estrutura;
-    const evVal=r.ev_mensal_pct;
+    // ALTERADO 15/09/2026 -- a coluna EV passa a mostrar o EV DAQUI PRA
+    // FRENTE (mesma ancora do prob_meta: preco de hoje, dias que faltam).
+    // O EV desde a foto continua existindo e vai pro tooltip -- ele serve
+    // pra decidir ENTRADA, nao pra acompanhar o que ja esta rodando.
+    // Bidirecional e venda de call ainda nao tem o fwd calculado no
+    // backend, entao caem no antigo (esta no backlog).
+    const evFwd=r.ev_mensal_fwd_pct;
+    const evVal=(evFwd!=null)?evFwd:r.ev_mensal_pct;
     const evCor=evVal>0?'var(--green)':'var(--red)';
     const evTxt=(evVal>0?'+':'')+evVal.toFixed(2)+'%';
+    const evTitle=(evFwd!=null)
+      ? `EV daqui pra frente: ${evFwd.toFixed(2)}%/mês (preço de hoje, ${r.dias_restantes} dias restantes). EV desde a foto: ${r.ev_mensal_pct.toFixed(2)}%/mês -- esse é o de decidir entrada.`
+      : `EV desde a foto: ${r.ev_mensal_pct.toFixed(2)}%/mês. O EV daqui-pra-frente ainda não é calculado para ${tipoFull}.`;
+    // Barreira + folga: responde POR QUE a probabilidade é o que é.
+    const bar=(r.barreira_valor!=null)
+      ? `${r.barreira_tipo} ${r.barreira_valor.toFixed(2)}`
+      : '—';
+    const folga=(r.folga_barreira_pct!=null)
+      ? `<span style="color:${r.folga_barreira_pct<3?'var(--red)':(r.folga_barreira_pct<8?'var(--accent)':'var(--green)')}">${(r.folga_barreira_pct>0?'+':'')+r.folga_barreira_pct.toFixed(2)}%</span>`
+      : '—';
+    const folgaTitle=(r.barreira_tipo==='STRIKE')
+      ? 'Quanto o papel ainda pode SUBIR até ser exercida. Negativo = já está dentro do dinheiro.'
+      : 'Quanto o papel ainda pode CAIR até tocar a barreira. Negativo = já rompeu.';
     // ADICIONADO 15/07/2026 -- achado pelo Victor investigando SPCX34:
     // quando o historico do papel vem vazio (BDR exotico/pouco liquido),
     // o backend usava 35% de vol generica escondida, sem avisar. Agora
@@ -3381,9 +3401,11 @@ function tplRanking(d){
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
       <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
+      <td style="padding:6px 8px;text-align:right;color:var(--muted);font-size:10px;white-space:nowrap">${r.preco_atual!=null?r.preco_atual.toFixed(2):'—'} <span style="opacity:.6">/</span> ${bar}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700" title="${folgaTitle}">${folga}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${r.prob_meta_pct>=50?'var(--green)':'var(--muted)'}">${r.prob_meta_pct.toFixed(1)}%</td>
       <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="${r.overshoot_medio_pct!=null?`Quando acontece, em média o papel rende ${r.overshoot_medio_pct.toFixed(2)}pp A MAIS do que o retorno travado -- dinheiro que fica na mesa`:'Só disponível para Retorno Controlado'}">${r.prob_overshoot_pct!=null?r.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${evCor}" title="Retorno médio ponderando TODOS os cenários (sucesso, parcial, rompimento da barreira) — não só prob. de bater a meta">${evTxt}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${evCor}" title="${evTitle}">${evTxt}</td>
       <td style="padding:6px 8px;text-align:right">${dy}</td>
       <td style="padding:6px 8px;text-align:right" title="DY mensal − CDI mensal: quanto o dividendo do papel rende a mais (ou menos) que o CDI por mês, se a estrutura quebrar e você ficar com o papel">${colchao}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = EV mensal × peso de prazo, + bônus se colchão positivo">${r.score.toFixed(3)}</td>
@@ -3395,7 +3417,7 @@ function tplRanking(d){
     </tr>`;
   }).join('');
   return `
-  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por score (EV completo, maior primeiro) — score é só ordenação, nenhuma linha é escondida</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por score (EV daqui-pra-frente × peso de prazo, maior primeiro) — score é só ordenação, nenhuma linha é escondida</div>
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
@@ -3403,6 +3425,8 @@ function tplRanking(d){
       <th style="padding:6px 8px" title="BI=Bidirecional, RC=Retorno Controlado, SI=Simples, PR=Prêmio">Tipo</th>
       <th style="padding:6px 8px;text-align:right">Prazo</th>
       <th style="padding:6px 8px;text-align:right" title="Retorno mensal equivalente SE bater a meta (ganho prefixado/teto), ignorando o cenário de romper a barreira. Veja EV mensal para o retorno médio considerando TODOS os cenários.">Ret. mensal <span style="opacity:.6;cursor:help">ⓘ</span></th>
+      <th style="padding:6px 8px;text-align:right" title="Preço atual / barreira da estrutura (KDO para retorno controlado e bidirecional, STRIKE para venda de call)">Preço / Barreira</th>
+      <th style="padding:6px 8px;text-align:right" title="Distância até a barreira. Para KDO: quanto o papel pode cair antes de romper. Para STRIKE: quanto pode subir antes de ser exercida. É isto que explica uma probabilidade baixa mesmo faltando poucos dias.">Folga</th>
       <th style="padding:6px 8px;text-align:right" title="Probabilidade de NÃO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, com o preço atual) -- é dinâmica, recalcula a cada vez que você roda o ranking. Diferente do número 'desde o início' que aparece no detalhe de cada análise (esse usa o prazo total a partir do preço da foto).">Prob. <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="RISCO DE OVERSHOOT -- probabilidade de o papel fechar ACIMA do retorno travado no Retorno Controlado, deixando dinheiro na mesa. Só existe pra Retorno Controlado (Bidirecional não trava um teto único do mesmo jeito).">Overshoot <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="EV mensal -- retorno médio ponderando todos os cenários, não só se bateu a meta">EV mensal</th>
