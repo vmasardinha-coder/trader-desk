@@ -31220,7 +31220,7 @@
     "id": "an_1788458231",
     "ticker": "PRIO3.SA",
     "nome": "PRIO3 Retorno Controlado 14d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 61.97,
@@ -31325,7 +31325,13 @@
       },
       "prob_sucesso_prevista_pct": 75.9
     },
-    "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 2.03%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%."
+    "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 2.03%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-15",
+    "ev_mensal_na_rejeicao": -1.398,
+    "score_na_rejeicao": -3.495,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 64.09
   },
   {
     "id": "an_1788458232",
