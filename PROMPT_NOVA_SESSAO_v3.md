@@ -204,6 +204,58 @@ A lição NÃO é "nunca rolar pra baixo"; é que rolar pra baixo troca prêmio 
 entrega, e a 0,85% do strike essa troca é praticamente cara ou coroa. Registrar como decisão
 ruim no resultado, não como decisão óbvia na hora.
 
+**Hierarquia de decisão do Victor (ditada em 15/09/2026 — ordem importa):**
+1. **Diretriz de ganho: 2 a 2,5%/mês.** Não é ganância — acima disso o risco cresce
+   desproporcional. Medido em 15/09/2026: as rejeitadas de retorno alto (>=10%/mês) deram 50%
+   de acerto, e tirando as SPCX34 (onde ele já estava posicionado), foram 0 de 3.
+2. **Probabilidade — peso pelo menos IGUAL ao do EV.** Caso que fundamenta: CYRE3 em
+   15/09/2026 tinha o pior score da tabela inteira e 99,0% de chance, a 2 dias de receber.
+   EV muito negativo não significa fracasso.
+3. **EV só como desempate**, quando duas têm probabilidade parecida: vai na menos negativa.
+Corte prático já registrado nas observações das análises: **só fecha operação com prob >= 70%**.
+
+**Regras de resultado do TRACKER (ditadas em 15/09/2026) — separadas do resultado do Victor:**
+São DUAS colunas, nunca uma corrigindo a outra. O resultado do Victor fecha na saída dele
+(P&L). O resultado do tracker só fecha no **vencimento ORIGINAL**, mesmo que ele tenha saído
+antes — a operação continua ABERTA para o modelo (estado "pendente") até essa data.
+Motivo: o modelo previu sobreviver até o vencimento; encerrar antes é prova mais fácil, e
+contar como sucesso pleno infla a calibração (os 5 casos de 15/09/2026 eram TODOS resgate
+antecipado, com realizado bem abaixo do alvo: ROXO34 5,6% de 9,9%, SPCX34 9,2% de 13,4%,
+TSLA34 5,2% de 8,7%). A divergência entre as duas colunas é o dado mais valioso: mede a
+qualidade das saídas antecipadas do Victor, e o inverso (sucesso nos dois, sempre) indica
+que ele está saindo cedo demais e deixando prefixado na mesa.
+
+- **Retorno controlado:** barreira tocada até o vencimento original = FRACASSO do tracker,
+  independente de o Victor ter saído antes com lucro. Totalmente automatizável (o
+  barreiramento é preço observável — basta varrer a mínima do período no histórico).
+- **Bidirecional — barreira de BAIXA tocada:** fracasso.
+- **Bidirecional — barreira de ALTA tocada:** congela o ganho. Critério é o CDI: retorno
+  acumulado >= CDI é sucesso, abaixo é fracasso. **CDI comparado contra o PRAZO FINAL**, não
+  contra o decorrido até o toque — é no vencimento que o banco paga. Aproximação aceita: usar
+  o CDI corrente, porque o sistema não guarda histórico de CDI.
+- **Bidirecional — nenhuma barreira tocada:** sucesso, EXCETO se sair praticamente no mesmo
+  preço de entrada — aí é fracasso, porque alguma ponta tinha que ter funcionado. Tolerância
+  sugerida (a confirmar na prática): variação final dentro de ±1%.
+- **Venda de call (coberta ou seca):** exercida = fracasso, não exercida = sucesso. Se o
+  Victor recomprar antes para rolar, o ciclo dele fecha na recompra mas **o tracker continua
+  acompanhando até o vencimento original**, igual ao retorno controlado.
+  ⚠️ ARMADILHA CONHECIDA: por essa regra, call coberta exercida vira fracasso mesmo quando o
+  papel foi vendido com lucro (caso PETR4/VALE3). Gravar SEMPRE o retorno realizado junto com
+  o binário, senão em alguns meses a venda coberta vai parecer a pior estratégia quando só
+  tem objetivo diferente. Mesma família do "fracasso != prejuízo" (MUTC34 rompeu e fechou
+  em +4,3%).
+
+**Campos necessários para isso funcionar** (3 preenchidos, 2 calculados): `data_saida`,
+`vencimento_original`, `resultado_victor` → e o sistema deriva `barreira_tocada_ate_vencimento`
+e `resultado_tracker`. O **KDO precisa virar campo** nas encerradas — hoje está solto dentro
+do texto de `resultado_texto` em alguns registros, o que forçaria parsing de prosa.
+
+**Os dois trackers, e por que ambos importam** (Victor, 15/09/2026): o hipotético é composto
+das análises que ele **rejeitou ou não teve capital** para pegar — é o histórico grande (56
+em aberto em 15/09/2026, e ele deixa acumular de propósito). O oficial é capital real, bem
+menor. O contraste 77,3% (hipotético, n=22) vs 100% (oficial, n=5) é o esperado se o filtro
+de entrada funciona, mas com n=5 ainda não é comprovação.
+
 ## 🏗️ Princípios de processo/arquitetura (permanentes)
 
 - **`ThreadPoolExecutor` com `shutdown(wait=False)` é PERIGOSO no Render (1 worker)** — pode
