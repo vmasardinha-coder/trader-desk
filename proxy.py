@@ -4677,7 +4677,21 @@ def ranking_analises():
                 retorno_mensal = round(ganho_pct / meses_restantes, 3)  # mantido para referencia/coluna antiga
                 meses_totais = max(prazo_dias / 30.4, 0.1)
                 ev_mensal_pct = round(retorno_medio_pct / meses_totais, 3)
+                # CORRIGIDO 15/09/2026 -- bug reportado pelo Victor.
+                # peso_prazo nasceu como BONUS para quem esta perto de
+                # receber (capital libera antes). Como era aplicado por
+                # MULTIPLICACAO, ele invertia de sinal quando o EV era
+                # negativo: com 2 dias restantes o peso vira 2,5, e
+                # multiplicar um EV negativo por 2,5 AFUNDA o score em vez
+                # de premiar. Caso real que expos isso (15/09/2026): CYRE3
+                # com 99,0% de probabilidade e 2 dias do vencimento ficou
+                # com score -13,64, a PIOR da tabela inteira -- abaixo da
+                # DIRR3, que tinha 8,4% e ia romper. O ranking colocava a
+                # vencedora quase certa atras da perdedora quase certa.
+                # Agora o bonus e simetrico na INTENCAO: aproxima o score
+                # de zero quando o EV e negativo, em vez de afastar.
                 peso_prazo = 1 + (30/dias_restantes)*0.1
+                score = (ev_mensal_pct * peso_prazo) if ev_mensal_pct >= 0 else (ev_mensal_pct / peso_prazo)
 
                 dy_anual = FUND_OVERRIDE_GLOBAL.get(symbol)
                 tem_dy_relevante = (symbol not in _SEM_DY_RELEVANTE and dy_anual is not None and dy_anual > 0)
@@ -4690,7 +4704,6 @@ def ranking_analises():
                 # prob_meta continua exposta como coluna separada -- usuario
                 # pediu para MANTER, nao substituir, so trocar o que entra
                 # na formula do score.
-                score = ev_mensal_pct * peso_prazo
                 if tem_dy_relevante and colchao_vs_cdi is not None and colchao_vs_cdi > 0:
                     score += 0.1
 
