@@ -172,7 +172,7 @@
       "kdo": 82.05,
       "kdo_pct": "-20.1%",
       "vol_impl": null,
-      "vol_impl_fonte": "nao_calculado",
+      "vol_impl_fonte": "indisponivel_yahoo_sem_historico",
       "data_entrada": "2026-09-09",
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 79.6,
@@ -182,7 +182,8 @@
       "quantidade": 290,
       "fonte_numeros": "extrato_posicoes_banco_2026-09-14",
       "entry_confirmado": false,
-      "observacao": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$111.21, quantidade 290, KDO R$82.05, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$103.22, KDO R$82.576, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$102.67 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$102.5625 e via strike R$102.7819). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar."
+      "observacao": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$111.21, quantidade 290, KDO R$82.05, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$103.22, KDO R$82.576, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$102.67 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$102.5625 e via strike R$102.7819). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar. | INVESTIGADO 15/09/2026: vol_impl nula NAO e erro de preenchimento. Yahoo devolve apenas 1 candle para BSLV39.SA (range=2y), entao garch_11 retorna None -- nao ha historico para calcular. O problema real e outro: prob_sucesso_prevista_pct=79.6 foi gravada mesmo sem vol declarada, ou seja, apoiada numa vol que nao ficou registrada e nao pode ser auditada nem reproduzida. Marcada como nao-auditavel em vez de recalculada -- inventar vol aqui seria pior que admitir a lacuna. WORKAROUND SUGERIDO (nao aplicado, precisa do ok do Victor): usar a vol do papel original em dolar como proxy. Medicao de 15/09/2026 em 5 pares BDR/US mostrou diferenca de apenas -2,9 a +2,5 pontos de vol, porque o cambio funciona como hedge parcial e nao como risco extra.",
+      "prob_sucesso_prevista_pct_auditavel": false
     }
   ],
   "encerradas": [
