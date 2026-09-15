@@ -3317,6 +3317,21 @@ async function loadRankingAnalises(){
       offset+=LOTE;
       if(!d.proxima_pagina_existe || offset>=totalGeral)break;
     }
+    // CORRIGIDO 15/09/2026 -- bug reportado pelo Victor: a tabela nao vinha
+    // ordenada do melhor pro pior. Causa raiz: o backend fatia ANTES de
+    // calcular (em_analise_total[offset:offset+limit]) e so depois ordena,
+    // entao cada PAGINA vem ordenada internamente, mas a concatenacao das
+    // paginas fica ordenada em blocos -- nunca globalmente. O backend nao
+    // tem como ordenar global sem calcular tudo de uma vez, que e
+    // exatamente o que causava os 502 e motivou a paginacao. Entao a
+    // ordenacao final e responsabilidade daqui, depois de juntar tudo.
+    // Linhas com erro (score null) vao pro fim, nunca somem -- Victor ve
+    // TODOS os registros, sempre.
+    todasLinhas.sort((a,b)=>{
+      const sa=(a && a.score!=null)?a.score:-Infinity;
+      const sb=(b && b.score!=null)?b.score:-Infinity;
+      return sb-sa;
+    });
     const merged={...primeiraResposta, ranking:todasLinhas};
     area.innerHTML=tplRanking(merged);
   }catch(e){
