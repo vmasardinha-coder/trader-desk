@@ -4739,8 +4739,29 @@ def ranking_analises():
                 if tem_dy_relevante and colchao_vs_cdi is not None and colchao_vs_cdi > 0:
                     score += 0.1
 
+                # ADICIONADO 15/09/2026 -- pedido do Victor: a tela nao tinha
+                # como mostrar POR QUE uma probabilidade era baixa. Caso que
+                # motivou: CMIN3 com 60,8% faltando so 2 dias -- nao era o
+                # prazo, era a folga (spot 6,20 contra KDO 6,11 = 1,41%).
+                # Para retorno_controlado/bidirecional a barreira e o KDO e a
+                # folga e quanto o preco pode CAIR ate toca-la. Para venda de
+                # call a "barreira" e o strike e a folga e quanto o preco pode
+                # SUBIR ate ser exercida -- sinal invertido de proposito.
+                barreira_valor = None; barreira_tipo = None; folga_barreira_pct = None
+                try:
+                    if tipo in ('retorno_controlado', 'bidirecional') and a.get('kdo') is not None:
+                        barreira_valor = float(a['kdo']); barreira_tipo = 'KDO'
+                        folga_barreira_pct = round((S/barreira_valor - 1)*100, 2)
+                    elif tipo in ('premio', 'premium') and a.get('strike') is not None:
+                        barreira_valor = float(a['strike']); barreira_tipo = 'STRIKE'
+                        folga_barreira_pct = round((barreira_valor/S - 1)*100, 2)
+                except Exception:
+                    pass
+
                 resultado.append({
                     'id': a['id'], 'ticker': ticker, 'nome': a.get('nome'),
+                    'barreira_valor': barreira_valor, 'barreira_tipo': barreira_tipo,
+                    'folga_barreira_pct': folga_barreira_pct,
                     'tipo_estrutura': tipo, 'lote': a.get('lote'),
                     'backtest': a.get('backtest'),
                     'preco_foto': preco_foto, 'preco_atual': round(S, 2),
