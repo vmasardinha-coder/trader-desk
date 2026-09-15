@@ -72,7 +72,10 @@
       "prob_sucesso_prevista_pct": 78.02,
       "ganho_sem_barreira": "8.2% fixo",
       "ganho_prefixado_pct": 8.2,
-      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16)."
+      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16).",
+      "quantidade": 110,
+      "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
+      "entry_confirmado": true
     },
     {
       "id": "bb2",
@@ -108,7 +111,10 @@
       "prob_sucesso_prevista_pct": 77.28,
       "ganho_sem_barreira": "7.8% fixo",
       "ganho_prefixado_pct": 7.8,
-      "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$25,28) ate boleto oficial. CONFIRMADO 04/09/2026: Valor Inicial R$25,10 (antes provisorio R$25.28), KDO R$21,21 (antes R$21.3869), vencimento 2026-11-03 (antes 2026-11-04)."
+      "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$25,28) ate boleto oficial. CONFIRMADO 04/09/2026: Valor Inicial R$25,10 (antes provisorio R$25.28), KDO R$21,21 (antes R$21.3869), vencimento 2026-11-03 (antes 2026-11-04).",
+      "quantidade": 1200,
+      "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
+      "entry_confirmado": true
     },
     {
       "id": "inbr32",
@@ -127,43 +133,56 @@
       "prob_sucesso_prevista_pct": 70.16,
       "ganho_sem_barreira": "10.5% fixo",
       "ganho_prefixado_pct": 10.5,
-      "observacao": " CONFIRMADO 04/09/2026: Valor Inicial R$29,97 (antes provisorio R$30.1), KDO R$23,58 (antes R$24.08), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$30,47 e via KDO R$29,48) tiveram diferenca maior que o normal (~R$1,00, vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao."
+      "observacao": " CONFIRMADO 04/09/2026: Valor Inicial R$29,97 (antes provisorio R$30.1), KDO R$23,58 (antes R$24.08), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$30,47 e via KDO R$29,48) tiveram diferenca maior que o normal (~R$1,00, vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao.",
+      "quantidade": 1000,
+      "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
+      "entry_confirmado": true
     },
     {
       "id": "tsla342",
       "ticker": "TSLA34.SA",
-      "nome": "TSLA34 Retorno Controlado 62d (Lote 09/09/2026 - candidata rolagem)",
+      "nome": "TSLA34 Retorno Controlado 62d (Lote 09/09/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-10",
-      "entry": 59.05,
-      "kdo": 47.24,
-      "kdo_pct": "-20.0%",
+      "vencimento": "2026-11-09",
+      "entry": 58.64,
+      "kdo": 46.86,
+      "kdo_pct": "-20.1%",
       "vol_impl": 0.4722,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-09-09",
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 65.94,
       "ganho_sem_barreira": "5.3% fixo",
-      "ganho_prefixado_pct": 5.3
+      "ganho_prefixado_pct": 5.3,
+      "strike": 61.82,
+      "quantidade": 510,
+      "fonte_numeros": "extrato_posicoes_banco_2026-09-14",
+      "entry_confirmado": false,
+      "observacao": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$61.82, quantidade 510, KDO R$46.86, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$59.05, KDO R$47.240, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$58.64 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$58.5750 e via strike R$58.7085). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar."
     },
     {
       "id": "bslv392",
       "ticker": "BSLV39.SA",
-      "nome": "BSLV39 Retorno Controlado 62d (Lote 09/09/2026 - candidata rolagem)",
+      "nome": "BSLV39 Retorno Controlado 62d (Lote 09/09/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-10",
-      "entry": 103.22,
-      "kdo": 82.576,
-      "kdo_pct": "-20.0%",
+      "vencimento": "2026-11-09",
+      "entry": 102.67,
+      "kdo": 82.05,
+      "kdo_pct": "-20.1%",
       "vol_impl": null,
       "vol_impl_fonte": "nao_calculado",
       "data_entrada": "2026-09-09",
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 79.6,
       "ganho_sem_barreira": "8.2% fixo",
-      "ganho_prefixado_pct": 8.2
+      "ganho_prefixado_pct": 8.2,
+      "strike": 111.21,
+      "quantidade": 290,
+      "fonte_numeros": "extrato_posicoes_banco_2026-09-14",
+      "entry_confirmado": false,
+      "observacao": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$111.21, quantidade 290, KDO R$82.05, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$103.22, KDO R$82.576, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$102.67 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$102.5625 e via strike R$102.7819). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar."
     }
   ],
   "encerradas": [
