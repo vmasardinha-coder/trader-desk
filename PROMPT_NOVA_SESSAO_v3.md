@@ -171,6 +171,39 @@ limpa. Os outros 2 itens de Modelagem seguem genuinamente abertos.
   3. Bidirecional: sucesso = fechar DENTRO do range (não rompe KDO nem KUO).
   4. Venda de put a seco: sucesso = fechar ACIMA do strike.
 
+**Lançamento coberto — regras consolidadas em 14/09/2026 (ditadas pelo Victor, confirmadas com dado):**
+- **Prazo máximo de 90 dias.** Não estender além disso em call coberta. Vale pra ROXO34 e BBAS3;
+  PETR4/VALE3 já estão fora dessa regra por herança, e nelas o prazo não se mexe mais.
+- **Sempre perto do dinheiro e exercendo.** Nunca mais deixar a call ficar fundo ITM. Motivo
+  medido em 14/09/2026: PETR4 estava 36,9% ITM (spot 48,92 / strike 30,85) e VALE3 24,0% ITM
+  (75,48 / 57,40). Call tão dentro do dinheiro é quase toda intrínseco — valor de tempo perto de
+  zero, então a rolagem não tem prêmio pra entregar. Pra PETR4 bater 2%/mês em 94 dias precisaria
+  de R$ 3,07/ação de extrínseco, que não existe nesse strike. Não é questão de esperar momento
+  melhor, é limitação estrutural. Comparar com ROXO34 (−8,2% ITM) e BBAS3 (−5,9%), que giram bem.
+- **Nunca mais bidirecional de prazo longo.** Origem: PETR4 e VALE3 bateram o teto cedo e o
+  retorno ficou irrisório pro prazo (ordem de 4% em 12 meses = 0,33%/mês). Victor não quis
+  realizar, ficou com os papéis, e desde então vende call coberta em cima enquanto espera nível.
+- **Posições antigas (as travadas)**: objetivo é subir strike, mesmo sem ganho no giro.
+  **Posições novas**: objetivo é capturar prêmio — a tática depende de estar OTM ou ITM.
+- **Piso de 1,5%/mês quando a operação é correção de erro** (o alvo normal segue 2–2,5%/mês).
+- **Dividendo conta como piso de espera, e é do Victor, não do comprador da call.** Medido em
+  14/09/2026: PETR4 7,49% a.a. (0,62%/mês), VALE3 7,44% a.a. (0,62%/mês), BBAS3 2,96% a.a.
+  (0,25%/mês), **ROXO34 zero**. Inverte a intuição: esperar custa MAIS caro na ROXO34, que não
+  paga nada, do que na PETR4. Ao avaliar "vale a pena esperar?", sempre checar o provento antes.
+- **Lançamento coberto erra mais que retorno controlado, por desenho.** Tem muito mais ponto de
+  decisão (quando rolar, que strike, recomprar ou entregar). Evidência: retorno controlado está
+  5/5 no tracking oficial, enquanto as cobertas já produziram uma parcial e uma provável falha.
+  Quando as duas competirem por capital em condições parecidas, preferir retorno controlado.
+
+**Caso BBAS3 (27/08/2026) — rolagem pra baixo, e a lição correta:**
+Victor tinha a BBASL223 (strike 22,31), encerrou como parcial e rolou pra BBASL212 (strike 20,81).
+Em 14/09/2026 o spot estava 22,12: com o strike antigo estaria **OTM por 0,85%** (ficava com o
+prêmio E com as ações), com o atual está **ITM 6,3%** (exercício provável). O próprio Victor
+classifica como erro. **Mas a margem era de 19 centavos** — 0,85% de folga é ruído, não sinal.
+A lição NÃO é "nunca rolar pra baixo"; é que rolar pra baixo troca prêmio certo por risco de
+entrega, e a 0,85% do strike essa troca é praticamente cara ou coroa. Registrar como decisão
+ruim no resultado, não como decisão óbvia na hora.
+
 ## 🏗️ Princípios de processo/arquitetura (permanentes)
 
 - **`ThreadPoolExecutor` com `shutdown(wait=False)` é PERIGOSO no Render (1 worker)** — pode
