@@ -35384,7 +35384,7 @@
     "id": "an_1788458242",
     "ticker": "CYRE3.SA",
     "nome": "CYRE3 Retorno Controlado 14d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 25.59,
@@ -35490,7 +35490,13 @@
       "prob_sucesso_prevista_pct": 63.6
     },
     "observacao": "Menu 'Estruturas' Itau Mesa 03/09/2026 (tabela grande sem delta -- prob. calculada aqui via Monte Carlo com preco/vol ao vivo). Barreira -8.2%, retorno prefixado 1.32%. Passou no filtro 1 (diretriz >=2%/mes). So pra monitoramento/amostragem -- Victor so fecha operacoes com prob >=70%. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
-    "origem": "pronta"
+    "origem": "pronta",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-16",
+    "ev_mensal_na_rejeicao": -5.385,
+    "score_na_rejeicao": 11.432,
+    "prob_meta_na_rejeicao": 99.97,
+    "preco_encerramento": 25.9
   },
   {
     "id": "an_1788458243",
