@@ -1109,8 +1109,13 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             # 'tem_mais' virar false.
             _total_candidatos = len(todos_tickers)
             _offset = int(request.args.get('offset', 0))
-            _limite = min(int(request.args.get('limite', 80)), 120)
-            _orcamento_s = float(request.args.get('orcamento_s', 40))
+            # CALIBRADO EM PRODUCAO 15/09/2026 (Render free tier, ~3x mais
+            # lento que o ambiente local): limite=20 -> 12s OK;
+            # limite=40 -> 21s OK; limite=80 -> HTTP 502 aos 32s.
+            # Default 30 e teto 50, com orcamento de 22s para devolver
+            # PARCIAL antes do gateway derrubar em ~30s.
+            _limite = min(int(request.args.get('limite', 30)), 50)
+            _orcamento_s = float(request.args.get('orcamento_s', 22))
             todos_tickers = todos_tickers[_offset:_offset + _limite]
             _t0_busca = time.time()
 
