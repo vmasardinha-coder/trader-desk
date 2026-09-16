@@ -1100,6 +1100,20 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             if not todos_tickers:
                 return jsonify({'fundos': [], 'total': 0, 'aviso': 'nenhum ticker novo encontrado'})
 
+            # LIMITE ADICIONADO 15/09/2026 -- a migracao para fundsexplorer
+            # passou a devolver 541 tickers (a fonte antiga, morta, devolvia 0),
+            # e buscar os dados individuais de todos numa requisicao so estourou
+            # o Render free tier: HTTP 502 em ~36s, medido em producao.
+            # Agora: pagina por 'offset' + 'limite', e um orcamento de tempo que
+            # devolve resultado PARCIAL em vez de morrer. O front pagina ate
+            # 'tem_mais' virar false.
+            _total_candidatos = len(todos_tickers)
+            _offset = int(request.args.get('offset', 0))
+            _limite = min(int(request.args.get('limite', 80)), 120)
+            _orcamento_s = float(request.args.get('orcamento_s', 40))
+            todos_tickers = todos_tickers[_offset:_offset + _limite]
+            _t0_busca = time.time()
+
             # Passo 2: buscar dados individuais em paralelo, lotes de 10
             # para nao estourar memoria do Render free tier
             resultados = []
@@ -1119,7 +1133,11 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 dados['fonte'] = 'investidor10'
                 return dados
 
+            _estourou = False
             for i in range(0, len(todos_tickers), LOTE):
+                if time.time() - _t0_busca > _orcamento_s:
+                    _estourou = True
+                    break
                 lote = todos_tickers[i:i+LOTE]
                 with ThreadPoolExecutor(max_workers=LOTE) as ex:
                     parcial = list(ex.map(_buscar, lote))
@@ -1162,11 +1180,21 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             fundos_fora.sort(key=lambda f: f['ticker'])
 
             todos = fundos_validos + fundos_fora
+            _proximo = _offset + len(todos_tickers)
             return jsonify({
                 'total': len(todos),
                 'total_validos': len(fundos_validos),
                 'total_fora_criterio': len(fundos_fora),
                 'fundos': todos,
+                # paginacao adicionada 15/09/2026 (ver comentario do limite)
+                'offset': _offset,
+                'limite': _limite,
+                'total_candidatos': _total_candidatos,
+                'proximo_offset': _proximo if _proximo < _total_candidatos else None,
+                'tem_mais': _proximo < _total_candidatos,
+                'parcial_por_tempo': _estourou,
+                'fonte_listagem': 'fundsexplorer',
+                'fonte_dados': 'investidor10',
             })
         except Exception as e:
             return jsonify({'error': str(e)}), 500
