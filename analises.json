@@ -16185,7 +16185,7 @@
     "id": "an_1786995175",
     "ticker": "DIRR3.SA",
     "nome": "DIRR3 Retorno Controlado 35d (Lote 11/08 - Itau Mesa)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-08-17",
     "preco_foto": 10.67,
@@ -16519,7 +16519,13 @@
       "prob_sucesso_prevista_pct": 81.9
     },
     "observacao": "Lote 17/08/2026. Premissas aceitas como fixas: barreira -18.0%, retorno prefixado 3.06% se barreira nao rompida ate o vencimento. Valor Inicial (preco_foto=10.67) e PROVISORIO -- preco real definido no leilao de fechamento na contratacao, ainda nao disponivel. Fonte: planilha 'Estruturas' Itau Mesa Assessoria (Caique Meza, cotacoes 11/08/2026). Delta informado pelo banco (prob. sob medida risco-neutro/vol implicita): 64.77% -- diverge da prob_sucesso_prevista_pct calculada aqui (GARCH/vol historica): 81.9%. Divergencia normal (fontes de vol diferentes), mantida registrada pra comparacao futura. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
-    "origem": "pronta"
+    "origem": "pronta",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-16",
+    "ev_mensal_na_rejeicao": -1.273,
+    "score_na_rejeicao": 4.1296,
+    "prob_meta_na_rejeicao": 99.53,
+    "preco_encerramento": 10.26
   },
   {
     "id": "an_1786995176",
