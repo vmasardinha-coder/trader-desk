@@ -1622,3 +1622,36 @@ def monitorar_indexacao_whitelist(tickers, timeout=8):
         except Exception:
             sem.append(t)
     return {'com_dados': com, 'sem_dados': sem, 'total': len(tickers)}
+
+
+def scrape_fundsexplorer_tickers_listagem():
+    """
+    ADICIONADO 15/09/2026 -- substitui scrape_statusinvest_tickers_listagem,
+    que morreu por Cloudflare em 04/09/2026 (ver docstring dela).
+
+    Fonte: fundsexplorer.com.br/ranking -- HTML server-side renderizado, sem
+    protecao anti-bot. Testado 15/09/2026: HTTP 200, ~547 tickers no bruto.
+
+    LIMITE CONHECIDO: nao classifica FI-Infra vs FII tradicional, e nao
+    continha o BCDI11 em 15/09/2026 (nenhuma listagem continha -- so a pagina
+    individual do Investidor10). Para saber se um fundo JA CONHECIDO passou a
+    ter dados, usar monitorar_indexacao_whitelist(), nao esta funcao.
+
+    Retorna (lista_de_tickers, None) ou (None, erro).
+    """
+    try:
+        r = requests.get(
+            'https://www.fundsexplorer.com.br/ranking',
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                                   'AppleWebKit/537.36 (KHTML, like Gecko) '
+                                   'Chrome/120.0.0.0 Safari/537.36',
+                     'Accept-Language': 'pt-BR,pt;q=0.9'},
+            timeout=20)
+        if not r.ok:
+            return None, f'http_{r.status_code}'
+        tickers = sorted(set(re.findall(r'\b([A-Z]{4}11)\b', r.text)))
+        if not tickers:
+            return None, 'nenhum_ticker_no_html'
+        return tickers, None
+    except Exception as e:
+        return None, str(e)
