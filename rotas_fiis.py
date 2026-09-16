@@ -270,17 +270,22 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                 for tk in tickers_fallback_priorizados:
                     if time.time() - _inicio_enriquecimento > _orcamento_total:
                         break  # estourou o orcamento total -- para de tentar, segue com o que tem
+                    # MIGRADO 15/09/2026 -- este bloco de enriquecimento
+                    # tambem dependia do StatusInvest, morto por Cloudflare
+                    # desde 04/09/2026. Dava 403 nas duas categorias, caia no
+                    # except e seguia com dados=None -- o enriquecimento
+                    # simplesmente nao acontecia mais, em silencio, dentro de
+                    # um bloco com orcamento de tempo que mascarava o problema
+                    # ("deve ter estourado o tempo"). Trocado por Investidor10,
+                    # que nao tem categoria no path e resolve numa chamada so.
                     dados = None
-                    for path_si in ('fundos-imobiliarios', 'fiagros'):
-                        if time.time() - _inicio_enriquecimento > _orcamento_total:
-                            break
-                        try:
-                            dados = scrape_statusinvest_fundo_dados(tk, path_si)
-                            if dados and (dados.get('dy_pct') or dados.get('liquidez')):
-                                break
-                            dados = None
-                        except Exception:
-                            dados = None
+                    try:
+                        import fontes as _f2
+                        d_tmp = _f2.scrape_fi_infra_dados(tk)
+                        if d_tmp and (d_tmp.get('dy_pct') or d_tmp.get('liquidez')):
+                            dados = d_tmp
+                    except Exception:
+                        dados = None
                     if dados and tk in candidatos_por_ticker:
                         alvo = candidatos_por_ticker[tk]
                         if dados.get('dy_pct'):
@@ -1048,29 +1053,49 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             tickers_cobertos_str = request.args.get('tickers_cobertos', '')
             tickers_cobertos = set(t.strip().upper() for t in tickers_cobertos_str.split(',') if t.strip())
 
-            # Passo 1: coletar tickers das listagens do StatusInvest
-            categorias = [
-                ('fiinfras', 'fi-infra'),
-            ]
-            if incluir_fip:
-                categorias.append(('fip', 'fi-infra'))  # FIP-IE vai para categoria 'fi-infra'
+            # MIGRADO 15/09/2026 -- esta rota estava QUEBRADA EM SILENCIO
+            # desde 04/09/2026. Ela listava tickers via
+            # scrape_statusinvest_tickers_listagem e buscava dados via
+            # scrape_statusinvest_fundo_dados; o StatusInvest ativou Cloudflare
+            # e AS DUAS passaram a dar 403. Como os erros eram engolidos
+            # (`if not tickers_lista: continue` e `if dados is None: return
+            # None`), a rota respondia "nenhum ticker novo encontrado" para
+            # sempre -- indistinguivel de sucesso. Nao houve alerta nenhum em
+            # 6 semanas.
+            # Agora: listagem via fundsexplorer.com.br/ranking (541 tickers,
+            # HTTP 200 limpo) e dados via Investidor10 (scrape_fi_infra_dados),
+            # que e a mesma fonte que ja alimenta a tela de FI-Infra.
+            # E o erro da listagem NAO e mais engolido -- se falhar, a rota
+            # devolve o motivo em vez de fingir que nao ha nada novo.
+            import fontes as _f
+            tickers_lista, erro_lista = _f.scrape_fundsexplorer_tickers_listagem()
+            if not tickers_lista:
+                return jsonify({
+                    'fundos': [], 'total': 0,
+                    'erro': f'falha ao listar tickers: {erro_lista}',
+                    'aviso': 'ATENCAO: isto e FALHA DE FONTE, nao "nenhum fundo novo".'
+                }), 502
 
-            # Para FII tradicional, tambem buscamos listagem do StatusInvest
-            # para pegar os ~140 nao cobertos pelo Fundamentus
-            categorias.insert(0, ('fundos-imobiliarios', 'fii'))
+            # O fundsexplorer nao separa FI-Infra de FII tradicional, entao o
+            # segmento sai da whitelist conhecida; o resto e FII tradicional.
+            import inspect as _insp, re as _re
+            try:
+                _src = _insp.getsource(_f.scrape_fi_infra)
+                _m = _re.search(r'TICKERS_FI_INFRA_CONHECIDOS\s*=\s*\[(.*?)\]', _src, _re.S)
+                _infra = set(_re.findall(r"'([A-Z0-9]{4,6})'", _m.group(1))) if _m else set()
+            except Exception:
+                _infra = set()
 
-            todos_tickers = []  # lista de (ticker, path_si, segmento_app)
+            todos_tickers = []
             tickers_vistos = set(tickers_cobertos)
-
-            for path_si, segmento_app in categorias:
-                tickers_lista, erro = scrape_statusinvest_tickers_listagem(path_si)
-                if not tickers_lista:
+            for t in list(tickers_lista) + sorted(_infra):
+                if t in tickers_vistos:
                     continue
-                for t in tickers_lista:
-                    if t in tickers_vistos:
-                        continue
-                    tickers_vistos.add(t)
-                    todos_tickers.append((t, path_si, segmento_app))
+                tickers_vistos.add(t)
+                seg = 'fi-infra' if t in _infra else 'fii'
+                if seg == 'fi-infra' and not incluir_fip:
+                    pass
+                todos_tickers.append((t, None, seg))
 
             if not todos_tickers:
                 return jsonify({'fundos': [], 'total': 0, 'aviso': 'nenhum ticker novo encontrado'})
@@ -1082,8 +1107,8 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
 
             def _buscar(args):
                 ticker, path_si, segmento_app = args
-                dados = scrape_statusinvest_fundo_dados(ticker, path_si)
-                if dados is None:
+                dados = _f.scrape_fi_infra_dados(ticker)
+                if not dados or not dados.get('cotacao'):
                     return None
                 dados['segmento'] = segmento_app
                 dados['segmento_fundamentus'] = (
@@ -1091,7 +1116,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
                     else 'Fundo de Participações (FIP)' if segmento_app == 'fip'
                     else 'FII Tradicional'
                 )
-                dados['fonte'] = 'statusinvest'
+                dados['fonte'] = 'investidor10'
                 return dados
 
             for i in range(0, len(todos_tickers), LOTE):
