@@ -1257,6 +1257,25 @@ _SI_HEADERS = {
 
 def scrape_statusinvest_tickers_listagem(path):
     """
+    !!! MORTA DESDE 04/09/2026 -- NAO USAR, NAO TENTAR CONSERTAR COM HEADERS !!!
+
+    O StatusInvest ativou protecao Cloudflare e TODA requisicao simples a
+    qualquer pagina do dominio devolve HTTP 403, listagem e pagina individual
+    igualmente. Reconfirmado em 15/09/2026: '/fiinfras' e
+    '/fundos-imobiliarios' deram 403 em tentativas repetidas, com
+    User-Agent de browser, Accept-Language e Referer. Nao e IP do sandbox --
+    e bloqueio por desafio JS, que requests nao resolve.
+
+    ARMADILHA QUE ISSO JA CAUSOU (15/09/2026): scrape_statusinvest_ultimo_provento
+    PARECE funcionar e devolver dado do StatusInvest, mas na verdade cai no
+    fallback do fundsexplorer (assinatura: data_aproximada=True e data em
+    'MM/AA' sem o dia). Isso levou a diagnosticar errado que a listagem
+    poderia ser consertada "copiando a mecanica que funciona". Nao pode:
+    nao ha mecanica que funcione.
+
+    Para listagem de tickers, usar fundsexplorer.com.br/ranking -- 547 tickers
+    server-side, HTTP 200 limpo, sem Cloudflare (testado 15/09/2026).
+
     Extrai lista de tickers de uma pagina de listagem do StatusInvest.
     Paths conhecidos: 'fundos-imobiliarios', 'fiinfras', 'fip'.
     Retorna lista de dicts {'ticker', 'nome_fundo', 'cotacao', 'categoria_si'}
@@ -1561,3 +1580,45 @@ def scrape_fundamentus_fii_proventos(ticker):
         return {'ultimo_provento': ultimo_provento, 'total_12m': round(total_12m, 2)}
     except Exception:
         return None
+
+
+def monitorar_indexacao_whitelist(tickers, timeout=8):
+    """
+    ADICIONADO 15/09/2026 -- resolve o problema real por tras do caso BCDI11.
+
+    CONTEXTO: o BCDI11 estreou na B3 em 04/08/2026, foi adicionado a whitelist
+    em 06/08 e ficou SEIS SEMANAS sem dados porque nenhuma fonte o indexava.
+    Em 15/09 o Investidor10 passou a ter a pagina e os dados voltaram sozinhos
+    -- mas ninguem reconferiu, entao ninguem soube.
+
+    POR QUE NAO E "DESCOBERTA": em 15/09/2026 foram testadas QUATRO fontes de
+    listagem e NENHUMA continha o BCDI11 -- fiis.com.br nao tinha, StatusInvest
+    esta bloqueado por Cloudflare, fundsexplorer expoe 547 tickers e nao tinha,
+    e a propria listagem do Investidor10 devolve so 79 tickers sem ele. Apenas
+    a PAGINA INDIVIDUAL do Investidor10 tinha o fundo. Ou seja: descoberta
+    automatica nao acharia esse papel por caminho nenhum. A B3, que seria a
+    fonte de verdade, tambem foi testada: o dominio responde e
+    GetInitialCompanies funciona, mas GetListedFundsSIG devolve totalRecords=0
+    para todo typeFund testado (7, 20, 34), com e sem Referer/Origin, e
+    GetListedFundsCategory da 404.
+
+    O QUE ESTA FUNCAO FAZ: para cada ticker JA na whitelist, testa se a fonte
+    de dados ja publica a pagina dele. Nao descobre fundo desconhecido -- fecha
+    o ciclo "Victor nota a ausencia -> adicionamos na whitelist -> alguem
+    precisa reconferir", que era a etapa que falhava.
+
+    Retorna {'com_dados': [...], 'sem_dados': [...], 'total': n}.
+    """
+    com, sem = [], []
+    for t in tickers:
+        try:
+            d = scrape_fi_infra_dados(t)
+            if d and d.get('cotacao'):
+                com.append({'ticker': t, 'cotacao': d.get('cotacao'),
+                            'dy_pct': d.get('dy_pct'), 'liquidez': d.get('liquidez'),
+                            'p_vp': d.get('p_vp')})
+            else:
+                sem.append(t)
+        except Exception:
+            sem.append(t)
+    return {'com_dados': com, 'sem_dados': sem, 'total': len(tickers)}
