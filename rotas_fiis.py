@@ -987,6 +987,37 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             'ultimo_provento': hist['ultimo_provento'],
         })
 
+    @app.route('/fiis/monitor-indexacao', methods=['GET'])
+    def fiis_monitor_indexacao():
+        """
+        ADICIONADO 15/09/2026. Percorre a whitelist de FI-Infra e responde
+        quais ja tem dados publicados na fonte e quais ainda nao.
+
+        Substitui, na pratica, a checagem manual quinzenal que estava
+        atrasada desde 20/08/2026. Nao depende de agendamento: roda quando
+        a tela chama, o que e mais frequente que qualquer cron de 15 dias.
+
+        ATENCAO -- a rota /fiis/universo-complementar (logo abaixo) esta
+        QUEBRADA EM SILENCIO desde 04/09/2026: ela lista tickers via
+        scrape_statusinvest_tickers_listagem, que passou a devolver 403 por
+        Cloudflare. Como o erro e engolido, ela responde "nenhum ticker novo
+        encontrado" para sempre, o que parece sucesso. Confirmado 15/09/2026.
+        Enquanto ela nao for migrada para fundsexplorer.com.br/ranking (547
+        tickers, HTTP 200 limpo), esta rota aqui e a unica que realmente
+        verifica alguma coisa.
+        """
+        import fontes as _f
+        wl = getattr(_f, 'TICKERS_FI_INFRA_CONHECIDOS', None)
+        if wl is None:
+            import inspect, re as _re
+            src = inspect.getsource(_f.scrape_fi_infra)
+            m = _re.search(r'TICKERS_FI_INFRA_CONHECIDOS\s*=\s*\[(.*?)\]', src, _re.S)
+            wl = _re.findall(r"'([A-Z0-9]{4,6})'", m.group(1)) if m else []
+        res = _f.monitorar_indexacao_whitelist(wl)
+        res['aviso'] = ('universo-complementar esta quebrada em silencio desde 04/09/2026 '
+                        '(StatusInvest bloqueado por Cloudflare) -- use esta rota')
+        return jsonify(res)
+
     @app.route('/fiis/universo-complementar', methods=['GET'])
     def fiis_universo_complementar():
         """
