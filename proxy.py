@@ -3426,6 +3426,23 @@ def _github_get_file(path):
     if not r.ok:
         raise RuntimeError(f'Falha ao ler {path} via API ({r.status_code}): {r.text[:200]}')
     d = r.json()
+    # CORRIGIDO 21/09/2026 -- a API /contents do GitHub so devolve o
+    # conteudo de arquivos ATE 1 MB. Acima disso ela responde 200 com
+    # content="" e encoding="none" -- sem erro nenhum. O analises.json ja
+    # estava em 950 KB em 21/09/2026 e o lote de laminas daquele dia o
+    # levaria a ~1,2 MB. Sem esta correcao, TODA escrita do app (rejeitar,
+    # encerrar, cadastrar, migrar) quebraria, enquanto as telas -- que
+    # leem via raw.githubusercontent, sem limite -- seguiriam normais,
+    # escondendo o problema. Fallback: API de blobs (git_url), que aceita
+    # ate 100 MB e devolve base64 igual.
+    if d.get('encoding') == 'none' or not d.get('content'):
+        rb = requests.get(d['git_url'],
+            headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'},
+            timeout=20)
+        if not rb.ok:
+            raise RuntimeError(f'Falha ao ler {path} via blob API ({rb.status_code}): {rb.text[:200]}')
+        conteudo = _b64.b64decode(rb.json()['content']).decode('utf-8')
+        return conteudo, d['sha']
     conteudo = _b64.b64decode(d['content']).decode('utf-8')
     return conteudo, d['sha']
 
