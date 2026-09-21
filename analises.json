@@ -22929,7 +22929,7 @@
     "id": "an_1787672038",
     "ticker": "ROXO34.SA",
     "nome": "ROXO34 Venda Coberta de Call (VCC, Lote 25/08/2026, 2o lugar)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "premio",
     "data_foto": "2026-08-25",
     "preco_foto": 12.71,
@@ -22939,7 +22939,13 @@
     "strike": 13.5,
     "premio": 0.21,
     "direcao": "call",
-    "origem": "pronta"
+    "origem": "pronta",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-21",
+    "ev_mensal_na_rejeicao": 4.132,
+    "score_na_rejeicao": 16.528,
+    "prob_meta_na_rejeicao": 74.1,
+    "preco_encerramento": 11.85
   },
   {
     "id": "an_1787856577",
