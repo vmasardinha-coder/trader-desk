@@ -3686,6 +3686,258 @@ def get_analises_stats():
     except Exception:
         return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
+def _tracking_hip_item(a, hoje):
+    """Apura UMA analise para o tracker hipotetico (extraido do loop original
+    em 21/09/2026, sem mudar a logica). Retorna o item ou None se nao elegivel."""
+    from datetime import datetime as _dt5, timedelta as _td5
+    if a.get('tipo_estrutura') not in ('retorno_controlado', 'bidirecional'):
+        return None
+    if a.get('resultado') in ('sucesso', 'fracasso'):
+        return None
+    prob = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
+    if prob is None:
+        return None
+    try:
+        data_foto = _dt5.strptime(a['data_foto'][:10], '%Y-%m-%d').date()
+        prazo_dias = int(a['prazo_dias'])
+    except (KeyError, ValueError, TypeError):
+        return None
+    venc = data_foto + _td5(days=prazo_dias)
+    if venc > hoje:
+        return None
+
+    ticker = a.get('ticker')
+    kdo = a.get('kdo')
+    kuo = a.get('kuo')
+    try:
+        historico = _fetch_closes_for_foto(ticker, a['data_foto'][:10])
+    except Exception:
+        historico = None
+    if not historico:
+        return ({
+            'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
+            'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
+            'prob_sucesso_prevista_pct': prob, 'erro': 'historico indisponivel',
+        })
+        return None
+
+    # Filtra so o trecho ate o vencimento (a funcao busca ate hoje, que pode ser bem depois)
+    trecho = [h for h in historico if h['data'] <= venc.isoformat()]
+    if not trecho:
+        trecho = historico
+    closes = [h['close'] for h in trecho]
+    min_c, max_c = min(closes), max(closes)
+    preco_final = closes[-1]
+
+    rompeu = False
+    if kdo is not None and min_c <= float(kdo):
+        rompeu = True
+    if kuo is not None and max_c >= float(kuo):
+        rompeu = True
+
+    preco_foto = a.get('preco_foto')
+    if rompeu:
+        resultado_hip = 'fracasso'
+        ganho_pct_hip = round((preco_final / preco_foto - 1) * 100, 2) if preco_foto else None
+    else:
+        resultado_hip = 'sucesso'
+        ganho_pct_hip = a.get('ganho_prefixado_pct')
+
+    # ADICIONADO 25/08/2026 -- pedido do Victor: alem de sucesso/
+    # fracasso (tocou ou nao a barreira), ele quer saber se o
+    # OVERSHOOT aconteceu DE VERDADE -- ou seja, se o preco no dia
+    # do vencimento (nao o maximo do caminho, especificamente o
+    # fechamento no vencimento) ficou ACIMA do teto combinado.
+    # Isso muda a leitura financeira de quem ja tinha o papel
+    # (rejeitar so significa que ele participou da alta inteira,
+    # nao perdeu nada) vs quem compraria so pra estrutura (ai sim
+    # "perdeu" o overshoot de verdade). NAO tenta resolver essa
+    # interpretacao aqui -- so expoe o dado bruto (aconteceu ou
+    # nao, e o tamanho), a leitura financeira fica pro Victor.
+    variacao_no_vencimento_pct = round((preco_final / preco_foto - 1) * 100, 2) if preco_foto else None
+    overshoot_ocorreu = None
+    teto = a.get('ganho_prefixado_pct')
+    if variacao_no_vencimento_pct is not None and teto is not None:
+        overshoot_ocorreu = variacao_no_vencimento_pct > float(teto)
+
+    return ({
+        'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
+        'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
+        'motivo_encerramento': a.get('motivo_encerramento'),
+        'prob_sucesso_prevista_pct': prob,
+        'resultado_hipotetico': resultado_hip,
+        'ganho_pct_hipotetico': ganho_pct_hip,
+        'overshoot_ocorreu': overshoot_ocorreu,
+        'variacao_no_vencimento_pct': variacao_no_vencimento_pct,
+        'acertou_previsao': (resultado_hip == 'sucesso') == (prob >= 50),
+        'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
+    })
+
+
+
+def _tracking_hip_agregar(itens):
+    """Agrega itens em calibracao por faixa (extraido em 21/09/2026)."""
+    # Calibracao por faixa de 10pp (mesmo padrao do tracking oficial)
+    faixas = {}
+    for it in itens:
+        if it.get('erro'):
+            continue
+        faixa_ini = int(it['prob_sucesso_prevista_pct'] // 10) * 10
+        chave = f"{faixa_ini}-{faixa_ini+10}%"
+        faixas.setdefault(chave, {'total': 0, 'sucessos': 0})
+        faixas[chave]['total'] += 1
+        if it['resultado_hipotetico'] == 'sucesso':
+            faixas[chave]['sucessos'] += 1
+    calibracao = []
+    for chave in sorted(faixas.keys(), key=lambda k: int(k.split('-')[0])):
+        d = faixas[chave]
+        calibracao.append({
+            'faixa_prevista': chave, 'total': d['total'],
+            'taxa_sucesso_real_pct': round(d['sucessos'] / d['total'] * 100, 1) if d['total'] else None,
+        })
+
+    validos = [it for it in itens if not it.get('erro')]
+    total = len(validos)
+    acertos = sum(1 for it in validos if it['acertou_previsao'])
+
+    return {
+        'aviso': '🧪 HIPOTETICO -- nenhuma dessas analises envolveu capital real. Serve so para medir calibracao do modelo em analises rejeitadas/nao executadas.',
+        'total_avaliadas': total,
+        'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
+        'calibracao_por_faixa': calibracao,
+        'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
+    }
+
+
+# ── ARQUIVAMENTO (21/09/2026) ────────────────────────────────────────
+# Pedido do Victor: o analises.json passou de 1 MB (lote de laminas de
+# 21/09) e so cresce. Regra dele: "desde que seja possivel manter o
+# track". Por isso ARQUIVA, nunca apaga: analises ja apuradas pelo
+# tracker hipotetico vao para analises_arquivo.json com o resultado
+# CONGELADO (campo tracker_hipotetico), e o tracker passa a ler os dois
+# arquivos. Ganho extra: o tracker deixa de rebuscar historico no Yahoo
+# para o que ja foi apurado -- antes ele reapurava tudo a cada chamada.
+
+def _ler_json_raw(path):
+    """Le um JSON do repo via raw com cache-bust (CDN do raw serve versoes
+    diferentes por regiao por alguns minutos). 404 -> []."""
+    import time as _t
+    r = requests.get(f'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/{path}?bust={int(_t.time())}',
+                     headers={'Cache-Control': 'no-cache'}, timeout=15)
+    if r.status_code == 404:
+        return []
+    return r.json() if r.ok else []
+
+def _tracking_hip_calcular(lista_an, arquivo):
+    """Tracker hipotetico sobre (arquivo ativo + arquivo morto). Itens
+    arquivados entram com o resultado congelado, sem rebuscar preco."""
+    from datetime import datetime as _dt
+    hoje = _dt.now().date()
+    congelados = {r['id']: r['tracker_hipotetico'] for r in (arquivo or [])
+                  if r.get('id') and r.get('tracker_hipotetico')}
+    itens = list(congelados.values())
+    for a in lista_an:
+        if a.get('id') in congelados:
+            continue
+        it = _tracking_hip_item(a, hoje)
+        if it is not None:
+            itens.append(it)
+    return _tracking_hip_agregar(itens)
+
+_CAMPOS_ARQUIVO = ('id','ticker','nome','tipo_estrutura','status','motivo_encerramento',
+    'data_rejeicao','data_foto','prazo_dias','vencimento','preco_foto','kdo','kuo',
+    'ganho_prefixado_pct','teto_retorno_pct','alavancagem','origem','lote')
+
+def _assinatura_tracker(res):
+    return (res.get('total_avaliadas'), res.get('taxa_acerto_binario_pct'),
+            json.dumps(res.get('calibracao_por_faixa'), sort_keys=True),
+            tuple(sorted((i['id'], i['resultado_hipotetico']) for i in res.get('itens', []) if not i.get('erro'))))
+
+def _arquivar_analises(dry_run=True):
+    """Move para analises_arquivo.json:
+       (A) analises ja apuradas pelo tracker hipotetico (sem erro), com o
+           item congelado -- exceto rejeitadas ha menos de 30 dias, que a
+           tela de Encerradas ainda mostra;
+       (B) rejeitadas ha mais de 30 dias que nunca entrariam no tracker
+           (sem probabilidade ou tipo fora de RC/bidirecional).
+    NUNCA arquiva: pendentes do tracker, nem as com resultado oficial
+    (capital real, lidas pelo tracking-acuracia).
+    TRAVA DE SEGURANCA: recalcula o tracker antes e depois; se qualquer
+    numero mudar, aborta sem gravar nada."""
+    from datetime import datetime as _dt, timedelta as _td
+    hoje = _dt.now().date()
+    s_an, sha_an = _github_get_file('analises.json')
+    lista = json.loads(s_an)
+    try:
+        s_arq, sha_arq = _github_get_file('analises_arquivo.json')
+        arquivo = json.loads(s_arq)
+    except Exception:
+        arquivo, sha_arq = [], None
+    antes = _tracking_hip_calcular(lista, arquivo)
+    resolvidos = {i['id']: i for i in antes['itens'] if not i.get('erro')}
+    ja_arq = {r.get('id') for r in arquivo}
+    lim30 = hoje - _td(days=30)
+    def _rejeitada_antiga(a):
+        try:
+            return a.get('motivo_encerramento') == 'rejeitada' and \
+                   _dt.strptime(a['data_rejeicao'][:10], '%Y-%m-%d').date() < lim30
+        except Exception:
+            return False
+    def _rejeitada_recente(a):
+        return a.get('motivo_encerramento') == 'rejeitada' and not _rejeitada_antiga(a)
+    def _elegivel(a):
+        return a.get('tipo_estrutura') in ('retorno_controlado', 'bidirecional') and \
+               (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct') is not None
+    fica, novos, cA, cB = [], [], 0, 0
+    for a in lista:
+        if a.get('resultado') in ('sucesso', 'fracasso') or a.get('id') in ja_arq:
+            fica.append(a); continue
+        reg = None
+        if a.get('id') in resolvidos and not _rejeitada_recente(a):
+            reg = {k: a.get(k) for k in _CAMPOS_ARQUIVO if a.get(k) is not None}
+            reg['prob_sucesso_prevista_pct'] = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
+            reg['tracker_hipotetico'] = resolvidos[a['id']]; cA += 1
+        elif not _elegivel(a) and _rejeitada_antiga(a):
+            reg = {k: a.get(k) for k in _CAMPOS_ARQUIVO if a.get(k) is not None}; cB += 1
+        if reg is None:
+            fica.append(a)
+        else:
+            reg['data_arquivamento'] = hoje.isoformat()
+            novos.append(reg)
+    novo_arquivo = arquivo + novos
+    depois = _tracking_hip_calcular(fica, novo_arquivo)
+    ok = _assinatura_tracker(antes) == _assinatura_tracker(depois)
+    rel = {'arquivadas_tracker_congeladas': cA, 'arquivadas_rejeitadas_antigas': cB,
+           'ficam_no_ativo': len(fica), 'total_no_arquivo': len(novo_arquivo),
+           'tracker_antes': antes['total_avaliadas'], 'tracker_depois': depois['total_avaliadas'],
+           'tracker_identico': ok, 'dry_run': dry_run,
+           'kb_ativo_antes': len(s_an.encode()) // 1024,
+           'kb_ativo_depois': len(json.dumps(fica, indent=2, ensure_ascii=False).encode()) // 1024}
+    if not ok:
+        rel['erro'] = 'ABORTADO: o tracker mudaria com o arquivamento -- nada foi gravado'
+        return rel
+    if dry_run or not novos:
+        return rel
+    conteudo_arq = json.dumps(novo_arquivo, indent=2, ensure_ascii=False)
+    msg = f'chore: arquiva {cA} analises apuradas pelo tracker + {cB} rejeitadas antigas'
+    if sha_arq:
+        _github_put_file('analises_arquivo.json', conteudo_arq, sha_arq, msg)
+    else:
+        _github_criar_arquivo('analises_arquivo.json', conteudo_arq, msg)
+    _github_put_file('analises.json', json.dumps(fica, indent=2, ensure_ascii=False), sha_an, msg)
+    rel['gravado'] = True
+    return rel
+
+@app.route('/analises/arquivar', methods=['POST'])
+@_requer_auth_escrita
+def rota_arquivar_analises():
+    """Manutencao. Padrao e simulacao (dry_run); grava so com ?executar=1."""
+    try:
+        return jsonify(_arquivar_analises(dry_run=request.args.get('executar') != '1'))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/analises/tracking-hipotetico', methods=['GET'])
 def tracking_hipotetico_previsoes():
     """
@@ -3715,129 +3967,12 @@ def tracking_hipotetico_previsoes():
     -- senao ainda nao da pra saber o resultado.
     """
     try:
-        from datetime import datetime as _dt5, timedelta as _td5
-        r_an = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
-            headers={'Cache-Control': 'no-cache'}, timeout=10)
-        lista_an = r_an.json() if r_an.ok else []
-
-        hoje = _dt5.now().date()
-        itens = []
-
-        for a in lista_an:
-            if a.get('tipo_estrutura') not in ('retorno_controlado', 'bidirecional'):
-                continue
-            if a.get('resultado') in ('sucesso', 'fracasso'):
-                continue  # ja e capital real -- pertence ao tracking oficial, nao a este
-            prob = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
-            if prob is None:
-                continue
-            try:
-                data_foto = _dt5.strptime(a['data_foto'][:10], '%Y-%m-%d').date()
-                prazo_dias = int(a['prazo_dias'])
-            except (KeyError, ValueError, TypeError):
-                continue
-            venc = data_foto + _td5(days=prazo_dias)
-            if venc > hoje:
-                continue  # ainda nao venceu -- resultado desconhecido
-
-            ticker = a.get('ticker')
-            kdo = a.get('kdo')
-            kuo = a.get('kuo')
-            try:
-                historico = _fetch_closes_for_foto(ticker, a['data_foto'][:10])
-            except Exception:
-                historico = None
-            if not historico:
-                itens.append({
-                    'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
-                    'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
-                    'prob_sucesso_prevista_pct': prob, 'erro': 'historico indisponivel',
-                })
-                continue
-
-            # Filtra so o trecho ate o vencimento (a funcao busca ate hoje, que pode ser bem depois)
-            trecho = [h for h in historico if h['data'] <= venc.isoformat()]
-            if not trecho:
-                trecho = historico
-            closes = [h['close'] for h in trecho]
-            min_c, max_c = min(closes), max(closes)
-            preco_final = closes[-1]
-
-            rompeu = False
-            if kdo is not None and min_c <= float(kdo):
-                rompeu = True
-            if kuo is not None and max_c >= float(kuo):
-                rompeu = True
-
-            preco_foto = a.get('preco_foto')
-            if rompeu:
-                resultado_hip = 'fracasso'
-                ganho_pct_hip = round((preco_final / preco_foto - 1) * 100, 2) if preco_foto else None
-            else:
-                resultado_hip = 'sucesso'
-                ganho_pct_hip = a.get('ganho_prefixado_pct')
-
-            # ADICIONADO 25/08/2026 -- pedido do Victor: alem de sucesso/
-            # fracasso (tocou ou nao a barreira), ele quer saber se o
-            # OVERSHOOT aconteceu DE VERDADE -- ou seja, se o preco no dia
-            # do vencimento (nao o maximo do caminho, especificamente o
-            # fechamento no vencimento) ficou ACIMA do teto combinado.
-            # Isso muda a leitura financeira de quem ja tinha o papel
-            # (rejeitar so significa que ele participou da alta inteira,
-            # nao perdeu nada) vs quem compraria so pra estrutura (ai sim
-            # "perdeu" o overshoot de verdade). NAO tenta resolver essa
-            # interpretacao aqui -- so expoe o dado bruto (aconteceu ou
-            # nao, e o tamanho), a leitura financeira fica pro Victor.
-            variacao_no_vencimento_pct = round((preco_final / preco_foto - 1) * 100, 2) if preco_foto else None
-            overshoot_ocorreu = None
-            teto = a.get('ganho_prefixado_pct')
-            if variacao_no_vencimento_pct is not None and teto is not None:
-                overshoot_ocorreu = variacao_no_vencimento_pct > float(teto)
-
-            itens.append({
-                'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
-                'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
-                'motivo_encerramento': a.get('motivo_encerramento'),
-                'prob_sucesso_prevista_pct': prob,
-                'resultado_hipotetico': resultado_hip,
-                'ganho_pct_hipotetico': ganho_pct_hip,
-                'overshoot_ocorreu': overshoot_ocorreu,
-                'variacao_no_vencimento_pct': variacao_no_vencimento_pct,
-                'acertou_previsao': (resultado_hip == 'sucesso') == (prob >= 50),
-                'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
-            })
-
-        # Calibracao por faixa de 10pp (mesmo padrao do tracking oficial)
-        faixas = {}
-        for it in itens:
-            if it.get('erro'):
-                continue
-            faixa_ini = int(it['prob_sucesso_prevista_pct'] // 10) * 10
-            chave = f"{faixa_ini}-{faixa_ini+10}%"
-            faixas.setdefault(chave, {'total': 0, 'sucessos': 0})
-            faixas[chave]['total'] += 1
-            if it['resultado_hipotetico'] == 'sucesso':
-                faixas[chave]['sucessos'] += 1
-        calibracao = []
-        for chave in sorted(faixas.keys(), key=lambda k: int(k.split('-')[0])):
-            d = faixas[chave]
-            calibracao.append({
-                'faixa_prevista': chave, 'total': d['total'],
-                'taxa_sucesso_real_pct': round(d['sucessos'] / d['total'] * 100, 1) if d['total'] else None,
-            })
-
-        validos = [it for it in itens if not it.get('erro')]
-        total = len(validos)
-        acertos = sum(1 for it in validos if it['acertou_previsao'])
-
-        return jsonify({
-            'aviso': '🧪 HIPOTETICO -- nenhuma dessas analises envolveu capital real. Serve so para medir calibracao do modelo em analises rejeitadas/nao executadas.',
-            'total_avaliadas': total,
-            'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
-            'calibracao_por_faixa': calibracao,
-            'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
-        })
+        # REESCRITO 21/09/2026: agora le o arquivo ativo E o arquivo morto
+        # (analises_arquivo.json). A logica de apuracao nao mudou -- so foi
+        # extraida para _tracking_hip_item/_tracking_hip_agregar.
+        res = _tracking_hip_calcular(_ler_json_raw('analises.json'),
+                                     _ler_json_raw('analises_arquivo.json'))
+        return jsonify(res)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
