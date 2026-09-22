@@ -186,22 +186,25 @@
       "prob_sucesso_prevista_pct_auditavel": false
     },
     {
-      "id": "tend3",
+      "id": "tend32",
       "ticker": "TEND3.SA",
-      "nome": "TEND3 (Tenda) Retorno Controlado 62d (Lote 16/09/2026)",
+      "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-17",
-      "entry": 31.31,
-      "kdo": 25.048,
-      "kdo_pct": "-20.0%",
-      "vol_impl": 0.494,
+      "vencimento": "2026-11-23",
+      "entry": 29.06,
+      "kdo": 23.15,
+      "kdo_pct": "-20.34%",
+      "vol_impl": 0.496,
       "vol_impl_fonte": "garch",
-      "data_entrada": "2026-09-16",
+      "data_entrada": "2026-09-21",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 63.75,
+      "prob_sucesso_prevista_pct": 63.22,
       "ganho_sem_barreira": "19.0% fixo",
-      "ganho_prefixado_pct": 19.0
+      "ganho_prefixado_pct": 19.0,
+      "rolagem_de": "tend3",
+      "numeros_confirmados": false,
+      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; ganho 19,0%, prazo 63d e venc 23/11/2026 foram HERDADOS da operacao anterior e do padrao dos boletos de 21/09, NAO vieram de documento. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%."
     }
   ],
   "encerradas": [
@@ -426,6 +429,34 @@
       "status": "sucesso",
       "prob_sucesso_prevista_pct": 67.86,
       "resultado_texto": "Encerrada com sucesso, 5,2% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id tsla342, venc 10/11/2026)."
+    },
+    {
+      "id": "tend3",
+      "ticker": "TEND3.SA",
+      "nome": "TEND3 (Tenda) Retorno Controlado 62d (Lote 16/09/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-17",
+      "entry": 31.31,
+      "kdo": 25.048,
+      "kdo_pct": "-20.0%",
+      "vol_impl": 0.494,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-09-16",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 63.75,
+      "ganho_sem_barreira": "19.0% fixo",
+      "ganho_prefixado_pct": 19.0,
+      "status": "encerrada",
+      "data_encerramento": "2026-09-21",
+      "data_saida": "2026-09-21",
+      "motivo_encerramento": "rolagem",
+      "resultado_victor": "sucesso",
+      "vencimento_original": "2026-11-17",
+      "lucro_reais_aprox": 1800,
+      "capital_aprox_reais": 30700,
+      "numeros_confirmados": false,
+      "observacao": "ENCERRADA 21/09/2026 POR ROLAGEM. Victor saiu com ~R$1.800 nas opcoes sobre ~R$30.700 (~5,9% em 5 dias) e reabriu com barreira mais baixa (~23,15), por ver o preco se aproximando da barreira anterior de 25,048. resultado_victor=sucesso (decisao dele, fecha aqui). O resultado do MODELO fica PENDENTE ate o vencimento ORIGINAL 17/11/2026 -- se 25,048 for tocado ate la, o tracker marca fracasso sem que a decisao esteja errada (seria saida que evitou rompimento). NAO recebeu status sucesso/fracasso de proposito: isso a poria no tracking-acuracia, que mede o modelo ate o vencimento e seria inflado por saida antecipada. NUMEROS POR VOZ, AGUARDANDO BOLETO."
     }
   ]
 }
