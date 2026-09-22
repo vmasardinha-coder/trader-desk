@@ -1149,38 +1149,6 @@
     "data_arquivamento": "2026-09-21"
   },
   {
-    "id": "an_1784737588",
-    "ticker": "MUTC34.SA",
-    "nome": "MUTC34 - Retorno Controlado 29d (Lote 22/07/2026 - PDF banco)",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "encerrada",
-    "motivo_encerramento": "barreira_rompida_historico_real",
-    "data_foto": "2026-07-22",
-    "prazo_dias": 29,
-    "preco_foto": 822,
-    "kdo": 657.6,
-    "ganho_prefixado_pct": 15,
-    "origem": "pronta",
-    "prob_sucesso_prevista_pct": 57.48,
-    "tracker_hipotetico": {
-      "id": "an_1784737588",
-      "ticker": "MUTC34.SA",
-      "nome": "MUTC34 - Retorno Controlado 29d (Lote 22/07/2026 - PDF banco)",
-      "data_foto": "2026-07-22",
-      "vencimento_estimado": "2026-08-20",
-      "motivo_encerramento": "barreira_rompida_historico_real",
-      "prob_sucesso_prevista_pct": 57.48,
-      "resultado_hipotetico": "fracasso",
-      "ganho_pct_hipotetico": 3.41,
-      "overshoot_ocorreu": false,
-      "variacao_no_vencimento_pct": 3.41,
-      "acertou_previsao": false,
-      "min_close_real": 632.92,
-      "max_close_real": 876.0
-    },
-    "data_arquivamento": "2026-09-21"
-  },
-  {
     "id": "an_1784737592",
     "ticker": "AMZO34.SA",
     "nome": "AMZO34 - Retorno Controlado 43d (Lote 22/07/2026 - PDF banco)",
