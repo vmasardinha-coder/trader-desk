@@ -3694,6 +3694,12 @@ def _tracking_hip_item(a, hoje):
         return None
     if a.get('resultado') in ('sucesso', 'fracasso'):
         return None
+    # ADICIONADO 21/09/2026: quem tem resultado_victor foi DECISAO DE
+    # CAPITAL REAL (entrou e o Victor saiu antes) -- pertence ao
+    # tracking-victor, nao a este. Sem esta linha a TEND3 rolada em
+    # 21/09/2026 entraria nos dois trackers e seria contada duas vezes.
+    if a.get('resultado_victor') in ('sucesso', 'fracasso'):
+        return None
     prob = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
     if prob is None:
         return None
