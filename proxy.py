@@ -3976,6 +3976,142 @@ def tracking_hipotetico_previsoes():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# ── TRACKER DO VICTOR x TRACKER DO MODELO (21/09/2026) ───────────────
+# Terceiro tracker, pedido do Victor. Os outros dois ja existiam:
+#   - tracking-hipotetico: o que ele REJEITOU (simulado)
+#   - tracking-acuracia:   capital real ja encerrado (oficial)
+# Faltava o que ele mais quer olhar: comparar a DECISAO DELE com o que
+# teria acontecido se a operacao tivesse ido ate o fim.
+#
+# REGRA (ditada por ele em 15/09/2026): sao DUAS colunas, nunca uma
+# corrigindo a outra. resultado_victor fecha na saida dele (P&L). O
+# resultado do modelo so fecha no VENCIMENTO ORIGINAL -- a operacao
+# continua ABERTA para o tracker ate la, mesmo ele tendo saido antes.
+# A divergencia e o dado valioso: victor=sucesso + modelo=fracasso
+# significa que a saida antecipada dele evitou um rompimento.
+#
+# Barreira e monitorada desde a FOTO (nao desde a saida) -- e assim que
+# o contrato funciona.
+
+def _tracking_victor_item(rec, hoje):
+    from datetime import datetime as _dtv, timedelta as _tdv
+    if rec.get('resultado_victor') not in ('sucesso', 'fracasso'):
+        return None
+    try:
+        data_foto = _dtv.strptime(rec['data_foto'][:10], '%Y-%m-%d').date()
+    except Exception:
+        return None
+    vo = rec.get('vencimento_original') or rec.get('vencimento')
+    if not vo:
+        try:
+            vo = (data_foto + _tdv(days=int(rec['prazo_dias']))).isoformat()
+        except Exception:
+            return None
+    base = {'id': rec.get('id'), 'ticker': rec.get('ticker'), 'nome': rec.get('nome'),
+            'tipo_estrutura': rec.get('tipo_estrutura'), 'data_foto': data_foto.isoformat(),
+            'data_saida': rec.get('data_saida'), 'vencimento_original': vo[:10],
+            'resultado_victor': rec.get('resultado_victor'),
+            'prob_sucesso_prevista_pct': rec.get('prob_sucesso_prevista_pct')
+                or (rec.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')}
+    if _dtv.strptime(vo[:10], '%Y-%m-%d').date() > hoje:
+        base['resultado_tracker'] = 'pendente'
+        base['dias_ate_vencimento_original'] = (_dtv.strptime(vo[:10], '%Y-%m-%d').date() - hoje).days
+        return base
+    try:
+        historico = _fetch_closes_for_foto(rec.get('ticker'), data_foto.isoformat())
+    except Exception:
+        historico = None
+    if not historico:
+        base['resultado_tracker'] = None
+        base['erro'] = 'historico indisponivel'
+        return base
+    trecho = [h for h in historico if h['data'] <= vo[:10]] or historico
+    closes = [h['close'] for h in trecho]
+    min_c, max_c, fim = min(closes), max(closes), closes[-1]
+    tipo = rec.get('tipo_estrutura')
+    kdo, kuo, strike = rec.get('kdo'), rec.get('kuo'), rec.get('strike')
+    motivo = None
+    if tipo in ('retorno_controlado', 'bidirecional'):
+        if kdo is not None and min_c <= float(kdo):
+            res, motivo = 'fracasso', 'barreira de baixa tocada'
+        elif tipo == 'bidirecional' and kuo is not None and max_c >= float(kuo):
+            # Regra do Victor: tocar a barreira de ALTA congela o ganho.
+            # Sucesso se o retorno >= CDI no PRAZO FINAL (nao ate o toque)
+            # -- e no vencimento que o banco paga. Aproximacao aceita:
+            # CDI corrente, porque o sistema nao guarda historico de CDI.
+            pf = rec.get('preco_foto')
+            dias = (_dtv.strptime(vo[:10], '%Y-%m-%d').date() - data_foto).days
+            try:
+                cdi = float(get_cdi())
+            except Exception:
+                cdi = 13.9
+            alvo = ((1 + cdi / 100) ** (dias / 365.0) - 1) * 100
+            ganho = float(rec.get('teto_retorno_pct') or rec.get('ganho_prefixado_pct') or 0)
+            res = 'sucesso' if ganho >= alvo else 'fracasso'
+            motivo = f'barreira de alta tocada; ganho {ganho:.2f}% vs CDI {alvo:.2f}% no prazo'
+        else:
+            var_fim = ((fim / float(rec['preco_foto'])) - 1) * 100 if rec.get('preco_foto') else None
+            if tipo == 'bidirecional' and var_fim is not None and abs(var_fim) <= 1.0:
+                # Regra do Victor: bidirecional que termina no mesmo preco
+                # de entrada e fracasso -- alguma ponta tinha que funcionar.
+                res, motivo = 'fracasso', f'nenhuma barreira tocada, mas terminou em {var_fim:+.2f}% (dentro de +-1%)'
+            else:
+                res, motivo = 'sucesso', 'nenhuma barreira tocada'
+    elif tipo in ('premio', 'premium'):
+        if strike is not None and fim >= float(strike):
+            res, motivo = 'fracasso', 'exercida no vencimento'
+        else:
+            res, motivo = 'sucesso', 'nao exercida'
+    else:
+        base['resultado_tracker'] = None
+        base['erro'] = f'tipo {tipo} sem regra de apuracao'
+        return base
+    base.update({'resultado_tracker': res, 'motivo_tracker': motivo,
+                 'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
+                 'variacao_no_vencimento_pct': round((fim / float(rec['preco_foto']) - 1) * 100, 2) if rec.get('preco_foto') else None,
+                 'divergencia': rec.get('resultado_victor') != res})
+    return base
+
+def _tracking_victor_calcular(*listas):
+    from datetime import datetime as _dtv
+    hoje = _dtv.now().date()
+    itens, vistos = [], set()
+    for lista in listas:
+        for rec in (lista or []):
+            if rec.get('id') in vistos:
+                continue
+            it = _tracking_victor_item(rec, hoje)
+            if it:
+                vistos.add(rec.get('id')); itens.append(it)
+    fechados = [i for i in itens if i.get('resultado_tracker') in ('sucesso', 'fracasso')]
+    div = [i for i in fechados if i['divergencia']]
+    salvou = [i for i in div if i['resultado_victor'] == 'sucesso' and i['resultado_tracker'] == 'fracasso']
+    custou = [i for i in div if i['resultado_victor'] == 'fracasso' and i['resultado_tracker'] == 'sucesso']
+    return {
+        'aviso': 'Compara a DECISAO do Victor com o que teria acontecido ate o vencimento ORIGINAL. Duas colunas independentes -- uma nunca corrige a outra.',
+        'total_com_decisao': len(itens),
+        'pendentes_no_tracker': sum(1 for i in itens if i.get('resultado_tracker') == 'pendente'),
+        'fechados': len(fechados),
+        'concordancia_pct': round(100 * (len(fechados) - len(div)) / len(fechados), 1) if fechados else None,
+        'saidas_que_evitaram_rompimento': len(salvou),
+        'saidas_que_custaram_o_premio': len(custou),
+        'itens': sorted(itens, key=lambda x: x.get('vencimento_original') or '', reverse=True),
+    }
+
+@app.route('/analises/tracking-victor', methods=['GET'])
+def rota_tracking_victor():
+    try:
+        pos = _ler_json_raw('positions.json') or {}
+        encerradas = pos.get('encerradas', []) if isinstance(pos, dict) else []
+        ativas = pos.get('ativas', []) if isinstance(pos, dict) else []
+        return jsonify(_tracking_victor_calcular(
+            _ler_json_raw('analises.json'), _ler_json_raw('analises_arquivo.json'),
+            encerradas, ativas))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/analises/tracking-acuracia', methods=['GET'])
 def tracking_acuracia_previsoes():
     """
