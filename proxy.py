@@ -4004,8 +4004,13 @@ def _tracking_victor_item(rec, hoje):
     from datetime import datetime as _dtv, timedelta as _tdv
     if rec.get('resultado_victor') not in ('sucesso', 'fracasso'):
         return None
+    # positions.json usa data_entrada/entry; analises.json usa
+    # data_foto/preco_foto. O tracker le os dois (a TEND3 de 21/09/2026
+    # expos isso: ela ja tinha migrado para positions.json).
+    _df = rec.get('data_foto') or rec.get('data_entrada')
+    _pf = rec.get('preco_foto') or rec.get('entry')
     try:
-        data_foto = _dtv.strptime(rec['data_foto'][:10], '%Y-%m-%d').date()
+        data_foto = _dtv.strptime(_df[:10], '%Y-%m-%d').date()
     except Exception:
         return None
     vo = rec.get('vencimento_original') or rec.get('vencimento')
@@ -4032,6 +4037,7 @@ def _tracking_victor_item(rec, hoje):
         base['resultado_tracker'] = None
         base['erro'] = 'historico indisponivel'
         return base
+    rec = dict(rec); rec['preco_foto'] = _pf
     trecho = [h for h in historico if h['data'] <= vo[:10]] or historico
     closes = [h['close'] for h in trecho]
     min_c, max_c, fim = min(closes), max(closes), closes[-1]
