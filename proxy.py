@@ -4191,17 +4191,29 @@ def tracking_acuracia_previsoes():
             prob = p.get('prob_sucesso_prevista_pct')
             if prob is None:
                 continue
+            # ADICIONADO 22/09/2026 -- viés de resgate antecipado.
+            # O modelo previu sobreviver ate o VENCIMENTO; encerrar antes
+            # e prova mais facil e inflava a taxa (os 5 primeiros casos
+            # deste tracker eram TODOS antecipados, com realizado bem
+            # abaixo do alvo). Agora as antecipadas sao separadas, nao
+            # descartadas: a calibracao usa so as levadas ao vencimento.
+            antecipada = bool(p.get('encerramento_antecipado'))
+            if not antecipada and p.get('data_saida') and (p.get('vencimento_original') or p.get('vencimento')):
+                antecipada = p['data_saida'][:10] < (p.get('vencimento_original') or p['vencimento'])[:10]
             itens.append({
                 'origem': 'posicao_real', 'id': p.get('id'), 'ticker': p.get('ticker'),
                 'data_foto': p.get('data_entrada'), 'data_encerramento': p.get('data_encerramento'),
                 'prob_sucesso_prevista_pct': prob,
                 'resultado_real': 'sucesso' if status == 'sucesso' else 'fracasso',
                 'acertou': (status == 'sucesso') == (prob >= 50),
+                'encerramento_antecipado': antecipada,
             })
 
-        # Calibracao por faixa de 10pp
+        # Calibracao so com as levadas ate o vencimento (ver comentario acima).
+        ate_vencimento = [i for i in itens if not i.get('encerramento_antecipado')]
+        antecipadas = [i for i in itens if i.get('encerramento_antecipado')]
         faixas = {}
-        for it in itens:
+        for it in ate_vencimento:
             faixa_ini = int(it['prob_sucesso_prevista_pct'] // 10) * 10
             chave = f"{faixa_ini}-{faixa_ini+10}%"
             faixas.setdefault(chave, {'total': 0, 'sucessos': 0})
@@ -4217,10 +4229,14 @@ def tracking_acuracia_previsoes():
                 'taxa_sucesso_real_pct': round(d['sucessos'] / d['total'] * 100, 1) if d['total'] else None,
             })
 
-        total = len(itens)
-        acertos = sum(1 for it in itens if it['acertou'])
+        total = len(ate_vencimento)
+        acertos = sum(1 for it in ate_vencimento if it['acertou'])
 
         return jsonify({
+            'total_encerradas_antecipadamente': len(antecipadas),
+            'aviso_antecipadas': ('Encerradas antes do vencimento NAO entram na calibracao: o modelo previu '
+                'sobreviver ate o vencimento, e sair antes e prova mais facil. Elas aparecem em itens com '
+                'encerramento_antecipado=true e sao avaliadas no /analises/tracking-victor.'),
             'total_analises_com_previsao_e_resultado': total,
             'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
             'aviso': 'so inclui analises/posicoes fechadas a partir de 06/08/2026 -- registros anteriores nao tinham prob_sucesso_prevista_pct congelada' if total < 5 else None,
