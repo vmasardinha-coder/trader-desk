@@ -1596,6 +1596,28 @@ function calcDashboardEncerradas(encerradas){
   return {total,sucessos,taxaSucesso,mediaAlvo,mediaPrazo};
 }
 
+// ADICIONADO 23/09/2026 -- os 4 quadrinhos de Encerradas contavam so o
+// que estava VISIVEL na tela. Depois do arquivamento (10 movidas para
+// positions_arquivo.json) eles passaram a dizer "8 de 9" enquanto o
+// historico real e 15 de 19 -- duas telas falando linguas diferentes,
+// achado pelo Victor. Agora os numeros vem de /positions/resumo-encerradas,
+// que le o arquivo ativo E o morto. Best-effort: se a rota falhar, ficam
+// os valores locais de antes.
+async function atualizarKpisEncerradas(){
+  try{
+    const r=await fetch(B+'/positions/resumo-encerradas',{cache:'no-store'});
+    if(!r.ok)return;
+    const d=await r.json();
+    const set=(id,v)=>{const el=document.getElementById(id); if(el&&v!=null)el.textContent=v;};
+    set('enc-k-total', d.total_encerradas);
+    set('enc-k-total-sub','encerradas (inclui arquivadas)');
+    set('enc-k-taxa', d.taxa_sucesso_pct!=null?d.taxa_sucesso_pct+'%':null);
+    set('enc-k-taxa-sub', `${d.sucessos} de ${d.total_encerradas} ✅ (parcial = fracasso)`);
+    if(d.media_pct_do_alvo!=null) set('enc-k-alvo','~'+d.media_pct_do_alvo+'%');
+    if(d.media_pct_do_prazo!=null) set('enc-k-prazo','~'+d.media_pct_do_prazo+'%');
+  }catch(e){/* best-effort */}
+}
+
 function renderEncerradas(data){
   const cont=document.getElementById('enc-container');
   if(!cont)return;
@@ -1606,22 +1628,22 @@ function renderEncerradas(data){
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
     <div class="card g">
       <div class="cl">Operações</div>
-      <div class="cp">${stats.total}</div>
-      <div class="cc" style="color:var(--muted)">encerradas</div>
+      <div class="cp" id="enc-k-total">${stats.total}</div>
+      <div class="cc" style="color:var(--muted)" id="enc-k-total-sub">encerradas</div>
     </div>
     <div class="card g">
       <div class="cl">Taxa de Sucesso</div>
-      <div class="cp">${stats.taxaSucesso}%</div>
-      <div class="cc" style="color:var(--green)">${stats.sucessos} de ${stats.total} ✅</div>
+      <div class="cp" id="enc-k-taxa">${stats.taxaSucesso}%</div>
+      <div class="cc" style="color:var(--green)" id="enc-k-taxa-sub">${stats.sucessos} de ${stats.total} ✅</div>
     </div>
     <div class="card b">
       <div class="cl">Resultado Médio</div>
-      <div class="cp" style="font-size:18px">${stats.mediaAlvo!=null?'~'+stats.mediaAlvo+'%':'—'}</div>
+      <div class="cp" style="font-size:18px" id="enc-k-alvo">${stats.mediaAlvo!=null?'~'+stats.mediaAlvo+'%':'—'}</div>
       <div class="cc" style="color:var(--accent)">do alvo atingido</div>
     </div>
     <div class="card b">
       <div class="cl">Tempo Médio</div>
-      <div class="cp" style="font-size:18px">${stats.mediaPrazo!=null?'~'+stats.mediaPrazo+'%':'—'}</div>
+      <div class="cp" style="font-size:18px" id="enc-k-prazo">${stats.mediaPrazo!=null?'~'+stats.mediaPrazo+'%':'—'}</div>
       <div class="cc" style="color:var(--accent)">do prazo utilizado</div>
     </div>
   </div>`;
@@ -1630,6 +1652,7 @@ function renderEncerradas(data){
   encerradas.forEach(p=>cards+=tplEncerrada(p));
 
   cont.innerHTML=dashboard+cards;
+  atualizarKpisEncerradas();
 }
 
 function togPos(id){
