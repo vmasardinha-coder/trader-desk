@@ -4301,6 +4301,26 @@ def _resumo_encerradas():
                        'referencia': rv.get('referencia'), 'razao_pct': rv.get('razao_pct'),
                        'nota': rv.get('nota')})
     perdas.sort(key=lambda r: (r['razao_pct'] is None, r['razao_pct']))
+    # ROLAGEM DE MELHORA (23/09/2026) -- categoria propria, criada com o
+    # caso BBAS3. Nao e saida antecipada: o Victor nao sai, ele prorroga e
+    # melhora os termos de uma posicao travada. A pergunta aqui nao e
+    # "capturei quanto do premio", e sim "estou destravando mais rapido do
+    # que o papel corre?". Por isso as colunas sao outras.
+    rolagens = []
+    for x in enc:
+        if x.get('tipo_encerramento') != 'rolagem_de_melhora':
+            continue
+        r = x.get('rolagem') or {}
+        rec, alta = r.get('recuperacao_strike_pct_mes'), r.get('alta_do_papel_pct_mes_3m')
+        rolagens.append({'id': x.get('id'), 'ticker': x.get('ticker'),
+            'data': (x.get('data_encerramento') or '')[:10],
+            'strike_de': r.get('strike_de'), 'strike_para': r.get('strike_para'),
+            'ganho_total_reais': r.get('ganho_total_reais'), 'ganho_pct_posicao': r.get('ganho_pct_posicao'),
+            'dias_extensao': r.get('dias_extensao'), 'recuperacao_strike_pct_mes': rec,
+            'alta_papel_pct_mes': alta,
+            'destrava': (None if rec is None or alta is None else rec > alta),
+            'prob_antes_pct': r.get('prob_nao_exercicio_antes_pct'),
+            'prob_depois_pct': r.get('prob_nao_exercicio_depois_pct')})
     g = [r['giro'] for r in linhas]
     return {
         'total_encerradas': total, 'sucessos': suc, 'fracassos': frac,
@@ -4324,6 +4344,8 @@ def _resumo_encerradas():
         'tabela_giro': linhas,
         'nota_fracassos': 'Nenhum fracasso foi perda de capital -- todos foram perda de oportunidade (abaixo do CDI ou abaixo da diretriz).',
         'tabela_fracassos': perdas,
+        'nota_rolagens': 'Rolagem de melhora: destrava=true quando a recuperacao de strike por mes supera a alta do papel. Falso significa que a posicao esta ficando mais travada, mesmo com a rolagem sendo positiva.',
+        'tabela_rolagens': rolagens,
     }
 
 @app.route('/positions/resumo-encerradas', methods=['GET'])
