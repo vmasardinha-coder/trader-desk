@@ -1651,7 +1651,9 @@ function renderEncerradas(data){
   let cards='';
   encerradas.forEach(p=>cards+=tplEncerrada(p));
 
-  cont.innerHTML=dashboard+cards;
+  cont.innerHTML=dashboard
+    +'<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;color:var(--muted);padding:6px 0">Detalhe por operação ('+encerradas.length+') — para conferir o processamento</summary><div style="margin-top:10px">'
+    +cards+'</div></details>';
   atualizarKpisEncerradas();
 }
 
@@ -3963,13 +3965,41 @@ async function loadAnalisesEncerradas(){
       </div>`;
     }
 
+
+    // APROVEITAMENTO REALIZADO (23/09/2026). O painel de somatorio abaixo
+    // usa o EV PROJETADO no momento da rejeicao ("economizou R$354"). Este
+    // card e o que ACONTECEU depois que as rejeitadas venceram. Vem do
+    // backend (/analises/tracking-hipotetico), que le o arquivo ativo E o
+    // morto -- o somatorio antigo soma so o que esta VISIVEL na lista e
+    // encolhe conforme o arquivamento avanca.
+    if(hipotetico && hipotetico.aproveitamento_realizado && hipotetico.aproveitamento_realizado.avaliadas_com_valor>0){
+      const r=hipotetico.aproveitamento_realizado;
+      dashboard+=`
+      <div class="card" style="margin-bottom:16px;border-left:2px solid var(--accent)">
+        <div class="cl">💸 Aproveitamento realizado das rejeitadas <span style="font-size:9px;color:var(--muted);font-weight:400">(${r.avaliadas_com_valor} já venceram · R$ por lote de 100 ações)</span></div>
+        <div class="cp" style="font-size:18px">
+          <span style="color:var(--accent)">deixou de ganhar R$ ${r.deixou_de_ganhar_rs_lote100.toLocaleString('pt-BR')}</span>
+          <span style="color:var(--muted);font-size:13px"> · </span>
+          <span style="color:var(--green,#2ecc71)">deixou de perder R$ ${r.deixou_de_perder_rs_lote100.toLocaleString('pt-BR')}</span>
+        </div>
+        <div class="cc" style="color:var(--muted)">${r.n_deixou_de_ganhar} teriam dado certo · ${r.n_deixou_de_perder} teriam rompido · maior perdida R$ ${(r.maior_que_perdeu_rs_lote100||0).toLocaleString('pt-BR')} · pior evitada R$ ${Math.abs(r.pior_que_evitou_rs_lote100||0).toLocaleString('pt-BR')}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:6px">Soma teórica: assume que daria para ter pego todas ao mesmo tempo. Cada uma exigiria capital próprio, então é um teto, não uma perda efetiva.</div>
+      </div>`;
+    }
+
     if(!listaCards.length){
       cont.innerHTML=dashboard+'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
       return;
     }
 
     const cards=listaCards.map(a=>tplAnaliseEncerrada(a)).join('');
-    cont.innerHTML=dashboard+'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'+cards;
+    // 23/09/2026 -- Victor: "esse detalhamento que voce abre pode ficar
+    // oculto; eu usava so pra confirmar que o processamento deu certo".
+    // Entao NAO foi removido: virou <details> fechado. O executivo fica
+    // em cima, o detalhe a um clique.
+    cont.innerHTML=dashboard+'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'
+      +'<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;color:var(--muted);padding:6px 0">Detalhe por análise ('+listaCards.length+') — para conferir o processamento</summary><div style="margin-top:10px">'
+      +cards+'</div></details>';
     calcularSomatorioEncerradas(listaCards, hipItensPorId);
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar histórico de análises: '+e.message+'</p>';
