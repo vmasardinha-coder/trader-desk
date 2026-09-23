@@ -96,8 +96,13 @@
     "data_encerramento": "2026-08-13",
     "status": "sucesso",
     "prob_sucesso_prevista_pct": 81.64,
-    "resultado_texto": "Resgate ANTECIPADO a valor de mercado (nao aguardou o vencimento 12/10/2026). Barreira (KDO R$9,39) nunca foi tocada -- o prefixado de 9,9% estava garantido se segurasse ate o fim, mas Victor decidiu travar 5,6% de lucro agora (57% do alvo) em vez de esperar mais ~2 meses pelo resto. Papel (ROXO34) subiu bem acima do strike (R$12,77) no momento do fechamento -- preco de referencia consultado no fechamento: R$13,28. Resultado de mercado (nao recalculado por mim -- numero informado pelo Victor, mesma regra de nunca reestimar P&L real reportado pelo usuario). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 5.6% abaixo do alvo 9.9% -- quem chega ao vencimento sem romper recebe o prefixado cheio.",
-    "encerramento_antecipado": true
+    "resultado_texto": "Resgate ANTECIPADO a valor de mercado (nao aguardou o vencimento 12/10/2026). Barreira (KDO R$9,39) nunca foi tocada -- o prefixado de 9,9% estava garantido se segurasse ate o fim, mas Victor decidiu travar 5,6% de lucro agora (57% do alvo) em vez de esperar mais ~2 meses pelo resto. Papel (ROXO34) subiu bem acima do strike (R$12,77) no momento do fechamento -- preco de referencia consultado no fechamento: R$13,28. Resultado de mercado (nao recalculado por mim -- numero informado pelo Victor, mesma regra de nunca reestimar P&L real reportado pelo usuario). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 5.6% abaixo do alvo 9.9% -- quem chega ao vencimento sem romper recebe o prefixado cheio. | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca.",
+    "encerramento_antecipado": true,
+    "data_entrada": "2026-08-12",
+    "vencimento_original": "2026-10-12",
+    "vencimento": "2026-10-12",
+    "entry": 11.61,
+    "origem_datas": "historico_git_2026-09-23"
   },
   {
     "id": "cl-spcx34-retctrl-ago26",
@@ -109,8 +114,13 @@
     "data_encerramento": "2026-08-17",
     "status": "sucesso",
     "prob_sucesso_prevista_pct": 66.92,
-    "resultado_texto": "Encerrada com sucesso, 9,2% de resultado. Barreira nunca acionada. Numero informado pelo Victor (nao recalculado -- mesma regra de sempre aceitar o resultado real reportado como fonte da verdade). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 9.2% abaixo do alvo 13.4% -- quem chega ao vencimento sem romper recebe o prefixado cheio.",
-    "encerramento_antecipado": true
+    "resultado_texto": "Encerrada com sucesso, 9,2% de resultado. Barreira nunca acionada. Numero informado pelo Victor (nao recalculado -- mesma regra de sempre aceitar o resultado real reportado como fonte da verdade). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 9.2% abaixo do alvo 13.4% -- quem chega ao vencimento sem romper recebe o prefixado cheio. | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca.",
+    "encerramento_antecipado": true,
+    "data_entrada": "2026-08-12",
+    "vencimento_original": "2026-08-25",
+    "vencimento": "2026-08-25",
+    "entry": 50.65,
+    "origem_datas": "historico_git_2026-09-23"
   },
   {
     "id": "cl-axia3-bidirecional-b",
@@ -132,7 +142,12 @@
     "data_encerramento": "2026-08-21",
     "status": "sucesso",
     "prob_sucesso_prevista_pct": 61.42,
-    "resultado_texto": "Resgate ANTECIPADO a valor de mercado em 21/08/2026 (nao aguardou o vencimento 01/09/2026). Barreira (KDO R$41,25) nunca foi tocada -- o prefixado de 13,4% estava garantido se segurasse ate o fim, mas Victor decidiu travar 8,24% de lucro agora (R$2.800 sobre ~R$34.000, proporcional ao tempo decorrido) em vez de esperar mais ~11 dias pelo resto. Numero informado pelo Victor, nao recalculado por mim. | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 8.24% abaixo do alvo 13.4% -- quem chega ao vencimento sem romper recebe o prefixado cheio.",
-    "encerramento_antecipado": true
+    "resultado_texto": "Resgate ANTECIPADO a valor de mercado em 21/08/2026 (nao aguardou o vencimento 01/09/2026). Barreira (KDO R$41,25) nunca foi tocada -- o prefixado de 13,4% estava garantido se segurasse ate o fim, mas Victor decidiu travar 8,24% de lucro agora (R$2.800 sobre ~R$34.000, proporcional ao tempo decorrido) em vez de esperar mais ~11 dias pelo resto. Numero informado pelo Victor, nao recalculado por mim. | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 8.24% abaixo do alvo 13.4% -- quem chega ao vencimento sem romper recebe o prefixado cheio. | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca.",
+    "encerramento_antecipado": true,
+    "data_entrada": "2026-08-17",
+    "vencimento_original": "2026-09-01",
+    "vencimento": "2026-09-01",
+    "entry": 50.79,
+    "origem_datas": "historico_git_2026-09-23"
   }
 ]
