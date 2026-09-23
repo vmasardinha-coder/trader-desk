@@ -4229,6 +4229,85 @@ def rota_arquivar_posicoes():
         return jsonify({'error': str(e)}), 500
 
 
+
+def _resumo_encerradas():
+    """Painel executivo da tela de Encerradas (pedido do Victor, 23/09/2026).
+
+    Ele nao quer o detalhe item a item -- quer entrar e ler "voce fechou 19,
+    deu tanto", mais a tabela de giro embaixo. O detalhe expansivel pode
+    sumir depois de 30 dias; estes numeros, nao.
+
+    Le positions.json E positions_arquivo.json: sair da tela nao pode
+    mudar o placar. 'parcial' conta como FRACASSO (decisao do Victor,
+    23/09/2026).
+
+    EFICIENCIA DO GIRO = (lucro realizado / alvo) / (tempo decorrido / prazo).
+    Acima de 1 significa que encerrar antes rendeu mais por unidade de tempo
+    do que levar ate o vencimento. E a metrica que substitui a taxa de
+    acerto: o Victor quase sempre sai no meio do caminho, entao acerto
+    binario nao mede o que ele faz.
+    """
+    from datetime import datetime as _dr
+    import statistics as _st
+    pos = _ler_json_raw('positions.json') or {}
+    enc = list(pos.get('encerradas') or []) + list(_ler_json_raw('positions_arquivo.json') or [])
+    total = len(enc)
+    suc = sum(1 for x in enc if x.get('status') == 'sucesso')
+    frac = sum(1 for x in enc if x.get('status') in ('fracasso', 'parcial'))
+    ant = sum(1 for x in enc if x.get('encerramento_antecipado'))
+    linhas = []
+    for x in enc:
+        alvo, real = x.get('alvo_pct'), x.get('realizado_pct')
+        de = x.get('data_entrada')
+        vo = x.get('vencimento_original') or x.get('vencimento')
+        ds = x.get('data_saida') or x.get('data_encerramento')
+        if alvo in (None, 0) or real is None or not (de and vo and ds):
+            continue
+        try:
+            d0 = _dr.strptime(de[:10], '%Y-%m-%d').date()
+            d1 = _dr.strptime(ds[:10], '%Y-%m-%d').date()
+            dv = _dr.strptime(vo[:10], '%Y-%m-%d').date()
+        except Exception:
+            continue
+        prazo = (dv - d0).days
+        dias = max((d1 - d0).days, 1)   # saida no mesmo dia conta como 1
+        if prazo <= 0:
+            continue
+        ft, fl = dias / prazo, real / alvo
+        linhas.append({
+            'id': x.get('id'), 'ticker': x.get('ticker'), 'status': x.get('status'),
+            'data_entrada': de[:10], 'data_saida': ds[:10], 'vencimento_original': vo[:10],
+            'dias_no_trade': dias, 'prazo_dias': prazo,
+            'pct_do_tempo': round(100 * ft, 1), 'pct_do_lucro': round(100 * fl, 1),
+            'alvo_pct': alvo, 'realizado_pct': real,
+            'giro': round(fl / ft, 2),
+            'retorno_mes_realizado_pct': round(real / (dias / 30.0), 2),
+            'retorno_mes_ate_o_fim_pct': round(alvo / (prazo / 30.0), 2),
+        })
+    linhas.sort(key=lambda r: -r['giro'])
+    g = [r['giro'] for r in linhas]
+    return {
+        'total_encerradas': total, 'sucessos': suc, 'fracassos': frac,
+        'taxa_sucesso_pct': round(100 * suc / total, 1) if total else None,
+        'encerradas_antecipadamente': ant,
+        'sem_dados_de_giro': total - len(linhas),
+        'giro_mediano': round(_st.median(g), 2) if g else None,
+        'giro_acima_de_1': sum(1 for x in g if x > 1),
+        'retorno_mes_medio_realizado_pct': round(_st.mean(r['retorno_mes_realizado_pct'] for r in linhas), 2) if linhas else None,
+        'retorno_mes_medio_ate_o_fim_pct': round(_st.mean(r['retorno_mes_ate_o_fim_pct'] for r in linhas), 2) if linhas else None,
+        'nota_parcial': "'parcial' conta como fracasso (decisao do Victor, 23/09/2026)",
+        'nota_giro': 'giro = (% do lucro capturado) / (% do prazo consumido). Acima de 1, sair antes rendeu mais por unidade de tempo.',
+        'tabela_giro': linhas,
+    }
+
+@app.route('/positions/resumo-encerradas', methods=['GET'])
+def rota_resumo_encerradas():
+    try:
+        return jsonify(_resumo_encerradas())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/analises/tracking-acuracia', methods=['GET'])
 def tracking_acuracia_previsoes():
     """
