@@ -4308,6 +4308,14 @@ def _resumo_encerradas():
         'encerradas_antecipadamente': ant,
         'sem_dados_de_giro': total - len(linhas),
         'giro_mediano': round(_st.median(g), 2) if g else None,
+        # Mesmos dois numeros que a tela de Posicoes ja mostrava como
+        # "Resultado Medio (% do alvo)" e "Tempo Medio (% do prazo)", mas
+        # calculados para TODAS as operacoes com dados (antes vinham de um
+        # campo preenchido a mao em 3 de 19 registros, e so contavam as
+        # visiveis na tela -- por isso o placar dizia 8 de 9 enquanto o
+        # historico real era 15 de 19).
+        'media_pct_do_alvo': round(_st.mean(r['pct_do_lucro'] for r in linhas), 1) if linhas else None,
+        'media_pct_do_prazo': round(_st.mean(r['pct_do_tempo'] for r in linhas), 1) if linhas else None,
         'giro_acima_de_1': sum(1 for x in g if x > 1),
         'retorno_mes_medio_realizado_pct': round(_st.mean(r['retorno_mes_realizado_pct'] for r in linhas), 2) if linhas else None,
         'retorno_mes_medio_ate_o_fim_pct': round(_st.mean(r['retorno_mes_ate_o_fim_pct'] for r in linhas), 2) if linhas else None,
