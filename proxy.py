@@ -4002,18 +4002,42 @@ def tracking_hipotetico_previsoes():
 
 def _tracking_victor_item(rec, hoje):
     from datetime import datetime as _dtv, timedelta as _tdv
-    if rec.get('resultado_victor') not in ('sucesso', 'fracasso'):
+    # AJUSTE 23/09/2026 (Victor): "quando digo que e sucesso, todos eles
+    # ja sao meus". Toda posicao encerrada com status sucesso/fracasso e
+    # decisao de capital real dele -- entra aqui mesmo sem o campo novo
+    # resultado_victor, que so passou a ser gravado em 21/09/2026.
+    rv = rec.get('resultado_victor')
+    if rv not in ('sucesso', 'fracasso') and rec.get('status') in ('sucesso', 'fracasso') \
+       and (rec.get('data_entrada') or rec.get('entry') is not None
+            or rec.get('estrategia') or rec.get('tipo_posicao') or rec.get('data_encerramento')):
+        rv = rec['status']
+        rec = dict(rec); rec['resultado_victor'] = rv
+        rec.setdefault('data_saida', rec.get('data_encerramento'))
+    if rv not in ('sucesso', 'fracasso'):
         return None
     # positions.json usa data_entrada/entry; analises.json usa
     # data_foto/preco_foto. O tracker le os dois (a TEND3 de 21/09/2026
     # expos isso: ela ja tinha migrado para positions.json).
     _df = rec.get('data_foto') or rec.get('data_entrada')
     _pf = rec.get('preco_foto') or rec.get('entry')
+    vo = rec.get('vencimento_original') or rec.get('vencimento')
+    # AJUSTE 23/09/2026: em vez de sumir em silencio, uma decisao do
+    # Victor sem os campos necessarios aparece com 'faltam' preenchido --
+    # o tracker vira a lista de backfill. Quase todas as posicoes
+    # encerradas antes de 21/09/2026 estao sem data_entrada/entry/
+    # vencimento/kdo, e por isso nao podem ser apuradas contra o
+    # vencimento original.
+    faltam = [k for k, v in (('data de entrada', _df), ('preco de entrada', _pf),
+                             ('vencimento', vo)) if not v]
+    if faltam:
+        return {'id': rec.get('id'), 'ticker': rec.get('ticker'), 'nome': rec.get('nome'),
+                'resultado_victor': rv, 'resultado_tracker': None,
+                'erro': 'faltam campos: ' + ', '.join(faltam)}
     try:
         data_foto = _dtv.strptime(_df[:10], '%Y-%m-%d').date()
     except Exception:
-        return None
-    vo = rec.get('vencimento_original') or rec.get('vencimento')
+        return {'id': rec.get('id'), 'ticker': rec.get('ticker'), 'resultado_victor': rv,
+                'resultado_tracker': None, 'erro': 'data de entrada invalida'}
     if not vo:
         try:
             vo = (data_foto + _tdv(days=int(rec['prazo_dias']))).isoformat()
@@ -4042,6 +4066,11 @@ def _tracking_victor_item(rec, hoje):
     closes = [h['close'] for h in trecho]
     min_c, max_c, fim = min(closes), max(closes), closes[-1]
     tipo = rec.get('tipo_estrutura')
+    if not tipo:  # posicoes antigas usam 'estrategia'/'tipo_posicao'
+        est = (rec.get('estrategia') or '').lower()
+        tipo = ('retorno_controlado' if 'retorno control' in est else
+                'bidirecional' if 'bidirecional' in est or 'protec' in est else
+                'premio' if 'call' in est or 'put' in est or 'coberto' in est else None)
     kdo, kuo, strike = rec.get('kdo'), rec.get('kuo'), rec.get('strike')
     motivo = None
     if tipo in ('retorno_controlado', 'bidirecional'):
@@ -4097,6 +4126,7 @@ def _tracking_victor_calcular(*listas):
             if it:
                 vistos.add(rec.get('id')); itens.append(it)
     fechados = [i for i in itens if i.get('resultado_tracker') in ('sucesso', 'fracasso')]
+    incompletos = [i for i in itens if i.get('erro')]
     div = [i for i in fechados if i['divergencia']]
     salvou = [i for i in div if i['resultado_victor'] == 'sucesso' and i['resultado_tracker'] == 'fracasso']
     custou = [i for i in div if i['resultado_victor'] == 'fracasso' and i['resultado_tracker'] == 'sucesso']
@@ -4105,6 +4135,8 @@ def _tracking_victor_calcular(*listas):
         'total_com_decisao': len(itens),
         'pendentes_no_tracker': sum(1 for i in itens if i.get('resultado_tracker') == 'pendente'),
         'fechados': len(fechados),
+        'sem_dados_para_apurar': len(incompletos),
+        'backfill_pendente': [{'id': i['id'], 'ticker': i.get('ticker'), 'erro': i['erro']} for i in incompletos],
         'concordancia_pct': round(100 * (len(fechados) - len(div)) / len(fechados), 1) if fechados else None,
         'saidas_que_evitaram_rompimento': len(salvou),
         'saidas_que_custaram_o_premio': len(custou),
