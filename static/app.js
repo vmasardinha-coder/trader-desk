@@ -3769,14 +3769,22 @@ async function loadAnalisesEncerradas(){
     // (rejeitadas ja vencidas) ao lado da oficial (capital real). Busca
     // separada, tratada como best-effort -- se falhar, o resto do painel
     // continua funcionando normal, so essa linha nova fica ausente.
-    const [rA,rS,rH]=await Promise.all([
+    const [rA,rS,rH,rR]=await Promise.all([
       fetch(B+'/analises',{cache:'no-store'}),
       fetch(B+'/analises/stats',{cache:'no-store'}).catch(()=>null),
       fetch(B+'/analises/tracking-hipotetico',{cache:'no-store'}).catch(()=>null),
+      fetch(B+'/positions/resumo-encerradas',{cache:'no-store'}).catch(()=>null),
     ]);
     const dataA=rA.ok?await rA.json():[];
     const stats=(rS&&rS.ok)?await rS.json():{total_rejeitadas:0,total_migradas:0};
     const hipotetico=(rH&&rH.ok)?await rH.json():null;
+    // ADICIONADO 23/09/2026 -- painel executivo de Encerradas. Pedido do
+    // Victor: "preciso entrar aqui e ler: voce fechou tantas e tantas
+    // foram assim". O detalhe item a item deixa de ser o centro da tela
+    // (e pode sumir depois de 30 dias pelo arquivamento); estes numeros
+    // ficam. Vem de /positions/resumo-encerradas, que le positions.json
+    // E positions_arquivo.json -- arquivar nao muda o placar.
+    const resumo=(rR&&rR.ok)?await rR.json():null;
     const hipItensPorId={};
     (hipotetico?.itens||[]).forEach(it=>{hipItensPorId[it.id]=it;});
     const todasVisiveis=Array.isArray(dataA)?dataA:[];
@@ -3855,6 +3863,80 @@ async function loadAnalisesEncerradas(){
           <span style="font-size:9px;color:var(--muted);font-weight:400">nunca envolveu capital real -- so mede calibração do modelo</span>
         </div>
         <div class="cp">${hipotetico.taxa_acerto_binario_pct}% <span style="font-size:12px;font-weight:400;color:var(--muted)">(${hipotetico.itens.filter(i=>!i.erro&&i.acertou_previsao).length} de ${hipotetico.total_avaliadas})</span></div>
+      </div>`;
+    }
+
+
+    // Blocos novos (23/09/2026): placar de capital real, eficiencia do
+    // giro e o que ficou na mesa nos fracassos. Ficam DENTRO do
+    // dashboard de proposito -- o dashboard sempre e desenhado, mesmo
+    // quando nao ha nenhuma analise encerrada visivel (a funcao retorna
+    // cedo nesse caso). Foi assim que o painel hipotetico "sumiu" da
+    // tela do Victor depois do arquivamento.
+    if(resumo && resumo.total_encerradas>0){
+      const fmt=(v,s='%')=>v==null?'—':v.toFixed(2)+s;
+      dashboard+=`
+      <div class="card" style="margin-bottom:16px;border-left:2px solid var(--green,#2ecc71)">
+        <div class="cl">📕 Operações reais encerradas</div>
+        <div class="cp">${resumo.sucessos} de ${resumo.total_encerradas} <span style="font-size:12px;font-weight:400;color:var(--muted)">(${resumo.taxa_sucesso_pct}% — parcial conta como fracasso)</span></div>
+        <div class="cc" style="color:var(--muted)">${resumo.encerradas_antecipadamente} encerradas antes do vencimento · giro mediano <b>${resumo.giro_mediano ?? '—'}x</b> · realizado <b>${fmt(resumo.retorno_mes_medio_realizado_pct)}/mês</b> vs ${fmt(resumo.retorno_mes_medio_ate_o_fim_pct)}/mês indo até o fim</div>
+      </div>`;
+      if((resumo.tabela_giro||[]).length){
+        dashboard+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
+          <div class="cl">⏱ Eficiência do giro <span style="font-size:9px;color:var(--muted);font-weight:400">(% do lucro capturado ÷ % do prazo consumido — acima de 1, sair antes rendeu mais por unidade de tempo)</span></div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+            <tr style="color:var(--muted);text-align:right">
+              <th style="text-align:left;padding:4px">Papel</th><th style="padding:4px">Dias</th><th style="padding:4px">Prazo</th>
+              <th style="padding:4px">% tempo</th><th style="padding:4px">% lucro</th><th style="padding:4px">Giro</th>
+              <th style="padding:4px">Realizado/mês</th><th style="padding:4px">Até o fim/mês</th></tr>
+            ${resumo.tabela_giro.map(r=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)">
+              <td style="text-align:left;padding:4px">${(r.ticker||'').replace('.SA','')}</td>
+              <td style="padding:4px">${r.dias_no_trade}</td><td style="padding:4px">${r.prazo_dias}</td>
+              <td style="padding:4px">${r.pct_do_tempo}%</td><td style="padding:4px">${r.pct_do_lucro}%</td>
+              <td style="padding:4px;font-weight:700;color:${r.giro>1?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.giro}x</td>
+              <td style="padding:4px">${r.retorno_mes_realizado_pct}%</td>
+              <td style="padding:4px;color:var(--muted)">${r.retorno_mes_ate_o_fim_pct}%</td></tr>`).join('')}
+          </table>
+          ${resumo.sem_dados_de_giro?`<div style="font-size:9px;color:var(--muted);margin-top:6px">${resumo.sem_dados_de_giro} encerradas sem alvo/realizado gravados ficam fora desta tabela (contam no placar).</div>`:''}
+        </div>`;
+      }
+      if((resumo.tabela_fracassos||[]).length){
+        dashboard+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
+          <div class="cl">📉 Nos fracassos, quanto ficou na mesa <span style="font-size:9px;color:var(--muted);font-weight:400">(perda de oportunidade — nenhum foi perda de capital)</span></div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+            <tr style="color:var(--muted);text-align:right">
+              <th style="text-align:left;padding:4px">Papel</th><th style="padding:4px">Realizado</th>
+              <th style="padding:4px">Referência</th><th style="padding:4px">% do alvo</th>
+              <th style="text-align:left;padding:4px">Contra o quê</th></tr>
+            ${resumo.tabela_fracassos.map(r=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)">
+              <td style="text-align:left;padding:4px">${(r.ticker||'').replace('.SA','')}</td>
+              <td style="padding:4px">${r.realizado_pct==null?'—':r.realizado_pct+'%'}</td>
+              <td style="padding:4px">${r.referencia_pct==null?'—':r.referencia_pct+'%'}</td>
+              <td style="padding:4px;font-weight:700;color:var(--red,#e74c3c)">${r.razao_pct==null?'—':r.razao_pct+'%'}</td>
+              <td style="text-align:left;padding:4px;color:var(--muted);font-size:9px">${r.referencia||''}</td></tr>`).join('')}
+          </table>
+        </div>`;
+      }
+    }
+    // Calibracao por faixa de probabilidade -- e a tabela que o Victor
+    // chama de "a que a gente esta investigando" (faixa 70-80% furada).
+    if(hipotetico && (hipotetico.calibracao_por_faixa||[]).length){
+      dashboard+=`<div class="card" style="margin-bottom:20px;overflow-x:auto">
+        <div class="cl">🎯 Calibração por faixa de probabilidade <span style="font-size:9px;color:var(--muted);font-weight:400">(rejeitadas já vencidas — previsto vs realizado)</span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+          <tr style="color:var(--muted);text-align:right">
+            <th style="text-align:left;padding:4px">Faixa prevista</th><th style="padding:4px">n</th>
+            <th style="padding:4px">Acerto real</th><th style="padding:4px">Esperado</th><th style="padding:4px">Desvio</th></tr>
+          ${hipotetico.calibracao_por_faixa.map(f=>{
+            const p=f.faixa_prevista.replace('%','').split('-').map(Number);
+            const esp=(p[0]+p[1])/2, real=f.taxa_sucesso_real_pct, dv=real==null?null:real-esp;
+            return `<tr style="text-align:right;border-top:1px solid var(--border,#333)">
+              <td style="text-align:left;padding:4px">${f.faixa_prevista}</td><td style="padding:4px">${f.total}</td>
+              <td style="padding:4px;font-weight:700">${real==null?'—':real+'%'}</td>
+              <td style="padding:4px;color:var(--muted)">${esp}%</td>
+              <td style="padding:4px;font-weight:700;color:${dv==null?'var(--muted)':(dv<0?'var(--red,#e74c3c)':'var(--green,#2ecc71)')}">${dv==null?'—':(dv>0?'+':'')+dv.toFixed(1)+'p'}</td></tr>`;
+          }).join('')}
+        </table>
       </div>`;
     }
 
