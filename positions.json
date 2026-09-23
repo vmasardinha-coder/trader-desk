@@ -250,7 +250,8 @@
       "strike": 22.31,
       "data_encerramento": "2026-08-27",
       "status": "parcial",
-      "resultado_texto": "Rolagem para BBASL212 (strike R$20,81, mesmo vencimento 17/12/2026). Prêmio líquido capturado ~R$700 sobre 2.200 ações (~1,75% da posição). Recompra R$1,12, venda nova R$1,51. EV calculado NEGATIVO (-R$686 a -R$1.082, dependendo do delta usado) -- delta quase dobrou (30%->54%) com o strike mais baixo, tornando o risco de perder o espaço de valorização (R$3.300 até R$22,31) maior que o prêmio capturado. Classificado PARCIAL por decisão do Victor: reconhece que a decisão isolada teve EV negativo, mas contextualiza como correção de uma posição já comprometida por rolagem anterior (BBASJ222->BBASL223, já classificada fracasso em 12/08/2026) -- objetivo era sair rápido capturando algum prêmio no caminho, não maximizar EV dessa perna isolada."
+      "resultado_texto": "Rolagem para BBASL212 (strike R$20,81, mesmo vencimento 17/12/2026). Prêmio líquido capturado ~R$700 sobre 2.200 ações (~1,75% da posição). Recompra R$1,12, venda nova R$1,51. EV calculado NEGATIVO (-R$686 a -R$1.082, dependendo do delta usado) -- delta quase dobrou (30%->54%) com o strike mais baixo, tornando o risco de perder o espaço de valorização (R$3.300 até R$22,31) maior que o prêmio capturado. Classificado PARCIAL por decisão do Victor: reconhece que a decisão isolada teve EV negativo, mas contextualiza como correção de uma posição já comprometida por rolagem anterior (BBASJ222->BBASL223, já classificada fracasso em 12/08/2026) -- objetivo era sair rápido capturando algum prêmio no caminho, não maximizar EV dessa perna isolada.",
+      "conta_como": "fracasso"
     },
     {
       "id": "cl-axia3-bidirecional-c",
@@ -272,8 +273,13 @@
       "data_encerramento": "2026-09-02",
       "status": "sucesso",
       "prob_sucesso_prevista_pct": 71.48,
-      "resultado_texto": "Resgate ANTECIPADO a valor de mercado, sucesso, 2% de lucro. Barreira nunca foi tocada. Victor reportou teto de 3,7% (registro do sistema tinha 3,5% -- pequena divergencia, mantido o numero informado por ele sem recalcular). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 2.0% abaixo do alvo 3.7% -- quem chega ao vencimento sem romper recebe o prefixado cheio.",
-      "encerramento_antecipado": true
+      "resultado_texto": "Resgate ANTECIPADO a valor de mercado, sucesso, 2% de lucro. Barreira nunca foi tocada. Victor reportou teto de 3,7% (registro do sistema tinha 3,5% -- pequena divergencia, mantido o numero informado por ele sem recalcular). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 2.0% abaixo do alvo 3.7% -- quem chega ao vencimento sem romper recebe o prefixado cheio. | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca.",
+      "encerramento_antecipado": true,
+      "data_entrada": "2026-08-24",
+      "vencimento_original": "2026-09-08",
+      "vencimento": "2026-09-08",
+      "entry": 47.37,
+      "origem_datas": "historico_git_2026-09-23"
     },
     {
       "id": "cl-bslv39-retctrl-out26",
@@ -285,7 +291,12 @@
       "data_encerramento": "2026-09-09",
       "status": "sucesso",
       "prob_sucesso_prevista_pct": null,
-      "resultado_texto": "Encerrada com sucesso, 6,0% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id bslv392, venc 10/11/2026)."
+      "resultado_texto": "Encerrada com sucesso, 6,0% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id bslv392, venc 10/11/2026). | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca.",
+      "data_entrada": "2026-08-05",
+      "vencimento_original": "2026-10-04",
+      "vencimento": "2026-10-04",
+      "entry": 96.0,
+      "origem_datas": "historico_git_2026-09-23"
     },
     {
       "id": "cl-tsla34-retctrl-out26",
@@ -297,8 +308,13 @@
       "data_encerramento": "2026-09-09",
       "status": "sucesso",
       "prob_sucesso_prevista_pct": 67.86,
-      "resultado_texto": "Encerrada com sucesso, 5,2% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id tsla342, venc 10/11/2026). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 5.2% abaixo do alvo 8.7% -- quem chega ao vencimento sem romper recebe o prefixado cheio.",
-      "encerramento_antecipado": true
+      "resultado_texto": "Encerrada com sucesso, 5,2% de resultado. Barreira nunca tocada. Rolada pra nova estrutura (id tsla342, venc 10/11/2026). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 5.2% abaixo do alvo 8.7% -- quem chega ao vencimento sem romper recebe o prefixado cheio. | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca.",
+      "encerramento_antecipado": true,
+      "data_entrada": "2026-08-17",
+      "vencimento_original": "2026-10-15",
+      "vencimento": "2026-10-15",
+      "entry": 54.96,
+      "origem_datas": "historico_git_2026-09-23"
     },
     {
       "id": "tend3",
