@@ -4285,6 +4285,22 @@ def _resumo_encerradas():
             'retorno_mes_ate_o_fim_pct': round(alvo / (prazo / 30.0), 2),
         })
     linhas.sort(key=lambda r: -r['giro'])
+    # A outra metade da historia (pedido do Victor, 23/09/2026): quando deu
+    # errado, quanto ficou na mesa. Nenhum dos fracassos foi perda de
+    # CAPITAL -- todos foram perda de OPORTUNIDADE (rendeu abaixo do CDI,
+    # ou rolou capturando menos que a diretriz). Por isso a comparacao e
+    # contra uma referencia, nao contra zero.
+    perdas = []
+    for x in enc:
+        if x.get('status') not in ('fracasso', 'parcial'):
+            continue
+        rv = x.get('resultado_vs_referencia') or {}
+        perdas.append({'id': x.get('id'), 'ticker': x.get('ticker'), 'status': x.get('status'),
+                       'data_encerramento': (x.get('data_encerramento') or '')[:10],
+                       'realizado_pct': rv.get('realizado_pct'), 'referencia_pct': rv.get('referencia_pct'),
+                       'referencia': rv.get('referencia'), 'razao_pct': rv.get('razao_pct'),
+                       'nota': rv.get('nota')})
+    perdas.sort(key=lambda r: (r['razao_pct'] is None, r['razao_pct']))
     g = [r['giro'] for r in linhas]
     return {
         'total_encerradas': total, 'sucessos': suc, 'fracassos': frac,
@@ -4298,6 +4314,8 @@ def _resumo_encerradas():
         'nota_parcial': "'parcial' conta como fracasso (decisao do Victor, 23/09/2026)",
         'nota_giro': 'giro = (% do lucro capturado) / (% do prazo consumido). Acima de 1, sair antes rendeu mais por unidade de tempo.',
         'tabela_giro': linhas,
+        'nota_fracassos': 'Nenhum fracasso foi perda de capital -- todos foram perda de oportunidade (abaixo do CDI ou abaixo da diretriz).',
+        'tabela_fracassos': perdas,
     }
 
 @app.route('/positions/resumo-encerradas', methods=['GET'])
