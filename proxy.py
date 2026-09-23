@@ -4151,7 +4151,80 @@ def rota_tracking_victor():
         ativas = pos.get('ativas', []) if isinstance(pos, dict) else []
         return jsonify(_tracking_victor_calcular(
             _ler_json_raw('analises.json'), _ler_json_raw('analises_arquivo.json'),
-            encerradas, ativas))
+            encerradas, ativas, _ler_json_raw('positions_arquivo.json')))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+def _arquivar_posicoes(dry_run=True):
+    """Move encerradas antigas de positions.json para positions_arquivo.json.
+
+    Pedido do Victor (23/09/2026): "nao preciso ver por muito tempo essas
+    de sucesso -- e so gravar, nao precisa ficar na tela". A tela de
+    Encerradas le positions.json; o arquivo morto sai da tela mas continua
+    contando nos trackers, que passam a ler os dois.
+
+    DIFERENCA para o arquivamento de analises: aqui NADA e enxugado. O
+    registro vai inteiro, porque e o historico ECONOMICO -- alvo_pct,
+    realizado_pct, capital, lucro, KDO, datas. E esse historico que ainda
+    vai responder se sair antes compensa (retorno POR PERIODO, nao so
+    taxa de acerto), e por isso nenhum campo pode ser descartado.
+
+    TRAVA: recalcula tracking-victor e tracking-acuracia antes e depois;
+    se qualquer um mudar, aborta sem gravar."""
+    from datetime import datetime as _dtp, timedelta as _tdp
+    hoje = _dtp.now().date()
+    corte = hoje - _tdp(days=30)
+    s_p, sha_p = _github_get_file('positions.json')
+    pos = json.loads(s_p)
+    try:
+        s_a, sha_a = _github_get_file('positions_arquivo.json')
+        arq = json.loads(s_a)
+    except Exception:
+        arq, sha_a = [], None
+    def _victor(p_enc, p_at, a):
+        return _tracking_victor_calcular(p_enc, p_at, a)
+    antes = _victor(pos.get('encerradas', []), pos.get('ativas', []), arq)
+    fica, movidas = [], []
+    for x in pos.get('encerradas', []):
+        d = x.get('data_encerramento') or x.get('data_saida')
+        try:
+            velha = _dtp.strptime(d[:10], '%Y-%m-%d').date() < corte
+        except Exception:
+            velha = False
+        (movidas if velha else fica).append(x)
+    novo_arq = arq + movidas
+    depois = _victor(fica, pos.get('ativas', []), novo_arq)
+    def _sig(r):
+        return (r['total_com_decisao'], r['fechados'], r['pendentes_no_tracker'],
+                r.get('sem_dados_para_apurar'), r.get('concordancia_pct'),
+                tuple(sorted((i['id'], str(i.get('resultado_tracker'))) for i in r['itens'])))
+    ok = _sig(antes) == _sig(depois)
+    rel = {'movidas': len(movidas), 'ficam_na_tela': len(fica), 'total_no_arquivo': len(novo_arq),
+           'corte': corte.isoformat(), 'tracker_victor_identico': ok, 'dry_run': dry_run,
+           'ids_movidos': [x.get('id') for x in movidas]}
+    if not ok:
+        rel['erro'] = 'ABORTADO: o tracking-victor mudaria -- nada gravado'
+        return rel
+    if dry_run or not movidas:
+        return rel
+    pos['encerradas'] = fica
+    msg = f'chore: arquiva {len(movidas)} posicoes encerradas ha mais de 30 dias (historico economico integral preservado)'
+    conteudo = json.dumps(novo_arq, indent=2, ensure_ascii=False)
+    if sha_a:
+        _github_put_file('positions_arquivo.json', conteudo, sha_a, msg)
+    else:
+        _github_criar_arquivo('positions_arquivo.json', conteudo, msg)
+    _github_put_file('positions.json', json.dumps(pos, indent=2, ensure_ascii=False), sha_p, msg)
+    rel['gravado'] = True
+    return rel
+
+@app.route('/positions/arquivar', methods=['POST'])
+@_requer_auth_escrita
+def rota_arquivar_posicoes():
+    try:
+        return jsonify(_arquivar_posicoes(dry_run=request.args.get('executar') != '1'))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -4216,7 +4289,10 @@ def tracking_acuracia_previsoes():
                 'acertou': (a.get('resultado') == 'sucesso') == (prob >= 50),
             })
 
-        for p in (dados_pos.get('encerradas') or []):
+        # 23/09/2026: soma o arquivo morto de posicoes -- sair da tela
+        # nao pode tirar a operacao do tracker.
+        _encerradas_tudo = list(dados_pos.get('encerradas') or []) + list(_ler_json_raw('positions_arquivo.json') or [])
+        for p in _encerradas_tudo:
             status = p.get('status')
             if status not in ('sucesso', 'fracasso'):
                 continue
