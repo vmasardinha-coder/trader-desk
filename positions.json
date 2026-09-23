@@ -191,7 +191,7 @@
       "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-23",
+      "vencimento": "2026-11-20",
       "entry": 29.06,
       "kdo": 23.15,
       "kdo_pct": "-20.34%",
@@ -199,12 +199,13 @@
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-09-21",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 63.22,
+      "prob_sucesso_prevista_pct": 65.35,
       "ganho_sem_barreira": "19.0% fixo",
       "ganho_prefixado_pct": 19.0,
       "rolagem_de": "tend3",
       "numeros_confirmados": false,
-      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; ganho 19,0%, prazo 63d e venc 23/11/2026 foram HERDADOS da operacao anterior e do padrao dos boletos de 21/09, NAO vieram de documento. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%."
+      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; PRAZO CONFIRMADO PELO VICTOR em 22/09/2026: 60 dias a partir de 21/09 -> vencimento 2026-11-20 (corrigido de 2026-11-23, que eu tinha herdado do padrao dos boletos). O ganho de 19,0% continua HERDADO da operacao anterior e NAO confirmado. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%.",
+      "prazo_dias": 60
     }
   ],
   "encerradas": [
