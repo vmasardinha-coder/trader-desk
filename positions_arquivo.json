@@ -18,7 +18,18 @@
     "data_encerramento": "2026-07-01",
     "status": "fracasso",
     "resultado_texto": "Objetivo era fechar abaixo de R$10,50 (opção americana, risco de exercício antecipado ITM). Estourou -- probabilidade de rompimento chegou a 100%. Encerrada via rolagem decidida por fora do app; prêmio gerado para pagar o prêmio ficou com o usuário, mas o objetivo original não foi atingido.",
-    "observacao": "Rolagem em 01/07/2026 -- nova estrutura a ser registrada como ATIVA diretamente (sem passar por Em Análise) assim que os detalhes forem confirmados pelo usuário."
+    "observacao": "Rolagem em 01/07/2026 -- nova estrutura a ser registrada como ATIVA diretamente (sem passar por Em Análise) assim que os detalhes forem confirmados pelo usuário.",
+    "resultado_vs_referencia": {
+      "realizado_pct": 0.0,
+      "referencia_pct": 1.06,
+      "referencia": "CDI do periodo 03/06 a 01/07/2026 (Bacen SGS 12, 20 dias uteis)",
+      "razao_pct": 0.0,
+      "nota": "Call americana ROXO34: rompeu, Victor nao quis entregar com strike baixo e rolou entrando em calls. Nao houve prejuizo de capital, mas o dinheiro ficou parado sem render -- o custo e o CDI inteiro do periodo. Conclusao dada pelo proprio Victor em 23/09/2026.",
+      "preenchido_em": "2026-09-23",
+      "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
+    },
+    "data_entrada": "2026-06-03",
+    "origem_datas": "historico_git_2026-09-23"
   },
   {
     "id": "a3",
@@ -82,7 +93,16 @@
     "data_encerramento": "2026-08-12",
     "status": "fracasso",
     "resultado_texto": "Rolagem para BBASL223 (strike R$22,31, venc 17/12/2026). Premio liquido capturado apenas R$250 + aumento de strike R$0,41/acao (R$902) sobre 2.200 acoes = R$1.152 total (2,76% da posicao), 1,33%/mes no prazo incremental (63 dias, 15/10->17/12) -- fica ABAIXO da diretriz de 2%/mes. Classificado fracasso por decisao do Victor: diferente da ROXO34, esta rolagem NAO era necessaria (posicao saudavel, nao era resgate/sobrevivencia) -- diretriz de 2%/mes deve prevalecer sobre contexto quando nao ha necessidade real de rolar. Analise tecnica da opcao em si era correta (OTM, baixa prob. exercicio 24,44%, Theta forte a favor) mas o retorno economico da ROLAGEM como decisao ficou abaixo do padrao esperado.",
-    "observacao_followup": "FOLLOW-UP 18/08/2026: Victor revisou e concordou que a analise anterior (EV positivo ~R$396-792 dependendo do delta usado) estava certa em apontar que a diferenca (~R$300) NAO justificava a decisao de trocar de strike. Confirma que o calculo de EV/risco fundamentado deve prevalecer -- mesmo com resultado marginal, o processo de decisao foi validado retroativamente. Nesta mesma data, BBAS3 caiu -35% do topo de 52 semanas (R$27,58 em 25/02 -> R$17,93 em 18/08, novo minimo de 60 dias) por deterioracao real de credito (inadimplencia 90d 3,96%->5,61% a.a., guidance cortado, recuperacao so esperada em 2027). Victor recomprando a call (BBASL212) por R$0,55 para liberar as acoes e reavaliar estrategia (retorno controlado vs bidirecional vs prazo curto) dado o novo patamar de preco."
+    "observacao_followup": "FOLLOW-UP 18/08/2026: Victor revisou e concordou que a analise anterior (EV positivo ~R$396-792 dependendo do delta usado) estava certa em apontar que a diferenca (~R$300) NAO justificava a decisao de trocar de strike. Confirma que o calculo de EV/risco fundamentado deve prevalecer -- mesmo com resultado marginal, o processo de decisao foi validado retroativamente. Nesta mesma data, BBAS3 caiu -35% do topo de 52 semanas (R$27,58 em 25/02 -> R$17,93 em 18/08, novo minimo de 60 dias) por deterioracao real de credito (inadimplencia 90d 3,96%->5,61% a.a., guidance cortado, recuperacao so esperada em 2027). Victor recomprando a call (BBASL212) por R$0,55 para liberar as acoes e reavaliar estrategia (retorno controlado vs bidirecional vs prazo curto) dado o novo patamar de preco.",
+    "resultado_vs_referencia": {
+      "realizado_pct": 1.33,
+      "referencia_pct": 2.5,
+      "referencia": "diretriz de 2,5%/mes (valores em %/mes)",
+      "razao_pct": 53.2,
+      "nota": "Rolagem fraca: R$250 de premio liquido + R$0,41/acao de aumento de strike = R$1.152 sobre 2.200 acoes (2,76% da posicao) em 63 dias = 1,33%/mes. Ganhou, mas abaixo da diretriz.",
+      "preenchido_em": "2026-09-23",
+      "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
+    }
   },
   {
     "id": "cl-roxo34-retctrl-ago26",
@@ -130,7 +150,16 @@
     "data_encerramento": "2026-08-17",
     "status": "fracasso",
     "realizado_pct": 2.13,
-    "resultado_texto": "Encerrada como fracasso -- rendeu apenas 80% do CDI acumulado no periodo (08/06/2026 a 17/08/2026). CDI real acumulado no periodo (via serie diaria Bacen SGS 12): 2,66%. 80% disso = 2,13% realizado. Abaixo do esperado para uma estrutura bidirecional com alavancagem 1,3x -- classificado fracasso por ficar atras do beneficio livre de risco (CDI)."
+    "resultado_texto": "Encerrada como fracasso -- rendeu apenas 80% do CDI acumulado no periodo (08/06/2026 a 17/08/2026). CDI real acumulado no periodo (via serie diaria Bacen SGS 12): 2,66%. 80% disso = 2,13% realizado. Abaixo do esperado para uma estrutura bidirecional com alavancagem 1,3x -- classificado fracasso por ficar atras do beneficio livre de risco (CDI).",
+    "resultado_vs_referencia": {
+      "realizado_pct": 2.13,
+      "referencia_pct": 2.66,
+      "referencia": "CDI do periodo 08/06 a 17/08/2026 (Bacen SGS 12)",
+      "razao_pct": 80.1,
+      "nota": "Rendeu 80% do CDI. Sem perda de capital -- perda de oportunidade.",
+      "preenchido_em": "2026-09-23",
+      "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
+    }
   },
   {
     "id": "cl-spcx34-retctrl-set26",
