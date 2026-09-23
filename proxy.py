@@ -3777,6 +3777,13 @@ def _tracking_hip_item(a, hoje):
         'variacao_no_vencimento_pct': variacao_no_vencimento_pct,
         'acertou_previsao': (resultado_hip == 'sucesso') == (prob >= 50),
         'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
+        # ADICIONADO 23/09/2026: preco da foto viaja junto com o item para
+        # o agregado em R$ poder ser feito no BACKEND. A tela calculava
+        # "economizou R$X ao rejeitar" somando so o que estava VISIVEL na
+        # lista -- com o arquivamento, esse total encolhia sozinho.
+        'preco_foto': a.get('preco_foto'),
+        'resultado_rs_lote100': (round(ganho_pct_hip * float(a['preco_foto']), 2)
+                                 if ganho_pct_hip is not None and a.get('preco_foto') else None),
     })
 
 
@@ -3805,12 +3812,34 @@ def _tracking_hip_agregar(itens):
     validos = [it for it in itens if not it.get('erro')]
     total = len(validos)
     acertos = sum(1 for it in validos if it['acertou_previsao'])
+    # APROVEITAMENTO REALIZADO (23/09/2026, pedido do Victor). O painel ja
+    # mostrava quanto ele "economizou ao rejeitar" usando o EV PROJETADO no
+    # momento da decisao. Isto aqui e a outra metade: o que ACONTECEU de
+    # fato depois que a estrutura venceu. Convencao de R$ por lote de 100
+    # acoes, a mesma da tela, para ficar comparavel lado a lado.
+    #   deixou_de_ganhar = rejeitou e teria dado certo (dinheiro na mesa)
+    #   deixou_de_perder = rejeitou e teria rompido (prejuizo evitado)
+    com_rs = [it for it in validos if it.get('resultado_rs_lote100') is not None]
+    ganhos = [it['resultado_rs_lote100'] for it in com_rs if it['resultado_rs_lote100'] > 0]
+    perdas = [it['resultado_rs_lote100'] for it in com_rs if it['resultado_rs_lote100'] < 0]
+    realizado = {
+        'avaliadas_com_valor': len(com_rs),
+        'deixou_de_ganhar_rs_lote100': round(sum(ganhos), 2),
+        'deixou_de_perder_rs_lote100': round(abs(sum(perdas)), 2),
+        'saldo_rs_lote100': round(sum(ganhos) + sum(perdas), 2),
+        'n_deixou_de_ganhar': len(ganhos), 'n_deixou_de_perder': len(perdas),
+        'pior_que_evitou_rs_lote100': round(min(perdas), 2) if perdas else None,
+        'maior_que_perdeu_rs_lote100': round(max(ganhos), 2) if ganhos else None,
+        'nota': ('Valores por lote de 100 acoes, sobre o preco da foto. Saldo positivo = as rejeicoes '
+                 'custaram mais do que pouparam; negativo = pouparam mais do que custaram.'),
+    }
 
     return {
         'aviso': '🧪 HIPOTETICO -- nenhuma dessas analises envolveu capital real. Serve so para medir calibracao do modelo em analises rejeitadas/nao executadas.',
         'total_avaliadas': total,
         'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
         'calibracao_por_faixa': calibracao,
+        'aproveitamento_realizado': realizado,
         'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
     }
 
