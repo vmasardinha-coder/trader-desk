@@ -78,23 +78,6 @@
       "entry_confirmado": true
     },
     {
-      "id": "bb2",
-      "ticker": "BBAS3.SA",
-      "nome": "Banco do Brasil ON",
-      "tipo_posicao": "simples",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "BBASL212",
-      "strike": 20.81,
-      "vol_impl": 0.33833,
-      "tipo": "call",
-      "vencimento": "2026-12-17",
-      "objetivo": "Fechar antes do vencimento se possivel",
-      "data_entrada": "2026-08-27",
-      "exercicio": "europeia",
-      "meta_pct": 7.55,
-      "observacao": "Rolagem da BBASL223 (strike R$22,31, encerrada como PARCIAL em 27/08/2026 -- ver cl-bbas3-rolagem-dez26). Delta 54%, prob. exercício 46,47%, custo R$18,50, proteção 7,55%, taxa 7,55%. Quantidade: 2.200 ações. Risco elevado de exercício -- BBAS3 mostrando força, tendência de subir rumo ao strike antigo (R$22,31)."
-    },
-    {
       "id": "sbsp3",
       "ticker": "SBSP3.SA",
       "nome": "SBSP3 Retorno Controlado 64d (Lote 01/09/2026 - ajuste)",
@@ -206,6 +189,25 @@
       "numeros_confirmados": false,
       "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; PRAZO CONFIRMADO PELO VICTOR em 22/09/2026: 60 dias a partir de 21/09 -> vencimento 2026-11-20 (corrigido de 2026-11-23, que eu tinha herdado do padrao dos boletos). O ganho de 19,0% continua HERDADO da operacao anterior e NAO confirmado. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%.",
       "prazo_dias": 60
+    },
+    {
+      "id": "bb3",
+      "ticker": "BBAS3.SA",
+      "nome": "Banco do Brasil ON",
+      "tipo_posicao": "simples",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASB211",
+      "strike": 21.01,
+      "vol_impl": 0.33833,
+      "tipo": "call",
+      "vencimento": "2027-02-19",
+      "objetivo": "Fechar antes do vencimento se possivel",
+      "data_entrada": "2026-09-23",
+      "exercicio": "europeia",
+      "meta_pct": 7.55,
+      "observacao": "Rolagem de melhora da BBASL212 em 23/09/2026 (ver cl-bbas3-rolagem-fev27). Strike 21,01, venc 19/02/2027, 2.200 acoes. Prob de NAO ser exercida 43,0% (GARCH 28,5%), contra 35,0% na anterior. Spot 22,37 esta 6,47% ACIMA do strike -- posicao travada, mas a menos travada das tres (PETR4 esta 61,8% e VALE3 25,7%). OBJETIVO: destravar. So volta a ser operacao de giro quando a recuperacao de strike por mes superar a alta do papel; hoje e 0,67%/mes contra 3,33%/mes. Strike sujeito a ajuste por proventos.",
+      "rolagem_de": "cl-bbas3-rolagem-fev27",
+      "prob_nao_exercicio_pct": 43.0
     }
   ],
   "encerradas": [
@@ -357,6 +359,51 @@
       "encerramento_antecipado": true,
       "alvo_pct": 19.0,
       "realizado_pct": 5.86
+    },
+    {
+      "id": "cl-bbas3-rolagem-fev27",
+      "ticker": "BBAS3.SA",
+      "nome": "Banco do Brasil ON",
+      "tipo_posicao": "simples",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASL212",
+      "strike": 20.7,
+      "vol_impl": 0.33833,
+      "tipo": "call",
+      "vencimento": "2026-12-17",
+      "objetivo": "Fechar antes do vencimento se possivel",
+      "data_entrada": "2026-08-27",
+      "exercicio": "europeia",
+      "meta_pct": 7.55,
+      "observacao": "Rolagem da BBASL223 (strike R$22,31, encerrada como PARCIAL em 27/08/2026 -- ver cl-bbas3-rolagem-dez26). Delta 54%, prob. exercício 46,47%, custo R$18,50, proteção 7,55%, taxa 7,55%. Quantidade: 2.200 ações. Risco elevado de exercício -- BBAS3 mostrando força, tendência de subir rumo ao strike antigo (R$22,31). | ENCERRADA 23/09/2026 POR ROLAGEM DE MELHORA (nao e saida antecipada: o Victor nao saiu, prorrogou e melhorou os termos). Recomprou BBASL212 a R$3,35 (R$7.379,86 com custos) e vendeu BBASB211 a R$3,37 (R$7.404,06), 2.200 acoes. Premio liquido R$24,20 -- o mercado cobrou quase todo o valor dos 64 dias extras na recompra. Strike 20,70 -> 21,01 (+1,50%) = R$682. Ganho total R$706,20 = 1,43% da posicao, ou 0,67%/mes na extensao. Probabilidade de NAO ser exercida subiu de 35,0% para 43,0%. RESULTADO_VICTOR=SUCESSO: contra ficar parado, melhorou. RESSALVA REGISTRADA: BBAS3 subindo 3,33%/mes nos ultimos 3 meses contra 0,67%/mes de recuperacao -- nesse ritmo a distancia ate o strike AUMENTA. STRIKE: o registro dizia 20,81 e o boleto diz 20,70 -- NAO era erro. A B3 ajusta o strike das opcoes a cada pagamento de proventos (explicado pelo Victor 23/09/2026). Strikes de call coberta mudam sozinhos; sempre conferir no boleto antes de assumir divergencia.",
+      "status": "sucesso",
+      "data_encerramento": "2026-09-23",
+      "data_saida": "2026-09-23",
+      "vencimento_original": "2026-12-17",
+      "motivo_encerramento": "rolagem_de_melhora",
+      "tipo_encerramento": "rolagem_de_melhora",
+      "resultado_victor": "sucesso",
+      "encerramento_antecipado": false,
+      "rolagem": {
+        "opcao_recomprada": "BBASL212",
+        "preco_recompra": 3.35,
+        "pago_com_custos": 7379.86,
+        "opcao_vendida": "BBASB211",
+        "preco_venda": 3.37,
+        "recebido_com_custos": 7404.06,
+        "quantidade": 2200,
+        "premio_liquido_reais": 24.2,
+        "strike_de": 20.7,
+        "strike_para": 21.01,
+        "ganho_strike_reais": 682.0,
+        "ganho_total_reais": 706.2,
+        "ganho_pct_posicao": 1.43,
+        "dias_extensao": 64,
+        "recuperacao_strike_pct_mes": 0.67,
+        "prob_nao_exercicio_antes_pct": 35.0,
+        "prob_nao_exercicio_depois_pct": 43.0,
+        "alta_do_papel_pct_mes_3m": 3.33
+      }
     }
   ]
 }
