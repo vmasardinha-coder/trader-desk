@@ -251,7 +251,16 @@
       "data_encerramento": "2026-08-27",
       "status": "parcial",
       "resultado_texto": "Rolagem para BBASL212 (strike R$20,81, mesmo vencimento 17/12/2026). Prêmio líquido capturado ~R$700 sobre 2.200 ações (~1,75% da posição). Recompra R$1,12, venda nova R$1,51. EV calculado NEGATIVO (-R$686 a -R$1.082, dependendo do delta usado) -- delta quase dobrou (30%->54%) com o strike mais baixo, tornando o risco de perder o espaço de valorização (R$3.300 até R$22,31) maior que o prêmio capturado. Classificado PARCIAL por decisão do Victor: reconhece que a decisão isolada teve EV negativo, mas contextualiza como correção de uma posição já comprometida por rolagem anterior (BBASJ222->BBASL223, já classificada fracasso em 12/08/2026) -- objetivo era sair rápido capturando algum prêmio no caminho, não maximizar EV dessa perna isolada.",
-      "conta_como": "fracasso"
+      "conta_como": "fracasso",
+      "resultado_vs_referencia": {
+        "realizado_pct": 1.75,
+        "referencia_pct": null,
+        "referencia": "sem referencia comparavel (EV calculado negativo)",
+        "razao_pct": null,
+        "nota": "Parcial que conta como fracasso. R$700 de premio liquido (1,75% da posicao), mas EV calculado NEGATIVO (-R$686 a -R$1.082): baixou o strike de 22,31 para 20,81 e trocou premio certo por risco de entrega.",
+        "preenchido_em": "2026-09-23",
+        "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
+      }
     },
     {
       "id": "cl-axia3-bidirecional-c",
