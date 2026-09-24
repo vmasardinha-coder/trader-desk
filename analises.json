@@ -6025,7 +6025,7 @@
     "origem": "pronta",
     "backtest": false,
     "observacao": "Defesa (barreira KDO): -16%. Ganho prefixado: 7.62% se nao tocar a barreira (2.57%/mes). Preco de entrada = cotacao real no momento da criacao (R$42.44). Se tocar a barreira, fica exposto a variacao real do papel, sem garantia.",
-    "status": "em_analise",
+    "status": "encerrada",
     "id": "an_1784737566",
     "bandas_congeladas": {
       "sigma_pct": 25.43,
@@ -6953,7 +6953,13 @@
       },
       "prob_sucesso_prevista_pct": 74.46,
       "prob_sucesso_prevista_pct_origem": "backfill_12082026"
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-09-24",
+    "ev_mensal_na_rejeicao": 0.031,
+    "score_na_rejeicao": 2.8643,
+    "prob_meta_na_rejeicao": 99.95,
+    "preco_encerramento": 49.6
   },
   {
     "ticker": "CMIN3.SA",
