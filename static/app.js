@@ -3734,6 +3734,46 @@ async function acaoRankingFii(analiseId,ticker,acao,cotacao,dyPct,segmento,nivel
   }
 }
 
+
+// Preenche os dois paineis que dependem do tracker hipotetico, sem
+// bloquear nem derrubar o resto da tela se a rota demorar ou falhar.
+async function preencherPaineisHipotetico(){
+  const elR=document.getElementById('enc-realizado-panel');
+  const elC=document.getElementById('enc-calib-panel');
+  if(!elR&&!elC)return;
+  if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Carregando aproveitamento realizado…</div></div>';
+  let h=null;
+  try{ const r=await fetch(B+'/analises/tracking-hipotetico',{cache:'no-store'}); if(r.ok)h=await r.json(); }catch(e){}
+  if(!h){ if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Aproveitamento realizado indisponível no momento (a rota do tracker não respondeu).</div></div>'; return; }
+  const r=h.aproveitamento_realizado;
+  if(elR&&r&&r.avaliadas_com_valor>0){
+    elR.innerHTML=`<div class="card" style="margin-bottom:16px;border-left:2px solid var(--accent)">
+      <div class="cl">💸 Aproveitamento realizado das rejeitadas <span style="font-size:9px;color:var(--muted);font-weight:400">(${r.avaliadas_com_valor} já venceram · R$ por lote de 100 ações)</span></div>
+      <div class="cp" style="font-size:18px">
+        <span style="color:var(--accent)">deixou de ganhar R$ ${r.deixou_de_ganhar_rs_lote100.toLocaleString('pt-BR')}</span>
+        <span style="color:var(--muted);font-size:13px"> · </span>
+        <span style="color:var(--green,#2ecc71)">deixou de perder R$ ${r.deixou_de_perder_rs_lote100.toLocaleString('pt-BR')}</span>
+      </div>
+      <div class="cc" style="color:var(--muted)">${r.n_deixou_de_ganhar} teriam dado certo · ${r.n_deixou_de_perder} teriam rompido · maior perdida R$ ${(r.maior_que_perdeu_rs_lote100||0).toLocaleString('pt-BR')} · pior evitada R$ ${Math.abs(r.pior_que_evitou_rs_lote100||0).toLocaleString('pt-BR')}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:6px">Soma teórica: assume que daria para ter pego todas ao mesmo tempo. Cada uma exigiria capital próprio, então é um teto, não uma perda efetiva.</div>
+    </div>`;
+  }else if(elR){ elR.innerHTML=''; }
+  if(elC&&(h.calibracao_por_faixa||[]).length){
+    elC.innerHTML=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
+      <div class="cl">🎯 Calibração por faixa de probabilidade <span style="font-size:9px;color:var(--muted);font-weight:400">(${h.total_avaliadas} rejeitadas já vencidas · ${h.taxa_acerto_binario_pct}% de acerto)</span></div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+        <tr style="color:var(--muted);text-align:right"><th style="text-align:left;padding:4px">Faixa prevista</th><th style="padding:4px">n</th><th style="padding:4px">Acerto real</th><th style="padding:4px">Esperado</th><th style="padding:4px">Desvio</th></tr>
+        ${h.calibracao_por_faixa.map(f=>{const p=f.faixa_prevista.replace(/%/g,'').split('-').map(Number);
+          const esp=(p[0]+p[1])/2, real=f.taxa_sucesso_real_pct, dv=real==null?null:real-esp;
+          return `<tr style="text-align:right;border-top:1px solid var(--border,#333)">
+            <td style="text-align:left;padding:4px">${f.faixa_prevista}</td><td style="padding:4px">${f.total}</td>
+            <td style="padding:4px;font-weight:700">${real==null?'—':real+'%'}</td>
+            <td style="padding:4px;color:var(--muted)">${esp}%</td>
+            <td style="padding:4px;font-weight:700;color:${dv==null?'var(--muted)':(dv<0?'var(--red,#e74c3c)':'var(--green,#2ecc71)')}">${dv==null?'—':(dv>0?'+':'')+dv.toFixed(1)+'p'}</td></tr>`;}).join('')}
+      </table></div>`;
+  }
+}
+
 function renderAnalises(){
   const cont=document.getElementById('analise-container');
   if(!cont||!_analiseData)return;
@@ -3943,52 +3983,17 @@ async function loadAnalisesEncerradas(){
         </div>`;
       }
     }
-    // Calibracao por faixa de probabilidade -- e a tabela que o Victor
-    // chama de "a que a gente esta investigando" (faixa 70-80% furada).
-    if(hipotetico && (hipotetico.calibracao_por_faixa||[]).length){
-      dashboard+=`<div class="card" style="margin-bottom:20px;overflow-x:auto">
-        <div class="cl">🎯 Calibração por faixa de probabilidade <span style="font-size:9px;color:var(--muted);font-weight:400">(rejeitadas já vencidas — previsto vs realizado)</span></div>
-        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
-          <tr style="color:var(--muted);text-align:right">
-            <th style="text-align:left;padding:4px">Faixa prevista</th><th style="padding:4px">n</th>
-            <th style="padding:4px">Acerto real</th><th style="padding:4px">Esperado</th><th style="padding:4px">Desvio</th></tr>
-          ${hipotetico.calibracao_por_faixa.map(f=>{
-            const p=f.faixa_prevista.replace('%','').split('-').map(Number);
-            const esp=(p[0]+p[1])/2, real=f.taxa_sucesso_real_pct, dv=real==null?null:real-esp;
-            return `<tr style="text-align:right;border-top:1px solid var(--border,#333)">
-              <td style="text-align:left;padding:4px">${f.faixa_prevista}</td><td style="padding:4px">${f.total}</td>
-              <td style="padding:4px;font-weight:700">${real==null?'—':real+'%'}</td>
-              <td style="padding:4px;color:var(--muted)">${esp}%</td>
-              <td style="padding:4px;font-weight:700;color:${dv==null?'var(--muted)':(dv<0?'var(--red,#e74c3c)':'var(--green,#2ecc71)')}">${dv==null?'—':(dv>0?'+':'')+dv.toFixed(1)+'p'}</td></tr>`;
-          }).join('')}
-        </table>
-      </div>`;
-    }
-
-
-    // APROVEITAMENTO REALIZADO (23/09/2026). O painel de somatorio abaixo
-    // usa o EV PROJETADO no momento da rejeicao ("economizou R$354"). Este
-    // card e o que ACONTECEU depois que as rejeitadas venceram. Vem do
-    // backend (/analises/tracking-hipotetico), que le o arquivo ativo E o
-    // morto -- o somatorio antigo soma so o que esta VISIVEL na lista e
-    // encolhe conforme o arquivamento avanca.
-    if(hipotetico && hipotetico.aproveitamento_realizado && hipotetico.aproveitamento_realizado.avaliadas_com_valor>0){
-      const r=hipotetico.aproveitamento_realizado;
-      dashboard+=`
-      <div class="card" style="margin-bottom:16px;border-left:2px solid var(--accent)">
-        <div class="cl">💸 Aproveitamento realizado das rejeitadas <span style="font-size:9px;color:var(--muted);font-weight:400">(${r.avaliadas_com_valor} já venceram · R$ por lote de 100 ações)</span></div>
-        <div class="cp" style="font-size:18px">
-          <span style="color:var(--accent)">deixou de ganhar R$ ${r.deixou_de_ganhar_rs_lote100.toLocaleString('pt-BR')}</span>
-          <span style="color:var(--muted);font-size:13px"> · </span>
-          <span style="color:var(--green,#2ecc71)">deixou de perder R$ ${r.deixou_de_perder_rs_lote100.toLocaleString('pt-BR')}</span>
-        </div>
-        <div class="cc" style="color:var(--muted)">${r.n_deixou_de_ganhar} teriam dado certo · ${r.n_deixou_de_perder} teriam rompido · maior perdida R$ ${(r.maior_que_perdeu_rs_lote100||0).toLocaleString('pt-BR')} · pior evitada R$ ${Math.abs(r.pior_que_evitou_rs_lote100||0).toLocaleString('pt-BR')}</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:6px">Soma teórica: assume que daria para ter pego todas ao mesmo tempo. Cada uma exigiria capital próprio, então é um teto, não uma perda efetiva.</div>
-      </div>`;
-    }
+    // 23/09/2026 -- estes dois paineis dependem de /analises/tracking-
+    // hipotetico, que leva ~13s e pode falhar no cold start do Render.
+    // Antes eles eram montados DENTRO do Promise.all: se aquele fetch
+    // demorasse ou falhasse, os paineis simplesmente nao existiam -- foi
+    // isso que o Victor viu "sumir" duas vezes. Agora os containers sao
+    // sempre desenhados e preenchidos depois, de forma independente.
+    dashboard+='<div id="enc-realizado-panel"></div><div id="enc-calib-panel"></div>';
 
     if(!listaCards.length){
       cont.innerHTML=dashboard+'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
+      preencherPaineisHipotetico();
       return;
     }
 
@@ -4000,6 +4005,7 @@ async function loadAnalisesEncerradas(){
     cont.innerHTML=dashboard+'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'
       +'<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;color:var(--muted);padding:6px 0">Detalhe por análise ('+listaCards.length+') — para conferir o processamento</summary><div style="margin-top:10px">'
       +cards+'</div></details>';
+    preencherPaineisHipotetico();
     calcularSomatorioEncerradas(listaCards, hipItensPorId);
   }catch(e){
     cont.innerHTML='<p style="color:var(--red);padding:20px">⚠ Erro ao carregar histórico de análises: '+e.message+'</p>';
