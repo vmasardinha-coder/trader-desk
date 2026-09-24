@@ -3151,6 +3151,23 @@ async function main(){
         delay+=6000;
       });
 
+      // CORRIGIDO 24/09/2026 -- bug visto pelo Victor no card da BBAS3
+      // (bb3) depois da rolagem: cotacao e "% desde a entrada" ficavam em
+      // '—'. Causa: MCBSimples so rodava para tipo_posicao ===
+      // 'barreira_simples'. Lancamento coberto e tipo_posicao 'simples',
+      // e o MC() que roda para elas preenche apenas o painel Monte Carlo
+      // (-mc-*), nunca o cabecalho (-p / -c). O card 'simples' TEM esses
+      // elementos (linha ~1274), so ninguem os preenchia.
+      // MCBSimples serve: usa /montecarlo/posicao_ativa (testado: bb3
+      // devolve preco_atual 21,51) e as linhas de KDO/situacao ficam
+      // protegidas por if(kdoEl)/if(stEl), que nao existem no card de
+      // call coberta -- entao nao quebra nada. 'rx' fica de fora porque
+      // ja tem tratamento proprio (MCR).
+      _posData.ativas.filter(p=>p.tipo_posicao==='simples'&&p.id!=='rx').forEach(p=>{
+        setTimeout(()=>MCBSimples(p),delay);
+        delay+=6000;
+      });
+
       // MCR — ROXO34 (CORRIGIDO 23/06/2026: antes buscava /indicators
       // primeiro para pegar o preco e so depois chamava /montecarlo --
       // duas chamadas de rede em SERIE, causando demora desproporcional
