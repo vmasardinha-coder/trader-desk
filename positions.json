@@ -63,7 +63,7 @@
       "estrategia": "Retorno Controlado",
       "vencimento": "2026-10-15",
       "entry": 280.95,
-      "kdo": 224.52,
+      "kdo": 224.14,
       "kdo_pct": "-20.0%",
       "vol_impl": 0.3722,
       "vol_impl_fonte": "garch",
@@ -72,10 +72,11 @@
       "prob_sucesso_prevista_pct": 78.02,
       "ganho_sem_barreira": "8.2% fixo",
       "ganho_prefixado_pct": 8.2,
-      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16).",
+      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$280.95 (antes provisorio R$280.59), KDO R$224.52 (antes R$224.472), vencimento 2026-10-15 (antes estimado 2026-10-16). | EXTRATO 24/09/2026: KDO 224,52 -> 224,14 e strike 304,32 -> 303,80, ajustados por pagamento de proventos (a B3 recalcula). O ganho prefixado e o entry NAO foram alterados -- a coluna \"Strike\" do extrato e o strike da perna de call da estrutura, NAO o teto de retorno: derivar ganho dela daria 14,25% para a INBR32, contra os 10,50% do boleto oficial. Só KDO, vencimento, strike e quantidade vêm do extrato.",
       "quantidade": 110,
       "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
-      "entry_confirmado": true
+      "entry_confirmado": true,
+      "strike": 303.8
     },
     {
       "id": "sbsp3",
@@ -97,7 +98,8 @@
       "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$25,28) ate boleto oficial. CONFIRMADO 04/09/2026: Valor Inicial R$25,10 (antes provisorio R$25.28), KDO R$21,21 (antes R$21.3869), vencimento 2026-11-03 (antes 2026-11-04).",
       "quantidade": 1200,
       "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
-      "entry_confirmado": true
+      "entry_confirmado": true,
+      "strike": 27.08
     },
     {
       "id": "inbr32",
@@ -119,7 +121,8 @@
       "observacao": " CONFIRMADO 04/09/2026: Valor Inicial R$29,97 (antes provisorio R$30.1), KDO R$23,58 (antes R$24.08), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$30,47 e via KDO R$29,48) tiveram diferenca maior que o normal (~R$1,00, vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao.",
       "quantidade": 1000,
       "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
-      "entry_confirmado": true
+      "entry_confirmado": true,
+      "strike": 33.67
     },
     {
       "id": "tsla342",
@@ -174,9 +177,9 @@
       "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-20",
-      "entry": 29.06,
-      "kdo": 23.15,
+      "vencimento": "2026-11-23",
+      "entry": 29.02,
+      "kdo": 23.22,
       "kdo_pct": "-20.34%",
       "vol_impl": 0.496,
       "vol_impl_fonte": "garch",
@@ -187,8 +190,10 @@
       "ganho_prefixado_pct": 19.0,
       "rolagem_de": "tend3",
       "numeros_confirmados": false,
-      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; PRAZO CONFIRMADO PELO VICTOR em 22/09/2026: 60 dias a partir de 21/09 -> vencimento 2026-11-20 (corrigido de 2026-11-23, que eu tinha herdado do padrao dos boletos). O ganho de 19,0% continua HERDADO da operacao anterior e NAO confirmado. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%.",
-      "prazo_dias": 60
+      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; PRAZO CONFIRMADO PELO VICTOR em 22/09/2026: 60 dias a partir de 21/09 -> vencimento 2026-11-20 (corrigido de 2026-11-23, que eu tinha herdado do padrao dos boletos). O ganho de 19,0% continua HERDADO da operacao anterior e NAO confirmado. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%. | EXTRATO 24/09/2026: CONFIRMADOS KDO 23,22 (era 23,15 provisorio), vencimento 23/11/2026 (era 20/11), strike 33,16 e 1.000 acoes. entry recalculado para 29,03 pela barreira de -20%. O ganho de 19,0% SEGUE NAO CONFIRMADO. O ganho prefixado e o entry NAO foram alterados -- a coluna \"Strike\" do extrato e o strike da perna de call da estrutura, NAO o teto de retorno: derivar ganho dela daria 14,25% para a INBR32, contra os 10,50% do boleto oficial. Só KDO, vencimento, strike e quantidade vêm do extrato.",
+      "prazo_dias": 63,
+      "strike": 33.16,
+      "quantidade": 1000
     },
     {
       "id": "bb3",
