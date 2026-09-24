@@ -3932,6 +3932,13 @@ async function loadAnalisesEncerradas(){
     }
 
 
+    // ORDEM DEFINIDA PELO VICTOR (23/09/2026): primeiro o bloco de
+    // OPERACOES REAIS (placar + giro + fracassos), depois o historico
+    // de ANALISES (dashboard) e, na sequencia, calibracao -> somatorio
+    // projetado -> aproveitamento realizado. O detalhe expansivel fica
+    // por ultimo. Por isso estes tres blocos montam em variavel
+    // separada, e nao mais concatenados no dashboard.
+    let blocoOperacoes='';
     // Blocos novos (23/09/2026): placar de capital real, eficiencia do
     // giro e o que ficou na mesa nos fracassos. Ficam DENTRO do
     // dashboard de proposito -- o dashboard sempre e desenhado, mesmo
@@ -3940,14 +3947,14 @@ async function loadAnalisesEncerradas(){
     // tela do Victor depois do arquivamento.
     if(resumo && resumo.total_encerradas>0){
       const fmt=(v,s='%')=>v==null?'—':v.toFixed(2)+s;
-      dashboard+=`
+      blocoOperacoes+=`
       <div class="card" style="margin-bottom:16px;border-left:2px solid var(--green,#2ecc71)">
         <div class="cl">📕 Operações reais encerradas</div>
         <div class="cp">${resumo.sucessos} de ${resumo.total_encerradas} <span style="font-size:12px;font-weight:400;color:var(--muted)">(${resumo.taxa_sucesso_pct}% — parcial conta como fracasso)</span></div>
         <div class="cc" style="color:var(--muted)">${resumo.encerradas_antecipadamente} encerradas antes do vencimento · giro mediano <b>${resumo.giro_mediano ?? '—'}x</b> · realizado <b>${fmt(resumo.retorno_mes_medio_realizado_pct)}/mês</b> vs ${fmt(resumo.retorno_mes_medio_ate_o_fim_pct)}/mês indo até o fim</div>
       </div>`;
       if((resumo.tabela_giro||[]).length){
-        dashboard+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
+        blocoOperacoes+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
           <div class="cl">⏱ Eficiência do giro <span style="font-size:9px;color:var(--muted);font-weight:400">(% do lucro capturado ÷ % do prazo consumido — acima de 1, sair antes rendeu mais por unidade de tempo)</span></div>
           <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
             <tr style="color:var(--muted);text-align:right">
@@ -3966,7 +3973,7 @@ async function loadAnalisesEncerradas(){
         </div>`;
       }
       if((resumo.tabela_fracassos||[]).length){
-        dashboard+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
+        blocoOperacoes+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
           <div class="cl">📉 Nos fracassos, quanto ficou na mesa <span style="font-size:9px;color:var(--muted);font-weight:400">(perda de oportunidade — nenhum foi perda de capital)</span></div>
           <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
             <tr style="color:var(--muted);text-align:right">
@@ -3989,10 +3996,12 @@ async function loadAnalisesEncerradas(){
     // demorasse ou falhasse, os paineis simplesmente nao existiam -- foi
     // isso que o Victor viu "sumir" duas vezes. Agora os containers sao
     // sempre desenhados e preenchidos depois, de forma independente.
-    dashboard+='<div id="enc-realizado-panel"></div><div id="enc-calib-panel"></div>';
+
 
     if(!listaCards.length){
-      cont.innerHTML=dashboard+'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
+      cont.innerHTML=blocoOperacoes+dashboard
+        +'<div id="enc-calib-panel"></div>'
+        +'<p style="color:var(--muted);padding:20px;text-align:center">Nenhuma análise encerrada/rejeitada visível ainda.</p>';
       preencherPaineisHipotetico();
       return;
     }
@@ -4002,7 +4011,10 @@ async function loadAnalisesEncerradas(){
     // oculto; eu usava so pra confirmar que o processamento deu certo".
     // Entao NAO foi removido: virou <details> fechado. O executivo fica
     // em cima, o detalhe a um clique.
-    cont.innerHTML=dashboard+'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'
+    cont.innerHTML=blocoOperacoes+dashboard
+      +'<div id="enc-calib-panel"></div>'
+      +'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'
+      +'<div id="enc-realizado-panel"></div>'
       +'<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;color:var(--muted);padding:6px 0">Detalhe por análise ('+listaCards.length+') — para conferir o processamento</summary><div style="margin-top:10px">'
       +cards+'</div></details>';
     preencherPaineisHipotetico();
