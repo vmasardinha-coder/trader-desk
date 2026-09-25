@@ -930,15 +930,25 @@ async function loadRankingPosicoes(tipo){
     }
     const linhas=d.itens.map(i=>{
       if(i.erro){
-        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="4" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
+        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="5" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
       }
       const p=i.probabilidade_sucesso_pct;
       const cor = p>=70?'var(--green,#2ecc71)':p>=40?'var(--warn,#e6a817)':'var(--red,#e74c3c)';
+      // Coluna "Na decisão" (25/09/2026): probabilidade congelada na entrada.
+      // A seta compara com a de hoje -- e a leitura de saude da tese.
+      const pf=i.prob_foto_pct;
+      let evol='—';
+      if(pf!=null&&p!=null){
+        const dl=p-pf, cd=dl>=5?'var(--green,#2ecc71)':(dl<=-5?'var(--red,#e74c3c)':'var(--muted)');
+        const st=dl>=5?'▲':(dl<=-5?'▼':'→');
+        evol=`${pf.toFixed(1)}% <span style="color:${cd}">${st} ${(dl>=0?'+':'')}${dl.toFixed(1)}p</span>`;
+      }
       return `<tr>
         <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
         <td style="padding:6px 8px;text-align:right">${i.vencimento||'—'}</td>
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;font-size:10px;white-space:nowrap" title="Probabilidade calculada no momento da decisão (congelada) e a variação até hoje.">${evol}</td>
       </tr>`;
     }).join('');
     cont.innerHTML=`
@@ -950,6 +960,7 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px;text-align:right">Vencimento</th>
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
         <th style="padding:6px 8px;text-align:right">Prob. sucesso</th>
+        <th style="padding:6px 8px;text-align:right">Na decisão → hoje</th>
       </tr></thead>
       <tbody>${linhas}</tbody>
     </table>
