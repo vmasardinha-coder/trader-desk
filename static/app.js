@@ -1285,6 +1285,7 @@ function tplBarreira(p){
       <div class="sr"><span class="sl">Dist. KDO</span><span class="sv" id="${id}-kdo">—</span></div>
       <div class="sr"><span class="sl">Dist. KUO</span><span class="sv" id="${id}-kuo">—</span></div>
       <div class="sr"><span class="sl">Situação</span><span class="sv" id="${id}-st">—</span></div>
+      <div class="sr" id="${id}-evol-row"><span class="sl">Evolução da tese</span><span class="sv" style="font-size:10px;font-weight:400" id="${id}-evol">—</span></div>
     </div>
     <div class="sig">
       <div class="sgt">🎲 Monte Carlo — Cenários barreira</div>
@@ -1337,6 +1338,7 @@ function tplBarreiraSimples(p){
       <div class="sr"><span class="sl">Vencimento</span><span class="sv">${fmtData(p.vencimento)} · <span id="${id}-dias">—</span></span></div>
       <div class="sr"><span class="sl">Dist. KDO</span><span class="sv" id="${id}-kdo">—</span></div>
       <div class="sr"><span class="sl">Situação</span><span class="sv" id="${id}-st">—</span></div>
+      <div class="sr" id="${id}-evol-row"><span class="sl">Evolução da tese</span><span class="sv" style="font-size:10px;font-weight:400" id="${id}-evol">—</span></div>
       <div class="sr" title="Volatilidade calculada via GARCH a partir do histórico real -- se não calculada, o histórico do ativo era insuficiente (baixa liquidez)"><span class="sl">Vol. implícita</span><span class="sv${p.vol_impl==null?' warn':''}">${volTxt}</span></div>
     </div>
     <div class="sig">
@@ -2844,6 +2846,22 @@ async function MCBSimples(p){
       const tocouBarreira=d.preco_atual<=p.kdo;
       stEl.textContent=tocouBarreira?'⚠ Barreira tocada':'✅ Dentro da faixa';
       stEl.className='sv '+(tocouBarreira?'itm':'ok');
+    }
+    // ADICIONADO 25/09/2026 -- pedido do Victor: "a saude do jogo muda".
+    // O card sempre mostrou so a probabilidade AO VIVO. A da FOTO (o que o
+    // modelo previa na entrada) existia so no arquivo, alimentando o
+    // tracker -- o Victor nunca a viu na tela. Mostrar as duas lado a lado
+    // responde a pergunta que decide o proximo passo: a tese esta se
+    // confirmando ou se deteriorando? E a leitura do estudo de 24/09.
+    const evEl=document.getElementById(id+'-evol');
+    if(evEl && p.prob_sucesso_prevista_pct!=null && d.prob_sem_barreira!=null){
+      const foto=p.prob_sucesso_prevista_pct, hoje=d.prob_sem_barreira, dl=hoje-foto;
+      const cor=dl>=5?'var(--green)':(dl<=-5?'var(--red)':'var(--muted)');
+      const seta=dl>=5?'▲':(dl<=-5?'▼':'→');
+      evEl.innerHTML='<span style="color:var(--muted)">previa '+foto.toFixed(1)+'% na entrada</span> '
+        +'<span style="color:'+cor+'">'+seta+' hoje '+hoje.toFixed(1)+'% ('+(dl>=0?'+':'')+dl.toFixed(1)+'p)</span>';
+      evEl.title='Esquerda: probabilidade da FOTO, congelada na decisao — é o baseline do tracker e nunca muda. '
+        +'Direita: recalculada agora com o preço de hoje e os dias que faltam. A diferença mostra se a tese está se confirmando ou se deteriorando.';
     }
   }catch(e){
     const stEl=document.getElementById(id+'-st');
