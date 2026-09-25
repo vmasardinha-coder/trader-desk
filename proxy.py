@@ -2229,6 +2229,11 @@ def get_ranking_posicoes(tipo):
                 'dias_restantes': rd.get('dias_restantes'),
                 'preco_atual': rd.get('preco_atual'),
                 'probabilidade_sucesso_pct': prob_sucesso,
+                # ADICIONADO 25/09/2026 -- pedido do Victor. prob_foto_pct e a
+                # probabilidade congelada no momento da DECISAO (nunca muda,
+                # e baseline do tracking-acuracia). Ao lado da de hoje ela
+                # responde se a tese esta se confirmando ou se deteriorando.
+                'prob_foto_pct': p.get('prob_sucesso_prevista_pct'),
                 'campo_origem': campo_sucesso,
             })
 
