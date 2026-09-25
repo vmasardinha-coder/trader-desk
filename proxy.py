@@ -3446,9 +3446,105 @@ def _github_get_file(path):
     conteudo = _b64.b64decode(d['content']).decode('utf-8')
     return conteudo, d['sha']
 
-def _github_put_file(path, conteudo_str, sha, mensagem):
-    """Escreve um arquivo no repo via API do GitHub (com auth), usando o SHA atual."""
+
+# ── TRAVA DE CAMPOS IMUTAVEIS (25/09/2026) ───────────────────────────
+# Motivo: neste dia eu (Claude) sobrescrevi prob_sucesso_prevista_pct das
+# 6 posicoes ativas com o valor RECALCULADO de hoje. Esse campo e a
+# probabilidade da FOTO -- o que o modelo previa no momento da decisao --
+# e e o baseline do tracking-acuracia. Comparar resultado contra uma
+# probabilidade recalculada no meio da vida da operacao nao mede previsao
+# nenhuma: o baseline perseguiria o resultado e o modelo pareceria sempre
+# calibrado. So foi recuperado porque o Victor percebeu na hora.
+#
+# O arquivo e METADE estado atual e METADE registro historico. Os campos
+# abaixo sao registro: uma vez gravados, nao mudam. Alterar exige passar
+# correcoes={'<id>': {'campos': [...], 'motivo': '...'}} -- e aí o valor
+# antigo e preservado em historico_correcoes dentro do proprio registro.
+_IMUTAVEIS = {
+    'positions.json': ('prob_sucesso_prevista_pct', 'data_entrada', 'entry',
+                       'ganho_prefixado_pct', 'vencimento_original', 'alvo_pct',
+                       'realizado_pct', 'resultado_victor', 'data_saida'),
+    'analises.json': ('preco_foto', 'data_foto', 'prazo_dias', 'bandas_congeladas',
+                      'ganho_prefixado_pct', 'kdo', 'origem'),
+}
+# NAO sao imutaveis de proposito: kdo e strike em positions (a B3 reajusta
+# por proventos), status, observacao, marcacao_mercado, prob_atual_pct.
+
+def _indexar(conteudo):
+    if isinstance(conteudo, dict):
+        itens = list(conteudo.get('ativas') or []) + list(conteudo.get('encerradas') or [])
+    else:
+        itens = list(conteudo or [])
+    return {x.get('id'): x for x in itens if isinstance(x, dict) and x.get('id')}
+
+def _checar_imutaveis(path, antigo_obj, novo_obj, correcoes=None):
+    """Compara os dois objetos JA PARSEADOS. Quando a mudanca esta
+    autorizada em 'correcoes', anota o valor antigo em historico_correcoes
+    DENTRO de novo_obj (por isso recebe objeto, nao string)."""
+    campos = _IMUTAVEIS.get(path)
+    if not campos:
+        return []
+    try:
+        a, n = _indexar(antigo_obj), _indexar(novo_obj)
+    except Exception:
+        return []
+    correcoes = correcoes or {}
+    violacoes = []
+    for rid, velho in a.items():
+        novo = n.get(rid)
+        if novo is None:
+            continue
+        permitidos = set((correcoes.get(rid) or {}).get('campos') or [])
+        for c in campos:
+            if c not in velho:
+                continue
+            if velho.get(c) != novo.get(c):
+                if c in permitidos:
+                    hist = novo.setdefault('historico_correcoes', [])
+                    hist.append({'campo': c, 'de': velho.get(c), 'para': novo.get(c),
+                                 'em': _dt_now_iso(), 'motivo': correcoes[rid].get('motivo')})
+                else:
+                    violacoes.append(f"{rid}.{c}: {velho.get(c)!r} -> {novo.get(c)!r}")
+    return violacoes
+
+def _dt_now_iso():
+    from datetime import datetime as _d
+    return _d.now().isoformat(timespec='seconds')
+
+def _github_put_file(path, conteudo_str, sha, mensagem, correcoes=None):
+    """Escreve um arquivo no repo via API do GitHub (com auth), usando o SHA atual.
+
+    Bloqueia alteracao de campo imutavel (ver _IMUTAVEIS). Para corrigir um
+    dado historico errado de verdade, passe
+    correcoes={'<id>': {'campos': ['entry'], 'motivo': 'extrato oficial'}}.
+    """
     import base64 as _b64
+    if path in _IMUTAVEIS:
+        try:
+            atual, _ = _github_get_file(path)
+        except Exception:
+            atual = None
+        if atual:
+            try:
+                novo_obj = json.loads(conteudo_str)
+            except Exception:
+                novo_obj = None
+            try:
+                antigo_obj = json.loads(atual)
+            except Exception:
+                antigo_obj = None
+            v = ([] if (antigo_obj is None or novo_obj is None)
+                 else _checar_imutaveis(path, antigo_obj, novo_obj, correcoes))
+            if v:
+                raise RuntimeError(
+                    'BLOQUEADO: tentativa de alterar campo historico imutavel em '
+                    f'{path}. Esses campos sao o registro do que se sabia na DECISAO '
+                    '(baseline dos trackers) e nao podem mudar. Se for correcao de dado '
+                    "errado, passe correcoes={'<id>': {'campos': [...], 'motivo': '...'}}. "
+                    'Violacoes: ' + '; '.join(v[:12]))
+            if novo_obj is not None and correcoes:
+                # _checar_imutaveis ja anexou historico_correcoes em novo_obj
+                conteudo_str = json.dumps(novo_obj, indent=2, ensure_ascii=False)
     token = _github_write_token()
     if not token:
         raise RuntimeError('GITHUB_WRITE_TOKEN nao configurado')
