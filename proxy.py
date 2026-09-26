@@ -1595,6 +1595,31 @@ def run_montecarlo_condicional():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+def _sigma_garch_ou_hist(cl, horizon_days=None):
+    """Volatilidade preferindo GARCH(1,1), com fallback para a historica.
+
+    UNIFICADO 25/09/2026. O sistema usava DUAS volatilidades diferentes:
+    /analises/ranking rodava GARCH e /montecarlo/posicao_ativa rodava
+    vol_hist. A mesma operacao aparecia com probabilidades diferentes
+    conforme a tela. Medido no dia: GARCH era sempre MAIOR -- TSMC34
+    +10,92p (25,26% -> 36,18%), INBR32 +7,98p, SBSP3 +5,28p, TEND3
+    +3,43p, TSLA34 +2,29p. A historica e uma media achatada de 2 anos; o
+    GARCH projeta para frente e captura o regime recente. Resultado: a
+    tela de posicoes era sistematicamente mais otimista que a de analises.
+    Fallback para vol_hist quando o GARCH nao converge (serie curta, ex.
+    BSLV39, que so tem 1 candle no Yahoo).
+    """
+    if not cl or len(cl) < 2:
+        return None
+    try:
+        g = garch_11(cl, horizon_days=horizon_days or 60)
+        if g and g.get('vol_garch_projetada_pct'):
+            return g['vol_garch_projetada_pct'] / 100.0
+    except Exception:
+        pass
+    return vol_hist(cl)
+
 @app.route('/montecarlo/posicao_ativa', methods=['POST'])
 def run_montecarlo_posicao_ativa():
     """
@@ -1665,7 +1690,7 @@ def run_montecarlo_posicao_ativa():
                     cl = [c for c in raw_cl if c is not None]
                     ts = [t for t, c in zip(raw_ts, raw_cl) if c is not None]
                     S = float(meta.get('regularMarketPrice', cl[-1] if cl else 0))
-                    if cl: sigma = vol_hist(cl)
+                    if cl: sigma = _sigma_garch_ou_hist(cl)
                     break
             except Exception:
                 continue
@@ -1697,7 +1722,7 @@ def run_montecarlo_posicao_ativa():
                     if len(cl_bp) > len(cl):
                         cl = cl_bp
                         ts = ts_bp
-                        sigma = vol_hist(cl) if cl else sigma
+                        sigma = _sigma_garch_ou_hist(cl) if cl else sigma
                         preco_atual_bp = rd.get('regularMarketPrice')
                         if preco_atual_bp:
                             S = float(preco_atual_bp)
