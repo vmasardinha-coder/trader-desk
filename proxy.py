@@ -4089,6 +4089,38 @@ def _arquivar_analises(dry_run=True):
     rel['gravado'] = True
     return rel
 
+
+def _arquivar_em_background():
+    """Dispara o arquivamento depois de uma escrita, sem travar a resposta.
+
+    ADICIONADO 25/09/2026 (item 3). As rotas /analises/arquivar e
+    /positions/arquivar ja existiam com a trava que recalcula os trackers
+    antes e depois e aborta se algum numero mudar -- mas so rodavam quando
+    alguem chamava na mao. Com o Victor mandando lote toda segunda, o
+    analises.json ja passou de 1,4 MB e cresce sozinho.
+
+    Roda em thread para nao somar 10-30s na resposta que o usuario esta
+    esperando, e com trava global para nao disparar duas vezes em paralelo
+    (duas escritas seguidas gerariam conflito de SHA). Falha em silencio de
+    proposito: arquivamento e manutencao, nunca pode derrubar a escrita do
+    usuario, que ja foi concluida com sucesso neste ponto.
+    """
+    import threading
+    if getattr(_arquivar_em_background, '_rodando', False):
+        return
+    _arquivar_em_background._rodando = True
+    def _tarefa():
+        try:
+            r1 = _arquivar_analises(dry_run=False)
+            r2 = _arquivar_posicoes(dry_run=False)
+            print(f"[arquivamento auto] analises={r1.get('arquivadas_tracker_congeladas',0)}+"
+                  f"{r1.get('arquivadas_rejeitadas_antigas',0)} posicoes={r2.get('movidas',0)}")
+        except Exception as e:
+            print(f'[arquivamento auto] falhou (ignorado): {e}')
+        finally:
+            _arquivar_em_background._rodando = False
+    threading.Thread(target=_tarefa, daemon=True).start()
+
 @app.route('/analises/arquivar', methods=['POST'])
 @_requer_auth_escrita
 def rota_arquivar_analises():
@@ -4735,6 +4767,7 @@ def criar_analise():
         novo_conteudo = json.dumps(lista, indent=2, ensure_ascii=False)
         _github_put_file('analises.json', novo_conteudo, sha,
             f"feat: nova analise {novo['id']} ({novo.get('ticker','?')}) via app")
+        _arquivar_em_background()  # manutencao: arquiva o que ja passou de 30 dias
         return jsonify(novo), 201
     except RuntimeError as e:
         return jsonify({'error': str(e)}), 500
@@ -5086,6 +5119,12 @@ def mudar_status_analise(analise_id):
         if motivo == 'rejeitada':
             _incrementar_contador_rejeitadas()
 
+        # Gancho de manutencao (25/09/2026, item 3): rejeitar/encerrar e o
+        # caminho mais frequente de escrita, entao e aqui que o arquivamento
+        # rende mais. Roda em thread e falha em silencio -- a escrita do
+        # usuario ja foi concluida acima.
+        _arquivar_em_background()
+
         migracao_info = None
         if novo_status == 'ativa' and item_encontrado:
             sucesso_migracao, msg_migracao = _migrar_para_positions(item_encontrado)
@@ -5384,6 +5423,21 @@ def ranking_analises():
                         variacao_full, tocou_alta_full, tocou_baixa_full,
                         ganho_pct/100, alav, downside_antes, downside_apos)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
+                    # ADICIONADO 25/09/2026 (item 4 do backlog). Ate aqui so
+                    # retorno_controlado tinha EV daqui-pra-frente; bidirecional
+                    # continuava no EV desde a FOTO, que refaz tudo do zero pelo
+                    # prazo total como se a operacao nao tivesse comecado. Hoje
+                    # nao atrapalha porque as bidirecionais do Victor sao longas,
+                    # mas reapareceria perto do vencimento -- foi esse mesmo bug
+                    # que fez a CYRE3 (99% de chance, 2 dias para receber) cair
+                    # para ULTIMA no ranking. Aqui reaproveita paths_sim (preco
+                    # de HOJE, dias que FALTAM), mesma ancora do prob_meta.
+                    variacao_sim_bd = (paths_sim[:, -1]/S - 1)
+                    tocou_baixa_sim = ((paths_sim.min(axis=1) <= float(kdo_val))
+                                       if kdo_val is not None else None)
+                    retorno_medio_fwd_pct = round(float(_retorno_bidirecional_full(
+                        variacao_sim_bd, tocou_alta, tocou_baixa_sim,
+                        ganho_pct/100, alav, downside_antes, downside_apos).mean()*100), 3)
                 elif tipo in ('premio', 'premium') and a.get('strike') is not None and a.get('premio') is not None and a.get('direcao') in ('call', 'put'):
                     # ADICIONADO 25/08/2026 -- pedido do Victor: fecha o
                     # backlog de Venda Coberta de Call/Put (motivado pelo
@@ -5414,6 +5468,25 @@ def ranking_analises():
                             premio_pct_base / 100)
                     prob_meta = round(float((~exercido_full).mean() * 100), 2)  # prob NAO exercicio
                     retorno_medio_pct = round(float(retorno_full_ev.mean() * 100), 3)
+                    # ADICIONADO 25/09/2026 (item 4). Mesmo tratamento da
+                    # bidirecional: EV daqui-pra-frente sobre paths_sim (preco
+                    # de HOJE, dias que FALTAM). O premio ja foi recebido na
+                    # venda, entao ele entra inteiro nos dois cenarios; o que
+                    # muda daqui pra frente e so o resultado do exercicio.
+                    ST_sim = paths_sim[:, -1]
+                    if direcao == 'call':
+                        exercido_sim = ST_sim > strike
+                        retorno_fwd_ev = np.where(
+                            exercido_sim,
+                            (premio_pct_base + (strike - S) / S * 100) / 100,
+                            premio_pct_base / 100)
+                    else:
+                        exercido_sim = ST_sim < strike
+                        retorno_fwd_ev = np.where(
+                            exercido_sim,
+                            (premio_pct_base - (strike - ST_sim) / strike * 100) / 100,
+                            premio_pct_base / 100)
+                    retorno_medio_fwd_pct = round(float(retorno_fwd_ev.mean() * 100), 3)
                 else:
                     resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
                     continue
