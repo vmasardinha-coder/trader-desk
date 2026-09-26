@@ -3619,8 +3619,35 @@ async function acaoRanking(id,acao){
   const novoStatus = acao==='ativa' ? 'ativa' : 'encerrada';
   const motivo = acao==='rejeitada' ? 'rejeitada' : null;
   const linha=document.getElementById('rk-row-'+id);
+  // ADICIONADO 25/09/2026 -- pedido do Victor. Ate aqui o sistema gravava
+  // QUE ele rejeitou, nunca POR QUE. Sem isso o tracker hipotetico mede o
+  // custo das recusas mas nao consegue separar as duas coisas, que levam a
+  // conclusoes opostas: recusar por RISCO (e ele acertou 3 de 3 nas de
+  // retorno alto) e recusar por FALTA DE CAPITAL (que custou caro -- as
+  // rejeitadas ja vencidas deixaram R$ 6.230 na mesa contra R$ 241
+  // poupados). Somadas num numero so, uma esconde a outra.
+  let motivoRej=null, aceitaFicar=null;
   if(motivo){
-    const ok=confirm('Confirma REJEITAR esta análise (sai de Em Análise e vai para Encerradas como rejeitada)? Essa ação grava no repositório.');
+    const op=prompt('Por que está rejeitando?\n\n'
+      +'1 = Sem capital disponível\n'
+      +'2 = Concentração (já tenho esse papel)\n'
+      +'3 = Retorno insuficiente (abaixo da diretriz)\n'
+      +'4 = Risco alto (barreira/volatilidade)\n'
+      +'5 = Prazo ruim\n'
+      +'6 = Outro\n\nDigite o número:');
+    if(op===null)return;
+    const mapa={'1':'sem_capital','2':'concentracao','3':'retorno_insuficiente','4':'risco_alto','5':'prazo_ruim','6':'outro'};
+    motivoRej=mapa[(op||'').trim()];
+    if(!motivoRej){alert('Opção inválida. Nada foi gravado.');return;}
+    const af=prompt('Você aceitaria FICAR COM O PAPEL se a barreira rompesse?\n\n'
+      +'s = sim (seria entrada com desconto)\n'
+      +'n = não\n\n(Enter para pular)');
+    if(af!==null&&af.trim()!==''){
+      const v=af.trim().toLowerCase();
+      if(v==='s'||v==='sim')aceitaFicar=true;
+      else if(v==='n'||v==='nao'||v==='não')aceitaFicar=false;
+    }
+    const ok=confirm('Confirma REJEITAR esta análise? Essa ação grava no repositório.');
     if(!ok)return;
   }else{
     const ok=confirm('Confirma MARCAR COMO ATIVA esta análise? Essa ação grava no repositório.');
@@ -3631,6 +3658,8 @@ async function acaoRanking(id,acao){
     const body={status:novoStatus};
     if(motivo){
       body.motivo_encerramento=motivo;
+      body.motivo_rejeicao=motivoRej;
+      if(aceitaFicar!==null)body.aceita_ficar_com_papel=aceitaFicar;
       // ADICIONADO 10/07/2026 -- envia o EV/score/prob que o ranking JA
       // CALCULOU (cache de tplRanking), sem recalcular nada aqui.
       const rCache=(window._rankingCache||{})[id];
