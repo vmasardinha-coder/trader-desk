@@ -4973,6 +4973,9 @@ def _migrar_para_positions(item_analise):
     except Exception as e:
         return False, f"erro ao gravar positions.json: {e}"
 
+_MOTIVOS_REJEICAO = ('sem_capital', 'concentracao', 'retorno_insuficiente',
+                     'risco_alto', 'prazo_ruim', 'outro')
+
 @app.route('/analises/<analise_id>/status', methods=['PUT'])
 @_requer_auth_escrita
 def mudar_status_analise(analise_id):
@@ -5014,6 +5017,22 @@ def mudar_status_analise(analise_id):
                 if motivo:
                     item['motivo_encerramento'] = motivo
                     item['data_rejeicao'] = _hoje_str()
+                    # ADICIONADO 25/09/2026 -- POR QUE rejeitou, nao so QUE
+                    # rejeitou. Sem isso o tracker hipotetico soma num numero
+                    # so duas coisas de sinal oposto: recusa por RISCO (o
+                    # Victor acertou 3 de 3 nas de retorno alto) e recusa por
+                    # FALTA DE CAPITAL (cara: as rejeitadas ja vencidas
+                    # deixaram R$ 6.230 na mesa contra R$ 241 poupados).
+                    # Lista fechada -- valor fora dela e recusado com 422.
+                    mr = body.get('motivo_rejeicao')
+                    if mr is not None:
+                        if mr not in _MOTIVOS_REJEICAO:
+                            return jsonify({'error': f'motivo_rejeicao invalido: {mr!r}',
+                                            'validos': list(_MOTIVOS_REJEICAO)}), 422
+                        item['motivo_rejeicao'] = mr
+                    af = body.get('aceita_ficar_com_papel')
+                    if af is not None:
+                        item['aceita_ficar_com_papel'] = bool(af)
                     # ADICIONADO 10/07/2026 (pedido do usuario) -- captura o
                     # EV/score/probabilidade que o RANKING JA CALCULOU no
                     # momento em que o usuario clicou em rejeitar (o front
