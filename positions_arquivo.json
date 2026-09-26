@@ -17,7 +17,7 @@
     "strike": 10.5,
     "data_encerramento": "2026-07-01",
     "status": "fracasso",
-    "resultado_texto": "Objetivo era fechar abaixo de R$10,50 (opção americana, risco de exercício antecipado ITM). Estourou -- probabilidade de rompimento chegou a 100%. Encerrada via rolagem decidida por fora do app; prêmio gerado para pagar o prêmio ficou com o usuário, mas o objetivo original não foi atingido.",
+    "resultado_texto": "Objetivo era fechar abaixo de R$10,50 (opção americana, risco de exercício antecipado ITM). Estourou -- probabilidade de rompimento chegou a 100%. Encerrada via rolagem decidida por fora do app; prêmio gerado para pagar o prêmio ficou com o usuário, mas o objetivo original não foi atingido. | RECONSTRUIDO 25/09/2026 para o tracking-victor. data_entrada ja gravada; vencimento da serie ROXOG105 (G = julho). Preco R$ 9.96 do historico em 2026-06-03. NENHUM numero veio de documento; marcado dados_reconstruidos=true.",
     "observacao": "Rolagem em 01/07/2026 -- nova estrutura a ser registrada como ATIVA diretamente (sem passar por Em Análise) assim que os detalhes forem confirmados pelo usuário.",
     "resultado_vs_referencia": {
       "realizado_pct": 0.0,
@@ -29,7 +29,11 @@
       "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
     },
     "data_entrada": "2026-06-03",
-    "origem_datas": "historico_git_2026-09-23"
+    "origem_datas": "historico_git_2026-09-23",
+    "entry": 9.96,
+    "vencimento_original": "2026-07-17",
+    "vencimento": "2026-07-17",
+    "dados_reconstruidos": true
   },
   {
     "id": "a3",
@@ -160,7 +164,7 @@
     "data_encerramento": "2026-08-17",
     "status": "fracasso",
     "realizado_pct": 2.13,
-    "resultado_texto": "Encerrada como fracasso -- rendeu apenas 80% do CDI acumulado no periodo (08/06/2026 a 17/08/2026). CDI real acumulado no periodo (via serie diaria Bacen SGS 12): 2,66%. 80% disso = 2,13% realizado. Abaixo do esperado para uma estrutura bidirecional com alavancagem 1,3x -- classificado fracasso por ficar atras do beneficio livre de risco (CDI).",
+    "resultado_texto": "Encerrada como fracasso -- rendeu apenas 80% do CDI acumulado no periodo (08/06/2026 a 17/08/2026). CDI real acumulado no periodo (via serie diaria Bacen SGS 12): 2,66%. 80% disso = 2,13% realizado. Abaixo do esperado para uma estrutura bidirecional com alavancagem 1,3x -- classificado fracasso por ficar atras do beneficio livre de risco (CDI). | RECONSTRUIDO 25/09/2026 para o tracking-victor. datas do proprio texto do registro (08/06 a 17/08/2026). Preco R$ 50.52 do historico em 2026-06-08. NENHUM numero veio de documento; marcado dados_reconstruidos=true.",
     "resultado_vs_referencia": {
       "realizado_pct": 2.13,
       "referencia_pct": 2.66,
@@ -169,7 +173,12 @@
       "nota": "Rendeu 80% do CDI. Sem perda de capital -- perda de oportunidade.",
       "preenchido_em": "2026-09-23",
       "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
-    }
+    },
+    "data_entrada": "2026-06-08",
+    "entry": 50.52,
+    "vencimento_original": "2026-08-17",
+    "vencimento": "2026-08-17",
+    "dados_reconstruidos": true
   },
   {
     "id": "cl-spcx34-retctrl-set26",
