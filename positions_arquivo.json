@@ -82,7 +82,12 @@
     "strike": 10.75,
     "data_encerramento": "2026-08-12",
     "status": "sucesso",
-    "resultado_texto": "Rolagem para ROXOL112 (strike R$11,25, venc 17/12/2026). Premio liquido capturado R$700 + aumento de strike R$0,50/acao (R$1.250 em espaco de valorizacao) sobre 2.500 acoes = R$1.950 total (6,78% da posicao), 2,27%/mes no prazo incremental (91 dias, 17/09->17/12) -- passa da diretriz de 2%/mes mesmo contando so o componente garantido+contingente combinado. Diferente da BBAS3, essa rolagem ERA necessaria (posicao nasceu de resgate apos estouro de barreira em 01/07/2026, sem colchao real) -- preco do papel ja passou do novo strike, delta 0,677/59,42% prob. exercicio, Theta forte a favor (-0,009)."
+    "resultado_texto": "Rolagem para ROXOL112 (strike R$11,25, venc 17/12/2026). Premio liquido capturado R$700 + aumento de strike R$0,50/acao (R$1.250 em espaco de valorizacao) sobre 2.500 acoes = R$1.950 total (6,78% da posicao), 2,27%/mes no prazo incremental (91 dias, 17/09->17/12) -- passa da diretriz de 2%/mes mesmo contando so o componente garantido+contingente combinado. Diferente da BBAS3, essa rolagem ERA necessaria (posicao nasceu de resgate apos estouro de barreira em 01/07/2026, sem colchao real) -- preco do papel ja passou do novo strike, delta 0,677/59,42% prob. exercicio, Theta forte a favor (-0,009). | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. rolagem DEFENSIVA confirmada pelo Victor: strike 10,75 ficou 7,6% ABAIXO do preco, ja dentro do dinheiro. NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir.",
+    "data_entrada": "2026-07-01",
+    "entry": 11.63,
+    "vencimento_original": "2026-09-17",
+    "vencimento": "2026-09-17",
+    "dados_reconstruidos": true
   },
   {
     "id": "cl-bbas3-rolagem-out26",
@@ -92,7 +97,7 @@
     "strike": 21.9,
     "data_encerramento": "2026-08-12",
     "status": "fracasso",
-    "resultado_texto": "Rolagem para BBASL223 (strike R$22,31, venc 17/12/2026). Premio liquido capturado apenas R$250 + aumento de strike R$0,41/acao (R$902) sobre 2.200 acoes = R$1.152 total (2,76% da posicao), 1,33%/mes no prazo incremental (63 dias, 15/10->17/12) -- fica ABAIXO da diretriz de 2%/mes. Classificado fracasso por decisao do Victor: diferente da ROXO34, esta rolagem NAO era necessaria (posicao saudavel, nao era resgate/sobrevivencia) -- diretriz de 2%/mes deve prevalecer sobre contexto quando nao ha necessidade real de rolar. Analise tecnica da opcao em si era correta (OTM, baixa prob. exercicio 24,44%, Theta forte a favor) mas o retorno economico da ROLAGEM como decisao ficou abaixo do padrao esperado.",
+    "resultado_texto": "Rolagem para BBASL223 (strike R$22,31, venc 17/12/2026). Premio liquido capturado apenas R$250 + aumento de strike R$0,41/acao (R$902) sobre 2.200 acoes = R$1.152 total (2,76% da posicao), 1,33%/mes no prazo incremental (63 dias, 15/10->17/12) -- fica ABAIXO da diretriz de 2%/mes. Classificado fracasso por decisao do Victor: diferente da ROXO34, esta rolagem NAO era necessaria (posicao saudavel, nao era resgate/sobrevivencia) -- diretriz de 2%/mes deve prevalecer sobre contexto quando nao ha necessidade real de rolar. Analise tecnica da opcao em si era correta (OTM, baixa prob. exercicio 24,44%, Theta forte a favor) mas o retorno economico da ROLAGEM como decisao ficou abaixo do padrao esperado. | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. entrada pela cadeia; strike 21,90 = +5,5% do preco, coerente com \"rolar perto do dinheiro\". NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir.",
     "observacao_followup": "FOLLOW-UP 18/08/2026: Victor revisou e concordou que a analise anterior (EV positivo ~R$396-792 dependendo do delta usado) estava certa em apontar que a diferenca (~R$300) NAO justificava a decisao de trocar de strike. Confirma que o calculo de EV/risco fundamentado deve prevalecer -- mesmo com resultado marginal, o processo de decisao foi validado retroativamente. Nesta mesma data, BBAS3 caiu -35% do topo de 52 semanas (R$27,58 em 25/02 -> R$17,93 em 18/08, novo minimo de 60 dias) por deterioracao real de credito (inadimplencia 90d 3,96%->5,61% a.a., guidance cortado, recuperacao so esperada em 2027). Victor recomprando a call (BBASL212) por R$0,55 para liberar as acoes e reavaliar estrategia (retorno controlado vs bidirecional vs prazo curto) dado o novo patamar de preco.",
     "resultado_vs_referencia": {
       "realizado_pct": 1.33,
@@ -102,7 +107,12 @@
       "nota": "Rolagem fraca: R$250 de premio liquido + R$0,41/acao de aumento de strike = R$1.152 sobre 2.200 acoes (2,76% da posicao) em 63 dias = 1,33%/mes. Ganhou, mas abaixo da diretriz.",
       "preenchido_em": "2026-09-23",
       "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar"
-    }
+    },
+    "data_entrada": "2026-07-16",
+    "entry": 20.76,
+    "vencimento_original": "2026-12-17",
+    "vencimento": "2026-12-17",
+    "dados_reconstruidos": true
   },
   {
     "id": "cl-roxo34-retctrl-ago26",
