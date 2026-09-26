@@ -360,7 +360,12 @@
       "data_encerramento": "2026-09-01",
       "status": "sucesso",
       "realizado_pct": 2.96,
-      "resultado_texto": "Encerrada com sucesso, 2,96% de resultado em 40 dias. CDI real acumulado no periodo (22/07 a 01/09/2026, via serie diaria Bacen SGS 12): 1,52%. Resultado = 195% do CDI (Victor estimou 200%, bate dentro da margem). Estrutura alavancada favoreceu a alta do papel. Migrado para SBSP3 (retorno controlado, id sbsp3)."
+      "resultado_texto": "Encerrada com sucesso, 2,96% de resultado em 40 dias. CDI real acumulado no periodo (22/07 a 01/09/2026, via serie diaria Bacen SGS 12): 1,52%. Resultado = 195% do CDI (Victor estimou 200%, bate dentro da margem). Estrutura alavancada favoreceu a alta do papel. Migrado para SBSP3 (retorno controlado, id sbsp3). | RECONSTRUIDO 25/09/2026 para o tracking-victor. datas do proprio texto do registro (22/07 a 01/09/2026, 40 dias). Preco R$ 51.68 do historico em 2026-07-22. NENHUM numero veio de documento; marcado dados_reconstruidos=true.",
+      "data_entrada": "2026-07-22",
+      "entry": 51.68,
+      "vencimento_original": "2026-09-01",
+      "vencimento": "2026-09-01",
+      "dados_reconstruidos": true
     },
     {
       "id": "cl-spcx34-retctrl-set26-b",
