@@ -234,6 +234,25 @@
 
 <!-- ══ INDICADORES ══ -->
 <div id="tab-indicadores" class="tab-content">
+  <!-- BLOCO ESTADOS UNIDOS (26/09/2026) -- pai com as 6 categorias como
+       filhas. Visao BDR-first: cada linha e um BDR (o que o Victor opera),
+       com preco e risco de barreira em reais; o score vem da serie em
+       dolar, que e mais limpa, mas nunca aparece na tela. -->
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togEua()">
+      <div><div class="ind-acc-title">🇺🇸 Estados Unidos — Papéis via BDR</div>
+      <div class="ind-acc-sub" id="eua-sub">Score em dólar, estrutura em BDR · clique para expandir</div></div>
+      <span id="ar-eua">▼</span>
+    </div>
+    <div class="ind-acc-body" id="eua-wrap">
+      <div id="eua-cats" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:8px">
+        <input type="checkbox" id="eua-op" checked onchange="loadEua()"> só com liquidez para operar (giro ≥ R$ 200 mil/dia)
+      </label>
+      <div id="eua-container"><div style="color:var(--muted);padding:14px">Carregando...</div></div>
+    </div>
+  </div>
+
   <div class="ind-acc">
     <div class="ind-acc-hdr" onclick="togInd('btc')">
       <div><div class="ind-acc-title">₿ Bitcoin — Ciclo &amp; Indicadores</div><div class="ind-acc-sub">Ciclo, Fear &amp; Greed, RSI semanal · clique para expandir/recolher</div></div>
