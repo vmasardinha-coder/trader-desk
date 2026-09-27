@@ -240,7 +240,7 @@
        dolar, que e mais limpa, mas nunca aparece na tela. -->
   <div class="ind-acc">
     <div class="ind-acc-hdr" onclick="togEua()">
-      <div><div class="ind-acc-title">🇺🇸 Estados Unidos — Papéis via BDR</div>
+      <div><div class="ind-acc-title">🇺🇸 Estados Unidos — Risco de barreira (via BDR)</div>
       <div class="ind-acc-sub" id="eua-sub">Score em dólar, estrutura em BDR · clique para expandir</div></div>
       <span id="ar-eua">▼</span>
     </div>
@@ -250,6 +250,21 @@
         <input type="checkbox" id="eua-op" checked onchange="loadEua()"> só com liquidez para operar (giro ≥ R$ 200 mil/dia)
       </label>
       <div id="eua-container"><div style="color:var(--muted);padding:14px">Carregando...</div></div>
+    </div>
+  </div>
+
+  <!-- BLOCO BRASIL (26/09/2026) -- mesmo desenho do bloco EUA, com os 12
+       segmentos como filhos. Pai recolhivel: encolhe tudo e expande por
+       segmento. -->
+  <div class="ind-acc">
+    <div class="ind-acc-hdr" onclick="togBr()">
+      <div><div class="ind-acc-title">🇧🇷 Brasil (B3) — Risco de barreira</div>
+      <div class="ind-acc-sub" id="br-sub">Papéis acompanhados, por segmento · clique para expandir</div></div>
+      <span id="ar-br">▼</span>
+    </div>
+    <div class="ind-acc-body" id="br-wrap">
+      <div id="br-cats" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <div id="br-container"><div style="color:var(--muted);padding:14px">Carregando...</div></div>
     </div>
   </div>
 
