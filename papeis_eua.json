@@ -127,7 +127,30 @@
    "rompe_8_2_em_15d_pct": 18.2,
    "rompe_com_indice_pct": 16.0,
    "fator": 75.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 320193,
+    "razao_bdr": 19.9773,
+    "usd_brl": 5.1866,
+    "lpa_usd": 2.02,
+    "vpa_usd": 7.3673,
+    "lpa_data": "2026-06-27",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 54.79,
+    "preco_atual_usd": 341.07,
+    "pl_atual": 45.7,
+    "pvp_atual": 46.3,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 28.3,
+     "n_anos": 5,
+     "pl_atual": 45.7,
+     "lpa_anual_usd": 7.46
+    },
+    "preco_justo_usd": 211.12,
+    "upside_pct": -38.1,
+    "lpa_anual_usd": 7.46
+   }
   },
   "ADBE": {
    "ticker_us": "ADBE",
@@ -142,7 +165,30 @@
    "rompe_8_2_em_15d_pct": 35.6,
    "rompe_com_indice_pct": 39.0,
    "fator": 51.8,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 796343,
+    "razao_bdr": 50.2381,
+    "usd_brl": 5.1866,
+    "lpa_usd": 4.62,
+    "vpa_usd": 30.2261,
+    "lpa_data": "2026-08-28",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 71.86,
+    "preco_atual_usd": 235.47,
+    "pl_atual": 14.1,
+    "pvp_atual": 7.8,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 41.7,
+     "n_anos": 5,
+     "pl_atual": 14.1,
+     "lpa_anual_usd": 16.7
+    },
+    "preco_justo_usd": 696.39,
+    "upside_pct": 195.7,
+    "lpa_anual_usd": 16.7
+   }
   },
   "AMD": {
    "ticker_us": "AMD",
@@ -157,7 +203,30 @@
    "rompe_8_2_em_15d_pct": 46.7,
    "rompe_com_indice_pct": 55.0,
    "fator": 38.6,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 2488,
+    "razao_bdr": 7.9679,
+    "usd_brl": 5.1866,
+    "lpa_usd": 1.38,
+    "vpa_usd": 41.1792,
+    "lpa_data": "2026-06-27",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 140.35,
+    "preco_atual_usd": 630.63,
+    "pl_atual": 238.0,
+    "pvp_atual": 15.3,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 81.4,
+     "n_anos": 5,
+     "pl_atual": 238.0,
+     "lpa_anual_usd": 2.65
+    },
+    "preco_justo_usd": 215.71,
+    "upside_pct": -65.8,
+    "lpa_anual_usd": 2.65
+   }
   },
   "AMGN": {
    "ticker_us": "AMGN",
@@ -187,7 +256,30 @@
    "rompe_8_2_em_15d_pct": 27.8,
    "rompe_com_indice_pct": 59.0,
    "fator": 50.9,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1018724,
+    "razao_bdr": 19.9528,
+    "usd_brl": 5.1866,
+    "lpa_usd": 5.75,
+    "vpa_usd": 51.1407,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 84.95,
+    "preco_atual_usd": 249.67,
+    "pl_atual": 34.8,
+    "pvp_atual": 4.9,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 45.6,
+     "n_anos": 4,
+     "pl_atual": 34.8,
+     "lpa_anual_usd": 7.17
+    },
+    "preco_justo_usd": 326.95,
+    "upside_pct": 31.0,
+    "lpa_anual_usd": 7.17
+   }
   },
   "APP": {
    "ticker_us": "APP",
@@ -212,7 +304,30 @@
    "rompe_8_2_em_15d_pct": 33.7,
    "rompe_com_indice_pct": 37.0,
    "fator": 54.0,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 937966,
+    "razao_bdr": 54.8189,
+    "usd_brl": 5.1866,
+    "lpa_usd": 28.1719,
+    "vpa_usd": 58.0146,
+    "lpa_data": "2025-12-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 103.64,
+    "preco_atual_usd": 1743.94,
+    "pl_atual": 61.9,
+    "pvp_atual": 30.1,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 38.9,
+     "n_anos": 5,
+     "pl_atual": 61.9,
+     "lpa_anual_usd": 28.17
+    },
+    "preco_justo_usd": 1095.89,
+    "upside_pct": -37.2,
+    "lpa_anual_usd": 28.172
+   }
   },
   "AVGO": {
    "ticker_us": "AVGO",
@@ -227,7 +342,30 @@
    "rompe_8_2_em_15d_pct": 30.1,
    "rompe_com_indice_pct": 20.0,
    "fator": 62.9,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1730168,
+    "razao_bdr": 70.1912,
+    "usd_brl": 5.1866,
+    "lpa_usd": 2.68,
+    "vpa_usd": 5.2247,
+    "lpa_data": "2026-08-02",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 8.98,
+    "preco_atual_usd": 352.81,
+    "pl_atual": 74.0,
+    "pvp_atual": 67.5,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 25.5,
+     "n_anos": 5,
+     "pl_atual": 74.0,
+     "lpa_anual_usd": 4.77
+    },
+    "preco_justo_usd": 121.63,
+    "upside_pct": -65.5,
+    "lpa_anual_usd": 4.77
+   }
   },
   "AXP": {
    "ticker_us": "AXP",
@@ -242,7 +380,30 @@
    "rompe_8_2_em_15d_pct": 20.8,
    "rompe_com_indice_pct": 35.0,
    "fator": 65.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 4962,
+    "razao_bdr": 9.985,
+    "usd_brl": 5.1866,
+    "lpa_usd": 4.53,
+    "vpa_usd": 50.7619,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 134.15,
+    "preco_atual_usd": 308.89,
+    "pl_atual": 20.1,
+    "pvp_atual": 6.1,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 16.8,
+     "n_anos": 5,
+     "pl_atual": 20.1,
+     "lpa_anual_usd": 15.38
+    },
+    "preco_justo_usd": 258.38,
+    "upside_pct": -16.4,
+    "lpa_anual_usd": 15.38
+   }
   },
   "BA": {
    "ticker_us": "BA",
@@ -272,7 +433,28 @@
    "rompe_8_2_em_15d_pct": 19.9,
    "rompe_com_indice_pct": 29.0,
    "fator": 68.5,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 70858,
+    "razao_bdr": 3.9973,
+    "usd_brl": 5.1866,
+    "lpa_usd": 1.21,
+    "vpa_usd": 43.058,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 109.2,
+    "preco_atual_usd": 56.7,
+    "pl_atual": 14.9,
+    "pvp_atual": 1.3,
+    "metodo": "valor",
+    "detalhe_metodo": {
+     "graham_usd": 60.75,
+     "vpa_x2_5_usd": 107.64
+    },
+    "preco_justo_usd": 84.2,
+    "upside_pct": 48.5,
+    "lpa_anual_usd": 3.81
+   }
   },
   "BRK-B": {
    "ticker_us": "BRK-B",
@@ -287,7 +469,22 @@
    "rompe_8_2_em_15d_pct": 5.4,
    "rompe_com_indice_pct": 20.0,
    "fator": 85.1,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1067983,
+    "razao_bdr": 19.9583,
+    "usd_brl": 5.1866,
+    "lpa_usd": 3035.0,
+    "vpa_usd": 794397.3378,
+    "lpa_data": "2013-12-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 505.48,
+    "pl_atual": null,
+    "pvp_atual": null,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   },
   "CAT": {
    "ticker_us": "CAT",
@@ -302,7 +499,30 @@
    "rompe_8_2_em_15d_pct": 21.5,
    "rompe_com_indice_pct": 18.0,
    "fator": 71.4,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 18230,
+    "razao_bdr": 15.965,
+    "usd_brl": 5.1866,
+    "lpa_usd": 7.77,
+    "vpa_usd": 42.1907,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 106.89,
+    "preco_atual_usd": 821.58,
+    "pl_atual": 43.7,
+    "pvp_atual": 19.5,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 17.5,
+     "n_anos": 5,
+     "pl_atual": 43.7,
+     "lpa_anual_usd": 18.81
+    },
+    "preco_justo_usd": 329.17,
+    "upside_pct": -59.9,
+    "lpa_anual_usd": 18.81
+   }
   },
   "CDNS": {
    "ticker_us": "CDNS",
@@ -317,7 +537,22 @@
    "rompe_8_2_em_15d_pct": 20.8,
    "rompe_com_indice_pct": 29.0,
    "fator": 67.7,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 813672,
+    "razao_bdr": 34.1029,
+    "usd_brl": 5.1866,
+    "lpa_usd": null,
+    "vpa_usd": null,
+    "lpa_data": null,
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 326.13,
+    "pl_atual": null,
+    "pvp_atual": null,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   },
   "COST": {
    "ticker_us": "COST",
@@ -332,7 +567,22 @@
    "rompe_8_2_em_15d_pct": 14.1,
    "rompe_com_indice_pct": 20.0,
    "fator": 77.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 909832,
+    "razao_bdr": 40.0436,
+    "usd_brl": 5.1866,
+    "lpa_usd": 4.93,
+    "vpa_usd": 75.5594,
+    "lpa_data": "2026-05-10",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 922.76,
+    "pl_atual": null,
+    "pvp_atual": 12.2,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   },
   "CRM": {
    "ticker_us": "CRM",
@@ -347,7 +597,30 @@
    "rompe_8_2_em_15d_pct": 35.5,
    "rompe_com_indice_pct": 55.0,
    "fator": 46.8,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1108524,
+    "razao_bdr": 21.242,
+    "usd_brl": 5.1866,
+    "lpa_usd": 4.29,
+    "vpa_usd": 46.6318,
+    "lpa_data": "2026-07-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 127.35,
+    "preco_atual_usd": 234.02,
+    "pl_atual": 30.0,
+    "pvp_atual": 5.0,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 66.9,
+     "n_anos": 5,
+     "pl_atual": 30.0,
+     "lpa_anual_usd": 7.8
+    },
+    "preco_justo_usd": 521.82,
+    "upside_pct": 123.0,
+    "lpa_anual_usd": 7.8
+   }
   },
   "CRWD": {
    "ticker_us": "CRWD",
@@ -362,7 +635,22 @@
    "rompe_8_2_em_15d_pct": 40.6,
    "rompe_com_indice_pct": 0.0,
    "fator": 59.4,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1535527,
+    "razao_bdr": 22.3921,
+    "usd_brl": 5.1866,
+    "lpa_usd": 0.01,
+    "vpa_usd": 4.9825,
+    "lpa_data": "2026-07-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 252.13,
+    "pl_atual": null,
+    "pvp_atual": 50.6,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   },
   "CSCO": {
    "ticker_us": "CSCO",
@@ -377,7 +665,22 @@
    "rompe_8_2_em_15d_pct": 14.4,
    "rompe_com_indice_pct": 6.0,
    "fator": 83.0,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 858877,
+    "razao_bdr": 5.0037,
+    "usd_brl": 5.1866,
+    "lpa_usd": 3.33,
+    "vpa_usd": 12.7543,
+    "lpa_data": "2026-07-25",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 106.7,
+    "pl_atual": null,
+    "pvp_atual": 8.4,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   },
   "CVX": {
    "ticker_us": "CVX",
@@ -392,7 +695,30 @@
    "rompe_8_2_em_15d_pct": 12.8,
    "rompe_com_indice_pct": 29.0,
    "fator": 74.6,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 93410,
+    "razao_bdr": 10.0674,
+    "usd_brl": 5.1866,
+    "lpa_usd": 6.11,
+    "vpa_usd": 96.1058,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 49.16,
+    "preco_atual_usd": 204.45,
+    "pl_atual": 30.8,
+    "pvp_atual": 2.1,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 14.4,
+     "n_anos": 5,
+     "pl_atual": 30.8,
+     "lpa_anual_usd": 6.63
+    },
+    "preco_justo_usd": 95.47,
+    "upside_pct": -53.3,
+    "lpa_anual_usd": 6.63
+   }
   },
   "DIS": {
    "ticker_us": "DIS",
@@ -407,7 +733,28 @@
    "rompe_8_2_em_15d_pct": 25.5,
    "rompe_com_indice_pct": 63.0,
    "fator": 51.0,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1744489,
+    "razao_bdr": 15.1003,
+    "usd_brl": 5.1866,
+    "lpa_usd": 1.51,
+    "vpa_usd": 63.7243,
+    "lpa_data": "2026-06-27",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 44.36,
+    "preco_atual_usd": 106.15,
+    "pl_atual": 15.5,
+    "pvp_atual": 1.7,
+    "metodo": "valor",
+    "detalhe_metodo": {
+     "graham_usd": 99.1,
+     "vpa_x2_5_usd": 159.31
+    },
+    "preco_justo_usd": 129.21,
+    "upside_pct": 21.7,
+    "lpa_anual_usd": 6.85
+   }
   },
   "FTNT": {
    "ticker_us": "FTNT",
@@ -422,7 +769,30 @@
    "rompe_8_2_em_15d_pct": 24.8,
    "rompe_com_indice_pct": 18.0,
    "fator": 68.4,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1262039,
+    "razao_bdr": 12.1577,
+    "usd_brl": 5.1866,
+    "lpa_usd": 0.82,
+    "vpa_usd": 2.114,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 43.13,
+    "preco_atual_usd": 173.46,
+    "pl_atual": 71.7,
+    "pvp_atual": 82.1,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 41.8,
+     "n_anos": 5,
+     "pl_atual": 71.7,
+     "lpa_anual_usd": 2.42
+    },
+    "preco_justo_usd": 101.16,
+    "upside_pct": -41.7,
+    "lpa_anual_usd": 2.42
+   }
   },
   "GOOGL": {
    "ticker_us": "GOOGL",
@@ -437,7 +807,30 @@
    "rompe_8_2_em_15d_pct": 24.6,
    "rompe_com_indice_pct": 27.0,
    "fator": 65.2,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1652044,
+    "razao_bdr": 11.9757,
+    "usd_brl": 5.1866,
+    "lpa_usd": 9.11,
+    "vpa_usd": 52.0335,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 111.37,
+    "preco_atual_usd": 343.92,
+    "pl_atual": 31.8,
+    "pvp_atual": 6.6,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 23.8,
+     "n_anos": 5,
+     "pl_atual": 31.8,
+     "lpa_anual_usd": 10.81
+    },
+    "preco_justo_usd": 257.28,
+    "upside_pct": -25.2,
+    "lpa_anual_usd": 10.81
+   }
   },
   "GS": {
    "ticker_us": "GS",
@@ -452,7 +845,28 @@
    "rompe_8_2_em_15d_pct": 17.8,
    "rompe_com_indice_pct": 27.0,
    "fator": 71.1,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 886982,
+    "razao_bdr": 29.9679,
+    "usd_brl": 5.1866,
+    "lpa_usd": 20.98,
+    "vpa_usd": 421.5455,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 151.5,
+    "preco_atual_usd": 935.45,
+    "pl_atual": 18.2,
+    "pvp_atual": 2.2,
+    "metodo": "valor",
+    "detalhe_metodo": {
+     "graham_usd": 697.68,
+     "vpa_x2_5_usd": 1053.86
+    },
+    "preco_justo_usd": 875.77,
+    "upside_pct": -6.4,
+    "lpa_anual_usd": 51.32
+   }
   },
   "HD": {
    "ticker_us": "HD",
@@ -482,7 +896,26 @@
    "rompe_8_2_em_15d_pct": 12.1,
    "rompe_com_indice_pct": 4.0,
    "fator": 86.1,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 773840,
+    "razao_bdr": 0.9982,
+    "usd_brl": 5.1866,
+    "lpa_usd": 17.83,
+    "vpa_usd": 58.4874,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 212.55,
+    "pl_atual": null,
+    "pvp_atual": 3.6,
+    "metodo": null,
+    "detalhe_metodo": {
+     "graham_usd": 153.18,
+     "vpa_x2_5_usd": 146.22
+    },
+    "lpa_anual_usd": -0.18,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente"
+   }
   },
   "IBM": {
    "ticker_us": "IBM",
@@ -497,7 +930,30 @@
    "rompe_8_2_em_15d_pct": 20.2,
    "rompe_com_indice_pct": 22.0,
    "fator": 71.0,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 51143,
+    "razao_bdr": 0.9997,
+    "usd_brl": 5.1866,
+    "lpa_usd": 2.27,
+    "vpa_usd": 36.568,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 1535.01,
+    "preco_atual_usd": 225.51,
+    "pl_atual": 20.2,
+    "pvp_atual": 6.2,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 26.5,
+     "n_anos": 5,
+     "pl_atual": 20.2,
+     "lpa_anual_usd": 11.17
+    },
+    "preco_justo_usd": 296.0,
+    "upside_pct": 31.3,
+    "lpa_anual_usd": 11.17
+   }
   },
   "INTC": {
    "ticker_us": "INTC",
@@ -512,7 +968,23 @@
    "rompe_8_2_em_15d_pct": 42.9,
    "rompe_com_indice_pct": 43.0,
    "fator": 44.8,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 50863,
+    "razao_bdr": 5.9383,
+    "usd_brl": 5.1866,
+    "lpa_usd": -2.16,
+    "vpa_usd": 17.3557,
+    "lpa_data": "2026-06-27",
+    "fonte": "SEC XBRL (companyconcept)",
+    "graham_indisponivel": "prejuizo no periodo",
+    "preco_atual_usd": 123.0,
+    "pl_atual": null,
+    "pvp_atual": 7.1,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": -0.06
+   }
   },
   "JNJ": {
    "ticker_us": "JNJ",
@@ -527,7 +999,30 @@
    "rompe_8_2_em_15d_pct": 6.4,
    "rompe_com_indice_pct": 0.0,
    "fator": 93.6,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 200406,
+    "razao_bdr": 14.9348,
+    "usd_brl": 5.1866,
+    "lpa_usd": 2.27,
+    "vpa_usd": 35.2592,
+    "lpa_data": "2026-06-28",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 94.95,
+    "preco_atual_usd": 271.22,
+    "pl_atual": 24.6,
+    "pvp_atual": 7.7,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 24.8,
+     "n_anos": 5,
+     "pl_atual": 24.6,
+     "lpa_anual_usd": 11.03
+    },
+    "preco_justo_usd": 273.54,
+    "upside_pct": 0.9,
+    "lpa_anual_usd": 11.03
+   }
   },
   "JPM": {
    "ticker_us": "JPM",
@@ -542,7 +1037,28 @@
    "rompe_8_2_em_15d_pct": 12.9,
    "rompe_com_indice_pct": 12.0,
    "fator": 81.9,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 19617,
+    "razao_bdr": 10.0435,
+    "usd_brl": 5.1866,
+    "lpa_usd": 7.7,
+    "vpa_usd": 140.9224,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 155.95,
+    "preco_atual_usd": 343.06,
+    "pl_atual": 17.1,
+    "pvp_atual": 2.4,
+    "metodo": "valor",
+    "detalhe_metodo": {
+     "graham_usd": 251.95,
+     "vpa_x2_5_usd": 352.31
+    },
+    "preco_justo_usd": 302.13,
+    "upside_pct": -11.9,
+    "lpa_anual_usd": 20.02
+   }
   },
   "LLY": {
    "ticker_us": "LLY",
@@ -557,7 +1073,30 @@
    "rompe_8_2_em_15d_pct": 21.6,
    "rompe_com_indice_pct": 8.0,
    "fator": 75.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 59478,
+    "razao_bdr": 29.8693,
+    "usd_brl": 5.1866,
+    "lpa_usd": 7.94,
+    "vpa_usd": 35.9895,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 210.71,
+    "preco_atual_usd": 1183.46,
+    "pl_atual": 51.6,
+    "pvp_atual": 32.9,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 52.9,
+     "n_anos": 5,
+     "pl_atual": 51.6,
+     "lpa_anual_usd": 22.95
+    },
+    "preco_justo_usd": 1214.05,
+    "upside_pct": 2.6,
+    "lpa_anual_usd": 22.95
+   }
   },
   "MA": {
    "ticker_us": "MA",
@@ -572,7 +1111,30 @@
    "rompe_8_2_em_15d_pct": 13.1,
    "rompe_com_indice_pct": 22.0,
    "fator": 77.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1141391,
+    "razao_bdr": 32.5863,
+    "usd_brl": 5.1866,
+    "lpa_usd": 4.97,
+    "vpa_usd": 45.7928,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 93.83,
+    "preco_atual_usd": 567.65,
+    "pl_atual": 34.4,
+    "pvp_atual": 12.4,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 35.7,
+     "n_anos": 5,
+     "pl_atual": 34.4,
+     "lpa_anual_usd": 16.52
+    },
+    "preco_justo_usd": 589.76,
+    "upside_pct": 3.9,
+    "lpa_anual_usd": 16.52
+   }
   },
   "MCD": {
    "ticker_us": "MCD",
@@ -587,7 +1149,31 @@
    "rompe_8_2_em_15d_pct": 8.9,
    "rompe_com_indice_pct": 8.0,
    "fator": 87.5,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 63908,
+    "razao_bdr": 20.0988,
+    "usd_brl": 5.1866,
+    "lpa_usd": 3.32,
+    "vpa_usd": -1.4456,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "graham_indisponivel": "patrimonio negativo",
+    "preco_atual_usd": 236.5,
+    "pl_atual": 19.8,
+    "pvp_atual": null,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 25.7,
+     "n_anos": 5,
+     "pl_atual": 19.8,
+     "lpa_anual_usd": 11.95
+    },
+    "preco_justo_usd": 307.11,
+    "preco_justo_bdr": 79.22,
+    "upside_pct": 29.9,
+    "lpa_anual_usd": 11.95
+   }
   },
   "META": {
    "ticker_us": "META",
@@ -602,7 +1188,30 @@
    "rompe_8_2_em_15d_pct": 30.8,
    "rompe_com_indice_pct": 63.0,
    "fator": 47.4,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1326801,
+    "razao_bdr": 27.9647,
+    "usd_brl": 5.1866,
+    "lpa_usd": 6.18,
+    "vpa_usd": 101.8009,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 106.25,
+    "preco_atual_usd": 751.66,
+    "pl_atual": 32.0,
+    "pvp_atual": 7.4,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 24.4,
+     "n_anos": 5,
+     "pl_atual": 32.0,
+     "lpa_anual_usd": 23.49
+    },
+    "preco_justo_usd": 573.16,
+    "upside_pct": -23.7,
+    "lpa_anual_usd": 23.49
+   }
   },
   "MSFT": {
    "ticker_us": "MSFT",
@@ -617,7 +1226,30 @@
    "rompe_8_2_em_15d_pct": 18.7,
    "rompe_com_indice_pct": 16.0,
    "fator": 74.8,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 789019,
+    "razao_bdr": 24.0558,
+    "usd_brl": 5.1866,
+    "lpa_usd": 17.95,
+    "vpa_usd": 59.5764,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 136.17,
+    "preco_atual_usd": 516.17,
+    "pl_atual": 28.8,
+    "pvp_atual": 8.7,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 35.2,
+     "n_anos": 5,
+     "pl_atual": 28.8,
+     "lpa_anual_usd": 17.95
+    },
+    "preco_justo_usd": 631.84,
+    "upside_pct": 22.4,
+    "lpa_anual_usd": 17.95
+   }
   },
   "MU": {
    "ticker_us": "MU",
@@ -632,7 +1264,22 @@
    "rompe_8_2_em_15d_pct": 38.8,
    "rompe_com_indice_pct": 39.0,
    "fator": 49.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 723125,
+    "razao_bdr": 5.8995,
+    "usd_brl": 5.1866,
+    "lpa_usd": 24.67,
+    "vpa_usd": 89.1842,
+    "lpa_data": "2026-05-28",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 1082.28,
+    "pl_atual": 142.6,
+    "pvp_atual": 12.1,
+    "metodo": null,
+    "lpa_anual_usd": 7.59,
+    "motivo_sem_preco_justo": "P/L historico (16.1) e atual (142.6) em escalas incompativeis -- provavel moeda de reporte diferente entre o historico e o LPA atual. Suprimido de proposito."
+   }
   },
   "NFLX": {
    "ticker_us": "NFLX",
@@ -647,7 +1294,30 @@
    "rompe_8_2_em_15d_pct": 33.1,
    "rompe_com_indice_pct": 65.0,
    "fator": 45.2,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1065280,
+    "razao_bdr": 50.2042,
+    "usd_brl": 5.1866,
+    "lpa_usd": 0.8,
+    "vpa_usd": 7.2412,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 9.69,
+    "preco_atual_usd": 71.14,
+    "pl_atual": 28.1,
+    "pvp_atual": 9.8,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 37.1,
+     "n_anos": 5,
+     "pl_atual": 28.1,
+     "lpa_anual_usd": 2.53
+    },
+    "preco_justo_usd": 93.86,
+    "upside_pct": 31.9,
+    "lpa_anual_usd": 2.53
+   }
   },
   "NKE": {
    "ticker_us": "NKE",
@@ -662,7 +1332,28 @@
    "rompe_8_2_em_15d_pct": 31.4,
    "rompe_com_indice_pct": 27.0,
    "fator": 59.3,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 320187,
+    "razao_bdr": 10.0772,
+    "usd_brl": 5.1866,
+    "lpa_usd": 2.1,
+    "vpa_usd": 17.3788,
+    "lpa_data": "2026-05-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 18.55,
+    "preco_atual_usd": 35.75,
+    "pl_atual": 17.0,
+    "pvp_atual": 2.1,
+    "metodo": "valor",
+    "detalhe_metodo": {
+     "graham_usd": 28.66,
+     "vpa_x2_5_usd": 43.45
+    },
+    "preco_justo_usd": 36.05,
+    "upside_pct": 0.8,
+    "lpa_anual_usd": 2.1
+   }
   },
   "NOW": {
    "ticker_us": "NOW",
@@ -677,7 +1368,30 @@
    "rompe_8_2_em_15d_pct": 36.7,
    "rompe_com_indice_pct": 39.0,
    "fator": 51.0,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1373715,
+    "razao_bdr": 50.4596,
+    "usd_brl": 5.1866,
+    "lpa_usd": 0.29,
+    "vpa_usd": 12.1044,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 15.73,
+    "preco_atual_usd": 135.62,
+    "pl_atual": 81.2,
+    "pvp_atual": 11.2,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 91.7,
+     "n_anos": 5,
+     "pl_atual": 81.2,
+     "lpa_anual_usd": 1.67
+    },
+    "preco_justo_usd": 153.14,
+    "upside_pct": 12.9,
+    "lpa_anual_usd": 1.67
+   }
   },
   "NVDA": {
    "ticker_us": "NVDA",
@@ -692,7 +1406,30 @@
    "rompe_8_2_em_15d_pct": 35.8,
    "rompe_com_indice_pct": 53.0,
    "fator": 47.2,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1045810,
+    "razao_bdr": 48.2375,
+    "usd_brl": 5.1866,
+    "lpa_usd": 2.46,
+    "vpa_usd": 9.5014,
+    "lpa_data": "2026-07-26",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 21.22,
+    "preco_atual_usd": 225.07,
+    "pl_atual": 45.9,
+    "pvp_atual": 23.7,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 40.3,
+     "n_anos": 5,
+     "pl_atual": 45.9,
+     "lpa_anual_usd": 4.9
+    },
+    "preco_justo_usd": 197.47,
+    "upside_pct": -12.3,
+    "lpa_anual_usd": 4.9
+   }
   },
   "ORCL": {
    "ticker_us": "ORCL",
@@ -707,7 +1444,30 @@
    "rompe_8_2_em_15d_pct": 32.4,
    "rompe_com_indice_pct": 12.0,
    "fator": 63.5,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1341439,
+    "razao_bdr": 5.976,
+    "usd_brl": 5.1866,
+    "lpa_usd": 1.56,
+    "vpa_usd": 22.0826,
+    "lpa_data": "2026-08-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 174.49,
+    "preco_atual_usd": 137.1,
+    "pl_atual": 23.5,
+    "pvp_atual": 6.2,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 34.5,
+     "n_anos": 5,
+     "pl_atual": 23.5,
+     "lpa_anual_usd": 5.83
+    },
+    "preco_justo_usd": 201.13,
+    "upside_pct": 46.7,
+    "lpa_anual_usd": 5.83
+   }
   },
   "PANW": {
    "ticker_us": "PANW",
@@ -747,7 +1507,30 @@
    "rompe_8_2_em_15d_pct": 47.1,
    "rompe_com_indice_pct": 69.0,
    "fator": 34.6,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1321655,
+    "razao_bdr": 3.0065,
+    "usd_brl": 5.1866,
+    "lpa_usd": 0.41,
+    "vpa_usd": 3.8051,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 306.45,
+    "preco_atual_usd": 189.67,
+    "pl_atual": 301.1,
+    "pvp_atual": 49.8,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 282.1,
+     "n_anos": 3,
+     "pl_atual": 301.1,
+     "lpa_anual_usd": 0.63
+    },
+    "preco_justo_usd": 177.72,
+    "upside_pct": -6.3,
+    "lpa_anual_usd": 0.63
+   }
   },
   "QCOM": {
    "ticker_us": "QCOM",
@@ -762,7 +1545,30 @@
    "rompe_8_2_em_15d_pct": 32.7,
    "rompe_com_indice_pct": 35.0,
    "fator": 55.5,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 804328,
+    "razao_bdr": 11.9486,
+    "usd_brl": 5.1866,
+    "lpa_usd": 1.87,
+    "vpa_usd": 4.6752,
+    "lpa_data": "2026-06-28",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 37.39,
+    "preco_atual_usd": 201.97,
+    "pl_atual": 40.3,
+    "pvp_atual": 43.2,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 17.2,
+     "n_anos": 5,
+     "pl_atual": 40.3,
+     "lpa_anual_usd": 5.01
+    },
+    "preco_justo_usd": 86.17,
+    "upside_pct": -57.3,
+    "lpa_anual_usd": 5.01
+   }
   },
   "SHW": {
    "ticker_us": "SHW",
@@ -807,7 +1613,30 @@
    "rompe_8_2_em_15d_pct": 48.8,
    "rompe_com_indice_pct": 65.0,
    "fator": 34.6,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1318605,
+    "razao_bdr": 32.1396,
+    "usd_brl": 5.1866,
+    "lpa_usd": 0.32,
+    "vpa_usd": 21.9919,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 73.03,
+    "preco_atual_usd": 372.11,
+    "pl_atual": 344.5,
+    "pvp_atual": 16.9,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 419.2,
+     "n_anos": 6,
+     "pl_atual": 344.5,
+     "lpa_anual_usd": 1.08
+    },
+    "preco_justo_usd": 452.74,
+    "upside_pct": 21.7,
+    "lpa_anual_usd": 1.08
+   }
   },
   "TSM": {
    "ticker_us": "TSM",
@@ -822,7 +1651,22 @@
    "rompe_8_2_em_15d_pct": 25.7,
    "rompe_com_indice_pct": 10.0,
    "fator": 70.6,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1046179,
+    "razao_bdr": 8.0149,
+    "usd_brl": 5.1866,
+    "lpa_usd": 1.36,
+    "vpa_usd": 4.9913,
+    "lpa_data": "2024-12-31",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 450.61,
+    "pl_atual": 320.2,
+    "pvp_atual": 90.3,
+    "metodo": null,
+    "lpa_anual_usd": 1.407,
+    "motivo_sem_preco_justo": "P/L historico (3.8) e atual (320.2) em escalas incompativeis -- provavel moeda de reporte diferente entre o historico e o LPA atual. Suprimido de proposito."
+   }
   },
   "UNH": {
    "ticker_us": "UNH",
@@ -837,7 +1681,30 @@
    "rompe_8_2_em_15d_pct": 20.4,
    "rompe_com_indice_pct": 27.0,
    "fator": 68.9,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 731766,
+    "razao_bdr": 69.8327,
+    "usd_brl": 5.1866,
+    "lpa_usd": 6.04,
+    "vpa_usd": 36.7872,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_justo_bdr": 24.55,
+    "preco_atual_usd": 376.59,
+    "pl_atual": 28.5,
+    "pvp_atual": 10.2,
+    "metodo": "crescimento",
+    "detalhe_metodo": {
+     "pl_historico_mediano": 25.0,
+     "n_anos": 5,
+     "pl_atual": 28.5,
+     "lpa_anual_usd": 13.23
+    },
+    "preco_justo_usd": 330.75,
+    "upside_pct": -12.2,
+    "lpa_anual_usd": 13.23
+   }
   },
   "V": {
    "ticker_us": "V",
@@ -852,7 +1719,22 @@
    "rompe_8_2_em_15d_pct": 11.4,
    "rompe_com_indice_pct": 10.0,
    "fator": 84.2,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 1403161,
+    "razao_bdr": 20.3814,
+    "usd_brl": 5.1866,
+    "lpa_usd": null,
+    "vpa_usd": 56.3351,
+    "lpa_data": null,
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 367.38,
+    "pl_atual": null,
+    "pvp_atual": 6.5,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   },
   "XOM": {
    "ticker_us": "XOM",
@@ -867,7 +1749,24 @@
    "rompe_8_2_em_15d_pct": 11.4,
    "rompe_com_indice_pct": 10.0,
    "fator": 84.2,
-   "operavel": true
+   "operavel": true,
+   "fundamentos": {
+    "cik": 2115436,
+    "razao_bdr": 7.9942,
+    "usd_brl": 5.1866,
+    "lpa_usd": 3.48,
+    "vpa_usd": 63.0801,
+    "lpa_data": "2026-06-30",
+    "fonte": "SEC XBRL (companyconcept)",
+    "preco_atual_usd": 160.59,
+    "pl_atual": null,
+    "pvp_atual": 2.5,
+    "metodo": null,
+    "motivo_sem_preco_justo": "sem LPA anual positivo ou histórico insuficiente",
+    "lpa_anual_usd": null
+   }
   }
- }
+ },
+ "nota_fundamentos": "Fundamentos da SEC (XBRL), fonte oficial e gratuita, exclusiva dos EUA. DUAS FAMILIAS de preco justo, escolhidas por criterio objetivo: VALOR (P/L<30 e P/VP<5) usa a media de Graham e VPA x 2,5, como nos brasileiros; CRESCIMENTO usa o P/L MEDIANO DA PROPRIA EMPRESA nos ultimos anos x LPA atual -- nao-circular, compara a empresa com ela mesma. Motivo: testado em 27/09/2026, a familia de valor aplicada a tecnologia deu mediana de -81% de upside e erros de ate +47.000% (BERK34), porque Graham ancora em patrimonio contabil e software quase nao tem. Onde nenhuma familia se aplica, o campo fica VAZIO com o motivo.",
+ "fundamentos_gerado_em": "2026-09-27 18:57"
 }
