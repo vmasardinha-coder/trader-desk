@@ -1933,12 +1933,16 @@ function _tabelaRisco(c,nota,ehBdr){
     <th style="padding:6px 8px">12m</th><th style="padding:6px 8px">Da máx.</th>
     <th style="padding:6px 8px" title="Em quantas janelas de 15 pregões caiu 8,2% nos últimos 5 anos">Rompe 15d</th>
     <th style="padding:6px 8px" title="Das vezes que o Ibovespa caiu 8,2%, quantas acompanhou. Baixo = diversifica">c/ índice</th>
-    <th style="padding:6px 8px">Fator</th><th style="padding:6px 8px">Liquidez</th>
+    <th style="padding:6px 8px">Fator</th>
+    <th style="padding:6px 8px" title="Preço justo. Família VALOR (P/L<30 e P/VP<5): média de Graham e VPA x 2,5. Família CRESCIMENTO: P/L mediano da própria empresa nos últimos anos x LPA anual. Vazio quando nenhuma se aplica.">Justo (R$)</th>
+    <th style="padding:6px 8px">Upside</th>
+    <th style="padding:6px 8px">Liquidez</th>
   </tr></thead><tbody>
   ${c.papeis.map(p=>{
     const f=p.fator, cf=f>=70?'var(--green,#2ecc71)':(f>=45?'var(--accent)':'var(--red,#e74c3c)');
     const si=p.rompe_com_indice_pct, cs=si==null?'var(--muted)':(si<=30?'var(--green,#2ecc71)':(si>=70?'var(--red,#e74c3c)':'var(--muted)'));
     const r12=p.retorno_12m_pct, pr=ehBdr?p.preco_bdr:p.preco;
+    const fu=p.fundamentos||{}, up=fu.upside_pct;
     const cod=(ehBdr?p.bdr:(p.ticker||'').replace('.SA',''))||'—';
     return `<tr style="text-align:right;border-top:1px solid var(--border)">
       <td style="text-align:left;padding:6px 8px;font-weight:700">${cod}</td>
@@ -1950,6 +1954,8 @@ function _tabelaRisco(c,nota,ehBdr){
       <td style="padding:6px 8px">${p.rompe_8_2_em_15d_pct!=null?p.rompe_8_2_em_15d_pct+'%':'—'}</td>
       <td style="padding:6px 8px;color:${cs};font-weight:600">${si!=null?si+'%':'—'}</td>
       <td style="padding:6px 8px;font-weight:700;color:${cf}">${f!=null?f:'—'}</td>
+      <td style="padding:6px 8px"${fu.motivo_sem_preco_justo?' title="'+String(fu.motivo_sem_preco_justo).replace(/"/g,'')+'"':''}>${fu.preco_justo_bdr!=null?fu.preco_justo_bdr.toFixed(2):'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="padding:6px 8px;font-weight:600;color:${up==null?'var(--muted)':(up>=10?'var(--green,#2ecc71)':(up<=-10?'var(--red,#e74c3c)':'var(--muted)'))}"${fu.metodo?' title="método: '+fu.metodo+'"':''}>${up!=null?(up>0?'+':'')+up+'%':'—'}</td>
       <td style="padding:6px 8px;color:var(--muted);font-size:10px">${p.giro_medio_dia_reais?('R$ '+(p.giro_medio_dia_reais/1e6).toFixed(1)+' mi'):'—'}</td>
     </tr>`;}).join('')}
   </tbody></table><div style="font-size:9px;color:var(--muted);margin-top:8px">${nota}</div>`;
