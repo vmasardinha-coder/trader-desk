@@ -5993,6 +5993,63 @@ def _congelar_bandas_analise(novo):
         return None
 
 
+
+# ── BLOCO ESTADOS UNIDOS (26/09/2026) ────────────────────────────────
+# Desenhado com o Victor. Regra central, decidida por ele:
+#   SCORE em DOLAR, ESTRUTURA em BDR.
+# Sao perguntas diferentes -- uma decide se a empresa presta, a outra se
+# a barreira aguenta. Mas a VISAO e UNICA e BDR-first: ele opera BDR,
+# entao cada linha e um BDR, com preco e risco em reais; a serie em
+# dolar e so fonte de dado do score e nunca aparece na tela.
+#
+# Por que isso nao distorce: medido em 5 pares BDR/US, a vol difere
+# apenas -2,9 a +2,5 pontos. O cambio funciona como HEDGE PARCIAL (dolar
+# sobe quando a bolsa americana cai), nao como risco adicional -- em 4
+# dos 5 a BDR e MENOS volatil que o papel original.
+#
+# O que importa de verdade nesta lista: todas tem RECEITA EM DOLAR, e e
+# isso que diversifica carteira brasileira. Medido: TSMC34 e NVDC34
+# rompem junto com o Ibovespa em 20% das vezes, contra 93% da BBAS3 e
+# 87% da SBSP3. ATENCAO -- ser BDR nao basta: INBR32 (Nubank) rompe em
+# 100%, porque e empresa brasileira apenas listada fora.
+#
+# Dados pre-calculados em papeis_eua.json (5 anos de serie x 2 por
+# papel, ~100 requisicoes -- nao pode rodar ao vivo a cada chamada).
+# Regerar quando quiser atualizar; o arquivo carrega gerado_em.
+
+@app.route('/papeis/estados-unidos', methods=['GET'])
+def rota_papeis_eua():
+    """Bloco pai Estados Unidos com as 6 categorias como filhas.
+
+    ?categoria=m7|nq|sp|dj|semi|sw  filtra uma
+    ?operaveis=1                    so os com giro >= R$200 mil/dia
+    """
+    try:
+        d = _ler_json_raw('papeis_eua.json')
+        if not d:
+            return jsonify({'error': 'papeis_eua.json ainda nao gerado'}), 404
+        papeis, cats = d.get('papeis', {}), d.get('categorias', {})
+        so_op = request.args.get('operaveis') == '1'
+        alvo = request.args.get('categoria')
+        saida = []
+        for key, c in cats.items():
+            if alvo and key != alvo:
+                continue
+            itens = [papeis[t] for t in c['tickers'] if t in papeis]
+            if so_op:
+                itens = [i for i in itens if i.get('operavel')]
+            itens.sort(key=lambda x: -(x.get('fator') or -1))
+            saida.append({'id': key, 'nome': c['nome'], 'total': len(itens), 'papeis': itens})
+        unicos = {t for c in cats.values() for t in c['tickers'] if t in papeis}
+        return jsonify({
+            'gerado_em': d.get('gerado_em'), 'nota': d.get('nota'),
+            'total_papeis_unicos': len(unicos),
+            'total_operaveis': sum(1 for t in unicos if papeis[t].get('operavel')),
+            'categorias': saida,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/foto-papel', methods=['POST'])
 def post_foto_papel():
     """
