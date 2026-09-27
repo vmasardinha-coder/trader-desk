@@ -4543,6 +4543,91 @@ def rota_resumo_encerradas():
         return jsonify({'error': str(e)}), 500
 
 
+
+# ── MATRIZ GIRO x MODELO (26/09/2026) ────────────────────────────────
+# Desenhada com o Victor. Ela resolve a ambiguidade que ele vinha
+# carregando: "sair antes com menos lucro foi acerto ou erro?". A
+# resposta depende de DUAS coisas independentes, e o sistema media as
+# duas em rotas separadas que nunca conversavam:
+#   eixo 1 - GIRO: capturei o proporcional ao tempo? (resumo-encerradas)
+#   eixo 2 - MODELO: o risco que eu temia se concretizou? (tracking-victor)
+#
+# REGRA, objetiva e sem julgamento (cortes explicitos, nao subjetivos):
+#   giro >= 1                      -> SUCESSO PLENO (capturou o proporcional
+#                                     ou mais; o que veio depois nao muda)
+#   giro < 1  e modelo = sucesso   -> FRACASSO: pulou cedo do barco a toa.
+#                                     Pagou por um risco que nao existia.
+#   giro < 1  e modelo = fracasso  -> SALVAMENTO: aceitou lucro menor e
+#                                     escapou de um risco real.
+#
+# NUNCA sobrescreve resultado_victor. O registro do Victor e a unica
+# fonte do que ele pensava NA HORA, e e exatamente isso que a matriz
+# quer medir. O veredito e uma TERCEIRA coluna, calculada, da qual ele
+# pode discordar sem estragar dado nenhum.
+
+_CORTE_GIRO = 1.0  # ajustavel: 1,1 daria margem de seguranca
+
+def _matriz_giro_modelo():
+    from statistics import median as _med
+    resumo = _resumo_encerradas()
+    pos = _ler_json_raw('positions.json') or {}
+    victor = _tracking_victor_calcular(
+        _ler_json_raw('analises.json'), _ler_json_raw('analises_arquivo.json'),
+        pos.get('encerradas') or [], pos.get('ativas') or [],
+        _ler_json_raw('positions_arquivo.json'))
+    giro = {r['id']: r for r in resumo.get('tabela_giro', [])}
+    mod = {i['id']: i for i in victor.get('itens', []) if not i.get('erro')}
+    linhas, cont = [], {'sucesso_pleno': 0, 'fracasso_pulou_cedo': 0,
+                        'salvamento': 0, 'pendente': 0}
+    for rid in sorted(set(giro) & set(mod)):
+        g, m = giro[rid], mod[rid]
+        rt = m.get('resultado_tracker')
+        if rt == 'pendente':
+            veredito, cont['pendente'] = 'pendente', cont['pendente'] + 1
+        elif g['giro'] >= _CORTE_GIRO:
+            veredito, cont['sucesso_pleno'] = 'sucesso_pleno', cont['sucesso_pleno'] + 1
+        elif rt == 'sucesso':
+            veredito = 'fracasso_pulou_cedo'
+            cont['fracasso_pulou_cedo'] += 1
+        else:
+            veredito, cont['salvamento'] = 'salvamento', cont['salvamento'] + 1
+        linhas.append({
+            'id': rid, 'ticker': g.get('ticker'),
+            'giro': g['giro'], 'pct_do_lucro': g['pct_do_lucro'],
+            'pct_do_tempo': g['pct_do_tempo'],
+            'resultado_victor': m.get('resultado_victor'),
+            'resultado_modelo': rt,
+            'vencimento_original': m.get('vencimento_original'),
+            'veredito': veredito,
+            'diverge_do_victor': (veredito == 'fracasso_pulou_cedo'
+                                  and m.get('resultado_victor') == 'sucesso')
+                                 or (veredito == 'salvamento'
+                                     and m.get('resultado_victor') == 'fracasso'),
+        })
+    fechados = [l for l in linhas if l['veredito'] != 'pendente']
+    return {
+        'regra': ('giro >= %.1f -> sucesso pleno; giro < %.1f com modelo=sucesso -> fracasso '
+                  '(pulou cedo a toa); giro < %.1f com modelo=fracasso -> salvamento'
+                  % (_CORTE_GIRO, _CORTE_GIRO, _CORTE_GIRO)),
+        'aviso': ('Veredito e coluna CALCULADA. Nunca sobrescreve resultado_victor, '
+                  'que e o registro do que o Victor decidiu na hora.'),
+        'corte_giro': _CORTE_GIRO,
+        'com_os_dois_eixos': len(linhas), 'fechados': len(fechados),
+        'contagem': cont,
+        'a_revisar_com_o_victor': [l for l in fechados if l['diverge_do_victor']],
+        'so_com_giro': sorted(set(giro) - set(mod)),
+        'so_com_modelo': len(set(mod) - set(giro)),
+        'itens': sorted(linhas, key=lambda x: -x['giro']),
+    }
+
+@app.route('/positions/matriz', methods=['GET'])
+def rota_matriz_giro_modelo():
+    try:
+        return jsonify(_matriz_giro_modelo())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/analises/tracking-acuracia', methods=['GET'])
 def tracking_acuracia_previsoes():
     """
