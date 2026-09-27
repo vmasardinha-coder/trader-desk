@@ -6017,6 +6017,34 @@ def _congelar_bandas_analise(novo):
 # papel, ~100 requisicoes -- nao pode rodar ao vivo a cada chamada).
 # Regerar quando quiser atualizar; o arquivo carrega gerado_em.
 
+@app.route('/papeis/brasil', methods=['GET'])
+def rota_papeis_br():
+    """Bloco pai Brasil (B3) com os 12 segmentos como filhos.
+
+    Mesma metodologia do bloco EUA, nos 25 papeis que o Victor acompanha.
+    ?segmento=<nome>  filtra um
+    """
+    try:
+        d = _ler_json_raw('papeis_br.json')
+        if not d:
+            return jsonify({'error': 'papeis_br.json ainda nao gerado'}), 404
+        papeis = d.get('papeis', {})
+        alvo = request.args.get('segmento')
+        saida = []
+        for s in d.get('segmentos', []):
+            if alvo and s['nome'] != alvo:
+                continue
+            itens = [papeis[t] for t in s['tickers'] if t in papeis]
+            itens.sort(key=lambda x: -(x.get('fator') or -1))
+            saida.append({'id': s['nome'], 'nome': s['nome'],
+                          'total': len(itens), 'papeis': itens})
+        return jsonify({'gerado_em': d.get('gerado_em'), 'nota': d.get('nota'),
+                        'total_papeis_unicos': len(papeis),
+                        'total_operaveis': len(papeis), 'categorias': saida})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/papeis/estados-unidos', methods=['GET'])
 def rota_papeis_eua():
     """Bloco pai Estados Unidos com as 6 categorias como filhas.
