@@ -1752,6 +1752,66 @@ const WATCHLIST = [
   {segmento:'♻️ Resíduos & Economia Circular', ativos:[
     {id:'orvr3', ticker:'ORVR3.SA', nome:'ORVR3 — Orizon ON'},
   ]},
+  // ADICIONADO 26/09/2026 -- papeis americanos na watchlist detalhada, via
+  // BDR. Pedido do Victor: ele quer a MESMA leitura que tem dos brasileiros
+  // (comportamento, banda, foto, Monte Carlo) para os papeis das 6
+  // categorias. Sao os BDRs com giro >= R$200 mil/dia; cada papel aparece
+  // uma vez so, na primeira categoria a que pertence (MSFT esta em 5).
+  {segmento:'🇺🇸 EUA — Sete Magníficas', ativos:[
+    {id:'aapl34', ticker:'AAPL34.SA', nome:'AAPL34 — Apple'},
+    {id:'msft34', ticker:'MSFT34.SA', nome:'MSFT34 — Microsoft'},
+    {id:'nvdc34', ticker:'NVDC34.SA', nome:'NVDC34 — NVIDIA'},
+    {id:'amzo34', ticker:'AMZO34.SA', nome:'AMZO34 — Amazon'},
+    {id:'gogl34', ticker:'GOGL34.SA', nome:'GOGL34 — Alphabet'},
+    {id:'m1ta34', ticker:'M1TA34.SA', nome:'M1TA34 — Meta'},
+    {id:'tsla34', ticker:'TSLA34.SA', nome:'TSLA34 — Tesla'},
+  ]},
+  {segmento:'🇺🇸 EUA — Nasdaq Top 15', ativos:[
+    {id:'avgo34', ticker:'AVGO34.SA', nome:'AVGO34 — Broadcom'},
+    {id:'cowc34', ticker:'COWC34.SA', nome:'COWC34 — Costco'},
+    {id:'nflx34', ticker:'NFLX34.SA', nome:'NFLX34 — Netflix'},
+    {id:'qcom34', ticker:'QCOM34.SA', nome:'QCOM34 — Qualcomm'},
+    {id:'a1md34', ticker:'A1MD34.SA', nome:'A1MD34 — AMD'},
+    {id:'adbe34', ticker:'ADBE34.SA', nome:'ADBE34 — Adobe'},
+    {id:'itlc34', ticker:'ITLC34.SA', nome:'ITLC34 — Intel'},
+    {id:'csco34', ticker:'CSCO34.SA', nome:'CSCO34 — Cisco'},
+  ]},
+  {segmento:'🇺🇸 EUA — S&P Top 20', ativos:[
+    {id:'berk34', ticker:'BERK34.SA', nome:'BERK34 — Berkshire'},
+    {id:'jpmc34', ticker:'JPMC34.SA', nome:'JPMC34 — JPMorgan'},
+    {id:'lily34', ticker:'LILY34.SA', nome:'LILY34 — Eli Lilly'},
+    {id:'visa34', ticker:'VISA34.SA', nome:'VISA34 — Visa'},
+    {id:'unhh34', ticker:'UNHH34.SA', nome:'UNHH34 — UnitedHealth'},
+    {id:'exxo34', ticker:'EXXO34.SA', nome:'EXXO34 — Exxon'},
+    {id:'mscd34', ticker:'MSCD34.SA', nome:'MSCD34 — Mastercard'},
+    {id:'jnjb34', ticker:'JNJB34.SA', nome:'JNJB34 — J&J'},
+    {id:'boac34', ticker:'BOAC34.SA', nome:'BOAC34 — Bank of America'},
+  ]},
+  {segmento:'🇺🇸 EUA — Dow Jones 20', ativos:[
+    {id:'gsgi34', ticker:'GSGI34.SA', nome:'GSGI34 — Goldman'},
+    {id:'catp34', ticker:'CATP34.SA', nome:'CATP34 — Caterpillar'},
+    {id:'axpb34', ticker:'AXPB34.SA', nome:'AXPB34 — Amex'},
+    {id:'mcdc34', ticker:'MCDC34.SA', nome:"MCDC34 — McDonald's"},
+    {id:'ibmb34', ticker:'IBMB34.SA', nome:'IBMB34 — IBM'},
+    {id:'honb34', ticker:'HONB34.SA', nome:'HONB34 — Honeywell'},
+    {id:'ssfo34', ticker:'SSFO34.SA', nome:'SSFO34 — Salesforce'},
+    {id:'chvx34', ticker:'CHVX34.SA', nome:'CHVX34 — Chevron'},
+    {id:'disb34', ticker:'DISB34.SA', nome:'DISB34 — Disney'},
+    {id:'nike34', ticker:'NIKE34.SA', nome:'NIKE34 — Nike'},
+  ]},
+  {segmento:'🇺🇸 EUA — Semicondutores', ativos:[
+    {id:'tsmc34', ticker:'TSMC34.SA', nome:'TSMC34 — TSMC'},
+    {id:'asml34', ticker:'ASML34.SA', nome:'ASML34 — ASML'},
+    {id:'mutc34', ticker:'MUTC34.SA', nome:'MUTC34 — Micron'},
+  ]},
+  {segmento:'🇺🇸 EUA — Software', ativos:[
+    {id:'p2lt34', ticker:'P2LT34.SA', nome:'P2LT34 — Palantir'},
+    {id:'orcl34', ticker:'ORCL34.SA', nome:'ORCL34 — Oracle'},
+    {id:'c2rw34', ticker:'C2RW34.SA', nome:'C2RW34 — CrowdStrike'},
+    {id:'c1dn34', ticker:'C1DN34.SA', nome:'C1DN34 — Cadence'},
+    {id:'n1ow34', ticker:'N1OW34.SA', nome:'N1OW34 — ServiceNow'},
+    {id:'f1tn34', ticker:'F1TN34.SA', nome:'F1TN34 — Fortinet'},
+  ]},
 ];
 
 function getWatchlistFlat(){
@@ -1834,7 +1894,7 @@ function renderWatchlist(){
 // em reais. A serie em dolar alimenta o score e nunca aparece.
 // Dados pre-calculados em papeis_eua.json (5 anos x 2 series por papel).
 let _euaCat='m7', _euaDados=null;
-let _brCat=null, _brDados=null;
+let _brCatIdx=0, _brDados=null;
 function togBr(){
   const w=document.getElementById('br-wrap'), s=document.getElementById('ar-br');
   if(!w)return;
@@ -1849,13 +1909,16 @@ async function loadBr(){
     const r=await fetch(B+'/papeis/brasil',{cache:'no-store'});
     const d=await r.json(); _brDados=d;
     if(d.error){cont.innerHTML='<div style="color:var(--red);padding:14px">'+d.error+'</div>';return;}
-    if(!_brCat)_brCat=d.categorias[0]?.id;
+
     const sub=document.getElementById('br-sub');
     if(sub)sub.textContent=`${d.total_papeis_unicos} papéis em ${d.categorias.length} segmentos · dados de ${d.gerado_em}`;
     const cats=document.getElementById('br-cats');
-    if(cats)cats.innerHTML=d.categorias.map(c=>
-      `<button onclick="_brCat=${JSON.stringify(c.id)};loadBr()" style="padding:5px 10px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:${c.id===_brCat?'var(--accent)':'var(--bg2)'};color:${c.id===_brCat?'#fff':'var(--fg,#ddd)'}">${c.nome} (${c.total})</button>`).join('');
-    const c=d.categorias.find(x=>x.id===_brCat)||d.categorias[0];
+    // CORRIGIDO 26/09/2026 -- os nomes dos segmentos tem emoji e "&", e
+    // eu gerava onclick com aspas duplas dentro de atributo com aspas
+    // duplas: o HTML quebrava e os botoes nao navegavam. Agora usa INDICE.
+    if(cats)cats.innerHTML=d.categorias.map((c,i)=>
+      `<button onclick="_brCatIdx=${i};loadBr()" style="padding:5px 10px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:${i===_brCatIdx?'var(--accent)':'var(--bg2)'};color:${i===_brCatIdx?'#fff':'var(--fg,#ddd)'}">${c.nome} (${c.total})</button>`).join('');
+    const c=d.categorias[_brCatIdx]||d.categorias[0];
     cont.innerHTML=_tabelaRisco(c,d.nota,false);
   }catch(e){cont.innerHTML='<div style="color:var(--red);padding:14px">Falha: '+e+'</div>';}
 }
