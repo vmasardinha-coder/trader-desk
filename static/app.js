@@ -1834,6 +1834,63 @@ function renderWatchlist(){
 // em reais. A serie em dolar alimenta o score e nunca aparece.
 // Dados pre-calculados em papeis_eua.json (5 anos x 2 series por papel).
 let _euaCat='m7', _euaDados=null;
+let _brCat=null, _brDados=null;
+function togBr(){
+  const w=document.getElementById('br-wrap'), s=document.getElementById('ar-br');
+  if(!w)return;
+  const abrindo=!w.classList.contains('open');
+  w.classList.toggle('open'); if(s)s.textContent=abrindo?'▲':'▼';
+  if(abrindo&&!_brDados)loadBr();
+}
+async function loadBr(){
+  const cont=document.getElementById('br-container'); if(!cont)return;
+  cont.innerHTML='<div style="color:var(--muted);padding:14px">Carregando...</div>';
+  try{
+    const r=await fetch(B+'/papeis/brasil',{cache:'no-store'});
+    const d=await r.json(); _brDados=d;
+    if(d.error){cont.innerHTML='<div style="color:var(--red);padding:14px">'+d.error+'</div>';return;}
+    if(!_brCat)_brCat=d.categorias[0]?.id;
+    const sub=document.getElementById('br-sub');
+    if(sub)sub.textContent=`${d.total_papeis_unicos} papéis em ${d.categorias.length} segmentos · dados de ${d.gerado_em}`;
+    const cats=document.getElementById('br-cats');
+    if(cats)cats.innerHTML=d.categorias.map(c=>
+      `<button onclick="_brCat=${JSON.stringify(c.id)};loadBr()" style="padding:5px 10px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:${c.id===_brCat?'var(--accent)':'var(--bg2)'};color:${c.id===_brCat?'#fff':'var(--fg,#ddd)'}">${c.nome} (${c.total})</button>`).join('');
+    const c=d.categorias.find(x=>x.id===_brCat)||d.categorias[0];
+    cont.innerHTML=_tabelaRisco(c,d.nota,false);
+  }catch(e){cont.innerHTML='<div style="color:var(--red);padding:14px">Falha: '+e+'</div>';}
+}
+// Tabela compartilhada pelos dois blocos (Brasil e EUA).
+function _tabelaRisco(c,nota,ehBdr){
+  if(!c||!c.papeis.length)return '<div style="color:var(--muted);padding:14px">Sem papéis.</div>';
+  return `<div style="font-size:10px;color:var(--muted);margin-bottom:6px">${c.nome} · ordenado pelo Fator</div>
+  <table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:var(--muted);text-align:right">
+    <th style="text-align:left;padding:6px 8px">${ehBdr?'BDR':'Papel'}</th>
+    <th style="text-align:left;padding:6px 8px">Nome</th>
+    <th style="padding:6px 8px">Preço (R$)</th><th style="padding:6px 8px">Vol</th>
+    <th style="padding:6px 8px">12m</th><th style="padding:6px 8px">Da máx.</th>
+    <th style="padding:6px 8px" title="Em quantas janelas de 15 pregões caiu 8,2% nos últimos 5 anos">Rompe 15d</th>
+    <th style="padding:6px 8px" title="Das vezes que o Ibovespa caiu 8,2%, quantas acompanhou. Baixo = diversifica">c/ índice</th>
+    <th style="padding:6px 8px">Fator</th><th style="padding:6px 8px">Liquidez</th>
+  </tr></thead><tbody>
+  ${c.papeis.map(p=>{
+    const f=p.fator, cf=f>=70?'var(--green,#2ecc71)':(f>=45?'var(--accent)':'var(--red,#e74c3c)');
+    const si=p.rompe_com_indice_pct, cs=si==null?'var(--muted)':(si<=30?'var(--green,#2ecc71)':(si>=70?'var(--red,#e74c3c)':'var(--muted)'));
+    const r12=p.retorno_12m_pct, pr=ehBdr?p.preco_bdr:p.preco;
+    const cod=(ehBdr?p.bdr:(p.ticker||'').replace('.SA',''))||'—';
+    return `<tr style="text-align:right;border-top:1px solid var(--border)">
+      <td style="text-align:left;padding:6px 8px;font-weight:700">${cod}</td>
+      <td style="text-align:left;padding:6px 8px;color:var(--muted)">${p.nome}</td>
+      <td style="padding:6px 8px">${pr!=null?pr.toFixed(2):'—'}</td>
+      <td style="padding:6px 8px">${p.vol_garch_pct!=null?p.vol_garch_pct+'%':'—'}</td>
+      <td style="padding:6px 8px;color:${r12>=0?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r12!=null?(r12>0?'+':'')+r12+'%':'—'}</td>
+      <td style="padding:6px 8px;color:var(--muted)">${p.dist_maxima_52s_pct!=null?p.dist_maxima_52s_pct+'%':'—'}</td>
+      <td style="padding:6px 8px">${p.rompe_8_2_em_15d_pct!=null?p.rompe_8_2_em_15d_pct+'%':'—'}</td>
+      <td style="padding:6px 8px;color:${cs};font-weight:600">${si!=null?si+'%':'—'}</td>
+      <td style="padding:6px 8px;font-weight:700;color:${cf}">${f!=null?f:'—'}</td>
+      <td style="padding:6px 8px;color:var(--muted);font-size:10px">${p.giro_medio_dia_reais?('R$ '+(p.giro_medio_dia_reais/1e6).toFixed(1)+' mi'):'—'}</td>
+    </tr>`;}).join('')}
+  </tbody></table><div style="font-size:9px;color:var(--muted);margin-top:8px">${nota}</div>`;
+}
 function togEua(){
   const w=document.getElementById('eua-wrap'), a=document.getElementById('ar-eua');
   if(!w)return;
@@ -1856,39 +1913,7 @@ async function loadEua(){
       `<button onclick="_euaCat='${c.id}';loadEua()" style="padding:5px 10px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:${c.id===_euaCat?'var(--accent)':'var(--bg2)'};color:${c.id===_euaCat?'#fff':'var(--fg,#ddd)'}">${c.nome} (${c.total})</button>`).join('');
     const c=d.categorias.find(x=>x.id===_euaCat)||d.categorias[0];
     if(!c||!c.papeis.length){cont.innerHTML='<div style="color:var(--muted);padding:14px">Sem papéis nesta categoria.</div>';return;}
-    cont.innerHTML=`
-      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${c.nome} · ordenado pelo Fator (maior = sobrevive mais, sozinho e no crash)</div>
-      <table style="width:100%;border-collapse:collapse;font-size:11px">
-        <thead><tr style="color:var(--muted);text-align:right">
-          <th style="text-align:left;padding:6px 8px">BDR</th>
-          <th style="text-align:left;padding:6px 8px">Empresa</th>
-          <th style="padding:6px 8px">Preço (R$)</th>
-          <th style="padding:6px 8px" title="Volatilidade GARCH da série em dólar">Vol</th>
-          <th style="padding:6px 8px" title="Retorno em 12 meses, em dólar">12m</th>
-          <th style="padding:6px 8px" title="Distância da máxima de 52 semanas">Da máx.</th>
-          <th style="padding:6px 8px" title="Em quantas janelas de 15 pregões o BDR caiu 8,2% nos últimos 5 anos">Rompe 15d</th>
-          <th style="padding:6px 8px" title="Das vezes que o Ibovespa caiu 8,2%, quantas o BDR acompanhou. Baixo = diversifica de verdade">c/ índice</th>
-          <th style="padding:6px 8px">Fator</th>
-          <th style="padding:6px 8px" title="Giro médio diário em reais">Liquidez</th>
-        </tr></thead><tbody>
-        ${c.papeis.map(p=>{
-          const f=p.fator, cf=f>=70?'var(--green,#2ecc71)':(f>=45?'var(--accent)':'var(--red,#e74c3c)');
-          const si=p.rompe_com_indice_pct, cs=si==null?'var(--muted)':(si<=30?'var(--green,#2ecc71)':(si>=70?'var(--red,#e74c3c)':'var(--muted)'));
-          const r12=p.retorno_12m_pct;
-          return `<tr style="text-align:right;border-top:1px solid var(--border)">
-            <td style="text-align:left;padding:6px 8px;font-weight:700">${p.bdr||'—'}</td>
-            <td style="text-align:left;padding:6px 8px;color:var(--muted)">${p.nome}</td>
-            <td style="padding:6px 8px">${p.preco_bdr!=null?p.preco_bdr.toFixed(2):'—'}</td>
-            <td style="padding:6px 8px">${p.vol_garch_pct!=null?p.vol_garch_pct+'%':'—'}</td>
-            <td style="padding:6px 8px;color:${r12>=0?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r12!=null?(r12>0?'+':'')+r12+'%':'—'}</td>
-            <td style="padding:6px 8px;color:var(--muted)">${p.dist_maxima_52s_pct!=null?p.dist_maxima_52s_pct+'%':'—'}</td>
-            <td style="padding:6px 8px">${p.rompe_8_2_em_15d_pct!=null?p.rompe_8_2_em_15d_pct+'%':'—'}</td>
-            <td style="padding:6px 8px;color:${cs};font-weight:600">${si!=null?si+'%':'—'}</td>
-            <td style="padding:6px 8px;font-weight:700;color:${cf}">${f!=null?f:'—'}</td>
-            <td style="padding:6px 8px;color:var(--muted);font-size:10px">${p.giro_medio_dia_reais?('R$ '+(p.giro_medio_dia_reais/1e6).toFixed(1)+' mi'):'—'}</td>
-          </tr>`;}).join('')}
-        </tbody></table>
-      <div style="font-size:9px;color:var(--muted);margin-top:8px">${d.nota}</div>`;
+    cont.innerHTML=_tabelaRisco(c,d.nota,true);
   }catch(e){cont.innerHTML='<div style="color:var(--red);padding:14px">Falha ao carregar: '+e+'</div>';}
 }
 
