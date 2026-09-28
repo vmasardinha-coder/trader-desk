@@ -269,7 +269,7 @@
       "observacao": "Rolagem de melhora da anterior em 27/09/2026 (ver cl-bslv39-rolagem-nov26). Ganho 8,70% em 60 dias = 4,35%/mes, KDO 76,98 (20% abaixo do preco de 96,23). Prob 59,8% (GARCH 54,1% via proxy SLV, pois o Yahoo nao tem serie da BSLV39). NUMEROS PROVISORIOS -- o Victor concilia e manda os definitivos.",
       "prob_sucesso_prevista_pct_auditavel": false,
       "capital_aplicado_reais": 29780.1,
-      "numeros_confirmados": true,
+      "numeros_confirmados": false,
       "marcacao_mercado": {
         "data": "2026-09-25",
         "valor_estrutura_reais": 29361.64,
@@ -279,7 +279,15 @@
       },
       "prob_atual_pct": 63.85,
       "prob_atual_em": "2026-09-25",
-      "rolagem_de": "cl-bslv39-rolagem-nov26"
+      "rolagem_de": "cl-bslv39-rolagem-nov26",
+      "aguardando_boleto": true,
+      "campos_provisorios": [
+        "kdo",
+        "ganho_prefixado_pct",
+        "vencimento",
+        "entry",
+        "prob_sucesso_prevista_pct"
+      ]
     }
   ],
   "encerradas": [
@@ -584,7 +592,7 @@
       "observacao": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$111.21, quantidade 290, KDO R$82.05, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$103.22, KDO R$82.576, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$102.67 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$102.5625 e via strike R$102.7819). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar. | INVESTIGADO 15/09/2026: vol_impl nula NAO e erro de preenchimento. Yahoo devolve apenas 1 candle para BSLV39.SA (range=2y), entao garch_11 retorna None -- nao ha historico para calcular. O problema real e outro: prob_sucesso_prevista_pct=79.6 foi gravada mesmo sem vol declarada, ou seja, apoiada numa vol que nao ficou registrada e nao pode ser auditada nem reproduzida. Marcada como nao-auditavel em vez de recalculada -- inventar vol aqui seria pior que admitir a lacuna. WORKAROUND SUGERIDO (nao aplicado, precisa do ok do Victor): usar a vol do papel original em dolar como proxy. Medicao de 15/09/2026 em 5 pares BDR/US mostrou diferenca de apenas -2,9 a +2,5 pontos de vol, porque o cambio funciona como hedge parcial e nao como risco extra. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 102.67->102.69, venc 2026-11-09->2026-11-10. MARCACAO A MERCADO gravada: aplicacao R$ 29,780.10, estrutura hoje R$ 29,361.64 (-1.41%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 79.6%. A recalculada de hoje (63.85%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
       "prob_sucesso_prevista_pct_auditavel": false,
       "capital_aplicado_reais": 29780.1,
-      "numeros_confirmados": true,
+      "numeros_confirmados": false,
       "marcacao_mercado": {
         "data": "2026-09-25",
         "valor_estrutura_reais": 29361.64,
@@ -621,9 +629,19 @@
         "ganho_novo_pct": 8.7,
         "prazo_novo_dias": 60,
         "prob_antes_pct": 63.9,
-        "prob_depois_pct": 59.8
+        "prob_depois_pct": 59.8,
+        "origem_dos_numeros": "RELATO DO VICTOR em 27/09/2026, boleto ainda nao recebido. Ele informou: premio capturado ~R$650, base de ~R$30.000 (o lote padrao de prata), prazo da nova de 60 dias, ganho da nova 8,7%, barreira 20% abaixo do preco de hoje. O KDO de 76,98 e o entry de 96,23 sao DERIVADOS do preco do BDR no dia, nao lidos de documento.",
+        "a_ratificar": [
+          "premio_reais",
+          "base_reais",
+          "ganho_novo_pct",
+          "kdo_novo",
+          "prazo_novo_dias",
+          "entry_novo"
+        ]
       },
-      "resultado_texto": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$111.21, quantidade 290, KDO R$82.05, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$103.22, KDO R$82.576, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$102.67 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$102.5625 e via strike R$102.7819). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar. | INVESTIGADO 15/09/2026: vol_impl nula NAO e erro de preenchimento. Yahoo devolve apenas 1 candle para BSLV39.SA (range=2y), entao garch_11 retorna None -- nao ha historico para calcular. O problema real e outro: prob_sucesso_prevista_pct=79.6 foi gravada mesmo sem vol declarada, ou seja, apoiada numa vol que nao ficou registrada e nao pode ser auditada nem reproduzida. Marcada como nao-auditavel em vez de recalculada -- inventar vol aqui seria pior que admitir a lacuna. WORKAROUND SUGERIDO (nao aplicado, precisa do ok do Victor): usar a vol do papel original em dolar como proxy. Medicao de 15/09/2026 em 5 pares BDR/US mostrou diferenca de apenas -2,9 a +2,5 pontos de vol, porque o cambio funciona como hedge parcial e nao como risco extra. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 102.67->102.69, venc 2026-11-09->2026-11-10. MARCACAO A MERCADO gravada: aplicacao R$ 29,780.10, estrutura hoje R$ 29,361.64 (-1.41%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 79.6%. A recalculada de hoje (63.85%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada. | ENCERRADA 27/09/2026 POR ROLAGEM DE MELHORA. Capturou R$650 sobre base de R$30.000 = 2,17%, ou 26,1% do alvo de 8,30% em 29,0% do prazo (18 de 62 dias). Giro 0,90x -- LIGEIRAMENTE abaixo de 1, mas NAO e fracasso: giro<1 classifica SAIDA, e aqui foi ROLAGEM. A pergunta deixa de ser \"capturei o proporcional\" e passa a ser \"o que vem e melhor que o que restava\": a nova paga 8,7% contra os 6,13% que sobravam. Realizado 3,61%/mes, acima do CDI. KDO reancorado de 82,05 para 76,98 (prata caiu de 100,51 para 96,23). Probabilidade 63,9% -> 59,8%: 4 pontos PIOR, porque voltou a 60 dias de exposicao em vez dos 46 que faltavam -- o prazo maior come a protecao extra da barreira mais baixa."
+      "resultado_texto": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$111.21, quantidade 290, KDO R$82.05, vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$103.22, KDO R$82.576, vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$102.67 continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$102.5625 e via strike R$102.7819). Metodo validado contra tsmc34 (reproduz R$280.95 confirmado) e sbsp3 (reproduz R$25.10). Substituir se/quando o boleto oficial chegar. | INVESTIGADO 15/09/2026: vol_impl nula NAO e erro de preenchimento. Yahoo devolve apenas 1 candle para BSLV39.SA (range=2y), entao garch_11 retorna None -- nao ha historico para calcular. O problema real e outro: prob_sucesso_prevista_pct=79.6 foi gravada mesmo sem vol declarada, ou seja, apoiada numa vol que nao ficou registrada e nao pode ser auditada nem reproduzida. Marcada como nao-auditavel em vez de recalculada -- inventar vol aqui seria pior que admitir a lacuna. WORKAROUND SUGERIDO (nao aplicado, precisa do ok do Victor): usar a vol do papel original em dolar como proxy. Medicao de 15/09/2026 em 5 pares BDR/US mostrou diferenca de apenas -2,9 a +2,5 pontos de vol, porque o cambio funciona como hedge parcial e nao como risco extra. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 102.67->102.69, venc 2026-11-09->2026-11-10. MARCACAO A MERCADO gravada: aplicacao R$ 29,780.10, estrutura hoje R$ 29,361.64 (-1.41%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 79.6%. A recalculada de hoje (63.85%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada. | ENCERRADA 27/09/2026 POR ROLAGEM DE MELHORA. Capturou R$650 sobre base de R$30.000 = 2,17%, ou 26,1% do alvo de 8,30% em 29,0% do prazo (18 de 62 dias). Giro 0,90x -- LIGEIRAMENTE abaixo de 1, mas NAO e fracasso: giro<1 classifica SAIDA, e aqui foi ROLAGEM. A pergunta deixa de ser \"capturei o proporcional\" e passa a ser \"o que vem e melhor que o que restava\": a nova paga 8,7% contra os 6,13% que sobravam. Realizado 3,61%/mes, acima do CDI. KDO reancorado de 82,05 para 76,98 (prata caiu de 100,51 para 96,23). Probabilidade 63,9% -> 59,8%: 4 pontos PIOR, porque voltou a 60 dias de exposicao em vez dos 46 que faltavam -- o prazo maior come a protecao extra da barreira mais baixa. | PROVISORIO: numeros vindos do relato do Victor, boleto pendente. Ratificar premio, base, ganho da nova perna, KDO e prazo quando o documento chegar. Comparacao ja registrada: premio liquido de ~2,17% aqui contra 0,05% na BBAS3 -- a diferenca e a direcao do papel (prata caindo x BBAS3 subindo).",
+      "aguardando_boleto": true
     }
   ]
 }
