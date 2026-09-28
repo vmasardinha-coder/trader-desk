@@ -6067,6 +6067,143 @@ def _congelar_bandas_analise(novo):
 # papel, ~100 requisicoes -- nao pode rodar ao vivo a cada chamada).
 # Regerar quando quiser atualizar; o arquivo carrega gerado_em.
 
+
+# ── REGERACAO DOS BLOCOS DE PAPEIS (27/09/2026, item 6) ──────────────
+# papeis_eua.json e papeis_br.json sao PRE-CALCULADOS: 5 anos de serie x
+# 2 por papel, mais de cem requisicoes ao Yahoo. Nunca caberia numa
+# chamada de tela, por isso ficam congelados com a data visivel.
+#
+# Os campos envelhecem em ritmos MUITO diferentes, e e isso que a rota
+# separa em dois escopos:
+#   'rapido'  -> preco, vol, retorno 12m, distancia da maxima, liquidez.
+#                Mexem toda semana. So precisa da serie de 2 anos.
+#   'completo'-> tudo acima MAIS frequencia de rompimento, correlacao com
+#                o indice e Fator. Precisa de 5 anos e do BOVA11. Em um
+#                mes esses numeros quase nao se movem -- rodar todo dia e
+#                desperdicio.
+# Roda em thread (a resposta volta na hora) e grava no repo ao terminar.
+
+_REGEN = {'rodando': False, 'ultimo': None}
+
+def _regerar_bloco(qual, escopo='rapido'):
+    """qual: 'br' | 'eua'. escopo: 'rapido' | 'completo'."""
+    import statistics as _st
+    from concurrent.futures import ThreadPoolExecutor
+    path = 'papeis_br.json' if qual == 'br' else 'papeis_eua.json'
+    conteudo, sha = _github_get_file(path)
+    d = json.loads(conteudo)
+    papeis = d.get('papeis', {})
+
+    def serie(sym, anos):
+        try:
+            r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{sym}'
+                             f'?range={anos}y&interval=1d',
+                             headers={'User-Agent': 'Mozilla/5.0'}, timeout=25)
+            if not r.ok:
+                return sym, None
+            res = r.json()['chart']['result'][0]
+            q = res['indicators']['quote'][0]
+            return sym, {
+                'close': [c for c in q['close'] if c],
+                'lows': [(c, l) for c, l in zip(q['close'], q['low']) if c and l],
+                'spot': res['meta'].get('regularMarketPrice'),
+                'vol': [v for v in (q.get('volume') or []) if v]}
+        except Exception:
+            return sym, None
+
+    anos = 2 if escopo == 'rapido' else 5
+    # no bloco BR o proprio ticker e o negociado; no EUA a serie de preco
+    # e a do BDR, mas vol/retorno vem do ticker em dolar (regra do Victor)
+    alvos = []
+    for t, p in papeis.items():
+        alvos.append((t, p.get('bdr') + '.SA' if qual == 'eua' and p.get('bdr') else t))
+    syms = {s for _, s in alvos} | ({t for t, _ in alvos} if qual == 'eua' else set())
+    if escopo == 'completo':
+        syms.add('BOVA11.SA')
+    with ThreadPoolExecutor(8) as ex:
+        S = dict(ex.map(lambda x: serie(x, anos), syms))
+
+    def freq15(p, barr=-0.082):
+        return [any(p[i + k][1] / p[i][0] - 1 <= barr for k in range(1, 16))
+                for i in range(len(p) - 15)]
+    base = freq15(S['BOVA11.SA']['lows']) if (escopo == 'completo' and S.get('BOVA11.SA')) else None
+
+    n = 0
+    for t, sym_preco in alvos:
+        p = papeis[t]
+        dp = S.get(sym_preco)          # serie do instrumento negociado
+        dv = S.get(t) if qual == 'eua' else dp   # serie da vol (dolar no EUA)
+        if not dp or not dp['close']:
+            continue
+        if dp.get('spot'):
+            p['preco_bdr' if qual == 'eua' else 'preco'] = round(dp['spot'], 2)
+        if dp['vol'] and dp.get('spot'):
+            p['giro_medio_dia_reais'] = round(_st.mean(dp['vol'][-30:]) * dp['spot'])
+            if qual == 'eua':
+                p['operavel'] = bool(p['giro_medio_dia_reais'] >= 200000)
+        if dv and dv['close']:
+            cl = dv['close']
+            g = garch_11(cl, horizon_days=60)
+            if g:
+                p['vol_garch_pct'] = round(g['vol_garch_projetada_pct'], 1)
+            if len(cl) > 252:
+                p['retorno_12m_pct'] = round(100 * (cl[-1] / cl[-252] - 1), 1)
+                p['dist_maxima_52s_pct'] = round(100 * (cl[-1] / max(cl[-252:]) - 1), 1)
+        if escopo == 'completo' and base and dp['lows']:
+            f = freq15(dp['lows'])
+            m = min(len(f), len(base))
+            fr = round(100 * sum(f) / len(f), 1)
+            si = round(100 * sum(1 for a, c in zip(f[:m], base[:m]) if a and c)
+                       / max(sum(base[:m]), 1), 0)
+            p['rompe_8_2_em_15d_pct'] = fr
+            p['rompe_com_indice_pct'] = si
+            p['fator'] = round(100 * (1 - fr / 100) * (1 - 0.5 * si / 100), 1)
+        n += 1
+    d['gerado_em'] = _dt_now_iso()[:16].replace('T', ' ')
+    d['escopo_ultima_regeracao'] = escopo
+    _github_put_file(path, json.dumps(d, indent=2, ensure_ascii=False), sha,
+                     f'chore: regera {path} (escopo {escopo}, {n} papeis)')
+    return {'arquivo': path, 'escopo': escopo, 'papeis_atualizados': n}
+
+
+@app.route('/papeis/regerar', methods=['POST'])
+def rota_regerar_papeis():
+    """?qual=br|eua|ambos  &escopo=rapido|completo
+
+    rapido   = preco, vol, retorno 12m, liquidez (semanal, junto do lote)
+    completo = tudo + rompimento, correlacao e Fator (mensal)
+    """
+    import threading
+    if _REGEN['rodando']:
+        return jsonify({'status': 'ja_rodando', 'ultimo': _REGEN['ultimo']}), 409
+    qual = request.args.get('qual', 'ambos')
+    escopo = request.args.get('escopo', 'rapido')
+    if escopo not in ('rapido', 'completo'):
+        return jsonify({'error': "escopo deve ser 'rapido' ou 'completo'"}), 422
+    quais = ['br', 'eua'] if qual == 'ambos' else [qual]
+    if any(q not in ('br', 'eua') for q in quais):
+        return jsonify({'error': "qual deve ser 'br', 'eua' ou 'ambos'"}), 422
+
+    def tarefa():
+        _REGEN['rodando'] = True
+        out = []
+        try:
+            for q in quais:
+                out.append(_regerar_bloco(q, escopo))
+            _REGEN['ultimo'] = {'em': _dt_now_iso(), 'resultado': out}
+        except Exception as e:
+            _REGEN['ultimo'] = {'em': _dt_now_iso(), 'erro': str(e)}
+        finally:
+            _REGEN['rodando'] = False
+    threading.Thread(target=tarefa, daemon=True).start()
+    return jsonify({'status': 'iniciado', 'blocos': quais, 'escopo': escopo,
+                    'aviso': 'roda em segundo plano; consulte GET /papeis/regerar/status'}), 202
+
+
+@app.route('/papeis/regerar/status', methods=['GET'])
+def rota_regerar_status():
+    return jsonify({'rodando': _REGEN['rodando'], 'ultimo': _REGEN['ultimo']})
+
 @app.route('/papeis/brasil', methods=['GET'])
 def rota_papeis_br():
     """Bloco pai Brasil (B3) com os 12 segmentos como filhos.
