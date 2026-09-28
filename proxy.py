@@ -1596,6 +1596,25 @@ def run_montecarlo_condicional():
         return jsonify({'error': str(e)}), 500
 
 
+
+# ── PROXY DE VOLATILIDADE PARA BDR SEM SERIE (27/09/2026) ────────────
+# O Yahoo devolve 1 candle unico para BSLV39 (BDR de prata), entao GARCH
+# nao converge e vol_hist sai sobre um ponto so -- lixo. A rota
+# /montecarlo/posicao_ativa chegava a dar 500. Solucao: usar a serie do
+# ativo ORIGINAL em dolar. Validado em 5 pares BDR/US: a vol difere
+# apenas -2,9 a +2,5 pontos, porque o cambio funciona como hedge parcial
+# (dolar sobe quando a bolsa americana cai), nao como risco extra.
+_PROXY_VOL = {
+    'BSLV39': 'SLV',    # prata
+    'BSLV39.SA': 'SLV',
+}
+
+def _ticker_para_vol(ticker):
+    """Devolve o simbolo cuja serie deve ser usada para estimar a vol."""
+    if not ticker:
+        return ticker
+    return _PROXY_VOL.get(ticker, _PROXY_VOL.get(ticker.replace('.SA', ''), ticker))
+
 def _sigma_garch_ou_hist(cl, horizon_days=None):
     """Volatilidade preferindo GARCH(1,1), com fallback para a historica.
 
@@ -1691,6 +1710,23 @@ def run_montecarlo_posicao_ativa():
                     ts = [t for t, c in zip(raw_ts, raw_cl) if c is not None]
                     S = float(meta.get('regularMarketPrice', cl[-1] if cl else 0))
                     if cl: sigma = _sigma_garch_ou_hist(cl)
+                    # 27/09/2026 -- serie curta demais (ex. BSLV39, que o Yahoo
+                    # devolve com 1 candle): usa o ativo original em dolar.
+                    alvo_vol = _ticker_para_vol(ticker)
+                    if (alvo_vol != ticker) or len(cl) < 60:
+                        alvo_vol = _ticker_para_vol(ticker)
+                        if alvo_vol != ticker:
+                            try:
+                                rp = requests.get(
+                                    f'https://{host}.finance.yahoo.com/v8/finance/chart/{alvo_vol}?interval=1d&range=2y',
+                                    headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                                if rp.ok:
+                                    cp = [c for c in rp.json()['chart']['result'][0]['indicators']['quote'][0]['close'] if c is not None]
+                                    if len(cp) >= 60:
+                                        sigma = _sigma_garch_ou_hist(cp)
+                                        vol_proxy_de = alvo_vol
+                            except Exception:
+                                pass
                     break
             except Exception:
                 continue
