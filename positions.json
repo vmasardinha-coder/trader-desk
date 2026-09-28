@@ -497,11 +497,18 @@
         "recuperacao_strike_pct_mes": 0.67,
         "prob_nao_exercicio_antes_pct": 35.0,
         "prob_nao_exercicio_depois_pct": 43.0,
-        "alta_do_papel_pct_mes_3m": 3.33
+        "alta_do_papel_pct_mes_3m": 3.33,
+        "premio_pct": 0.05,
+        "recuperacao_strike_pct": 1.5,
+        "ganho_total_pct": 1.55,
+        "ganho_total_pct_mes": 0.73,
+        "cdi_mes_referencia": 1.12,
+        "bate_cdi_nota": "NAO bate o CDI (0,73%/mes contra 1,12%). O premio liquido foi de apenas R$24,20 sobre uma posicao de R$49 mil: recomprou a 3,35 e vendeu a 3,37, ou seja, o mercado cobrou quase todo o valor dos 64 dias extras na recompra. Padrao observado em 27/09/2026 comparando as tres rolagens: rolar sai CARO quando o papel esta SUBINDO (BBAS3, 0,73%/mes) e sai BARATO quando esta CAINDO (ROXO34 1,41%/mes, BSLV39 3,61%/mes), porque na queda se vende premio caro e a barreira reancora a favor.",
+        "contexto_victor": "CLASSIFICADA COMO SUCESSO mesmo abaixo do CDI, e com razao: nao e operacao nova escolhida livremente, e conserto de uma posicao que JA estava em fracasso declarado (a BBAS3 de agosto, que rendeu 1,33%/mes contra a diretriz de 2,5%). A regua aqui nao e o CDI nem a diretriz -- e o contrafactual de NAO fazer nada, que seria ficar preso no strike antigo sem recuperar nada. Contra isso, +R$706 e +8 pontos de probabilidade e melhora real. O CDI fica gravado como referencia, mas o contexto e o que decide a classificacao."
       },
       "entry": 19.97,
       "dados_reconstruidos": true,
-      "resultado_texto": " | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. ja tinha a data; preco do historico no dia (strike 20,70 = +3,7%). NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir."
+      "resultado_texto": " | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. ja tinha a data; preco do historico no dia (strike 20,70 = +3,7%). NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir. | CDI DE REFERENCIA gravado em 27/09/2026: 0,73%/mes contra 1,12% do CDI -- nao bate. Mantida como SUCESSO pelo contexto: e conserto de posicao que ja estava em fracasso, nao alocacao nova. O ponto de comparacao correto e ficar parado, nao o CDI."
     },
     {
       "id": "cl-roxo34-rolagem-mar27",
