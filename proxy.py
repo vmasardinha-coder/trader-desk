@@ -4512,7 +4512,12 @@ def _resumo_encerradas():
             'data': (x.get('data_encerramento') or '')[:10],
             'strike_de': r.get('strike_de'), 'strike_para': r.get('strike_para'),
             'ganho_total_reais': r.get('ganho_total_reais'), 'ganho_pct_posicao': r.get('ganho_pct_posicao'),
-            'dias_extensao': r.get('dias_extensao'), 'recuperacao_strike_pct_mes': rec,
+            'dias_extensao': r.get('dias_extensao'),
+            'recuperacao_strike_pct_mes': r.get('recuperacao_strike_pct_mes'),
+            'ganho_total_pct_mes': rec,
+            'cdi_mes_referencia': r.get('cdi_mes_referencia'),
+            'bate_cdi': (None if rec is None or not r.get('cdi_mes_referencia')
+                         else rec > r['cdi_mes_referencia']),
             'alta_papel_pct_mes': alta,
             'destrava': (None if rec is None or alta is None else rec > alta),
             'prob_antes_pct': r.get('prob_nao_exercicio_antes_pct'),
