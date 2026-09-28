@@ -4498,7 +4498,16 @@ def _resumo_encerradas():
         if x.get('tipo_encerramento') != 'rolagem_de_melhora':
             continue
         r = x.get('rolagem') or {}
-        rec, alta = r.get('recuperacao_strike_pct_mes'), r.get('alta_do_papel_pct_mes_3m')
+        # CORRIGIDO 27/09/2026 -- o Victor apontou que eu media so metade.
+        # O que ele captura numa rolagem e STRIKE + PREMIO, nao so strike:
+        # "eu olho o premio, se esta pagando mais do que o CDI e se eu estou
+        # melhor -- e um somatorio". Ex. ROXO34: 2,22% de strike + 2,0% de
+        # premio = 4,22% em 3 meses = 1,41%/mes, contra CDI de 1,12%.
+        # Olhando so o strike daria 0,74%/mes e pareceria abaixo do CDI.
+        rec = r.get('ganho_total_pct_mes')
+        if rec is None:
+            rec = r.get('recuperacao_strike_pct_mes')
+        alta = r.get('alta_do_papel_pct_mes_3m')
         rolagens.append({'id': x.get('id'), 'ticker': x.get('ticker'),
             'data': (x.get('data_encerramento') or '')[:10],
             'strike_de': r.get('strike_de'), 'strike_para': r.get('strike_para'),
