@@ -1888,6 +1888,42 @@ function renderWatchlist(){
 // "Tirar uma foto" = congelar preco atual + bandas GARCH nos 3 horizontes.
 // Acompanha se o preco real ficou dentro das bandas ao longo do tempo.
 
+
+// ── BOTAO DE REGERACAO (27/09/2026) ──────────────────────────────────
+// Dispara /papeis/regerar, que atualiza OS DOIS blocos (Brasil e EUA).
+// Dois escopos porque os campos envelhecem em ritmos diferentes:
+// rapido (preco/vol/retorno/liquidez) toda semana, junto do lote; completo
+// (mais rompimento, correlacao e Fator) uma vez por mes -- a janela de 5
+// anos desliza devagar, mas desliza: a NVDA passou de 28,9% para 35,8% de
+// frequencia de rompimento em um dia, entao nao adianta deixar parado.
+async function regerarPapeis(escopo){
+  const el=document.getElementById('regen-msg');
+  const set=t=>{if(el)el.textContent=t;};
+  set('Disparando...');
+  try{
+    const r=await fetch(B+'/papeis/regerar?qual=ambos&escopo='+escopo,{method:'POST'});
+    const d=await r.json();
+    if(r.status===409){set('Já está rodando uma regeração. Aguarde.');return;}
+    if(!r.ok){set('Erro: '+(d.error||r.status));return;}
+    set('Rodando em segundo plano ('+escopo+')...');
+    for(let i=0;i<60;i++){
+      await new Promise(s=>setTimeout(s,4000));
+      const st=await (await fetch(B+'/papeis/regerar/status',{cache:'no-store'})).json();
+      if(!st.rodando){
+        const u=st.ultimo||{};
+        if(u.erro){set('Falhou: '+u.erro);return;}
+        const n=(u.resultado||[]).reduce((s,x)=>s+(x.papeis_atualizados||0),0);
+        set('Pronto — '+n+' papéis atualizados. Recarregando...');
+        _euaDados=null;_brDados=null;
+        if(document.getElementById('eua-wrap')?.classList.contains('open'))loadEua();
+        if(document.getElementById('br-wrap')?.classList.contains('open'))loadBr();
+        return;
+      }
+    }
+    set('Ainda rodando — confira daqui a pouco.');
+  }catch(e){set('Falha: '+e);}
+}
+
 // ── BLOCO ESTADOS UNIDOS (26/09/2026) ────────────────────────────────
 // Regra do Victor: SCORE em DOLAR, ESTRUTURA em BDR. A visao e unica e
 // BDR-first -- ele opera BDR, entao a linha e o BDR, com preco e risco
