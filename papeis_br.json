@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-09-28 23:51",
+  "gerado_em": "2026-09-29 00:04",
   "nota": "Bloco Brasil (B3) -- risco de barreira para estruturadas. Mesma metodologia do bloco EUA, aplicada aos papeis que o Victor acompanha. ATENCAO: o Fator mede SOBREVIVENCIA a barreira, nao qualidade da empresa nem oportunidade de preco -- papel chato e sem volatilidade pontua alto. So faz sentido lido ao lado do premio ofertado (%/mes x Fator).",
   "segmentos": [
     {
@@ -109,9 +109,9 @@
       "vol_garch_pct": 39.1,
       "retorno_12m_pct": 7.4,
       "dist_maxima_52s_pct": -18.9,
-      "rompe_8_2_em_15d_pct": 22.5,
+      "rompe_8_2_em_15d_pct": 22.4,
       "rompe_com_indice_pct": 73.0,
-      "fator": 49.2,
+      "fator": 49.3,
       "giro_medio_dia_reais": 666627781,
       "operavel": true
     },
@@ -161,7 +161,7 @@
       "vol_garch_pct": 41.1,
       "retorno_12m_pct": -5.3,
       "dist_maxima_52s_pct": -27.8,
-      "rompe_8_2_em_15d_pct": 36.1,
+      "rompe_8_2_em_15d_pct": 36.2,
       "rompe_com_indice_pct": 76.0,
       "fator": 39.6,
       "giro_medio_dia_reais": 41012144,
@@ -174,7 +174,7 @@
       "vol_garch_pct": 24.6,
       "retorno_12m_pct": 10.3,
       "dist_maxima_52s_pct": -22.3,
-      "rompe_8_2_em_15d_pct": 12.9,
+      "rompe_8_2_em_15d_pct": 12.8,
       "rompe_com_indice_pct": 63.0,
       "fator": 59.7,
       "giro_medio_dia_reais": 78612901,
@@ -187,9 +187,9 @@
       "vol_garch_pct": 25.6,
       "retorno_12m_pct": 29.9,
       "dist_maxima_52s_pct": -7.4,
-      "rompe_8_2_em_15d_pct": 10.1,
+      "rompe_8_2_em_15d_pct": 10.0,
       "rompe_com_indice_pct": 57.0,
-      "fator": 64.3,
+      "fator": 64.4,
       "giro_medio_dia_reais": 283596843,
       "operavel": true
     },
@@ -200,9 +200,9 @@
       "vol_garch_pct": 22.9,
       "retorno_12m_pct": 37.0,
       "dist_maxima_52s_pct": -10.4,
-      "rompe_8_2_em_15d_pct": 14.0,
+      "rompe_8_2_em_15d_pct": 13.9,
       "rompe_com_indice_pct": 63.0,
-      "fator": 58.9,
+      "fator": 59.0,
       "giro_medio_dia_reais": 107538493,
       "operavel": true
     },
@@ -213,9 +213,9 @@
       "vol_garch_pct": 46.5,
       "retorno_12m_pct": -12.7,
       "dist_maxima_52s_pct": -30.7,
-      "rompe_8_2_em_15d_pct": 34.6,
+      "rompe_8_2_em_15d_pct": 34.5,
       "rompe_com_indice_pct": 100.0,
-      "fator": 32.7,
+      "fator": 32.8,
       "giro_medio_dia_reais": 230225837,
       "operavel": true
     },
@@ -239,9 +239,9 @@
       "vol_garch_pct": 37.8,
       "retorno_12m_pct": 24.5,
       "dist_maxima_52s_pct": -21.8,
-      "rompe_8_2_em_15d_pct": 27.4,
+      "rompe_8_2_em_15d_pct": 27.3,
       "rompe_com_indice_pct": 82.0,
-      "fator": 42.8,
+      "fator": 42.9,
       "giro_medio_dia_reais": 1516643,
       "operavel": true
     },
@@ -265,7 +265,7 @@
       "vol_garch_pct": 24.1,
       "retorno_12m_pct": 10.8,
       "dist_maxima_52s_pct": -15.5,
-      "rompe_8_2_em_15d_pct": 13.6,
+      "rompe_8_2_em_15d_pct": 13.5,
       "rompe_com_indice_pct": 92.0,
       "fator": 46.7,
       "giro_medio_dia_reais": 1007188749,
@@ -291,9 +291,9 @@
       "vol_garch_pct": 28.1,
       "retorno_12m_pct": 15.7,
       "dist_maxima_52s_pct": -22.8,
-      "rompe_8_2_em_15d_pct": 25.7,
+      "rompe_8_2_em_15d_pct": 25.6,
       "rompe_com_indice_pct": 59.0,
-      "fator": 52.4,
+      "fator": 52.5,
       "giro_medio_dia_reais": 40468626,
       "operavel": true
     },
@@ -343,9 +343,9 @@
       "vol_garch_pct": 34.5,
       "retorno_12m_pct": -25.6,
       "dist_maxima_52s_pct": -35.0,
-      "rompe_8_2_em_15d_pct": 37.4,
-      "rompe_com_indice_pct": 35.0,
-      "fator": 51.6,
+      "rompe_8_2_em_15d_pct": 37.5,
+      "rompe_com_indice_pct": 33.0,
+      "fator": 52.2,
       "giro_medio_dia_reais": 94641186,
       "operavel": true
     },
@@ -408,12 +408,12 @@
       "vol_garch_pct": 29.1,
       "retorno_12m_pct": 35.9,
       "dist_maxima_52s_pct": -7.2,
-      "rompe_8_2_em_15d_pct": 22.0,
+      "rompe_8_2_em_15d_pct": 21.9,
       "rompe_com_indice_pct": 78.0,
       "fator": 47.6,
       "giro_medio_dia_reais": 380757296,
       "operavel": true
     }
   },
-  "escopo_ultima_regeracao": "rapido"
+  "escopo_ultima_regeracao": "completo"
 }
