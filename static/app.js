@@ -945,7 +945,7 @@ async function loadRankingPosicoes(tipo){
     }
     const linhas=d.itens.map(i=>{
       if(i.erro){
-        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="5" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
+        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="7" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
       }
       const p=i.probabilidade_sucesso_pct;
       const cor = p>=70?'var(--green,#2ecc71)':p>=40?'var(--warn,#e6a817)':'var(--red,#e74c3c)';
@@ -971,6 +971,8 @@ async function loadRankingPosicoes(tipo){
         <td style="padding:6px 8px;text-align:right">${i.vencimento||'—'}</td>
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:var(--muted)">${i.prob_na_origem_pct!=null?i.prob_na_origem_pct.toFixed(1)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:${(i.prob_overshoot_pct||0)>=40?'var(--warn,#e6a817)':'var(--muted)'}">${i.prob_overshoot_pct!=null?i.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-size:10px;white-space:nowrap" title="Probabilidade calculada no momento da decisão (congelada) e a variação até hoje.">${evol}</td>
       </tr>`;
     }).join('');
@@ -982,7 +984,9 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px">Ticker</th>
         <th style="padding:6px 8px;text-align:right">Vencimento</th>
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
-        <th style="padding:6px 8px;text-align:right">Prob. sucesso</th>
+        <th style="padding:6px 8px;text-align:right" title="Chance de NÃO tocar o KDO daqui pra frente — do preço de hoje até o vencimento. É o que o contrato exige.">Prob. KDO (agora)</th>
+        <th style="padding:6px 8px;text-align:right" title="A mesma conta, mas simulando o prazo TOTAL a partir do preço de entrada. Responde 'qual era a chance quando começou'. É o que alimenta o tracker.">Na origem</th>
+        <th style="padding:6px 8px;text-align:right" title="Chance de a ação terminar ACIMA do teto travado. Mede o custo de oportunidade de ter prefixado o ganho — quanto maior, mais teria valido a pena só comprar o papel.">Overshoot</th>
         <th style="padding:6px 8px;text-align:right">Na decisão → hoje</th>
       </tr></thead>
       <tbody>${linhas}</tbody>
