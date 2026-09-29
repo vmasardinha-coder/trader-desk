@@ -2215,6 +2215,37 @@ def _categoria_posicao(p):
     # tratar aqui.
     return None
 
+
+def _evolucao_por_tempo(p, prob_hoje):
+    """Ganho de probabilidade por unidade de prazo consumido (item 12).
+
+    ganho_por_tempo = (prob_hoje - prob_foto) / (% do prazo consumido).
+    Acima de 1 -> a tese melhora mais rapido do que o relogio anda.
+    Negativo   -> esta se deteriorando apesar do tempo passar a favor.
+    """
+    from datetime import datetime as _d, date as _dt
+    try:
+        foto = p.get('prob_sucesso_prevista_pct')
+        if foto is None or prob_hoje is None:
+            return {}
+        ent = p.get('data_entrada'); venc = p.get('vencimento')
+        if not (ent and venc):
+            return {}
+        d_ent = _d.strptime(str(ent)[:10], '%Y-%m-%d').date()
+        d_ven = _d.strptime(str(venc)[:10], '%Y-%m-%d').date()
+        hoje = _dt.today()
+        prazo = (d_ven - d_ent).days
+        dec = (hoje - d_ent).days
+        if prazo <= 0 or dec <= 0:
+            return {}
+        pct_tempo = 100.0 * dec / prazo
+        delta = float(prob_hoje) - float(foto)
+        return {'pct_do_prazo_consumido': round(pct_tempo, 1),
+                'delta_prob_pontos': round(delta, 1),
+                'ganho_prob_por_tempo': round(delta / pct_tempo, 2) if pct_tempo else None}
+    except Exception:
+        return {}
+
 @app.route('/posicoes/ranking/<tipo>', methods=['GET'])
 def get_ranking_posicoes(tipo):
     """
@@ -2295,6 +2326,15 @@ def get_ranking_posicoes(tipo):
                 # e baseline do tracking-acuracia). Ao lado da de hoje ela
                 # responde se a tese esta se confirmando ou se deteriorando.
                 'prob_foto_pct': p.get('prob_sucesso_prevista_pct'),
+                # ITEM 12 (28/09/2026): ganho de probabilidade POR TEMPO
+                # CONSUMIDO. Observacao do Victor: 5 das 6 posicoes
+                # "melhoraram", mas isso nao e merito -- e o relogio andando.
+                # Cada dia sem tocar a barreira aumenta a probabilidade porque
+                # sobra menos tempo para dar errado. A TSMC34 ganhou 15,5
+                # pontos JA TENDO CONSUMIDO 2/3 do prazo; ganhar o mesmo com
+                # 10% consumido seria muito melhor. Mesma logica do giro,
+                # aplicada a probabilidade.
+                **_evolucao_por_tempo(p, prob_sucesso),
                 'campo_origem': campo_sucesso,
             })
 
@@ -4223,6 +4263,44 @@ def tracking_hipotetico_previsoes():
 # Barreira e monitorada desde a FOTO (nao desde a saida) -- e assim que
 # o contrato funciona.
 
+
+def _giro_do_registro(rec):
+    """Eficiencia do giro de uma operacao encerrada: % do lucro / % do tempo.
+
+    ITEM 11 do backlog (28/09/2026). Acima de 1, sair antes rendeu mais por
+    unidade de tempo. Mediana observada nas 7 primeiras: 1,79x.
+    Devolve dict vazio quando faltam alvo/realizado ou as datas -- hoje isso
+    acontece em 15 das 22 encerradas, porque sao anteriores a gravacao
+    desses campos.
+    """
+    from datetime import datetime as _d
+    import statistics as _s
+    try:
+        alvo = rec.get('alvo_pct')
+        real = rec.get('realizado_pct')
+        ent = rec.get('data_entrada') or rec.get('data_foto')
+        sai = rec.get('data_saida') or rec.get('data_encerramento')
+        venc = rec.get('vencimento_original') or rec.get('vencimento')
+        if not (alvo and real is not None and ent and sai and venc):
+            return {}
+        d_ent = _d.strptime(str(ent)[:10], '%Y-%m-%d').date()
+        d_sai = _d.strptime(str(sai)[:10], '%Y-%m-%d').date()
+        d_ven = _d.strptime(str(venc)[:10], '%Y-%m-%d').date()
+        prazo = (d_ven - d_ent).days
+        dias = (d_sai - d_ent).days
+        if prazo <= 0 or dias < 0 or float(alvo) == 0:
+            return {}
+        pct_lucro = 100.0 * float(real) / float(alvo)
+        pct_tempo = 100.0 * dias / prazo
+        out = {'pct_do_lucro': round(pct_lucro, 1), 'pct_do_tempo': round(pct_tempo, 1),
+               'dias_no_trade': dias, 'prazo_dias': prazo}
+        if pct_tempo > 0:
+            out['giro'] = round(pct_lucro / pct_tempo, 2)
+            out['retorno_mes_realizado_pct'] = round(float(real) / (dias / 30.0), 2) if dias else None
+        return out
+    except Exception:
+        return {}
+
 def _tracking_victor_item(rec, hoje):
     from datetime import datetime as _dtv, timedelta as _tdv
     # AJUSTE 23/09/2026 (Victor): "quando digo que e sucesso, todos eles
@@ -4272,6 +4350,11 @@ def _tracking_victor_item(rec, hoje):
             'resultado_victor': rec.get('resultado_victor'),
             'prob_sucesso_prevista_pct': rec.get('prob_sucesso_prevista_pct')
                 or (rec.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')}
+    # ITEM 11 (28/09/2026): o tracker so reportava sucesso/fracasso binario.
+    # Uma operacao que capturou 70% do premio em 30% do tempo contava igual a
+    # uma que capturou 30% em 90%. O Victor sempre disse que o que importa e a
+    # PROPORCAO -- entao o giro entra aqui, ao lado do binario, nao no lugar.
+    base.update(_giro_do_registro(rec))
     if _dtv.strptime(vo[:10], '%Y-%m-%d').date() > hoje:
         base['resultado_tracker'] = 'pendente'
         base['dias_ate_vencimento_original'] = (_dtv.strptime(vo[:10], '%Y-%m-%d').date() - hoje).days
@@ -4353,7 +4436,18 @@ def _tracking_victor_calcular(*listas):
     div = [i for i in fechados if i['divergencia']]
     salvou = [i for i in div if i['resultado_victor'] == 'sucesso' and i['resultado_tracker'] == 'fracasso']
     custou = [i for i in div if i['resultado_victor'] == 'fracasso' and i['resultado_tracker'] == 'sucesso']
+    # ITEM 11 (28/09/2026): giro ao lado do binario. O tracker so dizia
+    # sucesso/fracasso; agora tambem mede a PROPORCAO -- quanto do premio foi
+    # capturado por unidade de tempo -- que e o criterio que o Victor usa de
+    # fato para decidir sair antes.
+    import statistics as _stg
+    _g = [i.get('giro') for i in itens if isinstance(i, dict) and i.get('giro') is not None]
     return {
+        'giro_mediano': round(_stg.median(_g), 2) if _g else None,
+        'giro_acima_de_1': sum(1 for x in _g if x >= 1),
+        'com_giro_calculado': len(_g),
+        'nota_giro': ('Giro = % do premio capturado / % do prazo consumido. Acima de 1, sair antes '
+                      'rendeu mais por unidade de tempo. Vazio nas encerradas sem alvo/realizado.'),
         'aviso': 'Compara a DECISAO do Victor com o que teria acontecido ate o vencimento ORIGINAL. Duas colunas independentes -- uma nunca corrige a outra.',
         'total_com_decisao': len(itens),
         'pendentes_no_tracker': sum(1 for i in itens if i.get('resultado_tracker') == 'pendente'),
