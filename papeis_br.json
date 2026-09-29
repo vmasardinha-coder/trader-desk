@@ -1,6 +1,6 @@
 {
  "gerado_em": "2026-09-27 15:03",
- "nota": "Bloco Brasil (B3) -- risco de barreira para estruturadas. Mesma metodologia do bloco EUA, aplicada aos papeis que o Victor acompanha. ATENCAO: o Fator mede SOBREVIVENCIA a barreira, nao qualidade da empresa nem oportunidade de preco -- papel chato e sem volatilidade pontua alto. So faz sentido lido ao lado do premio ofertado (%/mes x Fator).",
+ "nota": "Bloco Brasil (B3) -- risco de barreira para estruturadas. Mesma metodologia do bloco EUA, aplicada aos papeis que o Victor acompanha. ATENCAO: o Fator mede SOBREVIVENCIA a barreira, nao qualidade da empresa nem oportunidade de preco -- papel chato e sem volatilidade pontua alto. So faz sentido lido ao lado do premio ofertado (%/mes x Fator). Segunda barreira (27/09/2026): queda de 20% em 60 pregoes, que e o padrao REAL das estruturadas do Victor -- a coluna de 8,2%/15d e calibrada para o prazo curto do menu e NAO descreve as operacoes dele. A ordem relativa entre papeis se mantem nas duas, mas o valor absoluto muda muito.",
  "segmentos": [
   {
    "nome": "🏦 Bancos",
@@ -113,7 +113,10 @@
     "preco_justo": 40.48,
     "upside_pct": 39.7,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 10.3,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 89.7
   },
   "AXIA3.SA": {
    "ticker": "AXIA3.SA",
@@ -139,7 +142,10 @@
     "preco_justo": 46.59,
     "upside_pct": -14.6,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 11.3,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 88.7
   },
   "BBAS3.SA": {
    "ticker": "BBAS3.SA",
@@ -165,7 +171,10 @@
     "preco_justo": 27.85,
     "upside_pct": 29.0,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 11.4,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 88.6
   },
   "BBSE3.SA": {
    "ticker": "BBSE3.SA",
@@ -191,7 +200,10 @@
     "preco_justo": 41.87,
     "upside_pct": 7.4,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 0.3,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 99.7
   },
   "CMIG4.SA": {
    "ticker": "CMIG4.SA",
@@ -217,7 +229,10 @@
     "preco_justo": 19.43,
     "upside_pct": 78.4,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 2.0,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 98.0
   },
   "CMIN3.SA": {
    "ticker": "CMIN3.SA",
@@ -243,7 +258,10 @@
     "preco_justo": 6.16,
     "upside_pct": 24.3,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 23.9,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 76.1
   },
   "CPFE3.SA": {
    "ticker": "CPFE3.SA",
@@ -269,7 +287,10 @@
     "preco_justo": 52.88,
     "upside_pct": 19.4,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 1.0,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 99.0
   },
   "CPLE3.SA": {
    "ticker": "CPLE3.SA",
@@ -295,7 +316,10 @@
     "preco_justo": 15.42,
     "upside_pct": -2.3,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 0.2,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 99.8
   },
   "CXSE3.SA": {
    "ticker": "CXSE3.SA",
@@ -321,7 +345,10 @@
     "preco_justo": 16.0,
     "upside_pct": -22.3,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 1.7,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 98.3
   },
   "CYRE3.SA": {
    "ticker": "CYRE3.SA",
@@ -347,7 +374,10 @@
     "preco_justo": 42.46,
     "upside_pct": 57.3,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 27.3,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 72.7
   },
   "DIRR3.SA": {
    "ticker": "DIRR3.SA",
@@ -373,7 +403,10 @@
     "preco_justo": 14.52,
     "upside_pct": 48.2,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 21.0,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 79.0
   },
   "EUCA4.SA": {
    "ticker": "EUCA4.SA",
@@ -399,7 +432,10 @@
     "preco_justo": 37.48,
     "upside_pct": 71.9,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 12.2,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 87.8
   },
   "GGBR4.SA": {
    "ticker": "GGBR4.SA",
@@ -425,7 +461,10 @@
     "preco_justo": 19.35,
     "upside_pct": -22.6,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 15.6,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 84.4
   },
   "ITUB4.SA": {
    "ticker": "ITUB4.SA",
@@ -451,7 +490,10 @@
     "preco_justo": 40.05,
     "upside_pct": -4.9,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 3.0,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 97.0
   },
   "MULT3.SA": {
    "ticker": "MULT3.SA",
@@ -477,7 +519,10 @@
     "preco_justo": 26.62,
     "upside_pct": -14.4,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 7.2,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 92.8
   },
   "ORVR3.SA": {
    "ticker": "ORVR3.SA",
@@ -502,7 +547,10 @@
     "preco_justo": 9.22,
     "upside_pct": -43.9,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 14.9,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 85.1
   },
   "PETR4.SA": {
    "ticker": "PETR4.SA",
@@ -528,7 +576,10 @@
     "preco_justo": 63.99,
     "upside_pct": 33.3,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 12.0,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 88.0
   },
   "PRIO3.SA": {
    "ticker": "PRIO3.SA",
@@ -553,7 +604,10 @@
     "preco_justo": 43.96,
     "upside_pct": -25.9,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 14.7,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 85.3
   },
   "PSSA3.SA": {
    "ticker": "PSSA3.SA",
@@ -579,7 +633,10 @@
     "preco_justo": 51.58,
     "upside_pct": 9.5,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 1.9,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 98.1
   },
   "ROXO34.SA": {
    "ticker": "ROXO34.SA",
@@ -604,7 +661,10 @@
     "preco_justo": 14.97,
     "upside_pct": 28.7,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 31.0,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 69.0
   },
   "SAPR11.SA": {
    "ticker": "SAPR11.SA",
@@ -630,7 +690,10 @@
     "preco_justo": 27.84,
     "upside_pct": -16.5,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 1.9,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 98.1
   },
   "SBSP3.SA": {
    "ticker": "SBSP3.SA",
@@ -656,7 +719,10 @@
     "preco_justo": 22.78,
     "upside_pct": -15.4,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 3.2,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 96.8
   },
   "TAEE11.SA": {
    "ticker": "TAEE11.SA",
@@ -682,7 +748,10 @@
     "preco_justo": 51.25,
     "upside_pct": 25.6,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 0.6,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 99.4
   },
   "VALE3.SA": {
    "ticker": "VALE3.SA",
@@ -708,7 +777,10 @@
     "preco_justo": 57.55,
     "upside_pct": -18.7,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 10.9,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 89.1
   },
   "WEGE3.SA": {
    "ticker": "WEGE3.SA",
@@ -734,9 +806,13 @@
     "preco_justo": 18.13,
     "upside_pct": -64.5,
     "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
-   }
+   },
+   "rompe_20_em_60d_pct": 12.1,
+   "rompe_com_indice_60d_pct": null,
+   "fator_60d": 87.9
   }
  },
  "nota_fundamentos": "Preco justo = media dos 4 metodos que o app ja calcula para papel brasileiro (Graham, VPA, P/L setorial, Bazin) -- e o MESMO numero da tela detalhada, trazido para a tabela para comparar os 25 de uma vez sem abrir um por um. Nenhum calculo novo.",
- "fundamentos_gerado_em": "2026-09-29 00:11"
+ "fundamentos_gerado_em": "2026-09-29 00:11",
+ "barreiras_gerado_em": "2026-09-29 00:17"
 }
