@@ -235,7 +235,8 @@ def _score_assertividade_bandas(historico_real, bandas_periodo):
         'pct_dentro_p10_p90': round(dentro_p90 / total * 100, 1),
     }
 
-def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, kdo=None, kuo=None, n_sim=5000):
+def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, kdo=None, kuo=None, n_sim=5000,
+                                strike=None, exercicio='europeia'):
     """
     ADICIONADO 06/08/2026 -- tracking previsao-vs-realizado (item de
     backlog pedido pelo Victor). Calcula, no momento da FOTO (Fase B),
@@ -266,9 +267,35 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
     do retorno_controlado. Se so kuo for fornecido (sem kdo), cai num
     fallback que calcula prob de nao tocar o KUO, mas isso e raro -- a
     grande maioria das bidirecionais tem KDO definido.
+    ESTENDIDO 28/09/2026 -- lacuna apontada pelo Victor. Ate aqui a funcao
+    devolvia None para TODOS os tipos de venda de opcao (lancamento coberto,
+    call vendida e venda de put a seco), entao essas posicoes nasciam com o
+    campo prob_sucesso_prevista_pct VAZIO. Consequencias: a coluna "Na
+    decisao -> hoje" ficava em branco nelas, e elas nunca entrariam na
+    calibracao do tracker de acuracia (sem previsao, nao ha o que comparar
+    com o resultado). As 4 posicoes existentes foram preenchidas na mao em
+    28/09; isto aqui e o conserto para as PROXIMAS nascerem certas.
+
+    Semantica de sucesso por tipo (sempre "a operacao deu certo"):
+      retorno_controlado / bidirecional -> NAO tocar a barreira de baixo
+      call vendida / lancamento coberto -> NAO ser exercida = terminar
+          ABAIXO do strike (o Victor fica com as acoes e o premio inteiro)
+      venda de put a seco -> NAO ser exercida = terminar ACIMA do strike
+          (espelho da call; ele nao e obrigado a comprar o papel)
+
+    ATENCAO ao exercicio: europeia e condicao de PONTO (so o vencimento
+    importa, entao basta olhar o preco final). AMERICANA pode ser exercida
+    a qualquer momento, virando condicao de CAMINHO -- por isso, quando
+    exercicio='americana', a funcao usa o minimo/maximo do caminho, nao so
+    o ponto final. E a mesma distincao da ponte de Brownian.
     """
     try:
-        if tipo_estrutura not in ('retorno_controlado', 'bidirecional'):
+        _VENDA_CALL = ('lancamento_coberto', 'call_vendida', 'premio', 'premium')
+        _VENDA_PUT = ('put_seco', 'venda_put_seco', 'put_vendida')
+        if tipo_estrutura not in (('retorno_controlado', 'bidirecional')
+                                  + _VENDA_CALL + _VENDA_PUT):
+            return None
+        if tipo_estrutura in (_VENDA_CALL + _VENDA_PUT) and strike is None:
             return None
         if not preco_foto or not sigma or not prazo_dias or prazo_dias <= 0:
             return None
@@ -278,6 +305,23 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
         vol_step = sigma * math.sqrt(dt)
         z = np.random.standard_normal((n_sim, int(prazo_dias)))
         paths = preco_foto * np.exp(np.cumsum(drift + vol_step * z, axis=1))
+
+        if tipo_estrutura in _VENDA_CALL:
+            k = float(strike)
+            if str(exercicio or '').lower().startswith('ameri'):
+                # condicao de CAMINHO: exercicio antecipado se tocar o strike
+                exercida = np.max(paths, axis=1) >= k
+            else:
+                exercida = paths[:, -1] >= k
+            return round(float((~exercida).mean() * 100), 2)
+
+        if tipo_estrutura in _VENDA_PUT:
+            k = float(strike)
+            if str(exercicio or '').lower().startswith('ameri'):
+                exercida = np.min(paths, axis=1) <= k
+            else:
+                exercida = paths[:, -1] <= k
+            return round(float((~exercida).mean() * 100), 2)
 
         if tipo_estrutura == 'retorno_controlado':
             if kdo is None:
