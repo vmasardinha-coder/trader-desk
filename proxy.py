@@ -4547,6 +4547,32 @@ def rota_arquivar_posicoes():
 
 
 
+
+# ── DUAS REGUAS, CONFORME O CAPITAL (28/09/2026) ─────────────────────
+# Definido com o Victor. Tudo e medido em %/mes sobre o CAPITAL da
+# posicao -- unidade unica. O que muda e o ALVO, porque a alternativa
+# real e diferente em cada caso:
+#   SAIDA ANTECIPADA -> o capital VOLTA e pode entrar em operacao nova.
+#     O custo de oportunidade e a diretriz do Victor (2,5%/mes), nao o
+#     CDI. Comparar capital livre com CDI seria facil demais.
+#   ROLAGEM -> o capital continua TRAVADO. Sair custaria o proprio
+#     premio da operacao (~9% no caso da ROXO34), entao a alternativa e
+#     nao fazer nada = ZERO. Aqui o CDI (1,12%/mes) e a regua justa.
+_REGUA_SAIDA_PCT_MES = 2.5     # diretriz do Victor
+_REGUA_ROLAGEM_PCT_MES = 1.12  # CDI
+
+def _avaliar_contra_regua(tipo, pct_mes):
+    """tipo: 'saida' | 'rolagem'. Devolve alvo, se passou e a folga."""
+    if pct_mes is None:
+        return {}
+    alvo = _REGUA_SAIDA_PCT_MES if tipo == 'saida' else _REGUA_ROLAGEM_PCT_MES
+    return {'regua_tipo': tipo, 'regua_pct_mes': alvo,
+            'passa_na_regua': pct_mes >= alvo,
+            'folga_pontos': round(pct_mes - alvo, 2),
+            'regua_motivo': ('capital volta e pode ser realocado -- alvo e a diretriz'
+                             if tipo == 'saida' else
+                             'capital segue travado; a alternativa e nao fazer nada -- alvo e o CDI')}
+
 def _resumo_encerradas():
     """Painel executivo da tela de Encerradas (pedido do Victor, 23/09/2026).
 
@@ -4599,6 +4625,7 @@ def _resumo_encerradas():
             'alvo_pct': alvo, 'realizado_pct': real,
             'giro': round(fl / ft, 2),
             'retorno_mes_realizado_pct': round(real / (dias / 30.0), 2),
+            **_avaliar_contra_regua('saida', round(float(real) / (dias / 30.0), 2) if dias else None),
             'retorno_mes_ate_o_fim_pct': round(alvo / (prazo / 30.0), 2),
         })
     linhas.sort(key=lambda r: -r['giro'])
@@ -4670,6 +4697,7 @@ def _resumo_encerradas():
             'dias_extensao': r.get('dias_extensao'),
             'recuperacao_strike_pct_mes': r.get('recuperacao_strike_pct_mes'),
             'ganho_total_pct_mes': rec,
+            **_avaliar_contra_regua('rolagem', rec),
             'cdi_mes_referencia': r.get('cdi_mes_referencia'),
             'bate_cdi': (None if rec is None or not r.get('cdi_mes_referencia')
                          else rec > r['cdi_mes_referencia']),
