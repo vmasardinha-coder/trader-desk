@@ -1930,6 +1930,17 @@ async function regerarPapeis(escopo){
 // em reais. A serie em dolar alimenta o score e nunca aparece.
 // Dados pre-calculados em papeis_eua.json (5 anos x 2 series por papel).
 let _euaCat='m7', _euaDados=null;
+// Indice BDR -> dados do bloco EUA, para o card detalhado puxar o preco justo.
+let _euaPorBdr=null;
+async function _carregarIndiceEua(){
+  if(_euaPorBdr)return _euaPorBdr;
+  try{
+    const d=await (await fetch(B+'/papeis/estados-unidos',{cache:'no-store'})).json();
+    _euaPorBdr={};
+    (d.categorias||[]).forEach(c=>(c.papeis||[]).forEach(p=>{if(p.bdr)_euaPorBdr[p.bdr]=p;}));
+  }catch(e){_euaPorBdr={};}
+  return _euaPorBdr;
+}
 let _brCatIdx=0, _brDados=null;
 function togBr(){
   const w=document.getElementById('br-wrap'), s=document.getElementById('ar-br');
@@ -1979,6 +1990,10 @@ function _tabelaRisco(c,nota,ehBdr){
     const si=p.rompe_com_indice_pct, cs=si==null?'var(--muted)':(si<=30?'var(--green,#2ecc71)':(si>=70?'var(--red,#e74c3c)':'var(--muted)'));
     const r12=p.retorno_12m_pct, pr=ehBdr?p.preco_bdr:p.preco;
     const fu=p.fundamentos||{}, up=fu.upside_pct;
+    // 27/09 -- o bloco BR guarda o justo em 'preco_justo' (media dos 4
+    // metodos, o MESMO numero da tela detalhada) e o EUA em
+    // 'preco_justo_bdr' (SEC, duas familias). Mesma coluna para os dois.
+    const justo=(fu.preco_justo_bdr!=null?fu.preco_justo_bdr:fu.preco_justo);
     const cod=(ehBdr?p.bdr:(p.ticker||'').replace('.SA',''))||'—';
     return `<tr style="text-align:right;border-top:1px solid var(--border)">
       <td style="text-align:left;padding:6px 8px;font-weight:700">${cod}</td>
@@ -1990,8 +2005,8 @@ function _tabelaRisco(c,nota,ehBdr){
       <td style="padding:6px 8px">${p.rompe_8_2_em_15d_pct!=null?p.rompe_8_2_em_15d_pct+'%':'—'}</td>
       <td style="padding:6px 8px;color:${cs};font-weight:600">${si!=null?si+'%':'—'}</td>
       <td style="padding:6px 8px;font-weight:700;color:${cf}">${f!=null?f:'—'}</td>
-      <td style="padding:6px 8px"${fu.motivo_sem_preco_justo?' title="'+String(fu.motivo_sem_preco_justo).replace(/"/g,'')+'"':''}>${fu.preco_justo_bdr!=null?fu.preco_justo_bdr.toFixed(2):'<span style="color:var(--muted)">—</span>'}</td>
-      <td style="padding:6px 8px;font-weight:600;color:${up==null?'var(--muted)':(up>=10?'var(--green,#2ecc71)':(up<=-10?'var(--red,#e74c3c)':'var(--muted)'))}"${fu.metodo?' title="método: '+fu.metodo+'"':''}>${up!=null?(up>0?'+':'')+up+'%':'—'}</td>
+      <td style="padding:6px 8px"${fu.motivo_sem_preco_justo?' title="'+String(fu.motivo_sem_preco_justo).replace(/"/g,'')+'"':''}>${justo!=null?justo.toFixed(2):'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="padding:6px 8px;font-weight:600;color:${up==null?'var(--muted)':(up>=10?'var(--green,#2ecc71)':(up<=-10?'var(--red,#e74c3c)':'var(--muted)'))}"${fu.metodo?' title="método: '+fu.metodo+(fu.n_metodos?' ('+fu.n_metodos+' métodos)':'')+'"':''}>${up!=null?(up>0?'+':'')+up+'%':'—'}</td>
       <td style="padding:6px 8px;color:var(--muted);font-size:10px">${p.giro_medio_dia_reais?('R$ '+(p.giro_medio_dia_reais/1e6).toFixed(1)+' mi'):'—'}</td>
     </tr>`;}).join('')}
   </tbody></table><div style="font-size:9px;color:var(--muted);margin-top:8px">${nota}</div>`;
@@ -3133,6 +3148,10 @@ async function fFG(){
   }catch(e){}
 }
 function rndInd(id,data){
+  // se for BDR americano e o indice ainda nao veio, carrega e redesenha
+  if(!_euaPorBdr && /^[A-Z0-9]+3[0-9]$/i.test(String(id||''))){
+    _carregarIndiceEua().then(()=>{try{rndInd(id,data);}catch(e){}});
+  }
   const el=document.getElementById(id+'-ind');if(!el)return;
   if(!data){el.innerHTML='<div style="color:var(--warn);padding:12px;font-size:13px">⏳ Sem resposta — clique ↻</div>';return;}
   if(data.error){el.innerHTML='<div style="color:var(--red);padding:12px;font-size:13px">⚠ '+data.error+'</div>';return;}
@@ -3149,12 +3168,27 @@ function rndInd(id,data){
     {nome:'P/L Setor',valor:data.preco_alvo_pl_setorial,up:data.upside_pl_setorial},
     {nome:'P/VP Setor',valor:data.preco_alvo_vpa,up:data.upside_vpa},
   ].filter(m=>m.valor!=null);
-  const mediaDestaque = metodos.length>0 ? metodos.reduce((s,m)=>s+m.valor,0)/metodos.length : null;
-  const upMedia = (mediaDestaque && preco) ? Math.round((mediaDestaque/preco-1)*1000)/10 : null;
+  let mediaDestaque = metodos.length>0 ? metodos.reduce((s,m)=>s+m.valor,0)/metodos.length : null;
+  let upMedia = (mediaDestaque && preco) ? Math.round((mediaDestaque/preco-1)*1000)/10 : null;
+  let rotuloJusto = 'Méd. 4 Métodos';
+  // ADICIONADO 27/09/2026 -- BDR americano nao tem os 4 metodos (a fonte
+  // brasileira nao cobre), entao o quadro ficava vazio: "abro a Netflix e
+  // nao sei o preco justo dela". O numero existe, so mora no bloco EUA,
+  // calculado com dados da SEC. Aqui ele e PUXADO de la para o detalhe --
+  // mesmo numero, nenhum calculo novo -- porque o Victor as vezes olha so
+  // o detalhe sem abrir a tabela.
+  if(mediaDestaque==null && _euaPorBdr){
+    const fu=((_euaPorBdr[String(id||'').toUpperCase()])||{}).fundamentos;
+    if(fu && fu.preco_justo_bdr!=null){
+      mediaDestaque=fu.preco_justo_bdr;
+      upMedia=fu.upside_pct!=null?fu.upside_pct:((preco)?Math.round((mediaDestaque/preco-1)*1000)/10:null);
+      rotuloJusto = fu.metodo==='valor' ? 'Justo (valor)' : 'Justo (crescimento)';
+    }
+  }
   h+='<div class="scb">'+
     '<div class="scc"><div class="scm">Score</div><div class="scn" style="color:'+sc2+'">'+sc+'</div><div class="scl" style="color:'+sc2+'">'+sl+'</div></div>'+
     '<div class="scc"><div class="scm">Cotação</div><div class="scv">'+(preco?'R$ '+Number(preco).toFixed(2):'—')+'</div><div class="scs">'+setor+'</div></div>'+
-    '<div class="scc"><div class="scm">Méd. 4 Métodos</div><div class="scv" style="color:'+(upMedia&&upMedia>0?'var(--green)':'var(--red)')+'">'+(mediaDestaque?'R$ '+mediaDestaque.toFixed(2):'—')+'</div><div class="scs" style="color:'+(upMedia&&upMedia>0?'var(--green)':'var(--red)')+'">'+(upMedia!=null?(upMedia>0?'+':'')+upMedia+'% upside':'—')+'</div></div>'+
+    '<div class="scc"><div class="scm">'+rotuloJusto+'</div><div class="scv" style="color:'+(upMedia&&upMedia>0?'var(--green)':'var(--red)')+'">'+(mediaDestaque?'R$ '+mediaDestaque.toFixed(2):'—')+'</div><div class="scs" style="color:'+(upMedia&&upMedia>0?'var(--green)':'var(--red)')+'">'+(upMedia!=null?(upMedia>0?'+':'')+upMedia+'% upside':'—')+'</div></div>'+
     '</div>';
   if(metodos.length>0){
     const media=metodos.reduce((s,m)=>s+m.valor,0)/metodos.length;
