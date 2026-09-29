@@ -6150,6 +6150,17 @@ def _regerar_bloco(qual, escopo='rapido'):
                 p['retorno_12m_pct'] = round(100 * (cl[-1] / cl[-252] - 1), 1)
                 p['dist_maxima_52s_pct'] = round(100 * (cl[-1] / max(cl[-252:]) - 1), 1)
         if escopo == 'completo' and base and dp['lows']:
+            # SEGUNDA BARREIRA (27/09/2026): 20% em 60 pregoes, o padrao real
+            # das estruturadas do Victor. A de 8,2%/15d e do menu curto e nao
+            # descreve as operacoes dele. Sem risco sistemico aqui: o indice
+            # NUNCA caiu 20% em 60 pregoes em 5 anos (0 de 1.187 janelas).
+            lw = dp['lows']
+            f60 = [any(lw[i + k][1] / lw[i][0] - 1 <= -0.20 for k in range(1, 61))
+                   for i in range(len(lw) - 60)]
+            if f60:
+                fr60 = round(100 * sum(f60) / len(f60), 1)
+                p['rompe_20_em_60d_pct'] = fr60
+                p['fator_60d'] = round(100 * (1 - fr60 / 100), 1)
             f = freq15(dp['lows'])
             m = min(len(f), len(base))
             fr = round(100 * sum(f) / len(f), 1)
