@@ -6181,9 +6181,14 @@ def _congelar_bandas_analise(novo):
         # falhar (mesmo principio do resto da funcao, retorna None dentro
         # do proprio campo, nao quebra a foto inteira).
         try:
+            # 28/09/2026: passa strike e exercicio para cobrir tambem os
+            # tipos de VENDA de opcao (lancamento coberto, call vendida,
+            # put a seco), que ate aqui nasciam sem probabilidade de foto.
             prob_prevista = _calc_prob_sucesso_prevista(
                 preco_foto, sigma, prazo_dias, novo.get('tipo_estrutura'),
-                kdo=novo.get('kdo'), kuo=novo.get('kuo'))
+                kdo=novo.get('kdo'), kuo=novo.get('kuo'),
+                strike=novo.get('strike'),
+                exercicio=novo.get('exercicio') or 'europeia')
             if prob_prevista is not None:
                 resultado['prob_sucesso_prevista_pct'] = prob_prevista
         except Exception:
