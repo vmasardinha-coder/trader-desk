@@ -1,419 +1,742 @@
 {
-  "gerado_em": "2026-09-29 00:04",
-  "nota": "Bloco Brasil (B3) -- risco de barreira para estruturadas. Mesma metodologia do bloco EUA, aplicada aos papeis que o Victor acompanha. ATENCAO: o Fator mede SOBREVIVENCIA a barreira, nao qualidade da empresa nem oportunidade de preco -- papel chato e sem volatilidade pontua alto. So faz sentido lido ao lado do premio ofertado (%/mes x Fator).",
-  "segmentos": [
-    {
-      "nome": "🏦 Bancos",
-      "tickers": [
-        "ITUB4.SA",
-        "BBAS3.SA"
-      ]
-    },
-    {
-      "nome": "🏗️ Construção & Incorporação",
-      "tickers": [
-        "CYRE3.SA",
-        "DIRR3.SA",
-        "MULT3.SA",
-        "ALOS3.SA"
-      ]
-    },
-    {
-      "nome": "🛡️ Seguros",
-      "tickers": [
-        "PSSA3.SA",
-        "BBSE3.SA",
-        "CXSE3.SA"
-      ]
-    },
-    {
-      "nome": "⚡ Energia Elétrica",
-      "tickers": [
-        "AXIA3.SA",
-        "CMIG4.SA",
-        "CPFE3.SA",
-        "CPLE3.SA",
-        "TAEE11.SA"
-      ]
-    },
-    {
-      "nome": "🛢️ Petróleo & Gás",
-      "tickers": [
-        "PETR4.SA",
-        "PRIO3.SA"
-      ]
-    },
-    {
-      "nome": "⛏️ Mineração",
-      "tickers": [
-        "VALE3.SA",
-        "CMIN3.SA"
-      ]
-    },
-    {
-      "nome": "🌲 Papel & Celulose",
-      "tickers": [
-        "EUCA4.SA"
-      ]
-    },
-    {
-      "nome": "💧 Saneamento",
-      "tickers": [
-        "SAPR11.SA",
-        "SBSP3.SA"
-      ]
-    },
-    {
-      "nome": "🏭 Siderurgia",
-      "tickers": [
-        "GGBR4.SA"
-      ]
-    },
-    {
-      "nome": "⚙️ Bens de Capital & Industrial",
-      "tickers": [
-        "WEGE3.SA"
-      ]
-    },
-    {
-      "nome": "💳 Fintech / BDR",
-      "tickers": [
-        "ROXO34.SA"
-      ]
-    },
-    {
-      "nome": "♻️ Resíduos & Economia Circular",
-      "tickers": [
-        "ORVR3.SA"
-      ]
-    }
-  ],
-  "papeis": {
-    "ALOS3.SA": {
-      "ticker": "ALOS3.SA",
-      "nome": "ALOS3 — Allos ON",
-      "preco": 28.57,
-      "vol_garch_pct": 26.1,
-      "retorno_12m_pct": 12.0,
-      "dist_maxima_52s_pct": -15.5,
-      "rompe_8_2_em_15d_pct": 22.1,
-      "rompe_com_indice_pct": 100.0,
-      "fator": 39.0,
-      "giro_medio_dia_reais": 138401461,
-      "operavel": true
-    },
-    "AXIA3.SA": {
-      "ticker": "AXIA3.SA",
-      "nome": "AXIA3 — Axia Energia ON",
-      "preco": 54.44,
-      "vol_garch_pct": 39.1,
-      "retorno_12m_pct": 7.4,
-      "dist_maxima_52s_pct": -18.9,
-      "rompe_8_2_em_15d_pct": 22.4,
-      "rompe_com_indice_pct": 73.0,
-      "fator": 49.3,
-      "giro_medio_dia_reais": 666627781,
-      "operavel": true
-    },
-    "BBAS3.SA": {
-      "ticker": "BBAS3.SA",
-      "nome": "BBAS3 — Banco do Brasil ON",
-      "preco": 21.49,
-      "vol_garch_pct": 28.5,
-      "retorno_12m_pct": -2.8,
-      "dist_maxima_52s_pct": -22.1,
-      "rompe_8_2_em_15d_pct": 17.3,
-      "rompe_com_indice_pct": 69.0,
-      "fator": 54.2,
-      "giro_medio_dia_reais": 796225489,
-      "operavel": true
-    },
-    "BBSE3.SA": {
-      "ticker": "BBSE3.SA",
-      "nome": "BBSE3 — BB Seguridade ON",
-      "preco": 38.38,
-      "vol_garch_pct": 22.8,
-      "retorno_12m_pct": 16.5,
-      "dist_maxima_52s_pct": -9.9,
-      "rompe_8_2_em_15d_pct": 9.7,
-      "rompe_com_indice_pct": 14.0,
-      "fator": 84.0,
-      "giro_medio_dia_reais": 240773476,
-      "operavel": true
-    },
-    "CMIG4.SA": {
-      "ticker": "CMIG4.SA",
-      "nome": "CMIG4 — Cemig PN",
-      "preco": 10.84,
-      "vol_garch_pct": 23.4,
-      "retorno_12m_pct": -5.3,
-      "dist_maxima_52s_pct": -21.5,
-      "rompe_8_2_em_15d_pct": 13.5,
-      "rompe_com_indice_pct": 82.0,
-      "fator": 51.0,
-      "giro_medio_dia_reais": 177980551,
-      "operavel": true
-    },
-    "CMIN3.SA": {
-      "ticker": "CMIN3.SA",
-      "nome": "CMIN3 — CSN Mineração ON",
-      "preco": 5.05,
-      "vol_garch_pct": 41.1,
-      "retorno_12m_pct": -5.3,
-      "dist_maxima_52s_pct": -27.8,
-      "rompe_8_2_em_15d_pct": 36.2,
-      "rompe_com_indice_pct": 76.0,
-      "fator": 39.6,
-      "giro_medio_dia_reais": 41012144,
-      "operavel": true
-    },
-    "CPFE3.SA": {
-      "ticker": "CPFE3.SA",
-      "nome": "CPFE3 — CPFL Energia ON",
-      "preco": 43.9,
-      "vol_garch_pct": 24.6,
-      "retorno_12m_pct": 10.3,
-      "dist_maxima_52s_pct": -22.3,
-      "rompe_8_2_em_15d_pct": 12.8,
-      "rompe_com_indice_pct": 63.0,
-      "fator": 59.7,
-      "giro_medio_dia_reais": 78612901,
-      "operavel": true
-    },
-    "CPLE3.SA": {
-      "ticker": "CPLE3.SA",
-      "nome": "CPLE3 — Copel ON",
-      "preco": 15.68,
-      "vol_garch_pct": 25.6,
-      "retorno_12m_pct": 29.9,
-      "dist_maxima_52s_pct": -7.4,
-      "rompe_8_2_em_15d_pct": 10.0,
-      "rompe_com_indice_pct": 57.0,
-      "fator": 64.4,
-      "giro_medio_dia_reais": 283596843,
-      "operavel": true
-    },
-    "CXSE3.SA": {
-      "ticker": "CXSE3.SA",
-      "nome": "CXSE3 — Caixa Seguridade ON",
-      "preco": 20.11,
-      "vol_garch_pct": 22.9,
-      "retorno_12m_pct": 37.0,
-      "dist_maxima_52s_pct": -10.4,
-      "rompe_8_2_em_15d_pct": 13.9,
-      "rompe_com_indice_pct": 63.0,
-      "fator": 59.0,
-      "giro_medio_dia_reais": 107538493,
-      "operavel": true
-    },
-    "CYRE3.SA": {
-      "ticker": "CYRE3.SA",
-      "nome": "CYRE3 — Cyrela ON",
-      "preco": 26.53,
-      "vol_garch_pct": 46.5,
-      "retorno_12m_pct": -12.7,
-      "dist_maxima_52s_pct": -30.7,
-      "rompe_8_2_em_15d_pct": 34.5,
-      "rompe_com_indice_pct": 100.0,
-      "fator": 32.8,
-      "giro_medio_dia_reais": 230225837,
-      "operavel": true
-    },
-    "DIRR3.SA": {
-      "ticker": "DIRR3.SA",
-      "nome": "DIRR3 — Direcional ON",
-      "preco": 9.7,
-      "vol_garch_pct": 42.0,
-      "retorno_12m_pct": -38.2,
-      "dist_maxima_52s_pct": -48.1,
-      "rompe_8_2_em_15d_pct": 35.4,
-      "rompe_com_indice_pct": 84.0,
-      "fator": 37.5,
-      "giro_medio_dia_reais": 101501447,
-      "operavel": true
-    },
-    "EUCA4.SA": {
-      "ticker": "EUCA4.SA",
-      "nome": "EUCA4 — Eucatex PN",
-      "preco": 21.62,
-      "vol_garch_pct": 37.8,
-      "retorno_12m_pct": 24.5,
-      "dist_maxima_52s_pct": -21.8,
-      "rompe_8_2_em_15d_pct": 27.3,
-      "rompe_com_indice_pct": 82.0,
-      "fator": 42.9,
-      "giro_medio_dia_reais": 1516643,
-      "operavel": true
-    },
-    "GGBR4.SA": {
-      "ticker": "GGBR4.SA",
-      "nome": "GGBR4 — Gerdau PN",
-      "preco": 25.09,
-      "vol_garch_pct": 30.2,
-      "retorno_12m_pct": 50.2,
-      "dist_maxima_52s_pct": -4.6,
-      "rompe_8_2_em_15d_pct": 25.1,
-      "rompe_com_indice_pct": 69.0,
-      "fator": 49.1,
-      "giro_medio_dia_reais": 248606189,
-      "operavel": true
-    },
-    "ITUB4.SA": {
-      "ticker": "ITUB4.SA",
-      "nome": "ITUB4 — Itaú Unibanco PN",
-      "preco": 41.71,
-      "vol_garch_pct": 24.1,
-      "retorno_12m_pct": 10.8,
-      "dist_maxima_52s_pct": -15.5,
-      "rompe_8_2_em_15d_pct": 13.5,
-      "rompe_com_indice_pct": 92.0,
-      "fator": 46.7,
-      "giro_medio_dia_reais": 1007188749,
-      "operavel": true
-    },
-    "MULT3.SA": {
-      "ticker": "MULT3.SA",
-      "nome": "MULT3 — Multiplan ON",
-      "preco": 30.27,
-      "vol_garch_pct": 27.6,
-      "retorno_12m_pct": 5.1,
-      "dist_maxima_52s_pct": -15.4,
-      "rompe_8_2_em_15d_pct": 18.6,
-      "rompe_com_indice_pct": 73.0,
-      "fator": 51.7,
-      "giro_medio_dia_reais": 134654985,
-      "operavel": true
-    },
-    "ORVR3.SA": {
-      "ticker": "ORVR3.SA",
-      "nome": "ORVR3 — Orizon ON",
-      "preco": 16.2,
-      "vol_garch_pct": 28.1,
-      "retorno_12m_pct": 15.7,
-      "dist_maxima_52s_pct": -22.8,
-      "rompe_8_2_em_15d_pct": 25.6,
-      "rompe_com_indice_pct": 59.0,
-      "fator": 52.5,
-      "giro_medio_dia_reais": 40468626,
-      "operavel": true
-    },
-    "PETR4.SA": {
-      "ticker": "PETR4.SA",
-      "nome": "PETR4 — Petrobras PN",
-      "preco": 48.72,
-      "vol_garch_pct": 28.0,
-      "retorno_12m_pct": 49.4,
-      "dist_maxima_52s_pct": -3.4,
-      "rompe_8_2_em_15d_pct": 26.4,
-      "rompe_com_indice_pct": 82.0,
-      "fator": 43.4,
-      "giro_medio_dia_reais": 2246754955,
-      "operavel": true
-    },
-    "PRIO3.SA": {
-      "ticker": "PRIO3.SA",
-      "nome": "PRIO3 — PetroRio ON",
-      "preco": 61.63,
-      "vol_garch_pct": 36.0,
-      "retorno_12m_pct": 58.4,
-      "dist_maxima_52s_pct": -14.5,
-      "rompe_8_2_em_15d_pct": 30.6,
-      "rompe_com_indice_pct": 57.0,
-      "fator": 49.6,
-      "giro_medio_dia_reais": 501206386,
-      "operavel": true
-    },
-    "PSSA3.SA": {
-      "ticker": "PSSA3.SA",
-      "nome": "PSSA3 — Porto Seguro ON",
-      "preco": 47.0,
-      "vol_garch_pct": 26.1,
-      "retorno_12m_pct": -8.2,
-      "dist_maxima_52s_pct": -15.2,
-      "rompe_8_2_em_15d_pct": 15.3,
-      "rompe_com_indice_pct": 55.0,
-      "fator": 61.4,
-      "giro_medio_dia_reais": 75675483,
-      "operavel": true
-    },
-    "ROXO34.SA": {
-      "ticker": "ROXO34.SA",
-      "nome": "ROXO34 — Nubank BDR",
-      "preco": 10.61,
-      "vol_garch_pct": 34.5,
-      "retorno_12m_pct": -25.6,
-      "dist_maxima_52s_pct": -35.0,
-      "rompe_8_2_em_15d_pct": 37.5,
-      "rompe_com_indice_pct": 33.0,
-      "fator": 52.2,
-      "giro_medio_dia_reais": 94641186,
-      "operavel": true
-    },
-    "SAPR11.SA": {
-      "ticker": "SAPR11.SA",
-      "nome": "SAPR11 — Sanepar UNT",
-      "preco": 33.04,
-      "vol_garch_pct": 31.0,
-      "retorno_12m_pct": -10.8,
-      "dist_maxima_52s_pct": -31.0,
-      "rompe_8_2_em_15d_pct": 13.2,
-      "rompe_com_indice_pct": 43.0,
-      "fator": 68.1,
-      "giro_medio_dia_reais": 49679715,
-      "operavel": true
-    },
-    "SBSP3.SA": {
-      "ticker": "SBSP3.SA",
-      "nome": "SBSP3 — Sabesp ON",
-      "preco": 26.75,
-      "vol_garch_pct": 27.4,
-      "retorno_12m_pct": 5.2,
-      "dist_maxima_52s_pct": -24.0,
-      "rompe_8_2_em_15d_pct": 16.0,
-      "rompe_com_indice_pct": 94.0,
-      "fator": 44.5,
-      "giro_medio_dia_reais": 583866900,
-      "operavel": true
-    },
-    "TAEE11.SA": {
-      "ticker": "TAEE11.SA",
-      "nome": "TAEE11 — Taesa UNT",
-      "preco": 40.22,
-      "vol_garch_pct": 22.4,
-      "retorno_12m_pct": 11.6,
-      "dist_maxima_52s_pct": -12.3,
-      "rompe_8_2_em_15d_pct": 4.5,
-      "rompe_com_indice_pct": 22.0,
-      "fator": 85.0,
-      "giro_medio_dia_reais": 69270504,
-      "operavel": true
-    },
-    "VALE3.SA": {
-      "ticker": "VALE3.SA",
-      "nome": "VALE3 — Vale ON",
-      "preco": 71.16,
-      "vol_garch_pct": 26.7,
-      "retorno_12m_pct": 22.9,
-      "dist_maxima_52s_pct": -21.0,
-      "rompe_8_2_em_15d_pct": 23.0,
-      "rompe_com_indice_pct": 78.0,
-      "fator": 47.0,
-      "giro_medio_dia_reais": 1427170016,
-      "operavel": true
-    },
-    "WEGE3.SA": {
-      "ticker": "WEGE3.SA",
-      "nome": "WEGE3 — WEG ON",
-      "preco": 50.12,
-      "vol_garch_pct": 29.1,
-      "retorno_12m_pct": 35.9,
-      "dist_maxima_52s_pct": -7.2,
-      "rompe_8_2_em_15d_pct": 21.9,
-      "rompe_com_indice_pct": 78.0,
-      "fator": 47.6,
-      "giro_medio_dia_reais": 380757296,
-      "operavel": true
-    }
+ "gerado_em": "2026-09-27 15:03",
+ "nota": "Bloco Brasil (B3) -- risco de barreira para estruturadas. Mesma metodologia do bloco EUA, aplicada aos papeis que o Victor acompanha. ATENCAO: o Fator mede SOBREVIVENCIA a barreira, nao qualidade da empresa nem oportunidade de preco -- papel chato e sem volatilidade pontua alto. So faz sentido lido ao lado do premio ofertado (%/mes x Fator).",
+ "segmentos": [
+  {
+   "nome": "🏦 Bancos",
+   "tickers": [
+    "ITUB4.SA",
+    "BBAS3.SA"
+   ]
   },
-  "escopo_ultima_regeracao": "completo"
+  {
+   "nome": "🏗️ Construção & Incorporação",
+   "tickers": [
+    "CYRE3.SA",
+    "DIRR3.SA",
+    "MULT3.SA",
+    "ALOS3.SA"
+   ]
+  },
+  {
+   "nome": "🛡️ Seguros",
+   "tickers": [
+    "PSSA3.SA",
+    "BBSE3.SA",
+    "CXSE3.SA"
+   ]
+  },
+  {
+   "nome": "⚡ Energia Elétrica",
+   "tickers": [
+    "AXIA3.SA",
+    "CMIG4.SA",
+    "CPFE3.SA",
+    "CPLE3.SA",
+    "TAEE11.SA"
+   ]
+  },
+  {
+   "nome": "🛢️ Petróleo & Gás",
+   "tickers": [
+    "PETR4.SA",
+    "PRIO3.SA"
+   ]
+  },
+  {
+   "nome": "⛏️ Mineração",
+   "tickers": [
+    "VALE3.SA",
+    "CMIN3.SA"
+   ]
+  },
+  {
+   "nome": "🌲 Papel & Celulose",
+   "tickers": [
+    "EUCA4.SA"
+   ]
+  },
+  {
+   "nome": "💧 Saneamento",
+   "tickers": [
+    "SAPR11.SA",
+    "SBSP3.SA"
+   ]
+  },
+  {
+   "nome": "🏭 Siderurgia",
+   "tickers": [
+    "GGBR4.SA"
+   ]
+  },
+  {
+   "nome": "⚙️ Bens de Capital & Industrial",
+   "tickers": [
+    "WEGE3.SA"
+   ]
+  },
+  {
+   "nome": "💳 Fintech / BDR",
+   "tickers": [
+    "ROXO34.SA"
+   ]
+  },
+  {
+   "nome": "♻️ Resíduos & Economia Circular",
+   "tickers": [
+    "ORVR3.SA"
+   ]
+  }
+ ],
+ "papeis": {
+  "ALOS3.SA": {
+   "ticker": "ALOS3.SA",
+   "nome": "ALOS3 — Allos ON",
+   "preco": 28.98,
+   "vol_garch_pct": 26.3,
+   "retorno_12m_pct": 12.3,
+   "dist_maxima_52s_pct": -14.3,
+   "rompe_8_2_em_15d_pct": 22.1,
+   "rompe_com_indice_pct": 100.0,
+   "fator": 39.0,
+   "giro_medio_dia_reais": 142627388,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 32.57,
+     "vpa": 50.98,
+     "pl_setorial": 22.2,
+     "bazin": 56.19
+    },
+    "n_metodos": 4,
+    "preco_justo": 40.48,
+    "upside_pct": 39.7,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "AXIA3.SA": {
+   "ticker": "AXIA3.SA",
+   "nome": "AXIA3 — Axia Energia ON",
+   "preco": 54.55,
+   "vol_garch_pct": 39.1,
+   "retorno_12m_pct": 7.6,
+   "dist_maxima_52s_pct": -18.8,
+   "rompe_8_2_em_15d_pct": 22.5,
+   "rompe_com_indice_pct": 73.0,
+   "fator": 49.2,
+   "giro_medio_dia_reais": 661256373,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 61.9,
+     "vpa": 49.84,
+     "pl_setorial": 49.2,
+     "bazin": 25.41
+    },
+    "n_metodos": 4,
+    "preco_justo": 46.59,
+    "upside_pct": -14.6,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "BBAS3.SA": {
+   "ticker": "BBAS3.SA",
+   "nome": "BBAS3 — Banco do Brasil ON",
+   "preco": 21.59,
+   "vol_garch_pct": 28.7,
+   "retorno_12m_pct": -2.4,
+   "dist_maxima_52s_pct": -21.7,
+   "rompe_8_2_em_15d_pct": 17.3,
+   "rompe_com_indice_pct": 69.0,
+   "fator": 54.2,
+   "giro_medio_dia_reais": 799274754,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 42.44,
+     "vpa": 37.97,
+     "pl_setorial": 20.24,
+     "bazin": 10.74
+    },
+    "n_metodos": 4,
+    "preco_justo": 27.85,
+    "upside_pct": 29.0,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "BBSE3.SA": {
+   "ticker": "BBSE3.SA",
+   "nome": "BBSE3 — BB Seguridade ON",
+   "preco": 38.99,
+   "vol_garch_pct": 23.0,
+   "retorno_12m_pct": 17.1,
+   "dist_maxima_52s_pct": -8.4,
+   "rompe_8_2_em_15d_pct": 9.7,
+   "rompe_com_indice_pct": 14.0,
+   "fator": 84.0,
+   "giro_medio_dia_reais": 245153524,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 24.43,
+     "vpa": 22.44,
+     "pl_setorial": 42.57,
+     "bazin": 78.04
+    },
+    "n_metodos": 4,
+    "preco_justo": 41.87,
+    "upside_pct": 7.4,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "CMIG4.SA": {
+   "ticker": "CMIG4.SA",
+   "nome": "CMIG4 — Cemig PN",
+   "preco": 10.89,
+   "vol_garch_pct": 23.5,
+   "retorno_12m_pct": -4.6,
+   "dist_maxima_52s_pct": -21.1,
+   "rompe_8_2_em_15d_pct": 13.5,
+   "rompe_com_indice_pct": 82.0,
+   "fator": 51.0,
+   "giro_medio_dia_reais": 183781745,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 19.22,
+     "vpa": 20.4,
+     "pl_setorial": 19.32,
+     "bazin": 18.79
+    },
+    "n_metodos": 4,
+    "preco_justo": 19.43,
+    "upside_pct": 78.4,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "CMIN3.SA": {
+   "ticker": "CMIN3.SA",
+   "nome": "CMIN3 — CSN Mineração ON",
+   "preco": 4.95,
+   "vol_garch_pct": 41.4,
+   "retorno_12m_pct": -7.6,
+   "dist_maxima_52s_pct": -29.2,
+   "rompe_8_2_em_15d_pct": 36.1,
+   "rompe_com_indice_pct": 76.0,
+   "fator": 39.6,
+   "giro_medio_dia_reais": 40694775,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 3.61,
+     "vpa": 2.43,
+     "pl_setorial": 3.01,
+     "bazin": 15.57
+    },
+    "n_metodos": 4,
+    "preco_justo": 6.16,
+    "upside_pct": 24.3,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "CPFE3.SA": {
+   "ticker": "CPFE3.SA",
+   "nome": "CPFE3 — CPFL Energia ON",
+   "preco": 44.3,
+   "vol_garch_pct": 24.8,
+   "retorno_12m_pct": 11.8,
+   "dist_maxima_52s_pct": -21.6,
+   "rompe_8_2_em_15d_pct": 12.9,
+   "rompe_com_indice_pct": 63.0,
+   "fator": 59.7,
+   "giro_medio_dia_reais": 84673248,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 48.08,
+     "vpa": 39.44,
+     "pl_setorial": 62.52,
+     "bazin": 61.46
+    },
+    "n_metodos": 4,
+    "preco_justo": 52.88,
+    "upside_pct": 19.4,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "CPLE3.SA": {
+   "ticker": "CPLE3.SA",
+   "nome": "CPLE3 — Copel ON",
+   "preco": 15.78,
+   "vol_garch_pct": 25.6,
+   "retorno_12m_pct": 29.7,
+   "dist_maxima_52s_pct": -6.8,
+   "rompe_8_2_em_15d_pct": 10.1,
+   "rompe_com_indice_pct": 57.0,
+   "fator": 64.3,
+   "giro_medio_dia_reais": 294218994,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 13.82,
+     "vpa": 16.18,
+     "pl_setorial": 12.6,
+     "bazin": 19.08
+    },
+    "n_metodos": 4,
+    "preco_justo": 15.42,
+    "upside_pct": -2.3,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "CXSE3.SA": {
+   "ticker": "CXSE3.SA",
+   "nome": "CXSE3 — Caixa Seguridade ON",
+   "preco": 20.59,
+   "vol_garch_pct": 22.8,
+   "retorno_12m_pct": 40.2,
+   "dist_maxima_52s_pct": -8.2,
+   "rompe_8_2_em_15d_pct": 14.0,
+   "rompe_com_indice_pct": 63.0,
+   "fator": 58.9,
+   "giro_medio_dia_reais": 111886952,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 12.5,
+     "vpa": 13.8,
+     "pl_setorial": 13.59,
+     "bazin": 24.13
+    },
+    "n_metodos": 4,
+    "preco_justo": 16.0,
+    "upside_pct": -22.3,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "CYRE3.SA": {
+   "ticker": "CYRE3.SA",
+   "nome": "CYRE3 — Cyrela ON",
+   "preco": 27.0,
+   "vol_garch_pct": 46.2,
+   "retorno_12m_pct": -10.6,
+   "dist_maxima_52s_pct": -29.5,
+   "rompe_8_2_em_15d_pct": 34.6,
+   "rompe_com_indice_pct": 100.0,
+   "fator": 32.7,
+   "giro_medio_dia_reais": 239795640,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 49.94,
+     "vpa": 32.02,
+     "pl_setorial": 45.0,
+     "bazin": 42.89
+    },
+    "n_metodos": 4,
+    "preco_justo": 42.46,
+    "upside_pct": 57.3,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "DIRR3.SA": {
+   "ticker": "DIRR3.SA",
+   "nome": "DIRR3 — Direcional ON",
+   "preco": 9.8,
+   "vol_garch_pct": 42.1,
+   "retorno_12m_pct": -37.4,
+   "dist_maxima_52s_pct": -47.6,
+   "rompe_8_2_em_15d_pct": 35.4,
+   "rompe_com_indice_pct": 84.0,
+   "fator": 37.5,
+   "giro_medio_dia_reais": 102798766,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 12.84,
+     "vpa": 6.71,
+     "pl_setorial": 16.4,
+     "bazin": 22.15
+    },
+    "n_metodos": 4,
+    "preco_justo": 14.52,
+    "upside_pct": 48.2,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "EUCA4.SA": {
+   "ticker": "EUCA4.SA",
+   "nome": "EUCA4 — Eucatex PN",
+   "preco": 21.8,
+   "vol_garch_pct": 37.9,
+   "retorno_12m_pct": 25.2,
+   "dist_maxima_52s_pct": -21.2,
+   "rompe_8_2_em_15d_pct": 27.4,
+   "rompe_com_indice_pct": 82.0,
+   "fator": 42.8,
+   "giro_medio_dia_reais": 1617342,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 56.24,
+     "vpa": 31.8,
+     "pl_setorial": 44.2,
+     "bazin": 17.66
+    },
+    "n_metodos": 4,
+    "preco_justo": 37.48,
+    "upside_pct": 71.9,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "GGBR4.SA": {
+   "ticker": "GGBR4.SA",
+   "nome": "GGBR4 — Gerdau PN",
+   "preco": 24.99,
+   "vol_garch_pct": 30.4,
+   "retorno_12m_pct": 48.2,
+   "dist_maxima_52s_pct": -5.0,
+   "rompe_8_2_em_15d_pct": 25.1,
+   "rompe_com_indice_pct": 69.0,
+   "fator": 49.1,
+   "giro_medio_dia_reais": 251728602,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 26.23,
+     "vpa": 27.07,
+     "pl_setorial": 9.04,
+     "bazin": 15.05
+    },
+    "n_metodos": 4,
+    "preco_justo": 19.35,
+    "upside_pct": -22.6,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "ITUB4.SA": {
+   "ticker": "ITUB4.SA",
+   "nome": "ITUB4 — Itaú Unibanco PN",
+   "preco": 42.13,
+   "vol_garch_pct": 24.2,
+   "retorno_12m_pct": 11.1,
+   "dist_maxima_52s_pct": -14.7,
+   "rompe_8_2_em_15d_pct": 13.6,
+   "rompe_com_indice_pct": 92.0,
+   "fator": 46.7,
+   "giro_medio_dia_reais": 1047671707,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 42.4,
+     "vpa": 28.24,
+     "pl_setorial": 33.94,
+     "bazin": 55.61
+    },
+    "n_metodos": 4,
+    "preco_justo": 40.05,
+    "upside_pct": -4.9,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "MULT3.SA": {
+   "ticker": "MULT3.SA",
+   "nome": "MULT3 — Multiplan ON",
+   "preco": 31.1,
+   "vol_garch_pct": 27.5,
+   "retorno_12m_pct": 6.6,
+   "dist_maxima_52s_pct": -13.1,
+   "rompe_8_2_em_15d_pct": 18.6,
+   "rompe_com_indice_pct": 73.0,
+   "fator": 51.7,
+   "giro_medio_dia_reais": 138647843,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 28.27,
+     "vpa": 19.74,
+     "pl_setorial": 37.8,
+     "bazin": 20.68
+    },
+    "n_metodos": 4,
+    "preco_justo": 26.62,
+    "upside_pct": -14.4,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "ORVR3.SA": {
+   "ticker": "ORVR3.SA",
+   "nome": "ORVR3 — Orizon ON",
+   "preco": 16.44,
+   "vol_garch_pct": 27.9,
+   "retorno_12m_pct": 15.4,
+   "dist_maxima_52s_pct": -21.6,
+   "rompe_8_2_em_15d_pct": 25.7,
+   "rompe_com_indice_pct": 59.0,
+   "fator": 52.4,
+   "giro_medio_dia_reais": 42669691,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 4.23,
+     "vpa": 22.07,
+     "pl_setorial": 1.35
+    },
+    "n_metodos": 3,
+    "preco_justo": 9.22,
+    "upside_pct": -43.9,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "PETR4.SA": {
+   "ticker": "PETR4.SA",
+   "nome": "PETR4 — Petrobras PN",
+   "preco": 47.99,
+   "vol_garch_pct": 27.9,
+   "retorno_12m_pct": 50.7,
+   "dist_maxima_52s_pct": -4.7,
+   "rompe_8_2_em_15d_pct": 26.4,
+   "rompe_com_indice_pct": 82.0,
+   "fator": 43.4,
+   "giro_medio_dia_reais": 2192756041,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 93.22,
+     "vpa": 55.98,
+     "pl_setorial": 62.09,
+     "bazin": 44.66
+    },
+    "n_metodos": 4,
+    "preco_justo": 63.99,
+    "upside_pct": 33.3,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "PRIO3.SA": {
+   "ticker": "PRIO3.SA",
+   "nome": "PRIO3 — PetroRio ON",
+   "preco": 59.35,
+   "vol_garch_pct": 35.9,
+   "retorno_12m_pct": 53.8,
+   "dist_maxima_52s_pct": -17.7,
+   "rompe_8_2_em_15d_pct": 30.6,
+   "rompe_com_indice_pct": 57.0,
+   "fator": 49.6,
+   "giro_medio_dia_reais": 474361601,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 56.78,
+     "vpa": 48.51,
+     "pl_setorial": 26.58
+    },
+    "n_metodos": 3,
+    "preco_justo": 43.96,
+    "upside_pct": -25.9,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "PSSA3.SA": {
+   "ticker": "PSSA3.SA",
+   "nome": "PSSA3 — Porto Seguro ON",
+   "preco": 47.09,
+   "vol_garch_pct": 26.1,
+   "retorno_12m_pct": -7.8,
+   "dist_maxima_52s_pct": -15.1,
+   "rompe_8_2_em_15d_pct": 15.3,
+   "rompe_com_indice_pct": 55.0,
+   "fator": 61.4,
+   "giro_medio_dia_reais": 76576188,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 56.56,
+     "vpa": 49.88,
+     "pl_setorial": 51.3,
+     "bazin": 48.57
+    },
+    "n_metodos": 4,
+    "preco_justo": 51.58,
+    "upside_pct": 9.5,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "ROXO34.SA": {
+   "ticker": "ROXO34.SA",
+   "nome": "ROXO34 — Nubank BDR",
+   "preco": 11.63,
+   "vol_garch_pct": 33.4,
+   "retorno_12m_pct": -18.2,
+   "dist_maxima_52s_pct": -28.7,
+   "rompe_8_2_em_15d_pct": 37.4,
+   "rompe_com_indice_pct": 35.0,
+   "fator": 51.6,
+   "giro_medio_dia_reais": 107020739,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 6.12,
+     "vpa": 12.8,
+     "pl_setorial": 26.0
+    },
+    "n_metodos": 3,
+    "preco_justo": 14.97,
+    "upside_pct": 28.7,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "SAPR11.SA": {
+   "ticker": "SAPR11.SA",
+   "nome": "SAPR11 — Sanepar UNT",
+   "preco": 33.35,
+   "vol_garch_pct": 31.1,
+   "retorno_12m_pct": -10.7,
+   "dist_maxima_52s_pct": -30.4,
+   "rompe_8_2_em_15d_pct": 13.2,
+   "rompe_com_indice_pct": 43.0,
+   "fator": 68.1,
+   "giro_medio_dia_reais": 52101816,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 36.89,
+     "vpa": 52.06,
+     "pl_setorial": 13.59,
+     "bazin": 8.81
+    },
+    "n_metodos": 4,
+    "preco_justo": 27.84,
+    "upside_pct": -16.5,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "SBSP3.SA": {
+   "ticker": "SBSP3.SA",
+   "nome": "SBSP3 — Sabesp ON",
+   "preco": 26.93,
+   "vol_garch_pct": 27.5,
+   "retorno_12m_pct": 5.1,
+   "dist_maxima_52s_pct": -23.5,
+   "rompe_8_2_em_15d_pct": 16.0,
+   "rompe_com_indice_pct": 94.0,
+   "fator": 44.5,
+   "giro_medio_dia_reais": 631904281,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 25.64,
+     "vpa": 25.64,
+     "pl_setorial": 27.36,
+     "bazin": 12.48
+    },
+    "n_metodos": 4,
+    "preco_justo": 22.78,
+    "upside_pct": -15.4,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "TAEE11.SA": {
+   "ticker": "TAEE11.SA",
+   "nome": "TAEE11 — Taesa UNT",
+   "preco": 40.79,
+   "vol_garch_pct": 22.4,
+   "retorno_12m_pct": 13.0,
+   "dist_maxima_52s_pct": -11.1,
+   "rompe_8_2_em_15d_pct": 4.5,
+   "rompe_com_indice_pct": 22.0,
+   "fator": 85.0,
+   "giro_medio_dia_reais": 71270463,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 49.88,
+     "vpa": 46.86,
+     "pl_setorial": 56.64,
+     "bazin": 51.62
+    },
+    "n_metodos": 4,
+    "preco_justo": 51.25,
+    "upside_pct": 25.6,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "VALE3.SA": {
+   "ticker": "VALE3.SA",
+   "nome": "VALE3 — Vale ON",
+   "preco": 70.77,
+   "vol_garch_pct": 26.8,
+   "retorno_12m_pct": 22.7,
+   "dist_maxima_52s_pct": -21.4,
+   "rompe_8_2_em_15d_pct": 23.0,
+   "rompe_com_indice_pct": 78.0,
+   "fator": 47.0,
+   "giro_medio_dia_reais": 1439527380,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 49.24,
+     "vpa": 79.74,
+     "pl_setorial": 17.03,
+     "bazin": 84.21
+    },
+    "n_metodos": 4,
+    "preco_justo": 57.55,
+    "upside_pct": -18.7,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  },
+  "WEGE3.SA": {
+   "ticker": "WEGE3.SA",
+   "nome": "WEGE3 — WEG ON",
+   "preco": 51.07,
+   "vol_garch_pct": 29.0,
+   "retorno_12m_pct": 39.2,
+   "dist_maxima_52s_pct": -5.5,
+   "rompe_8_2_em_15d_pct": 22.0,
+   "rompe_com_indice_pct": 78.0,
+   "fator": 47.6,
+   "giro_medio_dia_reais": 386504229,
+   "operavel": true,
+   "fundamentos": {
+    "metodo": "media_4_metodos",
+    "metodos": {
+     "graham": 12.27,
+     "vpa": 8.98,
+     "pl_setorial": 17.88,
+     "bazin": 33.41
+    },
+    "n_metodos": 4,
+    "preco_justo": 18.13,
+    "upside_pct": -64.5,
+    "fonte": "mesma media dos 4 metodos ja exibida na tela detalhada do papel"
+   }
+  }
+ },
+ "nota_fundamentos": "Preco justo = media dos 4 metodos que o app ja calcula para papel brasileiro (Graham, VPA, P/L setorial, Bazin) -- e o MESMO numero da tela detalhada, trazido para a tabela para comparar os 25 de uma vez sem abrir um por um. Nenhum calculo novo.",
+ "fundamentos_gerado_em": "2026-09-29 00:11"
 }
