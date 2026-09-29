@@ -1978,9 +1978,10 @@ function _tabelaRisco(c,nota,ehBdr){
     <th style="text-align:left;padding:6px 8px">Nome</th>
     <th style="padding:6px 8px">Preço (R$)</th><th style="padding:6px 8px">Vol</th>
     <th style="padding:6px 8px">12m</th><th style="padding:6px 8px">Da máx.</th>
-    <th style="padding:6px 8px" title="Em quantas janelas de 15 pregões caiu 8,2% nos últimos 5 anos">Rompe 15d</th>
-    <th style="padding:6px 8px" title="Das vezes que o Ibovespa caiu 8,2%, quantas acompanhou. Baixo = diversifica">c/ índice</th>
-    <th style="padding:6px 8px">Fator</th>
+    <th style="padding:6px 8px" title="Em quantas janelas de 15 pregões o papel caiu 8,2% nos últimos 5 anos. É a barreira das ofertas CURTAS do menu.">Rompe 8,2%/15d</th>
+    <th style="padding:6px 8px" title="Em quantas janelas de 60 pregões caiu 20%. É o padrão REAL das suas estruturadas — olhe esta quando avaliar operação de 2 meses.">Rompe 20%/60d</th>
+    <th style="padding:6px 8px" title="Das vezes que o Ibovespa caiu 8,2% em 15 pregões, quantas o papel acompanhou. Baixo = diversifica. No cenário de 60 dias essa coluna não existe: o índice nunca caiu 20% em 60 pregões nos últimos 5 anos.">c/ índice</th>
+    <th style="padding:6px 8px" title="Fator na barreira curta (8,2%/15d): (1 - freq) x (1 - metade do risco sistêmico). Entre parênteses, o fator na barreira de 60 dias, que é a das suas operações.">Fator</th>
     <th style="padding:6px 8px" title="Preço justo. Família VALOR (P/L<30 e P/VP<5): média de Graham e VPA x 2,5. Família CRESCIMENTO: P/L mediano da própria empresa nos últimos anos x LPA anual. Vazio quando nenhuma se aplica.">Justo (R$)</th>
     <th style="padding:6px 8px">Upside</th>
     <th style="padding:6px 8px">Liquidez</th>
@@ -2003,8 +2004,9 @@ function _tabelaRisco(c,nota,ehBdr){
       <td style="padding:6px 8px;color:${r12>=0?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r12!=null?(r12>0?'+':'')+r12+'%':'—'}</td>
       <td style="padding:6px 8px;color:var(--muted)">${p.dist_maxima_52s_pct!=null?p.dist_maxima_52s_pct+'%':'—'}</td>
       <td style="padding:6px 8px">${p.rompe_8_2_em_15d_pct!=null?p.rompe_8_2_em_15d_pct+'%':'—'}</td>
+      <td style="padding:6px 8px;font-weight:600">${p.rompe_20_em_60d_pct!=null?p.rompe_20_em_60d_pct+'%':'—'}</td>
       <td style="padding:6px 8px;color:${cs};font-weight:600">${si!=null?si+'%':'—'}</td>
-      <td style="padding:6px 8px;font-weight:700;color:${cf}">${f!=null?f:'—'}</td>
+      <td style="padding:6px 8px;font-weight:700;color:${cf}">${f!=null?f:'—'}${p.fator_60d!=null?'<span style="font-weight:400;color:var(--muted);font-size:10px"> ('+p.fator_60d+')</span>':''}</td>
       <td style="padding:6px 8px"${fu.motivo_sem_preco_justo?' title="'+String(fu.motivo_sem_preco_justo).replace(/"/g,'')+'"':''}>${justo!=null?justo.toFixed(2):'<span style="color:var(--muted)">—</span>'}</td>
       <td style="padding:6px 8px;font-weight:600;color:${up==null?'var(--muted)':(up>=10?'var(--green,#2ecc71)':(up<=-10?'var(--red,#e74c3c)':'var(--muted)'))}"${fu.metodo?' title="método: '+fu.metodo+(fu.n_metodos?' ('+fu.n_metodos+' métodos)':'')+'"':''}>${up!=null?(up>0?'+':'')+up+'%':'—'}</td>
       <td style="padding:6px 8px;color:var(--muted);font-size:10px">${p.giro_medio_dia_reais?('R$ '+(p.giro_medio_dia_reais/1e6).toFixed(1)+' mi'):'—'}</td>
