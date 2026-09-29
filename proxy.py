@@ -2105,6 +2105,32 @@ def run_montecarlo_posicao_ativa():
                 res['retorno_medio_pct'] = round(float(retorno_full2.mean()*100), 2)
                 res['teto_retorno_usado_pct'] = round(ganho_prefixado*100, 2)
                 res['prob_ganho_prefixado'] = round(float((~tocou_barreira2).mean()*100), 2)
+                # ADICIONADO 29/09/2026 -- o Victor notou que a tela mostrava
+                # 80% para a TSMC34 com 33% de folga e 17 dias, o que nao fazia
+                # sentido. Nao era bug: o campo acima simula o PRAZO TOTAL a
+                # partir do preco de ENTRADA -- responde "qual era a chance
+                # quando a operacao comecou". Util para o tracker, errado para
+                # decidir agora. Este campo novo responde a outra pergunta:
+                # "qual a chance DAQUI PRA FRENTE", do preco de HOJE com os
+                # dias que FALTAM. Na TSMC34 a diferenca e 80% -> 99,9%.
+                # As duas convivem: a decisao usa a condicional, o tracker usa
+                # a de origem.
+                if dias_restantes and dias_restantes > 0:
+                    z_cond2 = np.random.standard_normal((n_faixas2, dias_restantes))
+                    paths_cond2 = S*np.exp(np.cumsum(drift_fan+vol_step_fan*z_cond2, axis=1))
+                    tocou_cond2 = np.min(paths_cond2, axis=1) <= kdo
+                    res['prob_kdo_condicional'] = round(float((~tocou_cond2).mean()*100), 2)
+                    # OVERSHOOT (pedido do Victor): chance de a acao terminar
+                    # ACIMA do teto travado. Mede o custo de oportunidade de
+                    # ter prefixado o ganho -- "era melhor ter so comprado o
+                    # papel". Ja existe no ranking de analises; faltava aqui.
+                    teto = preco_entrada*(1+ganho_prefixado)
+                    res['prob_overshoot_condicional'] = round(
+                        float((paths_cond2[:, -1] > teto).mean()*100), 2)
+                    res['teto_overshoot'] = round(float(teto), 2)
+                else:
+                    res['prob_kdo_condicional'] = None
+                    res['prob_overshoot_condicional'] = None
             except Exception:
                 res['prob_retorno_faixas'] = None
         elif K_call is not None and kdo is None and meta_pct is not None:
@@ -2320,7 +2346,16 @@ def get_ranking_posicoes(tipo):
                 'vencimento': p.get('vencimento'),
                 'dias_restantes': rd.get('dias_restantes'),
                 'preco_atual': rd.get('preco_atual'),
-                'probabilidade_sucesso_pct': prob_sucesso,
+                # 29/09/2026: a coluna principal passa a ser a CONDICIONAL
+                # (barreira, do preco de hoje, dias que faltam) -- e o que o
+                # contrato exige e o que decide agora. A de origem vira coluna
+                # secundaria, com rotulo proprio, e segue alimentando o tracker.
+                'probabilidade_sucesso_pct': (rd.get('prob_kdo_condicional')
+                                              if rd.get('prob_kdo_condicional') is not None
+                                              else prob_sucesso),
+                'prob_na_origem_pct': prob_sucesso,
+                'prob_overshoot_pct': rd.get('prob_overshoot_condicional'),
+                'teto_overshoot': rd.get('teto_overshoot'),
                 # ADICIONADO 25/09/2026 -- pedido do Victor. prob_foto_pct e a
                 # probabilidade congelada no momento da DECISAO (nunca muda,
                 # e baseline do tracking-acuracia). Ao lado da de hoje ela
