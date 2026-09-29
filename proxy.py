@@ -4638,7 +4638,32 @@ def _resumo_encerradas():
         if rec is None:
             rec = r.get('recuperacao_strike_pct_mes')
         alta = r.get('alta_do_papel_pct_mes_3m')
-        rolagens.append({'id': x.get('id'), 'ticker': x.get('ticker'),
+        # GIRO DA ROLAGEM (28/09/2026). Observacao do Victor: "a rolagem e
+        # uma especie de giro, porque eu estou fazendo antes, prorrogando a
+        # call antes do prazo". Ela ficava fora da tabela de giro por nao ter
+        # alvo/realizado -- mas a logica e a mesma: quanto capturou por
+        # unidade de prazo consumido da perna que foi encerrada.
+        _gr = {}
+        try:
+            from datetime import datetime as _dg
+            _e = x.get('data_entrada')
+            _s = x.get('data_saida') or x.get('data_encerramento')
+            _v = x.get('vencimento_original') or x.get('vencimento')
+            _g = r.get('ganho_total_pct')
+            if _e and _s and _v and _g:
+                _de = _dg.strptime(str(_e)[:10], '%Y-%m-%d').date()
+                _ds = _dg.strptime(str(_s)[:10], '%Y-%m-%d').date()
+                _dv = _dg.strptime(str(_v)[:10], '%Y-%m-%d').date()
+                _pr = (_dv - _de).days
+                _dc = (_ds - _de).days
+                if _pr > 0 and _dc > 0:
+                    _pt = 100.0 * _dc / _pr
+                    _gr = {'prazo_dias': _pr, 'dias_ate_rolar': _dc,
+                           'pct_do_prazo_consumido': round(_pt, 1),
+                           'ganho_por_pct_de_prazo': round(_g / _pt, 3)}
+        except Exception:
+            _gr = {}
+        rolagens.append({'id': x.get('id'), 'ticker': x.get('ticker'), **_gr,
             'data': (x.get('data_encerramento') or '')[:10],
             'strike_de': r.get('strike_de'), 'strike_para': r.get('strike_para'),
             'ganho_total_reais': r.get('ganho_total_reais'), 'ganho_pct_posicao': r.get('ganho_pct_posicao'),
@@ -4675,6 +4700,9 @@ def _resumo_encerradas():
         'tabela_giro': linhas,
         'nota_fracassos': 'Nenhum fracasso foi perda de capital -- todos foram perda de oportunidade (abaixo do CDI ou abaixo da diretriz).',
         'tabela_fracassos': perdas,
+        'nota_giro_rolagem': ('Rolagem tambem e giro: prorrogar antes do prazo captura valor por unidade de '
+                              'tempo, igual a sair antes. ganho_por_pct_de_prazo = ganho total (strike+premio) '
+                              'dividido pelo % do prazo da perna encerrada que ja havia sido consumido.'),
         'nota_rolagens': 'Rolagem de melhora: destrava=true quando a recuperacao de strike por mes supera a alta do papel. Falso significa que a posicao esta ficando mais travada, mesmo com a rolagem sendo positiva.',
         'tabela_rolagens': rolagens,
     }
