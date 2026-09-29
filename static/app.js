@@ -4274,16 +4274,47 @@ async function loadAnalisesEncerradas(){
             <tr style="color:var(--muted);text-align:right">
               <th style="text-align:left;padding:4px">Papel</th><th style="padding:4px">Dias</th><th style="padding:4px">Prazo</th>
               <th style="padding:4px">% tempo</th><th style="padding:4px">% lucro</th><th style="padding:4px">Giro</th>
-              <th style="padding:4px">Realizado/mês</th><th style="padding:4px">Até o fim/mês</th></tr>
+              <th style="padding:4px">Realizado/mês</th><th style="padding:4px">Até o fim/mês</th>
+              <th style="padding:4px" title="Saída antecipada devolve o capital, então o alvo é a sua diretriz de 2,5%/mês — não o CDI.">vs 2,5%/mês</th></tr>
             ${resumo.tabela_giro.map(r=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)">
               <td style="text-align:left;padding:4px">${(r.ticker||'').replace('.SA','')}</td>
               <td style="padding:4px">${r.dias_no_trade}</td><td style="padding:4px">${r.prazo_dias}</td>
               <td style="padding:4px">${r.pct_do_tempo}%</td><td style="padding:4px">${r.pct_do_lucro}%</td>
               <td style="padding:4px;font-weight:700;color:${r.giro>1?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.giro}x</td>
               <td style="padding:4px">${r.retorno_mes_realizado_pct}%</td>
-              <td style="padding:4px;color:var(--muted)">${r.retorno_mes_ate_o_fim_pct}%</td></tr>`).join('')}
+              <td style="padding:4px;color:var(--muted)">${r.retorno_mes_ate_o_fim_pct}%</td>
+              <td style="padding:4px;font-weight:700;color:${r.passa_na_regua?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.folga_pontos==null?'—':(r.folga_pontos>0?'+':'')+r.folga_pontos+'p'}</td></tr>`).join('')}
           </table>
           ${resumo.sem_dados_de_giro?`<div style="font-size:9px;color:var(--muted);margin-top:6px">${resumo.sem_dados_de_giro} encerradas sem alvo/realizado gravados ficam fora desta tabela (contam no placar).</div>`:''}
+        </div>`;
+      }
+      // ADICIONADO 28/09/2026 -- a tabela de rolagens existia no backend
+      // desde o caso BBAS3 e NUNCA foi desenhada; o Victor procurou e nao
+      // achou. Rolagem e giro tambem: prorrogar antes do prazo captura
+      // valor por unidade de tempo. Regua diferente da saida: aqui o
+      // capital segue TRAVADO, a alternativa e nao fazer nada, entao o
+      // alvo e o CDI (1,12%/mes) e nao a diretriz de 2,5%.
+      if((resumo.tabela_rolagens||[]).length){
+        blocoOperacoes+=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
+          <div class="cl">🔁 Rolagens de melhora <span style="font-size:9px;color:var(--muted);font-weight:400">(capital segue travado — o alvo é o CDI, porque a alternativa é não fazer nada)</span></div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+            <tr style="color:var(--muted);text-align:right">
+              <th style="text-align:left;padding:4px">Papel</th><th style="padding:4px">Strike</th>
+              <th style="padding:4px">Ganho total</th><th style="padding:4px">% do prazo</th>
+              <th style="padding:4px" title="Ganho total dividido pelo % do prazo já consumido da perna encerrada. É o giro da rolagem.">Por % prazo</th>
+              <th style="padding:4px">%/mês</th><th style="padding:4px">vs CDI</th>
+              <th style="padding:4px" title="A recuperação de strike por mês supera a alta do papel? Falso = a posição fica mais travada, mesmo com a rolagem sendo positiva.">Destrava?</th></tr>
+            ${resumo.tabela_rolagens.map(r=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)">
+              <td style="text-align:left;padding:4px">${(r.ticker||'').replace('.SA','')}</td>
+              <td style="padding:4px;font-size:10px">${r.strike_de!=null?r.strike_de+' → '+r.strike_para:'—'}</td>
+              <td style="padding:4px">${r.ganho_total_pct!=null?r.ganho_total_pct+'%':(r.ganho_pct_posicao!=null?r.ganho_pct_posicao+'%':'—')}</td>
+              <td style="padding:4px;color:var(--muted)">${r.pct_do_prazo_consumido!=null?r.pct_do_prazo_consumido+'%':'—'}</td>
+              <td style="padding:4px;font-weight:600">${r.ganho_por_pct_de_prazo!=null?r.ganho_por_pct_de_prazo:'—'}</td>
+              <td style="padding:4px">${r.ganho_total_pct_mes!=null?r.ganho_total_pct_mes+'%':'—'}</td>
+              <td style="padding:4px;font-weight:700;color:${r.passa_na_regua?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.folga_pontos==null?'—':(r.folga_pontos>0?'+':'')+r.folga_pontos+'p'}</td>
+              <td style="padding:4px;color:${r.destrava?'var(--green,#2ecc71)':'var(--muted)'}">${r.destrava==null?'—':(r.destrava?'sim':'não')}</td></tr>`).join('')}
+          </table>
+          <div style="font-size:9px;color:var(--muted);margin-top:6px">${resumo.nota_giro_rolagem||''}</div>
         </div>`;
       }
       if((resumo.tabela_fracassos||[]).length){
