@@ -942,6 +942,14 @@ async function loadRankingPosicoes(tipo){
         const dl=p-pf, cd=dl>=5?'var(--green,#2ecc71)':(dl<=-5?'var(--red,#e74c3c)':'var(--muted)');
         const st=dl>=5?'▲':(dl<=-5?'▼':'→');
         evol=`${pf.toFixed(1)}% <span style="color:${cd}">${st} ${(dl>=0?'+':'')}${dl.toFixed(1)}p</span>`;
+        // ITEM 12: o ganho bruto engana -- cinco das seis "melhoraram" so
+        // porque o tempo passou. Dividir pelo prazo consumido mostra quem
+        // melhora mais rapido do que o relogio anda.
+        if(i.ganho_prob_por_tempo!=null&&i.pct_do_prazo_consumido!=null){
+          const gt=i.ganho_prob_por_tempo;
+          const cg=gt>=0.5?'var(--green,#2ecc71)':(gt<=-0.2?'var(--red,#e74c3c)':'var(--muted)');
+          evol+=`<div style="font-size:9px;color:var(--muted);margin-top:2px">${i.pct_do_prazo_consumido}% do prazo · <span style="color:${cg};font-weight:600">${gt>0?'+':''}${gt}p por % de prazo</span></div>`;
+        }
       }
       return `<tr>
         <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
