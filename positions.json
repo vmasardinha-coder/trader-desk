@@ -23,7 +23,10 @@
       "tipo": "call",
       "vencimento": "2026-12-17",
       "data_entrada": "2026-03-15",
-      "exercicio": "europeia"
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 9.64,
+      "prob_foto_metodo": "europeia terminal: P(preco no vencimento < strike), com GARCH calculado SOMENTE com dados ate a data de entrada -- reconstruida em 28/09/2026 para destravar a coluna Evolucao da tese, que so existia para retorno controlado.",
+      "prob_foto_reconstruida": true
     },
     {
       "id": "vl",
@@ -37,7 +40,10 @@
       "tipo": "call",
       "vencimento": "2027-02-18",
       "data_entrada": "2026-02-04",
-      "exercicio": "europeia"
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 9.32,
+      "prob_foto_metodo": "europeia terminal: P(preco no vencimento < strike), com GARCH calculado SOMENTE com dados ate a data de entrada -- reconstruida em 28/09/2026 para destravar a coluna Evolucao da tese, que so existia para retorno controlado.",
+      "prob_foto_reconstruida": true
     },
     {
       "id": "tsmc34",
@@ -226,7 +232,10 @@
       "meta_pct": 7.55,
       "observacao": "Rolagem de melhora da BBASL212 em 23/09/2026 (ver cl-bbas3-rolagem-fev27). Strike 21,01, venc 19/02/2027, 2.200 acoes. Prob de NAO ser exercida 43,0% (GARCH 28,5%), contra 35,0% na anterior. Spot 22,37 esta 6,47% ACIMA do strike -- posicao travada, mas a menos travada das tres (PETR4 esta 61,8% e VALE3 25,7%). OBJETIVO: destravar. So volta a ser operacao de giro quando a recuperacao de strike por mes superar a alta do papel; hoje e 0,67%/mes contra 3,33%/mes. Strike sujeito a ajuste por proventos.",
       "rolagem_de": "cl-bbas3-rolagem-fev27",
-      "prob_nao_exercicio_pct": 43.0
+      "prob_nao_exercicio_pct": 43.0,
+      "prob_sucesso_prevista_pct": 44.71,
+      "prob_foto_metodo": "europeia terminal: P(preco no vencimento < strike), com GARCH calculado SOMENTE com dados ate a data de entrada -- reconstruida em 28/09/2026 para destravar a coluna Evolucao da tese, que so existia para retorno controlado.",
+      "prob_foto_reconstruida": true
     },
     {
       "id": "rx2",
@@ -243,7 +252,10 @@
       "exercicio": "europeia",
       "meta_pct": 9.56,
       "observacao": "Rolagem de melhora da anterior em 27/09/2026 (ver cl-roxo34-rolagem-mar27). Strike 11,50, venc 19/03/2027. Papel a R$10,70 -- strike 7,5% ACIMA, fora do dinheiro. Recuperacao de 1,41%/mes (strike+premio) contra CDI de 1,12%. Enquanto ficar abaixo de 11,50 o Victor mantem as acoes e embolsa o premio integral.",
-      "rolagem_de": "cl-roxo34-rolagem-mar27"
+      "rolagem_de": "cl-roxo34-rolagem-mar27",
+      "prob_sucesso_prevista_pct": 54.03,
+      "prob_foto_metodo": "europeia terminal: P(preco no vencimento < strike), com GARCH calculado SOMENTE com dados ate a data de entrada -- reconstruida em 28/09/2026 para destravar a coluna Evolucao da tese, que so existia para retorno controlado.",
+      "prob_foto_reconstruida": true
     },
     {
       "id": "bslv393",
