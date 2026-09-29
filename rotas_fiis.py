@@ -555,6 +555,7 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             if _cache_carteira_fiis_resumo['chave'] == chave_cache:
                 resp_cache = dict(_cache_carteira_fiis_resumo['resposta'])
                 resp_cache['cache'] = True
+                resp_cache['calculado_em'] = _cache_carteira_fiis_resumo.get('calculado_em')
                 # Adicionado 04/08/2026 -- usuario reportou preco de FII
                 # (ITRI11) travado por VARIOS DIAS, nao so 1 dia (que seria
                 # o esperado do cache diario do servidor, que reseta sozinho
@@ -682,8 +683,15 @@ def registrar_rotas(app, _github_get_file, _github_put_file, _hoje_str, _requer_
             }
             _cache_carteira_fiis_resumo['chave'] = chave_cache
             _cache_carteira_fiis_resumo['resposta'] = resposta
+            # ITEM 14 (28/09/2026): carimbo de quando o dado foi calculado.
+            # O cache aqui e DIARIO (chave = data + tickers ativos), entao
+            # dentro do mesmo dia a resposta e sempre a mesma. Sem o carimbo,
+            # o Victor nao tinha como distinguir dado fresco de dado de horas
+            # atras -- foi exatamente a duvida dele sobre o ranking de FIIs.
+            _cache_carteira_fiis_resumo['calculado_em'] = _dt_cache.datetime.now().isoformat(timespec='seconds')
             resp_out = dict(resposta)
             resp_out['cache'] = False
+            resp_out['calculado_em'] = _cache_carteira_fiis_resumo['calculado_em']
             r = make_response(jsonify(resp_out))
             r.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
             return r
