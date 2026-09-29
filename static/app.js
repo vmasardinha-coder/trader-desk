@@ -811,6 +811,21 @@ async function loadCarteiraFiisResumo(){
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
     if(!d.itens||!d.itens.length){div.style.display='none';return;}
     const retornoColor=d.retorno_pct==null?'var(--muted)':(d.retorno_pct>=0?'var(--green)':'var(--red)');
+    // ITEM 14 (28/09/2026): carimbo de atualizacao. Este resumo tem cache
+    // DIARIO no servidor (chave = data + tickers ativos), entao dentro do
+    // mesmo dia a resposta nao muda por mais que o Victor atualize a tela.
+    // Sem o carimbo nao havia como distinguir dado fresco de dado de horas
+    // atras -- foi a duvida dele sobre o ranking de FIIs parecer sempre igual.
+    let carimbo='';
+    if(d.calculado_em){
+      const dt=new Date(d.calculado_em);
+      const hh=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+      const hoje=new Date().toDateString()===dt.toDateString();
+      const dia=hoje?'hoje':dt.toLocaleDateString('pt-BR');
+      carimbo='<div style="font-size:10px;color:var(--muted);margin-top:6px">'
+        +(d.cache?'⏳ Do cache — calculado '+dia+' às '+hh:'✅ Calculado agora, '+hh)
+        +' <span style="opacity:.7">· o resumo é recalculado uma vez por dia</span></div>';
+    }
     let volLinha='<span style="color:var(--muted)">Volatilidade da carteira indisponível (histórico insuficiente para 2+ ativos).</span>';
     if(d.vol_carteira_pct!=null){
       const diff=d.vol_soma_simples_pct!=null?(d.vol_soma_simples_pct-d.vol_carteira_pct):null;
@@ -825,7 +840,7 @@ async function loadCarteiraFiisResumo(){
       '</div>'+
       '<div style="font-size:11px;color:var(--text)">'+volLinha+'</div>'+
       '<div style="font-size:9px;color:var(--muted);margin-top:6px">'+(d.nota||'')+'</div>'+
-    '</div>';
+    '</div>'+carimbo+'</div>';
   }catch(e){
     div.innerHTML='<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--bg2)">'+
       '<span style="color:var(--red);font-size:11px">Erro ao calcular resumo: '+e.message+'</span></div>';
