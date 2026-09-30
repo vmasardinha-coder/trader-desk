@@ -70,11 +70,12 @@
       "capital_aplicado_reais": 30910,
       "numeros_confirmados": true,
       "marcacao_mercado": {
-        "data": "2026-09-25",
-        "valor_estrutura_reais": 32970.34,
-        "retorno_pct": 6.66,
+        "data": "2026-09-29",
+        "valor_estrutura_reais": 33017.67,
+        "retorno_pct": 6.81,
         "proventos_reais": 57.25,
-        "fonte": "extrato oficial Itau de operacoes ativas"
+        "referencia_mtm": 295.02,
+        "fonte": "extrato oficial Itau 29/09/2026"
       },
       "prob_atual_pct": 99.27,
       "prob_atual_em": "2026-09-25"
@@ -104,11 +105,12 @@
       "capital_aplicado_reais": 30120,
       "numeros_confirmados": true,
       "marcacao_mercado": {
-        "data": "2026-09-25",
-        "valor_estrutura_reais": 31142.9,
-        "retorno_pct": 3.39,
+        "data": "2026-09-29",
+        "valor_estrutura_reais": 31170.78,
+        "retorno_pct": 3.48,
         "proventos_reais": 0,
-        "fonte": "extrato oficial Itau de operacoes ativas"
+        "referencia_mtm": 26.57,
+        "fonte": "extrato oficial Itau 29/09/2026"
       },
       "prob_atual_pct": 96.9,
       "prob_atual_em": "2026-09-25"
@@ -138,11 +140,12 @@
       "capital_aplicado_reais": 29510,
       "numeros_confirmados": true,
       "marcacao_mercado": {
-        "data": "2026-09-25",
-        "valor_estrutura_reais": 27357.15,
-        "retorno_pct": -7.3,
+        "data": "2026-09-29",
+        "valor_estrutura_reais": 27363.64,
+        "retorno_pct": -7.28,
         "proventos_reais": 0,
-        "fonte": "extrato oficial Itau de operacoes ativas"
+        "referencia_mtm": 26.07,
+        "fonte": "extrato oficial Itau 29/09/2026"
       },
       "prob_atual_pct": 51.67,
       "prob_atual_em": "2026-09-25"
@@ -172,11 +175,12 @@
       "capital_aplicado_reais": 29911.5,
       "numeros_confirmados": true,
       "marcacao_mercado": {
-        "data": "2026-09-25",
-        "valor_estrutura_reais": 30200.78,
-        "retorno_pct": 0.96,
+        "data": "2026-09-29",
+        "valor_estrutura_reais": 29832.85,
+        "retorno_pct": -0.27,
         "proventos_reais": 0,
-        "fonte": "extrato oficial Itau de operacoes ativas"
+        "referencia_mtm": 58.4,
+        "fonte": "extrato oficial Itau 29/09/2026"
       },
       "prob_atual_pct": 81.67,
       "prob_atual_em": "2026-09-25"
@@ -187,13 +191,13 @@
       "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-24",
-      "entry": 29.06,
-      "kdo": 23.22,
+      "vencimento": "2026-11-27",
+      "entry": 28.06,
+      "kdo": 22.42,
       "kdo_pct": "-20.34%",
       "vol_impl": 0.5,
       "vol_impl_fonte": "garch",
-      "data_entrada": "2026-09-22",
+      "data_entrada": "2026-09-25",
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 61.82,
       "ganho_sem_barreira": "14.11% fixo",
@@ -204,16 +208,33 @@
       "prazo_dias": 63,
       "strike": 33.16,
       "quantidade": 1000,
-      "capital_aplicado_reais": 29060,
+      "capital_aplicado_reais": 28060,
       "marcacao_mercado": {
-        "data": "2026-09-25",
-        "valor_estrutura_reais": 28701.83,
-        "retorno_pct": -1.24,
+        "data": "2026-09-29",
+        "valor_estrutura_reais": 28499.35,
+        "retorno_pct": 1.56,
         "proventos_reais": 0,
-        "fonte": "extrato oficial Itau de operacoes ativas"
+        "referencia_mtm": 28.33,
+        "fonte": "extrato oficial Itau 29/09/2026"
       },
       "prob_atual_pct": 54.0,
-      "prob_atual_em": "2026-09-25"
+      "prob_atual_em": "2026-09-25",
+      "historico_correcoes": [
+        {
+          "campo": "data_entrada",
+          "de": "2026-09-22",
+          "para": "2026-09-25",
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 29.06,
+          "para": 28.06,
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        }
+      ]
     },
     {
       "id": "bb3",
@@ -263,13 +284,13 @@
       "nome": "BSLV39 Retorno Controlado 62d (Lote 09/09/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-26",
-      "entry": 96.23,
-      "kdo": 76.98,
+      "vencimento": "2026-12-02",
+      "entry": 95.66,
+      "kdo": 76.43,
       "kdo_pct": "-20.1%",
       "vol_impl": 0.531,
       "vol_impl_fonte": "garch_proxy_SLV",
-      "data_entrada": "2026-09-27",
+      "data_entrada": "2026-09-28",
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 59.8,
       "ganho_sem_barreira": "8.70% fixo",
@@ -280,25 +301,34 @@
       "entry_confirmado": false,
       "observacao": "Rolagem de melhora da anterior em 27/09/2026 (ver cl-bslv39-rolagem-nov26). Ganho 8,70% em 60 dias = 4,35%/mes, KDO 76,98 (20% abaixo do preco de 96,23). Prob 59,8% (GARCH 54,1% via proxy SLV, pois o Yahoo nao tem serie da BSLV39). NUMEROS PROVISORIOS -- o Victor concilia e manda os definitivos.",
       "prob_sucesso_prevista_pct_auditavel": false,
-      "capital_aplicado_reais": 29780.1,
-      "numeros_confirmados": false,
+      "capital_aplicado_reais": 27741.4,
+      "numeros_confirmados": true,
       "marcacao_mercado": {
-        "data": "2026-09-25",
-        "valor_estrutura_reais": 29361.64,
-        "retorno_pct": -1.41,
+        "data": "2026-09-29",
+        "valor_estrutura_reais": 27006.6,
+        "retorno_pct": -2.65,
         "proventos_reais": 0,
-        "fonte": "extrato oficial Itau de operacoes ativas"
+        "referencia_mtm": 95.6,
+        "fonte": "extrato oficial Itau 29/09/2026"
       },
       "prob_atual_pct": 63.85,
       "prob_atual_em": "2026-09-25",
       "rolagem_de": "cl-bslv39-rolagem-nov26",
-      "aguardando_boleto": true,
-      "campos_provisorios": [
-        "kdo",
-        "ganho_prefixado_pct",
-        "vencimento",
-        "entry",
-        "prob_sucesso_prevista_pct"
+      "historico_correcoes": [
+        {
+          "campo": "data_entrada",
+          "de": "2026-09-27",
+          "para": "2026-09-28",
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 96.23,
+          "para": 95.66,
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        }
       ]
     }
   ],
