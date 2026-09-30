@@ -360,33 +360,6 @@
       "resultado_texto": " | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. entrada pela cadeia de rolagens; preco do historico no dia (strike 21,65 = +9,7%). NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir."
     },
     {
-      "id": "cl-bbas3-rolagem-dez26",
-      "ticker": "BBAS3",
-      "estrategia": "Lançamento Coberto",
-      "codigo_opcao": "BBASL223",
-      "strike": 22.31,
-      "data_encerramento": "2026-08-27",
-      "status": "parcial",
-      "resultado_texto": "Rolagem para BBASL212 (strike R$ --- mesmo vencimento 17/12/2026). Prêmio líquido capturado ~R$ --- sobre 2.200 ações (~1,75% da posição). Recompra R$ --- venda nova R$ --- EV calculado NEGATIVO (-R$ --- a -R$ --- dependendo do delta usado) -- delta quase dobrou (30%->54%) com o strike mais baixo, tornando o risco de perder o espaço de valorização (R$ --- até R$ ---) maior que o prêmio capturado. Classificado PARCIAL por decisão do Victor: reconhece que a decisão isolada teve EV negativo, mas contextualiza como correção de uma posição já comprometida por rolagem anterior (BBASJ222->BBASL223, já classificada fracasso em 12/08/2026) -- objetivo era sair rápido capturando algum prêmio no caminho, não maximizar EV dessa perna isolada. | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. entrada NAO foi 12/08 (o registro da anterior entrou com atraso). Em 03/08 a BBAS3 estava 21,27 e o strike 22,31 ficava +4,9% -- coerente. A BBAS3 caiu 16% ate 18/08, por isso o strike parecia distante depois. NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir.",
-      "conta_como": "fracasso",
-      "resultado_vs_referencia": {
-        "realizado_pct": 0.88,
-        "referencia_pct": 2.5,
-        "referencia": "diretriz de 2,5%/mes (prazo incremental ~2 meses, informado pelo Victor 23/09/2026)",
-        "razao_pct": 35.0,
-        "nota": "Parcial que conta como fracasso. R$ --- de premio liquido (1,75% da posicao), mas EV calculado NEGATIVO (-R$ --- a -R$ ---): baixou o strike de 22,31 para 20,81 e trocou premio certo por risco de entrega.",
-        "preenchido_em": "2026-09-23",
-        "fonte": "extraido do texto do registro + Bacen SGS 12, ratificar",
-        "prazo_incremental_dias": 60,
-        "realizado_pct_mes": 0.88
-      },
-      "data_entrada": "2026-08-03",
-      "entry": 21.27,
-      "vencimento_original": "2026-12-17",
-      "vencimento": "2026-12-17",
-      "dados_reconstruidos": true
-    },
-    {
       "id": "cl-axia3-bidirecional-c",
       "ticker": "AXIA3",
       "estrategia": "Bidirecional ION Itaú",
