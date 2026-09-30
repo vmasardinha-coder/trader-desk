@@ -46,38 +46,6 @@
       "prob_foto_reconstruida": true
     },
     {
-      "id": "tsmc34",
-      "ticker": "TSMC34.SA",
-      "nome": "TSMC34 Retorno Controlado 2m (Lote 17/08/2026)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-16",
-      "entry": 281.0,
-      "kdo": 224.14,
-      "kdo_pct": "-20.0%",
-      "vol_impl": 0.357,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-08-17",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 78.02,
-      "ganho_sem_barreira": "8.11% fixo",
-      "ganho_prefixado_pct": 8.11,
-      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$ --- (antes provisorio R$ ---), KDO R$ --- (antes R$ ---), vencimento 2026-10-15 (antes estimado 2026-10-16). | EXTRATO 24/09/2026: KDO 224,52 -> 224,14 e strike 304,32 -> 303,80, ajustados por pagamento de proventos (a B3 recalcula). O ganho prefixado e o entry NAO foram alterados -- a coluna \"Strike\" do extrato e o strike da perna de call da estrutura, NAO o teto de retorno: derivar ganho dela daria 14,25% para a INBR32, contra os 10,50% do boleto oficial. Só KDO, vencimento, strike e quantidade vêm do extrato. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 280.95->281.0, venc 2026-10-15->2026-10-16. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (+6.66%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 78.02%. A recalculada de hoje (99.27%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
-      "quantidade": 110,
-      "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
-      "entry_confirmado": true,
-      "strike": 303.8,
-      "numeros_confirmados": true,
-      "marcacao_mercado": {
-        "data": "2026-09-29",
-        "retorno_pct": 6.81,
-        "referencia_mtm": 295.02,
-        "fonte": "extrato oficial Itau 29/09/2026"
-      },
-      "prob_atual_pct": 99.27,
-      "prob_atual_em": "2026-09-25"
-    },
-    {
       "id": "sbsp3",
       "ticker": "SBSP3.SA",
       "nome": "SBSP3 Retorno Controlado 64d (Lote 01/09/2026 - ajuste)",
@@ -174,54 +142,6 @@
       "prob_atual_em": "2026-09-25"
     },
     {
-      "id": "tend32",
-      "ticker": "TEND3.SA",
-      "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-27",
-      "entry": 28.06,
-      "kdo": 22.42,
-      "kdo_pct": "-20.34%",
-      "vol_impl": 0.5,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-09-25",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 61.82,
-      "ganho_sem_barreira": "14.11% fixo",
-      "ganho_prefixado_pct": 14.11,
-      "rolagem_de": "tend3",
-      "numeros_confirmados": true,
-      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; PRAZO CONFIRMADO PELO VICTOR em 22/09/2026: 60 dias a partir de 21/09 -> vencimento 2026-11-20 (corrigido de 2026-11-23, que eu tinha herdado do padrao dos boletos). O ganho de 19,0% continua HERDADO da operacao anterior e NAO confirmado. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%. | EXTRATO 24/09/2026: CONFIRMADOS KDO 23,22 (era 23,15 provisorio), vencimento 23/11/2026 (era 20/11), strike 33,16 e 1.000 acoes. entry recalculado para 29,03 pela barreira de -20%. O ganho de 19,0% SEGUE NAO CONFIRMADO. O ganho prefixado e o entry NAO foram alterados -- a coluna \"Strike\" do extrato e o strike da perna de call da estrutura, NAO o teto de retorno: derivar ganho dela daria 14,25% para a INBR32, contra os 10,50% do boleto oficial. Só KDO, vencimento, strike e quantidade vêm do extrato. | 24/09/2026: ganho de 19,0% CONFIRMADO pelo Victor -- foi o que ele aprovou na contratacao; o arquivo do boleto nunca chegou, entao a fonte e a aprovacao dele, nao um documento. Com KDO 23,22 e entry 29,03 (derivado da barreira de -20%), prob recalculada: 65.35 -> 61.82% (GARCH 50.0%, 63 dias). Unico numero ainda derivado: o entry. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 29.02->29.06, venc 2026-11-23->2026-11-24, entrada 2026-09-21->2026-09-22, ganho 19.0->14.11. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (-1.24%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 61.82%. A recalculada de hoje (54.0%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
-      "prazo_dias": 63,
-      "strike": 33.16,
-      "quantidade": 1000,
-      "marcacao_mercado": {
-        "data": "2026-09-29",
-        "retorno_pct": 1.56,
-        "referencia_mtm": 28.33,
-        "fonte": "extrato oficial Itau 29/09/2026"
-      },
-      "prob_atual_pct": 54.0,
-      "prob_atual_em": "2026-09-25",
-      "historico_correcoes": [
-        {
-          "campo": "data_entrada",
-          "de": "2026-09-22",
-          "para": "2026-09-25",
-          "em": "2026-09-30T10:51:47",
-          "motivo": "extrato oficial Itau 29/09/2026"
-        },
-        {
-          "campo": "entry",
-          "de": 29.06,
-          "para": 28.06,
-          "em": "2026-09-30T10:51:47",
-          "motivo": "extrato oficial Itau 29/09/2026"
-        }
-      ]
-    },
-    {
       "id": "bb3",
       "ticker": "BBAS3.SA",
       "nome": "Banco do Brasil ON",
@@ -312,6 +232,86 @@
           "motivo": "extrato oficial Itau 29/09/2026"
         }
       ]
+    },
+    {
+      "id": "tend33",
+      "ticker": "TEND3.SA",
+      "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-27",
+      "entry": 28.06,
+      "kdo": 21.51,
+      "kdo_pct": "-20.34%",
+      "vol_impl": 0.5,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-09-30",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 61.82,
+      "ganho_sem_barreira": "14.11% fixo",
+      "ganho_prefixado_pct": 14.11,
+      "rolagem_de": "cl-tend3-rolagem-out26",
+      "numeros_confirmados": false,
+      "observacao": "Segunda rolagem de melhora da TEND3, em 30/09/2026 (ver cl-tend3-rolagem-out26). KDO 22,42 -> 21,51, mesma estrutura, premio de 2,26% capturado em 5 dias. PROVISORIO: vencimento, ganho e entry aguardam o boleto.",
+      "prazo_dias": 63,
+      "strike": 33.16,
+      "quantidade": 1000,
+      "marcacao_mercado": {
+        "data": "2026-09-29",
+        "retorno_pct": 1.56,
+        "referencia_mtm": 28.33,
+        "fonte": "extrato oficial Itau 29/09/2026"
+      },
+      "prob_atual_pct": 54.0,
+      "prob_atual_em": "2026-09-25",
+      "historico_correcoes": [
+        {
+          "campo": "data_entrada",
+          "de": "2026-09-22",
+          "para": "2026-09-25",
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 29.06,
+          "para": 28.06,
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        }
+      ],
+      "aguardando_boleto": true,
+      "campos_provisorios": [
+        "kdo",
+        "vencimento",
+        "ganho_prefixado_pct",
+        "entry",
+        "prob_sucesso_prevista_pct"
+      ]
+    },
+    {
+      "id": "ecor3",
+      "ticker": "ECOR3.SA",
+      "nome": "Ecovias/EcoRodovias ON",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "tipo_estrutura": "retorno_controlado",
+      "data_entrada": "2026-09-30",
+      "vencimento": "2026-12-02",
+      "prazo_dias": 63,
+      "exercicio": "europeia",
+      "entry": 8.63,
+      "kdo": 6.9,
+      "ganho_prefixado_pct": 13.3,
+      "ganho_sem_barreira": "13.30% fixo",
+      "protecao_pct": 20.0,
+      "prob_sucesso_prevista_pct": 67.6,
+      "vol_impl": 0.449,
+      "vol_impl_fonte": "garch",
+      "numeros_confirmados": false,
+      "aguardando_boleto": true,
+      "origem": "boleto Itau 29/09/2026 (20260929_20261202_FK_ECOR3_53348)",
+      "observacao": "Entrada em 30/09/2026 com o capital que saiu da TSMC34. Defesa de 20%, ganho 13,30% em 63 dias = 6,23%/mes, prob 67,6%. ESCOLHIDA CONTRA A SPCX34 e contra a versao de 15 dias: o Victor preferiu a de 64 dias porque mantem o mesmo capital e separa o lucro, e porque a probabilidade e maior que a da de 15 dias com defesa menor. RISCO CONHECIDO E ACEITO: ECOR3 rompe 35,3% das janelas de 60d, acompanha o indice em 90% das quedas e o pior drawdown de 15d e -33,6% contra defesa de 20%. O premio de 13,30% e o que compensa isso. entry e KDO provisorios ate o boleto."
     }
   ],
   "encerradas": [
@@ -623,6 +623,125 @@
       },
       "resultado_texto": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$ --- quantidade 290, KDO R$ --- vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$ --- KDO R$ --- vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$ --- continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$ --- e via strike R$ ---). Metodo validado contra tsmc34 (reproduz R$ --- confirmado) e sbsp3 (reproduz R$ ---). Substituir se/quando o boleto oficial chegar. | INVESTIGADO 15/09/2026: vol_impl nula NAO e erro de preenchimento. Yahoo devolve apenas 1 candle para BSLV39.SA (range=2y), entao garch_11 retorna None -- nao ha historico para calcular. O problema real e outro: prob_sucesso_prevista_pct=79.6 foi gravada mesmo sem vol declarada, ou seja, apoiada numa vol que nao ficou registrada e nao pode ser auditada nem reproduzida. Marcada como nao-auditavel em vez de recalculada -- inventar vol aqui seria pior que admitir a lacuna. WORKAROUND SUGERIDO (nao aplicado, precisa do ok do Victor): usar a vol do papel original em dolar como proxy. Medicao de 15/09/2026 em 5 pares BDR/US mostrou diferenca de apenas -2,9 a +2,5 pontos de vol, porque o cambio funciona como hedge parcial e nao como risco extra. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 102.67->102.69, venc 2026-11-09->2026-11-10. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (-1.41%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 79.6%. A recalculada de hoje (63.85%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada. | ENCERRADA 27/09/2026 POR ROLAGEM DE MELHORA. Capturou R$ --- sobre base de R$ --- = 2,17%, ou 26,1% do alvo de 8,30% em 29,0% do prazo (18 de 62 dias). Giro 0,90x -- LIGEIRAMENTE abaixo de 1, mas NAO e fracasso: giro<1 classifica SAIDA, e aqui foi ROLAGEM. A pergunta deixa de ser \"capturei o proporcional\" e passa a ser \"o que vem e melhor que o que restava\": a nova paga 8,7% contra os 6,13% que sobravam. Realizado 3,61%/mes, acima do CDI. KDO reancorado de 82,05 para 76,98 (prata caiu de 100,51 para 96,23). Probabilidade 63,9% -> 59,8%: 4 pontos PIOR, porque voltou a 60 dias de exposicao em vez dos 46 que faltavam -- o prazo maior come a protecao extra da barreira mais baixa. | PROVISORIO: numeros vindos do relato do Victor, boleto pendente. Ratificar premio, base, ganho da nova perna, KDO e prazo quando o documento chegar. Comparacao ja registrada: premio liquido de ~2,17% aqui contra 0,05% na BBAS3 -- a diferenca e a direcao do papel (prata caindo x BBAS3 subindo).",
       "aguardando_boleto": true
+    },
+    {
+      "id": "tsmc34",
+      "ticker": "TSMC34.SA",
+      "nome": "TSMC34 Retorno Controlado 2m (Lote 17/08/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-16",
+      "entry": 281.0,
+      "kdo": 224.14,
+      "kdo_pct": "-20.0%",
+      "vol_impl": 0.357,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-08-17",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 78.02,
+      "ganho_sem_barreira": "8.11% fixo",
+      "ganho_prefixado_pct": 8.11,
+      "observacao": " CONFIRMADO 19/08/2026 com o boleto real: Valor Inicial R$ --- (antes provisorio R$ ---), KDO R$ --- (antes R$ ---), vencimento 2026-10-15 (antes estimado 2026-10-16). | EXTRATO 24/09/2026: KDO 224,52 -> 224,14 e strike 304,32 -> 303,80, ajustados por pagamento de proventos (a B3 recalcula). O ganho prefixado e o entry NAO foram alterados -- a coluna \"Strike\" do extrato e o strike da perna de call da estrutura, NAO o teto de retorno: derivar ganho dela daria 14,25% para a INBR32, contra os 10,50% do boleto oficial. Só KDO, vencimento, strike e quantidade vêm do extrato. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 280.95->281.0, venc 2026-10-15->2026-10-16. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (+6.66%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 78.02%. A recalculada de hoje (99.27%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
+      "quantidade": 110,
+      "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
+      "entry_confirmado": true,
+      "strike": 303.8,
+      "numeros_confirmados": true,
+      "marcacao_mercado": {
+        "data": "2026-09-29",
+        "retorno_pct": 6.81,
+        "referencia_mtm": 295.02,
+        "fonte": "extrato oficial Itau 29/09/2026"
+      },
+      "prob_atual_pct": 99.27,
+      "prob_atual_em": "2026-09-25",
+      "status": "sucesso",
+      "resultado_victor": "sucesso",
+      "data_encerramento": "2026-09-30",
+      "data_saida": "2026-09-30",
+      "vencimento_original": "2026-10-16",
+      "encerramento_antecipado": true,
+      "motivo_encerramento": "saida_antecipada",
+      "alvo_pct": 8.11,
+      "realizado_pct": 6.2,
+      "custo_execucao_pct": 0.5,
+      "realizado_bruto_pct": 6.7,
+      "resultado_texto": "ENCERRADA ANTECIPADAMENTE 30/09/2026 com SUCESSO. Bruto 6,70%, menos 0,50% de custo de execucao do robo = 6,20% liquido, contra alvo de 8,11%. Capturou 76,4% do premio em 73,3% do prazo (44 de 60 dias): GIRO 1,04x, acima de 1. Realizado 4,23%/mes, folga de +1,73p sobre a diretriz de 2,5%/mes. SOBRE O CUSTO DE 0,5%: o Victor optou por sair com o robo, casado, em vez de esperar a liquidacao das opcoes em D+1. Nao e obrigatorio -- e escolha dele. A razao: em papel volatil, esperar D+1 arrisca o papel cair 4 ou 5%, o que custaria muito mais que o meio por cento. Garantir o lucro na tela vale o pedagio. O capital saiu para a ECOR3."
+    },
+    {
+      "id": "cl-tend3-rolagem-out26",
+      "ticker": "TEND3.SA",
+      "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-27",
+      "entry": 28.06,
+      "kdo": 22.42,
+      "kdo_pct": "-20.34%",
+      "vol_impl": 0.5,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-09-25",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 61.82,
+      "ganho_sem_barreira": "14.11% fixo",
+      "ganho_prefixado_pct": 14.11,
+      "rolagem_de": "tend3",
+      "numeros_confirmados": true,
+      "observacao": "ROLAGEM da tend3. PROVISORIA -- informada por voz, AGUARDANDO BOLETO. Barreira 23,15 e aproximada; PRAZO CONFIRMADO PELO VICTOR em 22/09/2026: 60 dias a partir de 21/09 -> vencimento 2026-11-20 (corrigido de 2026-11-23, que eu tinha herdado do padrao dos boletos). O ganho de 19,0% continua HERDADO da operacao anterior e NAO confirmado. entry 29.06 e o spot de 21/09, nao o fixing real. Ratificar os quatro quando o boleto chegar. Prob 63.2% com GARCH 49.6%. | EXTRATO 24/09/2026: CONFIRMADOS KDO 23,22 (era 23,15 provisorio), vencimento 23/11/2026 (era 20/11), strike 33,16 e 1.000 acoes. entry recalculado para 29,03 pela barreira de -20%. O ganho de 19,0% SEGUE NAO CONFIRMADO. O ganho prefixado e o entry NAO foram alterados -- a coluna \"Strike\" do extrato e o strike da perna de call da estrutura, NAO o teto de retorno: derivar ganho dela daria 14,25% para a INBR32, contra os 10,50% do boleto oficial. Só KDO, vencimento, strike e quantidade vêm do extrato. | 24/09/2026: ganho de 19,0% CONFIRMADO pelo Victor -- foi o que ele aprovou na contratacao; o arquivo do boleto nunca chegou, entao a fonte e a aprovacao dele, nao um documento. Com KDO 23,22 e entry 29,03 (derivado da barreira de -20%), prob recalculada: 65.35 -> 61.82% (GARCH 50.0%, 63 dias). Unico numero ainda derivado: o entry. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 29.02->29.06, venc 2026-11-23->2026-11-24, entrada 2026-09-21->2026-09-22, ganho 19.0->14.11. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (-1.24%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 61.82%. A recalculada de hoje (54.0%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
+      "prazo_dias": 63,
+      "strike": 33.16,
+      "quantidade": 1000,
+      "marcacao_mercado": {
+        "data": "2026-09-29",
+        "retorno_pct": 1.56,
+        "referencia_mtm": 28.33,
+        "fonte": "extrato oficial Itau 29/09/2026"
+      },
+      "prob_atual_pct": 54.0,
+      "prob_atual_em": "2026-09-25",
+      "historico_correcoes": [
+        {
+          "campo": "data_entrada",
+          "de": "2026-09-22",
+          "para": "2026-09-25",
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 29.06,
+          "para": 28.06,
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        }
+      ],
+      "status": "sucesso",
+      "resultado_victor": "sucesso",
+      "data_encerramento": "2026-09-30",
+      "data_saida": "2026-09-30",
+      "vencimento_original": "2026-11-27",
+      "motivo_encerramento": "rolagem_de_melhora",
+      "tipo_encerramento": "rolagem_de_melhora",
+      "encerramento_antecipado": false,
+      "alvo_pct": 14.11,
+      "realizado_pct": 2.26,
+      "rolagem": {
+        "premio_pct": 2.26,
+        "ganho_total_pct": 2.26,
+        "ganho_total_pct_mes": 13.56,
+        "cdi_mes_referencia": 1.12,
+        "kdo_de": 22.42,
+        "kdo_para": 21.51,
+        "variacao_kdo_pct": -4.06,
+        "dias_ate_rolar": 5,
+        "prazo_dias": 63,
+        "pct_do_prazo_consumido": 7.9,
+        "pct_do_lucro": 16.0,
+        "giro": 2.02,
+        "ganho_por_pct_de_prazo": 0.285,
+        "mesma_estrutura": true
+      },
+      "resultado_texto": "ROLAGEM DE MELHORA 30/09/2026, a segunda da TEND3 em 9 dias. Capturou 2,26% em apenas 5 dias (7,9% do prazo), ou seja 16,0% do premio de 14,11% -- GIRO 2,02x. Realizado 13,56%/mes contra CDI de 1,12%. E rolou para a MESMA estrutura com KDO descendo de 22,42 para 21,51 (-4,06%): capturou premio E comprou mais folga de barreira, as duas coisas ao mesmo tempo. E o padrao ja observado em tres casos: rolar em papel que CAI sai barato, porque se vende premio caro e a barreira reancora a favor."
     }
   ]
 }
