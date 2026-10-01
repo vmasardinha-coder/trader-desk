@@ -42383,7 +42383,7 @@
     "id": "an_1789100026",
     "ticker": "ENGI11.SA",
     "nome": "ENGI11 Retorno Controlado 15d barreira -12.2% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 53.0,
@@ -42497,7 +42497,15 @@
       },
       "prob_sucesso_prevista_pct": 96.5
     },
-    "observacao": "Menu de laminas Itau Corretora 21/09/2026 (strike 101.57%, KO 87.8%). Venc 2026-10-06 (15d), barreira -12.2% monitorada continuamente, ganho 1.57% = 3.14%/mes. Prob Monte Carlo (GARCH 26.6%): 96.5%. EV total 1.07%. Selecionada como VERDE no lote 21/09/2026: passa na diretriz (>=2,5%/mes), prob >=70% e EV>0."
+    "observacao": "Menu de laminas Itau Corretora 21/09/2026 (strike 101.57%, KO 87.8%). Venc 2026-10-06 (15d), barreira -12.2% monitorada continuamente, ganho 1.57% = 3.14%/mes. Prob Monte Carlo (GARCH 26.6%): 96.5%. EV total 1.07%. Selecionada como VERDE no lote 21/09/2026: passa na diretriz (>=2,5%/mes), prob >=70% e EV>0.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-01",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 2.015,
+    "score_na_rejeicao": 5.0848,
+    "prob_meta_na_rejeicao": 99.98,
+    "preco_encerramento": 52.97
   },
   {
     "id": "an_1789100027",
