@@ -53545,7 +53545,7 @@
     "id": "an_1789100066",
     "ticker": "RDOR3.SA",
     "nome": "RDOR3 Retorno Controlado 15d barreira -12.2% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 38.13,
@@ -53659,7 +53659,15 @@
       },
       "prob_sucesso_prevista_pct": 91.1
     },
-    "observacao": "Menu de laminas Itau Corretora 21/09/2026 (strike 101.40%, KO 87.8%). Venc 2026-10-06 (15d), barreira -12.2% monitorada continuamente, ganho 1.40% = 2.80%/mes. Prob Monte Carlo (GARCH 33.4%): 91.1%. EV total 0.11%. Selecionada como VERDE no lote 21/09/2026: passa na diretriz (>=2,5%/mes), prob >=70% e EV>0."
+    "observacao": "Menu de laminas Itau Corretora 21/09/2026 (strike 101.40%, KO 87.8%). Venc 2026-10-06 (15d), barreira -12.2% monitorada continuamente, ganho 1.40% = 2.80%/mes. Prob Monte Carlo (GARCH 33.4%): 91.1%. EV total 0.11%. Selecionada como VERDE no lote 21/09/2026: passa na diretriz (>=2,5%/mes), prob >=70% e EV>0.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-02",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 0.446,
+    "score_na_rejeicao": 4.9367,
+    "prob_meta_na_rejeicao": 99.95,
+    "preco_encerramento": 38.45
   },
   {
     "id": "an_1789100067",
