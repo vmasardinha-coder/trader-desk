@@ -44487,7 +44487,7 @@
     "id": "an_1789100036",
     "ticker": "IGTI11.SA",
     "nome": "IGTI11 Retorno Controlado 15d barreira -8.2% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 26.93,
@@ -44601,7 +44601,15 @@
       },
       "prob_sucesso_prevista_pct": 81.8
     },
-    "observacao": "Menu de laminas Itau Corretora 21/09/2026 (strike 102.79%, KO 91.8%). Venc 2026-10-06 (15d), barreira -8.2% monitorada continuamente, ganho 2.79% = 5.58%/mes. Prob Monte Carlo (GARCH 28.7%): 81.8%. EV total 0.62%. Selecionada como VERDE no lote 21/09/2026: passa na diretriz (>=2,5%/mes), prob >=70% e EV>0."
+    "observacao": "Menu de laminas Itau Corretora 21/09/2026 (strike 102.79%, KO 91.8%). Venc 2026-10-06 (15d), barreira -8.2% monitorada continuamente, ganho 2.79% = 5.58%/mes. Prob Monte Carlo (GARCH 28.7%): 81.8%. EV total 0.62%. Selecionada como VERDE no lote 21/09/2026: passa na diretriz (>=2,5%/mes), prob >=70% e EV>0.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-05",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "ev_mensal_na_rejeicao": -1.99,
+    "score_na_rejeicao": 22.616,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 31.43
   },
   {
     "id": "an_1789100037",
