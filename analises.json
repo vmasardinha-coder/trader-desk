@@ -59836,7 +59836,7 @@
     "ticker": "B3SA3.SA",
     "nome": "B3SA3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 17.98,
     "kdo": 15.79,
@@ -59867,7 +59867,15 @@
       "fator": 37.0,
       "fator_60d": 84.4
     },
-    "observacao": "Lote 29/09/2026. Defesa 12.2%, ganho 2.49% em 15 dias = 4.98%/mes. Prob 90.5% (GARCH 34.3%), EV 1.95%/mes. Risco historico: rompe 32.7% das janelas de 15d e 15.6% das de 60d; acompanha o indice em 90.0% das quedas. Fator 37.0."
+    "observacao": "Lote 29/09/2026. Defesa 12.2%, ganho 2.49% em 15 dias = 4.98%/mes. Prob 90.5% (GARCH 34.3%), EV 1.95%/mes. Risco historico: rompe 32.7% das janelas de 15d e 15.6% das de 60d; acompanha o indice em 90.0% das quedas. Fator 37.0.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-05",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": -0.097,
+    "score_na_rejeicao": 6.728,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 23.56
   },
   {
     "id": "an_1790700020",
