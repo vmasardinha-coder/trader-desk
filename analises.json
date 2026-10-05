@@ -60200,7 +60200,7 @@
     "ticker": "PETR4.SA",
     "nome": "PETR4",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 48.84,
     "kdo": 42.88,
@@ -60231,7 +60231,15 @@
       "fator": 43.4,
       "fator_60d": 88.0
     },
-    "observacao": "Lote 29/09/2026. Defesa 12.2%, ganho 1.43% em 15 dias = 2.86%/mes. Prob 95.3% (GARCH 28.5%), EV 1.48%/mes. Risco historico: rompe 26.4% das janelas de 15d e 12.0% das de 60d; acompanha o indice em 82.0% das quedas. Fator 43.4."
+    "observacao": "Lote 29/09/2026. Defesa 12.2%, ganho 1.43% em 15 dias = 2.86%/mes. Prob 95.3% (GARCH 28.5%), EV 1.48%/mes. Risco historico: rompe 26.4% das janelas de 15d e 12.0% das de 60d; acompanha o indice em 82.0% das quedas. Fator 43.4.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-05",
+    "motivo_rejeicao": "concentracao",
+    "aceita_ficar_com_papel": true,
+    "ev_mensal_na_rejeicao": 1.55,
+    "score_na_rejeicao": 3.8613,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 54.44
   },
   {
     "id": "an_1790700030",
