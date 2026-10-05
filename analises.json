@@ -44613,7 +44613,7 @@
     "motivo_encerramento": "rejeitada",
     "data_rejeicao": "2026-10-05",
     "motivo_rejeicao": "sem_capital",
-    "aceita_ficar_com_papel": true,
+    "aceita_ficar_com_papel": false,
     "ev_mensal_na_rejeicao": -1.99,
     "score_na_rejeicao": 22.616,
     "prob_meta_na_rejeicao": 100,
