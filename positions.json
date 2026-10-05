@@ -360,26 +360,6 @@
       "resultado_texto": " | RECONSTRUIDO 25/09/2026 para destravar o tracking-victor. entrada pela cadeia de rolagens; preco do historico no dia (strike 21,65 = +9,7%). NENHUM desses numeros veio de documento -- data vem da cadeia de rolagens ou de coerencia de strike, preco vem do historico do papel na data. Marcado dados_reconstruidos=true; se o boleto aparecer, substituir."
     },
     {
-      "id": "cl-spcx34-retctrl-set26-b",
-      "ticker": "SPCX34",
-      "estrategia": "Retorno Controlado",
-      "strike": null,
-      "alvo_pct": 3.7,
-      "realizado_pct": 2.0,
-      "data_encerramento": "2026-09-02",
-      "status": "fracasso",
-      "prob_sucesso_prevista_pct": 71.48,
-      "resultado_texto": "Resgate ANTECIPADO a valor de mercado, sucesso, 2% de lucro. Barreira nunca foi tocada. Victor reportou teto de 3,7% (registro do sistema tinha 3,5% -- pequena divergencia, mantido o numero informado por ele sem recalcular). | MARCADA 22/09/2026 como encerramento_antecipado: sai da calibracao do tracking-acuracia (que mede o modelo ate o vencimento) e passa a ser avaliada no tracking-victor. Criterio: realizado 2.0% abaixo do alvo 3.7% -- quem chega ao vencimento sem romper recebe o prefixado cheio. | BACKFILL 23/09/2026: data_entrada, vencimento_original e entry RECUPERADOS do historico do Git (varredura dos 55 commits de positions.json, pegando a versao em que a posicao ainda estava ativa). Datas de encerramento conferidas contra o commit em que cada uma migrou para encerradas. Nao sao estimativa nem deducao pela proporcao do lucro -- sao os valores que estavam gravados na epoca. | RECLASSIFICADO 26/09/2026 de sucesso para FRACASSO, pela matriz giro x modelo e com o aval do Victor. Giro 0,90: capturou 54,1% do premio tendo consumido 60,0% do prazo -- abaixo do proporcional. E o modelo apurou que a barreira NAO foi tocada ate o vencimento original: o risco de que ele fugiu nao se materializou. Pela regra objetiva (giro < 1 + modelo sucesso = pulou cedo do barco a toa), e fracasso ESTRUTURAL. RESSALVA DO VICTOR, que a matriz nao mede: ele ficou com as acoes, elas subiram e ele vendeu mais caro no mercado -- nao perdeu dinheiro. Mas o ganho veio de venda de acao seca, nao da estrutura. Conclusao dele: neste caso teria sido melhor so ter comprado a acao, sem estrutura nenhuma. O resultado FINANCEIRO foi positivo; o resultado ESTRUTURAL foi fracasso.",
-      "encerramento_antecipado": true,
-      "data_entrada": "2026-08-24",
-      "vencimento_original": "2026-09-08",
-      "vencimento": "2026-09-08",
-      "entry": 47.37,
-      "origem_datas": "historico_git_2026-09-23",
-      "resultado_victor": "fracasso",
-      "veredito_matriz": "fracasso_pulou_cedo"
-    },
-    {
       "id": "cl-bslv39-retctrl-out26",
       "ticker": "BSLV39",
       "estrategia": "Retorno Controlado",
