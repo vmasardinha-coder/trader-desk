@@ -73,9 +73,7 @@
         "retorno_pct": 3.48,
         "referencia_mtm": 26.57,
         "fonte": "extrato oficial Itau 29/09/2026"
-      },
-      "prob_atual_pct": 96.9,
-      "prob_atual_em": "2026-09-25"
+      }
     },
     {
       "id": "tsla342",
@@ -105,9 +103,7 @@
         "retorno_pct": -0.27,
         "referencia_mtm": 58.4,
         "fonte": "extrato oficial Itau 29/09/2026"
-      },
-      "prob_atual_pct": 81.67,
-      "prob_atual_em": "2026-09-25"
+      }
     },
     {
       "id": "bb3",
@@ -181,8 +177,6 @@
         "referencia_mtm": 95.6,
         "fonte": "extrato oficial Itau 29/09/2026"
       },
-      "prob_atual_pct": 63.85,
-      "prob_atual_em": "2026-09-25",
       "rolagem_de": "cl-bslv39-rolagem-nov26",
       "historico_correcoes": [
         {
@@ -230,8 +224,6 @@
         "referencia_mtm": 28.33,
         "fonte": "extrato oficial Itau 29/09/2026"
       },
-      "prob_atual_pct": 54.0,
-      "prob_atual_em": "2026-09-25",
       "historico_correcoes": [
         {
           "campo": "data_entrada",
@@ -286,9 +278,7 @@
       "nome": "Nubank (ROXO34) — Retorno Controlado 12% / 64d",
       "kdo_pct": -15.71,
       "entry_confirmado": false,
-      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)",
-      "prob_atual_pct": 65.9,
-      "prob_atual_em": "2026-10-06"
+      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)"
     },
     {
       "id": "itlc34",
@@ -319,9 +309,7 @@
       "nome": "Intel (ITLC34) — Retorno Controlado 8,5% / 31d",
       "kdo_pct": -15.8,
       "entry_confirmado": false,
-      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)",
-      "prob_atual_pct": 53.7,
-      "prob_atual_em": "2026-10-06"
+      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)"
     }
   ],
   "encerradas": [
