@@ -986,7 +986,7 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de NÃO tocar o KDO daqui pra frente — do preço de hoje até o vencimento. É o que o contrato exige.">Prob. KDO (agora)</th>
         <th style="padding:6px 8px;text-align:right" title="A mesma conta, mas simulando o prazo TOTAL a partir do preço de entrada. Responde 'qual era a chance quando começou'. É o que alimenta o tracker.">Na origem</th>
-        <th style="padding:6px 8px;text-align:right" title="Chance de a ação terminar ACIMA do teto travado. Mede o custo de oportunidade de ter prefixado o ganho — quanto maior, mais teria valido a pena só comprar o papel.">Overshoot</th>
+        <th style="padding:6px 8px;text-align:right" title="Chance de a ação terminar ACIMA do teto travado, calculada do preço de HOJE com os dias que faltam. Mede o custo de oportunidade de ter prefixado o ganho — quanto maior, mais teria valido a pena só comprar o papel.">Overshoot (agora)</th>
         <th style="padding:6px 8px;text-align:right">Na decisão → hoje</th>
       </tr></thead>
       <tbody>${linhas}</tbody>
@@ -3684,7 +3684,7 @@ function tplRanking(d){
     if(r.erro){
       return `<tr style="opacity:.55">
         <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
-        <td colspan="12" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+        <td colspan="15" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
       </tr>`;
     }
     const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(1)+'%':'—';
@@ -3729,11 +3729,12 @@ function tplRanking(d){
       <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}${volAviso}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
-      <td style="padding:6px 8px;text-align:right">${r.retorno_mensal_pct.toFixed(2)}%</td>
+       <td style="padding:6px 8px;text-align:right" title="Pelo prazo do CONTRATO (fixo). Equivalente se entrasse hoje: ${r.retorno_mensal_hoje_pct!=null?r.retorno_mensal_hoje_pct.toFixed(2):'—'}%/mês — só informativo: a oferta envelhece e deixa de existir poucos dias depois.">${r.retorno_mensal_pct.toFixed(2)}%</td>
       <td style="padding:6px 8px;text-align:right;color:var(--muted);font-size:10px;white-space:nowrap">${r.preco_atual!=null?r.preco_atual.toFixed(2):'—'} <span style="opacity:.6">/</span> ${bar}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700" title="${folgaTitle}">${folga}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${r.prob_meta_pct>=50?'var(--green)':'var(--muted)'}">${r.prob_meta_pct.toFixed(1)}%</td>
       <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="${r.overshoot_medio_pct!=null?`Quando acontece, em média o papel rende ${r.overshoot_medio_pct.toFixed(2)}pp A MAIS do que o retorno travado -- dinheiro que fica na mesa`:'Só disponível para Retorno Controlado'}">${r.prob_overshoot_pct!=null?r.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
+       <td style="padding:6px 8px;text-align:right;color:${(r.prob_overshoot_agora_pct||0)>=(r.prob_overshoot_pct||0)+15?'var(--warn,#e6a817)':'var(--muted)'}" title="Overshoot AGORA: do preço de hoje, com os dias que faltam, contra o mesmo teto. Sobe conforme o papel avança e vai a 100% quando o teto já foi ultrapassado.">${r.prob_overshoot_agora_pct!=null?r.prob_overshoot_agora_pct.toFixed(1)+'%':'—'}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${evCor}" title="${evTitle}">${evTxt}</td>
       <td style="padding:6px 8px;text-align:right">${dy}</td>
       <td style="padding:6px 8px;text-align:right" title="DY mensal − CDI mensal: quanto o dividendo do papel rende a mais (ou menos) que o CDI por mês, se a estrutura quebrar e você ficar com o papel">${colchao}</td>
@@ -3753,11 +3754,11 @@ function tplRanking(d){
       <th style="padding:6px 8px">Ativo</th>
       <th style="padding:6px 8px" title="BI=Bidirecional, RC=Retorno Controlado, SI=Simples, PR=Prêmio">Tipo</th>
       <th style="padding:6px 8px;text-align:right">Prazo</th>
-      <th style="padding:6px 8px;text-align:right" title="Retorno mensal equivalente SE bater a meta (ganho prefixado/teto), ignorando o cenário de romper a barreira. Veja EV mensal para o retorno médio considerando TODOS os cenários.">Ret. mensal <span style="opacity:.6;cursor:help">ⓘ</span></th>
+      <th style="padding:6px 8px;text-align:right" title="Ganho prefixado ÷ PRAZO DO CONTRATO (fixo — não infla perto do vencimento). Retorno mensal equivalente SE bater a meta (ganho prefixado/teto), ignorando o cenário de romper a barreira. Veja EV mensal para o retorno médio considerando TODOS os cenários.">Ret. mensal <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="Preço atual / barreira da estrutura (KDO para retorno controlado e bidirecional, STRIKE para venda de call)">Preço / Barreira</th>
       <th style="padding:6px 8px;text-align:right" title="Distância até a barreira. Para KDO: quanto o papel pode cair antes de romper. Para STRIKE: quanto pode subir antes de ser exercida. É isto que explica uma probabilidade baixa mesmo faltando poucos dias.">Folga</th>
       <th style="padding:6px 8px;text-align:right" title="Probabilidade de NÃO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, com o preço atual) -- é dinâmica, recalcula a cada vez que você roda o ranking. Diferente do número 'desde o início' que aparece no detalhe de cada análise (esse usa o prazo total a partir do preço da foto).">Prob. <span style="opacity:.6;cursor:help">ⓘ</span></th>
-      <th style="padding:6px 8px;text-align:right" title="RISCO DE OVERSHOOT -- probabilidade de o papel fechar ACIMA do retorno travado no Retorno Controlado, deixando dinheiro na mesa. Só existe pra Retorno Controlado (Bidirecional não trava um teto único do mesmo jeito).">Overshoot <span style="opacity:.6;cursor:help">ⓘ</span></th>
+      <th style="padding:6px 8px;text-align:right" title="RISCO DE OVERSHOOT NA DECISÃO (congelado: simulado do preço da foto pelo prazo cheio, não muda) -- probabilidade de o papel fechar ACIMA do retorno travado no Retorno Controlado, deixando dinheiro na mesa. Só existe pra Retorno Controlado (Bidirecional não trava um teto único do mesmo jeito).">Overshoot (na decisão) <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="EV mensal -- retorno médio ponderando todos os cenários, não só se bateu a meta">EV mensal</th>
       <th style="padding:6px 8px;text-align:right">DY</th>
       <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
@@ -4294,7 +4295,9 @@ async function loadAnalisesEncerradas(){
               <th style="text-align:left;padding:4px">Papel</th><th style="padding:4px">Dias</th><th style="padding:4px">Prazo</th>
               <th style="padding:4px">% tempo</th><th style="padding:4px">% lucro</th><th style="padding:4px">Giro</th>
               <th style="padding:4px">Realizado/mês</th><th style="padding:4px">Até o fim/mês</th>
-              <th style="padding:4px" title="Saída antecipada devolve o capital, então o alvo é a sua diretriz de 2,5%/mês — não o CDI.">vs 2,5%/mês</th></tr>
+              <th style="padding:4px" title="Saída antecipada devolve o capital, então o alvo é a sua diretriz de 2,5%/mês — não o CDI.">vs 2,5%/mês</th>
+               <th style="padding:4px" title="Quanto o PAPEL PURO teria rendido entre a entrada e a saída (só preço, sem dividendos).">Papel no período</th>
+               <th style="padding:4px" title="Retorno da estrutura MENOS o do papel. Negativo = o overshoot custou: era melhor só ter comprado a ação. Atenção: em mercado de alta o papel quase sempre ganha — isso mede o regime, não a qualidade da decisão. Overshoot é o preço do seguro.">Estrutura − papel</th></tr>
             ${resumo.tabela_giro.map(r=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)">
               <td style="text-align:left;padding:4px">${(r.ticker||'').replace('.SA','')}</td>
               <td style="padding:4px">${r.dias_no_trade}</td><td style="padding:4px">${r.prazo_dias}</td>
@@ -4302,8 +4305,11 @@ async function loadAnalisesEncerradas(){
               <td style="padding:4px;font-weight:700;color:${r.giro>1?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.giro}x</td>
               <td style="padding:4px">${r.retorno_mes_realizado_pct}%</td>
               <td style="padding:4px;color:var(--muted)">${r.retorno_mes_ate_o_fim_pct}%</td>
-              <td style="padding:4px;font-weight:700;color:${r.passa_na_regua?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.folga_pontos==null?'—':(r.folga_pontos>0?'+':'')+r.folga_pontos+'p'}</td></tr>`).join('')}
+              <td style="padding:4px;font-weight:700;color:${r.passa_na_regua?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.folga_pontos==null?'—':(r.folga_pontos>0?'+':'')+r.folga_pontos+'p'}</td>
+              <td style="padding:4px;color:var(--muted)">${r.retorno_papel_pct!=null?r.retorno_papel_pct+'%':'—'}</td>
+              <td style="padding:4px;font-weight:700;color:${r.estrutura_menos_papel_pp==null?'var(--muted)':(r.estrutura_menos_papel_pp>=0?'var(--green,#2ecc71)':'var(--warn,#e6a817)')}">${r.estrutura_menos_papel_pp==null?'—':(r.estrutura_menos_papel_pp>0?'+':'')+r.estrutura_menos_papel_pp+'p'}</td></tr>`).join('')}
           </table>
+          ${resumo.papel_vs_estrutura&&resumo.papel_vs_estrutura.medidas?`<div style="font-size:10px;color:var(--muted);margin-top:8px">🧾 <b>Papel vs estrutura</b>: a estrutura rendeu mais que só ter comprado o papel em <b>${resumo.papel_vs_estrutura.estrutura_venceu} de ${resumo.papel_vs_estrutura.medidas}</b> (diferença mediana ${resumo.papel_vs_estrutura.diferenca_mediana_pp>0?'+':''}${resumo.papel_vs_estrutura.diferenca_mediana_pp}p). ${resumo.papel_vs_estrutura.nota}</div>`:''}
           ${resumo.sem_dados_de_giro?`<div style="font-size:9px;color:var(--muted);margin-top:6px">${resumo.sem_dados_de_giro} encerradas sem alvo/realizado gravados ficam fora desta tabela (contam no placar).</div>`:''}
         </div>`;
       }
