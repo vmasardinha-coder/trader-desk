@@ -402,7 +402,11 @@
       "vencimento_original": "2026-10-15",
       "vencimento": "2026-10-15",
       "entry": 54.96,
-      "origem_datas": "historico_git_2026-09-23"
+      "origem_datas": "historico_git_2026-09-23",
+      "papel_preco_entrada": 54.96,
+      "papel_preco_saida": 58.65,
+      "papel_retorno_pct": 6.71,
+      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     },
     {
       "id": "tend3",
@@ -433,7 +437,11 @@
       "observacao": "ENCERRADA 21/09/2026 POR ROLAGEM. Victor saiu com ~R$ --- nas opcoes sobre ~R$ --- (~5,9% em 5 dias) e reabriu com barreira mais baixa (~23,15), por ver o preco se aproximando da barreira anterior de 25,048. resultado_victor=sucesso (decisao dele, fecha aqui). O resultado do MODELO fica PENDENTE ate o vencimento ORIGINAL 17/11/2026 -- se 25,048 for tocado ate la, o tracker marca fracasso sem que a decisao esteja errada (seria saida que evitou rompimento). status=sucesso (e a verdade do P&L e e o que a tela de Encerradas conta). Marcada encerramento_antecipado=true: fica FORA da calibracao do tracking-acuracia, que mede o modelo ate o vencimento, e e avaliada no tracking-victor. NUMEROS POR VOZ, AGUARDANDO BOLETO. | alvo_pct/realizado_pct preenchidos 23/09/2026 a partir dos valores informados por voz (R$ --- sobre R$ --- = 5,86%), para entrar na tabela de giro. APROXIMADOS.",
       "encerramento_antecipado": true,
       "alvo_pct": 19.0,
-      "realizado_pct": 5.86
+      "realizado_pct": 5.86,
+      "papel_preco_entrada": 31.31,
+      "papel_preco_saida": 29.24,
+      "papel_retorno_pct": -6.61,
+      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     },
     {
       "id": "cl-bbas3-rolagem-fev27",
@@ -641,7 +649,11 @@
       "realizado_pct": 6.2,
       "custo_execucao_pct": 0.5,
       "realizado_bruto_pct": 6.7,
-      "resultado_texto": "ENCERRADA ANTECIPADAMENTE 30/09/2026 com SUCESSO. Bruto 6,70%, menos 0,50% de custo de execucao do robo = 6,20% liquido, contra alvo de 8,11%. Capturou 76,4% do premio em 73,3% do prazo (44 de 60 dias): GIRO 1,04x, acima de 1. Realizado 4,23%/mes, folga de +1,73p sobre a diretriz de 2,5%/mes. SOBRE O CUSTO DE 0,5%: o Victor optou por sair com o robo, casado, em vez de esperar a liquidacao das opcoes em D+1. Nao e obrigatorio -- e escolha dele. A razao: em papel volatil, esperar D+1 arrisca o papel cair 4 ou 5%, o que custaria muito mais que o meio por cento. Garantir o lucro na tela vale o pedagio. O capital saiu para a ECOR3."
+      "resultado_texto": "ENCERRADA ANTECIPADAMENTE 30/09/2026 com SUCESSO. Bruto 6,70%, menos 0,50% de custo de execucao do robo = 6,20% liquido, contra alvo de 8,11%. Capturou 76,4% do premio em 73,3% do prazo (44 de 60 dias): GIRO 1,04x, acima de 1. Realizado 4,23%/mes, folga de +1,73p sobre a diretriz de 2,5%/mes. SOBRE O CUSTO DE 0,5%: o Victor optou por sair com o robo, casado, em vez de esperar a liquidacao das opcoes em D+1. Nao e obrigatorio -- e escolha dele. A razao: em papel volatil, esperar D+1 arrisca o papel cair 4 ou 5%, o que custaria muito mais que o meio por cento. Garantir o lucro na tela vale o pedagio. O capital saiu para a ECOR3.",
+      "papel_preco_entrada": 281.0,
+      "papel_preco_saida": 294.61,
+      "papel_retorno_pct": 4.84,
+      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     },
     {
       "id": "cl-tend3-rolagem-out26",
@@ -716,7 +728,11 @@
         "ganho_por_pct_de_prazo": 0.285,
         "mesma_estrutura": true
       },
-      "resultado_texto": "ROLAGEM DE MELHORA 30/09/2026, a segunda da TEND3 em 9 dias. Capturou 2,26% em apenas 5 dias (7,9% do prazo), ou seja 16,0% do premio de 14,11% -- GIRO 2,02x. Realizado 13,56%/mes contra CDI de 1,12%. E rolou para a MESMA estrutura com KDO descendo de 22,42 para 21,51 (-4,06%): capturou premio E comprou mais folga de barreira, as duas coisas ao mesmo tempo. E o padrao ja observado em tres casos: rolar em papel que CAI sai barato, porque se vende premio caro e a barreira reancora a favor."
+      "resultado_texto": "ROLAGEM DE MELHORA 30/09/2026, a segunda da TEND3 em 9 dias. Capturou 2,26% em apenas 5 dias (7,9% do prazo), ou seja 16,0% do premio de 14,11% -- GIRO 2,02x. Realizado 13,56%/mes contra CDI de 1,12%. E rolou para a MESMA estrutura com KDO descendo de 22,42 para 21,51 (-4,06%): capturou premio E comprou mais folga de barreira, as duas coisas ao mesmo tempo. E o padrao ja observado em tres casos: rolar em papel que CAI sai barato, porque se vende premio caro e a barreira reancora a favor.",
+      "papel_preco_entrada": 28.06,
+      "papel_preco_saida": 27.01,
+      "papel_retorno_pct": -3.74,
+      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     },
     {
       "id": "inbr32",
@@ -760,7 +776,11 @@
       "realizado_pct": 10.73,
       "giro": 1.52,
       "retorno_mes_realizado_pct": 10.06,
-      "resultado_texto": " CONFIRMADO 04/09/2026: Valor Inicial R$ --- (antes provisorio R$ ---), KDO R$ --- (antes R$ ---), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$ --- e via KDO R$ ---) tiveram diferenca maior que o normal (~R$ --- vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 29.97->29.51, venc 2026-11-05->2026-11-06, entrada 2026-09-02->2026-09-03, ganho 10.5->14.1. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (-7.30%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 70.16%. A recalculada de hoje (51.67%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada. | ENCERRADA ANTECIPADAMENTE em 05/10/2026 com SUCESSO. Capturou 10,73% de um alvo de 14,10% -- 76,1% do premio -- em 32 dos 64 dias (50,0% do prazo). GIRO 1,52x. Realizado 10,06%/mes. VIRADA NOTAVEL: em 29/09 esta posicao estava marcada a MENOS 7,28% e era a mais fragil da carteira (prob do KDO em 54,1%, folga de apenas 12,8%). Em 6 dias virou para +10,73% -- 18 pontos de virada -- com a alta do mercado. E a confirmacao pratica do que a marcacao a mercado negativa significa: nao e perda, e desconto embutido. Manter rendia 18,20%/mes justamente porque estava barata."
+      "resultado_texto": " CONFIRMADO 04/09/2026: Valor Inicial R$ --- (antes provisorio R$ ---), KDO R$ --- (antes R$ ---), vencimento 2026-11-05 (antes 2026-11-04). ATENCAO: as duas contas de derivacao do Valor Inicial (via strike R$ --- e via KDO R$ ---) tiveram diferenca maior que o normal (~R$ --- vs poucos centavos nos outros casos) -- usada a media, mas vale ficar de olho se surgir alguma inconsistencia futura nessa posicao. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 29.97->29.51, venc 2026-11-05->2026-11-06, entrada 2026-09-02->2026-09-03, ganho 10.5->14.1. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (-7.30%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 70.16%. A recalculada de hoje (51.67%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada. | ENCERRADA ANTECIPADAMENTE em 05/10/2026 com SUCESSO. Capturou 10,73% de um alvo de 14,10% -- 76,1% do premio -- em 32 dos 64 dias (50,0% do prazo). GIRO 1,52x. Realizado 10,06%/mes. VIRADA NOTAVEL: em 29/09 esta posicao estava marcada a MENOS 7,28% e era a mais fragil da carteira (prob do KDO em 54,1%, folga de apenas 12,8%). Em 6 dias virou para +10,73% -- 18 pontos de virada -- com a alta do mercado. E a confirmacao pratica do que a marcacao a mercado negativa significa: nao e perda, e desconto embutido. Manter rendia 18,20%/mes justamente porque estava barata.",
+      "papel_preco_entrada": 29.51,
+      "papel_preco_saida": 32.98,
+      "papel_retorno_pct": 11.76,
+      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     },
     {
       "id": "ecor3",
@@ -796,7 +816,11 @@
       "realizado_pct": 13.24,
       "giro": 12.54,
       "retorno_mes_realizado_pct": 79.44,
-      "resultado_texto": "Entrada em 30/09/2026 com o capital que saiu da TSMC34. Defesa de 20%, ganho 13,30% em 63 dias = 6,23%/mes, prob 67,6%. ESCOLHIDA CONTRA A SPCX34 e contra a versao de 15 dias: o Victor preferiu a de 64 dias porque mantem o mesmo capital e separa o lucro, e porque a probabilidade e maior que a da de 15 dias com defesa menor. RISCO CONHECIDO E ACEITO: ECOR3 rompe 35,3% das janelas de 60d, acompanha o indice em 90% das quedas e o pior drawdown de 15d e -33,6% contra defesa de 20%. O premio de 13,30% e o que compensa isso. entry e KDO provisorios ate o boleto. | ENCERRADA ANTECIPADAMENTE em 05/10/2026 com SUCESSO SUPREMO. Capturou 13,24% de um alvo de 13,30% -- 99,5% do premio -- em apenas 5 dos 63 dias (7,9% do prazo). GIRO 12,54x, de longe o maior ja registrado (o anterior era 34,51x da ROXO34, mas com 1 dia; entre as de prazo normal, este e o recorde). Realizado 79,44%/mes contra diretriz de 2,5%. CONTEXTO: entrou em 30/09 logo apos a alta do mercado puxada pelas eleicoes -- o BOVA11 subiu 3,03% em 02/10 e 4,94% acumulados, e a ECOR3 sozinha fez +6,23% no dia e +14,07% no periodo. A estrutura bateu o teto quase instantaneamente. Risco assumido e documentado na entrada: ECOR3 rompe 35,3% das janelas de 60d e acompanha o indice em 90% das quedas; desta vez o movimento foi para cima."
+      "resultado_texto": "Entrada em 30/09/2026 com o capital que saiu da TSMC34. Defesa de 20%, ganho 13,30% em 63 dias = 6,23%/mes, prob 67,6%. ESCOLHIDA CONTRA A SPCX34 e contra a versao de 15 dias: o Victor preferiu a de 64 dias porque mantem o mesmo capital e separa o lucro, e porque a probabilidade e maior que a da de 15 dias com defesa menor. RISCO CONHECIDO E ACEITO: ECOR3 rompe 35,3% das janelas de 60d, acompanha o indice em 90% das quedas e o pior drawdown de 15d e -33,6% contra defesa de 20%. O premio de 13,30% e o que compensa isso. entry e KDO provisorios ate o boleto. | ENCERRADA ANTECIPADAMENTE em 05/10/2026 com SUCESSO SUPREMO. Capturou 13,24% de um alvo de 13,30% -- 99,5% do premio -- em apenas 5 dos 63 dias (7,9% do prazo). GIRO 12,54x, de longe o maior ja registrado (o anterior era 34,51x da ROXO34, mas com 1 dia; entre as de prazo normal, este e o recorde). Realizado 79,44%/mes contra diretriz de 2,5%. CONTEXTO: entrou em 30/09 logo apos a alta do mercado puxada pelas eleicoes -- o BOVA11 subiu 3,03% em 02/10 e 4,94% acumulados, e a ECOR3 sozinha fez +6,23% no dia e +14,07% no periodo. A estrutura bateu o teto quase instantaneamente. Risco assumido e documentado na entrada: ECOR3 rompe 35,3% das janelas de 60d e acompanha o indice em 90% das quedas; desta vez o movimento foi para cima.",
+      "papel_preco_entrada": 8.63,
+      "papel_preco_saida": 12.33,
+      "papel_retorno_pct": 42.87,
+      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     }
   ]
 }
