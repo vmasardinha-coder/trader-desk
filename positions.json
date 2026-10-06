@@ -256,6 +256,60 @@
         "entry",
         "prob_sucesso_prevista_pct"
       ]
+    },
+    {
+      "id": "roxo35",
+      "ticker": "ROXO34.SA",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "tipo_estrutura": "retorno_controlado",
+      "exercicio": "europeia",
+      "data_entrada": "2026-10-05",
+      "vencimento": "2026-12-08",
+      "prazo_dias": 64,
+      "entry": 12.6,
+      "kdo": 10.62,
+      "ganho_prefixado_pct": 12.0,
+      "ganho_sem_barreira": "12.00% fixo",
+      "protecao_pct": 15.7,
+      "prob_sucesso_prevista_pct": 65.9,
+      "prob_overshoot_entrada_pct": 23.5,
+      "vol_impl": 0.3598,
+      "vol_impl_fonte": "garch",
+      "numeros_confirmados": false,
+      "aguardando_boleto": false,
+      "campos_provisorios": [
+        "entry"
+      ],
+      "origem": "boleto Itau 05/10/2026 (53970.pdf)",
+      "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato."
+    },
+    {
+      "id": "itlc34",
+      "ticker": "ITLC34.SA",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "tipo_estrutura": "retorno_controlado",
+      "exercicio": "europeia",
+      "data_entrada": "2026-10-05",
+      "vencimento": "2026-11-05",
+      "prazo_dias": 31,
+      "entry": 98.0,
+      "kdo": 82.52,
+      "ganho_prefixado_pct": 8.5,
+      "ganho_sem_barreira": "8.50% fixo",
+      "protecao_pct": 15.8,
+      "prob_sucesso_prevista_pct": 53.7,
+      "prob_overshoot_entrada_pct": 32.2,
+      "vol_impl": 0.6918,
+      "vol_impl_fonte": "garch",
+      "numeros_confirmados": false,
+      "aguardando_boleto": false,
+      "campos_provisorios": [
+        "entry"
+      ],
+      "origem": "boleto Itau 05/10/2026 (53978.pdf)",
+      "observacao": "Entrada em 05/10/2026. Defesa 15.8%, ganho 8.5% em 31 dias = 8.23%/mes. Prob do KDO 53.7%, overshoot na entrada 32.2%, EV -3.59%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 98.00, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato."
     }
   ],
   "encerradas": [
