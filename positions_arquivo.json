@@ -140,7 +140,12 @@
     "papel_preco_entrada": 11.61,
     "papel_preco_saida": 12.04,
     "papel_retorno_pct": 3.7,
-    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+    "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+    "papel_dividendos_pct": 0.0,
+    "papel_retorno_total_pct": 3.7,
+    "papel_pos_saida_pct": 7.72,
+    "papel_pos_saida_ate": "hoje",
+    "papel_pos_saida_data": "2026-10-06"
   },
   {
     "id": "cl-spcx34-retctrl-ago26",
@@ -162,7 +167,12 @@
     "papel_preco_entrada": 50.65,
     "papel_preco_saida": 50.8,
     "papel_retorno_pct": 0.3,
-    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+    "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+    "papel_dividendos_pct": 0.0,
+    "papel_retorno_total_pct": 0.3,
+    "papel_pos_saida_pct": -6.69,
+    "papel_pos_saida_ate": "vencimento",
+    "papel_pos_saida_data": "2026-08-25"
   },
   {
     "id": "cl-axia3-bidirecional-b",
@@ -208,7 +218,12 @@
     "papel_preco_entrada": 50.79,
     "papel_preco_saida": 47.05,
     "papel_retorno_pct": -7.36,
-    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+    "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+    "papel_dividendos_pct": 0.0,
+    "papel_retorno_total_pct": -7.36,
+    "papel_pos_saida_pct": 4.08,
+    "papel_pos_saida_ate": "vencimento",
+    "papel_pos_saida_data": "2026-09-01"
   },
   {
     "id": "cl-bbas3-rolagem-dez26",
@@ -289,6 +304,11 @@
     "papel_preco_entrada": 47.37,
     "papel_preco_saida": 47.68,
     "papel_retorno_pct": 0.65,
-    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+    "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+    "papel_dividendos_pct": 0.0,
+    "papel_retorno_total_pct": 0.65,
+    "papel_pos_saida_pct": 9.06,
+    "papel_pos_saida_ate": "vencimento",
+    "papel_pos_saida_data": "2026-09-08"
   }
 ]
