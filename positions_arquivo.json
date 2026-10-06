@@ -136,7 +136,11 @@
     "vencimento_original": "2026-10-12",
     "vencimento": "2026-10-12",
     "entry": 11.61,
-    "origem_datas": "historico_git_2026-09-23"
+    "origem_datas": "historico_git_2026-09-23",
+    "papel_preco_entrada": 11.61,
+    "papel_preco_saida": 12.04,
+    "papel_retorno_pct": 3.7,
+    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
   },
   {
     "id": "cl-spcx34-retctrl-ago26",
@@ -154,7 +158,11 @@
     "vencimento_original": "2026-08-25",
     "vencimento": "2026-08-25",
     "entry": 50.65,
-    "origem_datas": "historico_git_2026-09-23"
+    "origem_datas": "historico_git_2026-09-23",
+    "papel_preco_entrada": 50.65,
+    "papel_preco_saida": 50.8,
+    "papel_retorno_pct": 0.3,
+    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
   },
   {
     "id": "cl-axia3-bidirecional-b",
@@ -196,7 +204,11 @@
     "vencimento_original": "2026-09-01",
     "vencimento": "2026-09-01",
     "entry": 50.79,
-    "origem_datas": "historico_git_2026-09-23"
+    "origem_datas": "historico_git_2026-09-23",
+    "papel_preco_entrada": 50.79,
+    "papel_preco_saida": 47.05,
+    "papel_retorno_pct": -7.36,
+    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
   },
   {
     "id": "cl-bbas3-rolagem-dez26",
@@ -273,6 +285,10 @@
     "entry": 47.37,
     "origem_datas": "historico_git_2026-09-23",
     "resultado_victor": "fracasso",
-    "veredito_matriz": "fracasso_pulou_cedo"
+    "veredito_matriz": "fracasso_pulou_cedo",
+    "papel_preco_entrada": 47.37,
+    "papel_preco_saida": 47.68,
+    "papel_retorno_pct": 0.65,
+    "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
   }
 ]
