@@ -2361,6 +2361,10 @@ def get_ranking_posicoes(tipo):
                 # e baseline do tracking-acuracia). Ao lado da de hoje ela
                 # responde se a tese esta se confirmando ou se deteriorando.
                 'prob_foto_pct': p.get('prob_sucesso_prevista_pct'),
+                # ITEM 6 (06/10/2026): overshoot NA DECISAO, congelado. Existia
+                # nas analises e faltava aqui -- o ranking de posicoes so tinha
+                # o de AGORA. Fica ao lado dele para mostrar a evolucao.
+                'prob_overshoot_entrada_pct': p.get('prob_overshoot_entrada_pct'),
                 # ITEM 12 (28/09/2026): ganho de probabilidade POR TEMPO
                 # CONSUMIDO. Observacao do Victor: 5 das 6 posicoes
                 # "melhoraram", mas isso nao e merito -- e o relogio andando.
@@ -3604,7 +3608,8 @@ def _github_get_file(path):
 _IMUTAVEIS = {
     'positions.json': ('prob_sucesso_prevista_pct', 'data_entrada', 'entry',
                        'ganho_prefixado_pct', 'vencimento_original', 'alvo_pct',
-                       'realizado_pct', 'resultado_victor', 'data_saida'),
+                       'realizado_pct', 'resultado_victor', 'data_saida',
+                       'prob_overshoot_entrada_pct'),
     'analises.json': ('preco_foto', 'data_foto', 'prazo_dias', 'bandas_congeladas',
                       'ganho_prefixado_pct', 'kdo', 'origem'),
 }
@@ -4609,7 +4614,20 @@ def rota_arquivar_posicoes():
 # Os campos sao GRAVADOS no registro (papel_*), porque buscar preco no Yahoo
 # dentro da chamada do painel estouraria o tempo no Render.
 def _papel_no_periodo(rec):
-    from datetime import datetime as _d, timedelta as _td, timezone as _tz
+    """Retorno do PAPEL puro entre a entrada e a saida, com dividendos (item 4 + 7).
+
+    ITEM 7 (06/10/2026) acrescentou duas coisas ao que ja existia:
+      1) DIVIDENDOS recebidos no periodo. A estrutura leva os proventos
+         (o extrato do banco traz 'c/ prov'), entao comparar com o papel so
+         pelo preco favorecia a estrutura.
+      2) O que o papel fez DEPOIS da saida, ate o vencimento original (ou ate
+         hoje, se ainda nao venceu). Caso que motivou: SPCX34 de 02/09 -- o
+         Victor ficou com as acoes, elas subiram e ele vendeu mais caro. Isso
+         NAO esta entre a entrada e a saida da estrutura, e o numero antigo nao
+         captava. ATENCAO: mede o que o PAPEL fez, nao o que o Victor
+         recebeu -- o preco real de venda das acoes so ele sabe.
+    """
+    from datetime import datetime as _d, timedelta as _td, timezone as _tz, date as _date
     ent = rec.get('data_entrada')
     sai = rec.get('data_saida') or rec.get('data_encerramento')
     tk = rec.get('ticker')
@@ -4617,13 +4635,16 @@ def _papel_no_periodo(rec):
         return None
     sym = tk if str(tk).upper().endswith('.SA') else f'{tk}.SA'
     try:
-        r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=2y&interval=1d',
+        r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=2y&interval=1d&events=div',
                          headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
         if not r.ok:
             return None
         res = r.json()['chart']['result'][0]
         cl = res['indicators']['quote'][0]['close']
         serie = {_d.fromtimestamp(t, tz=_tz.utc).date(): c for t, c in zip(res['timestamp'], cl) if c}
+        divs = {}
+        for ev in ((res.get('events') or {}).get('dividends') or {}).values():
+            divs[_d.fromtimestamp(ev['date'], tz=_tz.utc).date()] = float(ev['amount'])
     except Exception:
         return None
     if len(serie) < 60:          # ex.: BSLV39, que o Yahoo devolve com 1 candle
@@ -4651,10 +4672,28 @@ def _papel_no_periodo(rec):
     p_sai = no_dia(d_sai, -1)
     if not p_ent or not p_sai:
         return None
-    return {'papel_preco_entrada': round(float(p_ent), 4),
-            'papel_preco_saida': round(float(p_sai), 4),
-            'papel_retorno_pct': round(100 * (float(p_sai) / float(p_ent) - 1), 2),
-            'papel_fonte': 'Yahoo: fechamento na saida; entrada = preco inicial do banco'}
+    p_ent, p_sai = float(p_ent), float(p_sai)
+    soma_div = sum(v for k, v in divs.items() if d_ent < k <= d_sai)
+    out = {'papel_preco_entrada': round(p_ent, 4),
+           'papel_preco_saida': round(p_sai, 4),
+           'papel_retorno_pct': round(100 * (p_sai / p_ent - 1), 2),
+           'papel_dividendos_pct': round(100 * soma_div / p_ent, 2),
+           'papel_retorno_total_pct': round(100 * ((p_sai + soma_div) / p_ent - 1), 2),
+           'papel_fonte': 'Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco'}
+    vo = rec.get('vencimento_original') or rec.get('vencimento')
+    if vo:
+        try:
+            d_vo = _d.strptime(str(vo)[:10], '%Y-%m-%d').date()
+            fim = d_vo if d_vo <= _date.today() else _date.today()
+            if fim > d_sai:
+                p_fim = no_dia(fim, -1)
+                if p_fim:
+                    out.update(papel_pos_saida_pct=round(100 * (float(p_fim) / p_sai - 1), 2),
+                               papel_pos_saida_ate='vencimento' if d_vo <= _date.today() else 'hoje',
+                               papel_pos_saida_data=fim.isoformat())
+        except Exception:
+            pass
+    return out
 
 
 def _preencher_papel_vs_estrutura(forcar=False):
@@ -4691,7 +4730,7 @@ def _resumo_papel_vs_estrutura(linhas):
     v = sum(1 for r in m if r['estrutura_menos_papel_pp'] >= 0)
     return {'medidas': len(m), 'estrutura_venceu': v, 'papel_venceu': len(m) - v,
             'diferenca_mediana_pp': round(_s.median(r['estrutura_menos_papel_pp'] for r in m), 2),
-            'nota': ('So preco, sem dividendos. Em mercado de alta o papel quase sempre ganha da '
+            'nota': ('Papel com dividendos do periodo. Em mercado de alta o papel quase sempre ganha da '
                      'estrutura: isso mede o regime, nao a qualidade da decisao. Overshoot e o preco do seguro.')}
 
 
@@ -4773,8 +4812,16 @@ def _resumo_encerradas():
             'retorno_mes_realizado_pct': round(real / (dias / 30.0), 2),
             **_avaliar_contra_regua('saida', round(float(real) / (dias / 30.0), 2) if dias else None),
             'retorno_mes_ate_o_fim_pct': round(alvo / (prazo / 30.0), 2),
-            'retorno_papel_pct': x.get('papel_retorno_pct'),
-            'estrutura_menos_papel_pp': (round(real - x['papel_retorno_pct'], 2)
+            # papel COM dividendos quando ha; senao so preco (registros antigos)
+            'retorno_papel_pct': (x.get('papel_retorno_total_pct')
+                                  if x.get('papel_retorno_total_pct') is not None else x.get('papel_retorno_pct')),
+            'retorno_papel_preco_pct': x.get('papel_retorno_pct'),
+            'papel_dividendos_pct': x.get('papel_dividendos_pct'),
+            'papel_pos_saida_pct': x.get('papel_pos_saida_pct'),
+            'papel_pos_saida_ate': x.get('papel_pos_saida_ate'),
+            'estrutura_menos_papel_pp': (round(real - (x.get('papel_retorno_total_pct')
+                                                       if x.get('papel_retorno_total_pct') is not None
+                                                       else x['papel_retorno_pct']), 2)
                                          if x.get('papel_retorno_pct') is not None else None),
         })
     linhas.sort(key=lambda r: -r['giro'])
