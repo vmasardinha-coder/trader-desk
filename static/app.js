@@ -945,7 +945,7 @@ async function loadRankingPosicoes(tipo){
     }
     const linhas=d.itens.map(i=>{
       if(i.erro){
-        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="7" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
+        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="8" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
       }
       const p=i.probabilidade_sucesso_pct;
       const cor = p>=70?'var(--green,#2ecc71)':p>=40?'var(--warn,#e6a817)':'var(--red,#e74c3c)';
@@ -972,6 +972,7 @@ async function loadRankingPosicoes(tipo){
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)">${i.prob_na_origem_pct!=null?i.prob_na_origem_pct.toFixed(1)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Overshoot na decisão: do preço de entrada, pelo prazo cheio (congelado).">${i.prob_overshoot_entrada_pct!=null?i.prob_overshoot_entrada_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:${(i.prob_overshoot_pct||0)>=40?'var(--warn,#e6a817)':'var(--muted)'}">${i.prob_overshoot_pct!=null?i.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-size:10px;white-space:nowrap" title="Probabilidade calculada no momento da decisão (congelada) e a variação até hoje.">${evol}</td>
       </tr>`;
@@ -986,6 +987,7 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de NÃO tocar o KDO daqui pra frente — do preço de hoje até o vencimento. É o que o contrato exige.">Prob. KDO (agora)</th>
         <th style="padding:6px 8px;text-align:right" title="A mesma conta, mas simulando o prazo TOTAL a partir do preço de entrada. Responde 'qual era a chance quando começou'. É o que alimenta o tracker.">Na origem</th>
+        <th style="padding:6px 8px;text-align:right" title="Overshoot NA DECISÃO (congelado): chance de a ação terminar ACIMA do teto, calculada do preço de entrada pelo prazo cheio. Não muda. Compare com o (agora) ao lado: mostra a evolução.">Overshoot (na decisão)</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de a ação terminar ACIMA do teto travado, calculada do preço de HOJE com os dias que faltam. Mede o custo de oportunidade de ter prefixado o ganho — quanto maior, mais teria valido a pena só comprar o papel.">Overshoot (agora)</th>
         <th style="padding:6px 8px;text-align:right">Na decisão → hoje</th>
       </tr></thead>
@@ -4296,8 +4298,9 @@ async function loadAnalisesEncerradas(){
               <th style="padding:4px">% tempo</th><th style="padding:4px">% lucro</th><th style="padding:4px">Giro</th>
               <th style="padding:4px">Realizado/mês</th><th style="padding:4px">Até o fim/mês</th>
               <th style="padding:4px" title="Saída antecipada devolve o capital, então o alvo é a sua diretriz de 2,5%/mês — não o CDI.">vs 2,5%/mês</th>
-               <th style="padding:4px" title="Quanto o PAPEL PURO teria rendido entre a entrada e a saída (só preço, sem dividendos).">Papel no período</th>
-               <th style="padding:4px" title="Retorno da estrutura MENOS o do papel. Negativo = o overshoot custou: era melhor só ter comprado a ação. Atenção: em mercado de alta o papel quase sempre ganha — isso mede o regime, não a qualidade da decisão. Overshoot é o preço do seguro.">Estrutura − papel</th></tr>
+               <th style="padding:4px" title="Quanto o PAPEL PURO teria rendido entre a entrada e a saída (preço + dividendos recebidos no período).">Papel no período</th>
+               <th style="padding:4px" title="Retorno da estrutura MENOS o do papel. Negativo = o overshoot custou: era melhor só ter comprado a ação. Atenção: em mercado de alta o papel quase sempre ganha — isso mede o regime, não a qualidade da decisão. Overshoot é o preço do seguro.">Estrutura − papel</th>
+               <th style="padding:4px" title="O que o PAPEL fez depois que você saiu da estrutura, até o vencimento original (ou até hoje, se ainda não venceu). Mostra se sair foi bom ou se o papel seguiu subindo. Não é o que você recebeu.">Papel depois de sair</th></tr>
             ${resumo.tabela_giro.map(r=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)">
               <td style="text-align:left;padding:4px">${(r.ticker||'').replace('.SA','')}</td>
               <td style="padding:4px">${r.dias_no_trade}</td><td style="padding:4px">${r.prazo_dias}</td>
@@ -4307,7 +4310,8 @@ async function loadAnalisesEncerradas(){
               <td style="padding:4px;color:var(--muted)">${r.retorno_mes_ate_o_fim_pct}%</td>
               <td style="padding:4px;font-weight:700;color:${r.passa_na_regua?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${r.folga_pontos==null?'—':(r.folga_pontos>0?'+':'')+r.folga_pontos+'p'}</td>
               <td style="padding:4px;color:var(--muted)">${r.retorno_papel_pct!=null?r.retorno_papel_pct+'%':'—'}</td>
-              <td style="padding:4px;font-weight:700;color:${r.estrutura_menos_papel_pp==null?'var(--muted)':(r.estrutura_menos_papel_pp>=0?'var(--green,#2ecc71)':'var(--warn,#e6a817)')}">${r.estrutura_menos_papel_pp==null?'—':(r.estrutura_menos_papel_pp>0?'+':'')+r.estrutura_menos_papel_pp+'p'}</td></tr>`).join('')}
+              <td style="padding:4px;font-weight:700;color:${r.estrutura_menos_papel_pp==null?'var(--muted)':(r.estrutura_menos_papel_pp>=0?'var(--green,#2ecc71)':'var(--warn,#e6a817)')}">${r.estrutura_menos_papel_pp==null?'—':(r.estrutura_menos_papel_pp>0?'+':'')+r.estrutura_menos_papel_pp+'p'}</td>
+              <td style="padding:4px;color:var(--muted)" title="${r.papel_pos_saida_pct==null?'':'O que o PAPEL fez depois que você saiu, até '+(r.papel_pos_saida_ate==='vencimento'?'o vencimento original':'hoje')+'. Não é o que você recebeu: o preço em que vendeu as ações só você sabe. Em rolagem, o papel continuou dentro de uma nova estrutura.'}">${r.papel_pos_saida_pct==null?'—':(r.papel_pos_saida_pct>0?'+':'')+r.papel_pos_saida_pct+'%'+(r.papel_pos_saida_ate==='hoje'?' <span style="font-size:9px;opacity:.7">hoje</span>':'')}</td></tr>`).join('')}
           </table>
           ${resumo.papel_vs_estrutura&&resumo.papel_vs_estrutura.medidas?`<div style="font-size:10px;color:var(--muted);margin-top:8px">🧾 <b>Papel vs estrutura</b>: a estrutura rendeu mais que só ter comprado o papel em <b>${resumo.papel_vs_estrutura.estrutura_venceu} de ${resumo.papel_vs_estrutura.medidas}</b> (diferença mediana ${resumo.papel_vs_estrutura.diferenca_mediana_pp>0?'+':''}${resumo.papel_vs_estrutura.diferenca_mediana_pp}p). ${resumo.papel_vs_estrutura.nota}</div>`:''}
           ${resumo.sem_dados_de_giro?`<div style="font-size:9px;color:var(--muted);margin-top:6px">${resumo.sem_dados_de_giro} encerradas sem alvo/realizado gravados ficam fora desta tabela (contam no placar).</div>`:''}
