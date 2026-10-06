@@ -403,7 +403,12 @@
       "papel_preco_entrada": 54.96,
       "papel_preco_saida": 58.65,
       "papel_retorno_pct": 6.71,
-      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+      "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+      "papel_dividendos_pct": 0.0,
+      "papel_retorno_total_pct": 6.71,
+      "papel_pos_saida_pct": 1.53,
+      "papel_pos_saida_ate": "hoje",
+      "papel_pos_saida_data": "2026-10-06"
     },
     {
       "id": "tend3",
@@ -438,7 +443,12 @@
       "papel_preco_entrada": 30.78,
       "papel_preco_saida": 29.24,
       "papel_retorno_pct": -5.0,
-      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+      "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+      "papel_dividendos_pct": 0.0,
+      "papel_retorno_total_pct": -5.0,
+      "papel_pos_saida_pct": -0.82,
+      "papel_pos_saida_ate": "hoje",
+      "papel_pos_saida_data": "2026-10-06"
     },
     {
       "id": "cl-bbas3-rolagem-fev27",
@@ -650,7 +660,12 @@
       "papel_preco_entrada": 281.0,
       "papel_preco_saida": 294.61,
       "papel_retorno_pct": 4.84,
-      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+      "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+      "papel_dividendos_pct": 0.19,
+      "papel_retorno_total_pct": 5.04,
+      "papel_pos_saida_pct": 2.03,
+      "papel_pos_saida_ate": "hoje",
+      "papel_pos_saida_data": "2026-10-06"
     },
     {
       "id": "cl-tend3-rolagem-out26",
@@ -729,7 +744,12 @@
       "papel_preco_entrada": 28.06,
       "papel_preco_saida": 27.01,
       "papel_retorno_pct": -3.74,
-      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+      "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+      "papel_dividendos_pct": 0.0,
+      "papel_retorno_total_pct": -3.74,
+      "papel_pos_saida_pct": 7.37,
+      "papel_pos_saida_ate": "hoje",
+      "papel_pos_saida_data": "2026-10-06"
     },
     {
       "id": "inbr32",
@@ -777,7 +797,12 @@
       "papel_preco_entrada": 29.51,
       "papel_preco_saida": 32.98,
       "papel_retorno_pct": 11.76,
-      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+      "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+      "papel_dividendos_pct": 0.0,
+      "papel_retorno_total_pct": 11.76,
+      "papel_pos_saida_pct": 6.22,
+      "papel_pos_saida_ate": "hoje",
+      "papel_pos_saida_data": "2026-10-06"
     },
     {
       "id": "ecor3",
@@ -817,7 +842,12 @@
       "papel_preco_entrada": 9.03,
       "papel_preco_saida": 12.33,
       "papel_retorno_pct": 36.54,
-      "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
+      "papel_fonte": "Yahoo: fechamento na saida + dividendos do periodo; entrada = preco inicial do banco",
+      "papel_dividendos_pct": 0.0,
+      "papel_retorno_total_pct": 36.54,
+      "papel_pos_saida_pct": 6.81,
+      "papel_pos_saida_ate": "hoje",
+      "papel_pos_saida_data": "2026-10-06"
     }
   ]
 }
