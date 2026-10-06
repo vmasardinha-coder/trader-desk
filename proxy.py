@@ -4593,6 +4593,117 @@ def rota_arquivar_posicoes():
 #   ROLAGEM -> o capital continua TRAVADO. Sair custaria o proprio
 #     premio da operacao (~9% no caso da ROXO34), entao a alternativa e
 #     nao fazer nada = ZERO. Aqui o CDI (1,12%/mes) e a regua justa.
+
+# ── PAPEL vs ESTRUTURA (06/10/2026, item 4 do backlog) ───────────────
+# "Valeu a estrutura ou era melhor so ter comprado o papel?" Compara o
+# retorno REALIZADO da estrutura com o que o PAPEL PURO teria rendido entre
+# a entrada e a saida (so preco, sem dividendos). Caso que motivou: SPCX34
+# de 02/09 -- o Victor ficou com as acoes, elas subiram e ele vendeu mais
+# caro; "era melhor eu so ter comprado a acao".
+#
+# LEITURA CORRETA (principio dele): o overshoot NAO e erro, e o preco do
+# seguro. Em mercado de alta o papel quase sempre ganha da estrutura; isso
+# mede o REGIME, nao a qualidade da decisao. A estrutura so perde de verdade
+# quando o Victor teria segurado o papel de qualquer jeito.
+#
+# Os campos sao GRAVADOS no registro (papel_*), porque buscar preco no Yahoo
+# dentro da chamada do painel estouraria o tempo no Render.
+def _papel_no_periodo(rec):
+    from datetime import datetime as _d, timedelta as _td, timezone as _tz
+    ent = rec.get('data_entrada')
+    sai = rec.get('data_saida') or rec.get('data_encerramento')
+    tk = rec.get('ticker')
+    if not (ent and sai and tk):
+        return None
+    sym = tk if str(tk).upper().endswith('.SA') else f'{tk}.SA'
+    try:
+        r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=2y&interval=1d',
+                         headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+        if not r.ok:
+            return None
+        res = r.json()['chart']['result'][0]
+        cl = res['indicators']['quote'][0]['close']
+        serie = {_d.fromtimestamp(t, tz=_tz.utc).date(): c for t, c in zip(res['timestamp'], cl) if c}
+    except Exception:
+        return None
+    if len(serie) < 60:          # ex.: BSLV39, que o Yahoo devolve com 1 candle
+        return None
+    d_ent = _d.strptime(str(ent)[:10], '%Y-%m-%d').date()
+    d_sai = _d.strptime(str(sai)[:10], '%Y-%m-%d').date()
+    def no_dia(d0, sentido):
+        for k in range(0, 8):
+            x = d0 + _td(days=sentido * k)
+            if x in serie:
+                return serie[x]
+        return None
+    hist_ent = no_dia(d_ent, +1)
+    p_ent = rec.get('entry')
+    # entrada PROVISORIA (numeros_confirmados False) e estimativa minha, nao
+    # preco do banco -- caso real: o entry da ECOR3 era 8,63 (estimado) e o
+    # fechamento de 30/09 foi 9,03, o que inflava o retorno do papel de
+    # ~36% para ~43%. Provisorio nao vale; usa o historico.
+    if rec.get('numeros_confirmados') is False:
+        p_ent = None
+    # preco inicial oficial do banco quando existe; se destoar muito do
+    # historico (>15%), o registro esta errado -- cai no historico.
+    if not p_ent or (hist_ent and abs(float(p_ent) / hist_ent - 1) > 0.15):
+        p_ent = hist_ent
+    p_sai = no_dia(d_sai, -1)
+    if not p_ent or not p_sai:
+        return None
+    return {'papel_preco_entrada': round(float(p_ent), 4),
+            'papel_preco_saida': round(float(p_sai), 4),
+            'papel_retorno_pct': round(100 * (float(p_sai) / float(p_ent) - 1), 2),
+            'papel_fonte': 'Yahoo: fechamento na saida; entrada = preco inicial do banco'}
+
+
+def _preencher_papel_vs_estrutura(forcar=False):
+    """Grava papel_* nas encerradas que tem alvo/realizado e ainda nao tem."""
+    out = {}
+    for path in ('positions.json', 'positions_arquivo.json'):
+        s_, sha_ = _github_get_file(path)
+        d_ = json.loads(s_)
+        lst = d_['encerradas'] if isinstance(d_, dict) else d_
+        n = 0
+        for x in lst:
+            if x.get('status') not in ('sucesso', 'fracasso', 'parcial'):
+                continue
+            if x.get('alvo_pct') is None or x.get('realizado_pct') is None:
+                continue
+            if x.get('papel_retorno_pct') is not None and not forcar:
+                continue
+            r = _papel_no_periodo(x)
+            if r:
+                x.update(r)
+                n += 1
+        if n:
+            _github_put_file(path, json.dumps(d_, indent=2, ensure_ascii=False), sha_,
+                             f'feat: papel vs estrutura gravado em {n} encerradas')
+        out[path] = n
+    return out
+
+
+def _resumo_papel_vs_estrutura(linhas):
+    import statistics as _s
+    m = [r for r in linhas if r.get('estrutura_menos_papel_pp') is not None]
+    if not m:
+        return {'medidas': 0}
+    v = sum(1 for r in m if r['estrutura_menos_papel_pp'] >= 0)
+    return {'medidas': len(m), 'estrutura_venceu': v, 'papel_venceu': len(m) - v,
+            'diferenca_mediana_pp': round(_s.median(r['estrutura_menos_papel_pp'] for r in m), 2),
+            'nota': ('So preco, sem dividendos. Em mercado de alta o papel quase sempre ganha da '
+                     'estrutura: isso mede o regime, nao a qualidade da decisao. Overshoot e o preco do seguro.')}
+
+
+@app.route('/positions/papel-vs-estrutura', methods=['POST'])
+def rota_papel_vs_estrutura():
+    """Preenche papel_* nas encerradas que ainda nao tem. ?forcar=1 refaz todas."""
+    try:
+        return jsonify({'gravados': _preencher_papel_vs_estrutura(request.args.get('forcar') == '1')})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 _REGUA_SAIDA_PCT_MES = 2.5     # diretriz do Victor
 _REGUA_ROLAGEM_PCT_MES = 1.12  # CDI
 
@@ -4662,6 +4773,9 @@ def _resumo_encerradas():
             'retorno_mes_realizado_pct': round(real / (dias / 30.0), 2),
             **_avaliar_contra_regua('saida', round(float(real) / (dias / 30.0), 2) if dias else None),
             'retorno_mes_ate_o_fim_pct': round(alvo / (prazo / 30.0), 2),
+            'retorno_papel_pct': x.get('papel_retorno_pct'),
+            'estrutura_menos_papel_pp': (round(real - x['papel_retorno_pct'], 2)
+                                         if x.get('papel_retorno_pct') is not None else None),
         })
     linhas.sort(key=lambda r: -r['giro'])
     # A outra metade da historia (pedido do Victor, 23/09/2026): quando deu
@@ -4753,6 +4867,7 @@ def _resumo_encerradas():
         # campo preenchido a mao em 3 de 19 registros, e so contavam as
         # visiveis na tela -- por isso o placar dizia 8 de 9 enquanto o
         # historico real era 15 de 19).
+        'papel_vs_estrutura': _resumo_papel_vs_estrutura(linhas),
         'media_pct_do_alvo': round(_st.mean(r['pct_do_lucro'] for r in linhas), 1) if linhas else None,
         'media_pct_do_prazo': round(_st.mean(r['pct_do_tempo'] for r in linhas), 1) if linhas else None,
         'giro_acima_de_1': sum(1 for x in g if x > 1),
@@ -5647,6 +5762,7 @@ def ranking_analises():
                 tipo = a.get('tipo_estrutura')
                 ganho_pct = None
                 prob_overshoot_pct = None
+                prob_overshoot_agora_pct = None
                 overshoot_medio_pct = None
                 prob_meta = None
 
@@ -5714,6 +5830,16 @@ def ranking_analises():
                     variacao_final_pct = variacao_full * 100
                     overshoot_mask = variacao_final_pct > ganho_pct
                     prob_overshoot_pct = round(float(overshoot_mask.mean()*100), 2)
+                    # ITEM 5 (06/10/2026). O de cima e o overshoot NA DECISAO:
+                    # simulado do preco da FOTO pelo prazo cheio, entao nao se
+                    # mexe -- e o que o Victor quer saber ("qual o risco no dia
+                    # que eu estou entrando"). Este e o par dele, AGORA: do preco
+                    # de hoje, com os dias que faltam, contra o MESMO teto
+                    # absoluto (preco da foto x (1 + ganho)). Sobe conforme o
+                    # papel avanca e converge para 100% quando o teto ja foi
+                    # ultrapassado. Os dois juntos mostram a evolucao.
+                    prob_overshoot_agora_pct = round(float(
+                        (paths_sim[:, -1] > preco_foto*(1+ganho_pct/100)).mean()*100), 2)
                     overshoot_medio_pct = (
                         round(float((variacao_final_pct[overshoot_mask] - ganho_pct).mean()), 2)
                         if overshoot_mask.any() else 0.0)
@@ -5811,8 +5937,16 @@ def ranking_analises():
                     resultado.append({**_linha_ranking_base(a), 'erro': f'tipo_estrutura {tipo!r} nao suportado no ranking ainda'})
                     continue
 
-                retorno_mensal = round(ganho_pct / meses_restantes, 3)  # mantido para referencia/coluna antiga
+                # ITEM 6 (06/10/2026). O retorno mensal era ganho / meses que
+                # FALTAM, entao inflava conforme o vencimento chegava (SPCX34
+                # mostrava 26%/mes; a ECOR3 passou de 40%). O ganho prefixado e
+                # FIXO no contrato -- o que muda com o tempo e so a chance de
+                # chegar la. Agora a coluna principal divide pelo prazo TOTAL e a
+                # conta antiga vira 'equivalente se entrasse hoje', separada.
+                # (Nao entra no score; o EV ja usava meses_totais.)
+                retorno_mensal_hoje = round(ganho_pct / meses_restantes, 3)
                 meses_totais = max(prazo_dias / 30.4, 0.1)
+                retorno_mensal = round(ganho_pct / meses_totais, 3)
                 ev_mensal_pct = round(retorno_medio_pct / meses_totais, 3)
                 # EV daqui pra frente, normalizado pelos meses que FALTAM --
                 # e este que entra no score, porque o score ordena "o que
@@ -5887,6 +6021,7 @@ def ranking_analises():
                     'meses_restantes': round(meses_restantes, 2),
                     'ganho_pct': ganho_pct,
                     'retorno_mensal_pct': retorno_mensal,
+                    'retorno_mensal_hoje_pct': retorno_mensal_hoje,
                     'prob_meta_pct': prob_meta,
                     'retorno_medio_pct': retorno_medio_pct,
                     'ev_mensal_pct': ev_mensal_pct,
@@ -5899,6 +6034,7 @@ def ranking_analises():
                     'peso_prazo': round(peso_prazo, 3),
                     'score': round(score, 4),
                     'prob_overshoot_pct': prob_overshoot_pct,
+                    'prob_overshoot_agora_pct': prob_overshoot_agora_pct,
                     'overshoot_medio_pct': overshoot_medio_pct,
                 })
             except Exception as e_item:
