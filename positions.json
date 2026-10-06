@@ -73,7 +73,10 @@
         "retorno_pct": 3.48,
         "referencia_mtm": 26.57,
         "fonte": "extrato oficial Itau 29/09/2026"
-      }
+      },
+      "prob_overshoot_entrada_pct": 27.06,
+      "teto_overshoot_entrada": 27.0804,
+      "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
     },
     {
       "id": "tsla342",
@@ -103,7 +106,10 @@
         "retorno_pct": -0.27,
         "referencia_mtm": 58.4,
         "fonte": "extrato oficial Itau 29/09/2026"
-      }
+      },
+      "prob_overshoot_entrada_pct": 36.55,
+      "teto_overshoot_entrada": 61.8171,
+      "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
     },
     {
       "id": "bb3",
@@ -193,7 +199,10 @@
           "em": "2026-09-30T10:51:47",
           "motivo": "extrato oficial Itau 29/09/2026"
         }
-      ]
+      ],
+      "prob_overshoot_entrada_pct": 33.03,
+      "teto_overshoot_entrada": 103.9824,
+      "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
     },
     {
       "id": "tend33",
