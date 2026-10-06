@@ -60540,7 +60540,7 @@
     "ticker": "SBFG3.SA",
     "nome": "SBFG3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 7.77,
     "kdo": 6.82,
@@ -60571,7 +60571,15 @@
       "fator": 24.8,
       "fator_60d": 59.5
     },
-    "observacao": "Lote 29/09/2026. Defesa 12.2%, ganho 6.40% em 15 dias = 12.80%/mes. Prob 81.3% (GARCH 43.7%), EV 5.32%/mes. Risco historico: rompe 53.2% das janelas de 15d e 40.5% das de 60d; acompanha o indice em 94.0% das quedas. Fator 24.8."
+    "observacao": "Lote 29/09/2026. Defesa 12.2%, ganho 6.40% em 15 dias = 12.80%/mes. Prob 81.3% (GARCH 43.7%), EV 5.32%/mes. Risco historico: rompe 53.2% das janelas de 15d e 40.5% das de 60d; acompanha o indice em 94.0% das quedas. Fator 24.8.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-06",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 2.803,
+    "score_na_rejeicao": 17.8296,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 10.1
   },
   {
     "id": "an_1790700036",
