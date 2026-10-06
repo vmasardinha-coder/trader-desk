@@ -438,9 +438,9 @@
       "encerramento_antecipado": true,
       "alvo_pct": 19.0,
       "realizado_pct": 5.86,
-      "papel_preco_entrada": 31.31,
+      "papel_preco_entrada": 30.78,
       "papel_preco_saida": 29.24,
-      "papel_retorno_pct": -6.61,
+      "papel_retorno_pct": -5.0,
       "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     },
     {
@@ -817,9 +817,9 @@
       "giro": 12.54,
       "retorno_mes_realizado_pct": 79.44,
       "resultado_texto": "Entrada em 30/09/2026 com o capital que saiu da TSMC34. Defesa de 20%, ganho 13,30% em 63 dias = 6,23%/mes, prob 67,6%. ESCOLHIDA CONTRA A SPCX34 e contra a versao de 15 dias: o Victor preferiu a de 64 dias porque mantem o mesmo capital e separa o lucro, e porque a probabilidade e maior que a da de 15 dias com defesa menor. RISCO CONHECIDO E ACEITO: ECOR3 rompe 35,3% das janelas de 60d, acompanha o indice em 90% das quedas e o pior drawdown de 15d e -33,6% contra defesa de 20%. O premio de 13,30% e o que compensa isso. entry e KDO provisorios ate o boleto. | ENCERRADA ANTECIPADAMENTE em 05/10/2026 com SUCESSO SUPREMO. Capturou 13,24% de um alvo de 13,30% -- 99,5% do premio -- em apenas 5 dos 63 dias (7,9% do prazo). GIRO 12,54x, de longe o maior ja registrado (o anterior era 34,51x da ROXO34, mas com 1 dia; entre as de prazo normal, este e o recorde). Realizado 79,44%/mes contra diretriz de 2,5%. CONTEXTO: entrou em 30/09 logo apos a alta do mercado puxada pelas eleicoes -- o BOVA11 subiu 3,03% em 02/10 e 4,94% acumulados, e a ECOR3 sozinha fez +6,23% no dia e +14,07% no periodo. A estrutura bateu o teto quase instantaneamente. Risco assumido e documentado na entrada: ECOR3 rompe 35,3% das janelas de 60d e acompanha o indice em 90% das quedas; desta vez o movimento foi para cima.",
-      "papel_preco_entrada": 8.63,
+      "papel_preco_entrada": 9.03,
       "papel_preco_saida": 12.33,
-      "papel_retorno_pct": 42.87,
+      "papel_retorno_pct": 36.54,
       "papel_fonte": "Yahoo: fechamento na saida; entrada = preco inicial do banco"
     }
   ]
