@@ -282,7 +282,13 @@
         "entry"
       ],
       "origem": "boleto Itau 05/10/2026 (53970.pdf)",
-      "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato."
+      "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
+      "nome": "Nubank (ROXO34) — Retorno Controlado 12% / 64d",
+      "kdo_pct": -15.71,
+      "entry_confirmado": false,
+      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)",
+      "prob_atual_pct": 65.9,
+      "prob_atual_em": "2026-10-06"
     },
     {
       "id": "itlc34",
@@ -309,7 +315,13 @@
         "entry"
       ],
       "origem": "boleto Itau 05/10/2026 (53978.pdf)",
-      "observacao": "Entrada em 05/10/2026. Defesa 15.8%, ganho 8.5% em 31 dias = 8.23%/mes. Prob do KDO 53.7%, overshoot na entrada 32.2%, EV -3.59%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 98.00, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato."
+      "observacao": "Entrada em 05/10/2026. Defesa 15.8%, ganho 8.5% em 31 dias = 8.23%/mes. Prob do KDO 53.7%, overshoot na entrada 32.2%, EV -3.59%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 98.00, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
+      "nome": "Intel (ITLC34) — Retorno Controlado 8,5% / 31d",
+      "kdo_pct": -15.8,
+      "entry_confirmado": false,
+      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)",
+      "prob_atual_pct": 53.7,
+      "prob_atual_em": "2026-10-06"
     }
   ],
   "encerradas": [
