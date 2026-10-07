@@ -218,9 +218,9 @@
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
       "vencimento": "2026-12-02",
-      "entry": 28.06,
+      "entry": 26.97,
       "kdo": 21.58,
-      "kdo_pct": "-23.1%",
+      "kdo_pct": -20.0,
       "vol_impl": 0.5,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-09-30",
@@ -275,15 +275,22 @@
           "para": "2026-12-02",
           "em": "2026-10-07",
           "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 28.06,
+          "para": 26.97,
+          "em": "2026-10-07",
+          "motivo": "entry = KDO oficial / (1 - defesa do boleto); defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10"
         }
       ],
       "aguardando_boleto": true,
       "campos_provisorios": [
-        "ganho_prefixado_pct",
-        "entry",
-        "prob_sucesso_prevista_pct"
+        "ganho_prefixado_pct"
       ],
-      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)"
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 + defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10",
+      "protecao_pct": 20.0,
+      "entry_confirmado": true
     },
     {
       "id": "roxo35",
@@ -295,7 +302,7 @@
       "data_entrada": "2026-10-05",
       "vencimento": "2026-12-08",
       "prazo_dias": 64,
-      "entry": 12.6,
+      "entry": 12.59,
       "kdo": 10.61,
       "ganho_prefixado_pct": 12.0,
       "ganho_sem_barreira": "12.00% fixo",
@@ -304,17 +311,14 @@
       "prob_overshoot_entrada_pct": 23.5,
       "vol_impl": 0.3598,
       "vol_impl_fonte": "garch",
-      "numeros_confirmados": false,
+      "numeros_confirmados": true,
       "aguardando_boleto": false,
-      "campos_provisorios": [
-        "entry"
-      ],
       "origem": "boleto Itau 05/10/2026 (53970.pdf)",
       "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
       "nome": "Nubank (ROXO34) — Retorno Controlado 12% / 64d",
-      "kdo_pct": -15.79,
-      "entry_confirmado": false,
-      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
+      "kdo_pct": -15.7,
+      "entry_confirmado": true,
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 + boleto 05/10 (53970) + KDO do extrato 07/10",
       "historico_correcoes": [
         {
           "campo": "strike",
@@ -336,6 +340,13 @@
           "para": 10.61,
           "em": "2026-10-07",
           "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 12.6,
+          "para": 12.59,
+          "em": "2026-10-07",
+          "motivo": "entry = KDO oficial / (1 - defesa do boleto); boleto 05/10 (53970) + KDO do extrato 07/10"
         }
       ],
       "strike": 14.12,
@@ -351,7 +362,7 @@
       "data_entrada": "2026-10-05",
       "vencimento": "2026-11-05",
       "prazo_dias": 31,
-      "entry": 98.0,
+      "entry": 97.89,
       "kdo": 82.42,
       "ganho_prefixado_pct": 8.5,
       "ganho_sem_barreira": "8.50% fixo",
@@ -360,17 +371,14 @@
       "prob_overshoot_entrada_pct": 32.2,
       "vol_impl": 0.6918,
       "vol_impl_fonte": "garch",
-      "numeros_confirmados": false,
+      "numeros_confirmados": true,
       "aguardando_boleto": false,
-      "campos_provisorios": [
-        "entry"
-      ],
       "origem": "boleto Itau 05/10/2026 (53978.pdf)",
       "observacao": "Entrada em 05/10/2026. Defesa 15.8%, ganho 8.5% em 31 dias = 8.23%/mes. Prob do KDO 53.7%, overshoot na entrada 32.2%, EV -3.59%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 98.00, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
       "nome": "Intel (ITLC34) — Retorno Controlado 8,5% / 31d",
-      "kdo_pct": -15.9,
-      "entry_confirmado": false,
-      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
+      "kdo_pct": -15.8,
+      "entry_confirmado": true,
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 + boleto 05/10 (53978) + KDO do extrato 07/10",
       "historico_correcoes": [
         {
           "campo": "strike",
@@ -392,6 +400,13 @@
           "para": 82.42,
           "em": "2026-10-07",
           "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 98.0,
+          "para": 97.89,
+          "em": "2026-10-07",
+          "motivo": "entry = KDO oficial / (1 - defesa do boleto); boleto 05/10 (53978) + KDO do extrato 07/10"
         }
       ],
       "strike": 106.43,
