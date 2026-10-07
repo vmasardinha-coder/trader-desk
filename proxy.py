@@ -2285,9 +2285,7 @@ def get_ranking_posicoes(tipo):
     if tipo not in _TIPOS_RANKING_POSICOES:
         return jsonify({'error': f"tipo invalido, use um de {_TIPOS_RANKING_POSICOES}"}), 400
     try:
-        r = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/positions.json',
-            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        r = _raw_repo_get('positions.json')
         if not r.ok:
             return jsonify({'error': 'positions.json indisponivel'}), 500
         data = r.json()
@@ -3558,6 +3556,20 @@ import os as _os_module
 def _github_write_token():
     return _os_module.environ.get('GITHUB_WRITE_TOKEN')
 
+def _raw_repo_get(path, timeout=10):
+    """Le um arquivo do repo via raw.githubusercontent SEM cache do CDN.
+
+    07/10/2026 (backlog #8): o header Cache-Control:no-cache NAO e respeitado
+    pelo CDN do raw -- ele guarda a copia por ~5 min pela URL. Resultado: o
+    painel mostrava o valor ANTERIOR logo apos uma gravacao (ECOR3 42,9% com
+    o repo ja em 36,5%). Um parametro unico na URL (?bust=) forca copia nova.
+    """
+    import time as _tb
+    return requests.get(
+        f'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/{path}?bust={int(_tb.time())}',
+        headers={'Cache-Control': 'no-cache'}, timeout=timeout)
+
+
 def _github_get_file(path):
     """Le um arquivo do repo via API do GitHub (com auth), retornando (conteudo_decodificado, sha)."""
     import base64 as _b64
@@ -3884,9 +3896,7 @@ def get_analises():
     do GitHub indefinidamente, sem custo de leitura).
     """
     try:
-        r = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
-            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        r = _raw_repo_get('analises.json')
         if not r.ok:
             return jsonify({'error': 'analises.json indisponivel'}), 500
         data = r.json()
@@ -3919,9 +3929,7 @@ def get_analises_stats():
     listagem (ver filtro de 30 dias em GET /analises).
     """
     try:
-        r = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/stats_analises.json',
-            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        r = _raw_repo_get('stats_analises.json')
         if not r.ok:
             return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
         return jsonify(r.json())
@@ -5167,9 +5175,7 @@ def checar_barreiras_analises():
     funcao usada em GET /analises/<id>/foto-bandas).
     """
     try:
-        r = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
-            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        r = _raw_repo_get('analises.json')
         if not r.ok:
             return jsonify({'error': 'analises.json indisponivel'}), 500
         lista = r.json()
@@ -5267,9 +5273,7 @@ def get_analise_foto_bandas(id):
     nao a um "papel" generico da watchlist).
     """
     try:
-        r = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/analises.json',
-            headers={'Cache-Control': 'no-cache'}, timeout=10)
+        r = _raw_repo_get('analises.json')
         if not r.ok:
             return jsonify({'error': 'analises.json indisponivel'}), 500
         lista = r.json()
@@ -6759,9 +6763,7 @@ def get_positions():
     Para editar/abrir/encerrar posicoes: editar positions.json direto, sem tocar em codigo.
     """
     try:
-        r = requests.get(
-            'https://raw.githubusercontent.com/vmasardinha-coder/trader-desk/main/positions.json',
-            headers={'Cache-Control':'no-cache'}, timeout=10)
+        r = _raw_repo_get('positions.json')
         if not r.ok:
             return jsonify({'error': 'positions.json indisponivel'}), 500
         data = r.json()
