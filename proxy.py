@@ -6460,6 +6460,77 @@ def _congelar_bandas_analise(novo):
 #                desperdicio.
 # Roda em thread (a resposta volta na hora) e grava no repo ao terminar.
 
+# ── GRADE DE ROMPIMENTO POR PRAZO REAL (07/10/2026, backlog #9) ──────
+# Ate aqui o risco historico tinha DUAS barreiras fixas: 8,2% em 15 pregoes
+# e 20% em 60. As ofertas reais tem prazo 15/43/63/91 DIAS CORRIDOS e KDO
+# variavel, entao uma oferta de 43d ou 91d era julgada por uma regua que
+# nao e a dela. A grade guarda, por papel, a frequencia historica (5 anos,
+# janelas moveis, minima intradia) de tocar cada profundidade de barreira
+# dentro de cada prazo. Prazo em dias corridos -> pregoes (x252/365).
+GRADE_PRAZOS_DIAS = (15, 43, 63, 91)
+GRADE_BARREIRAS_PCT = (5, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30)
+
+def _pregoes_do_prazo(dias):
+    return max(1, round(dias * 252 / 365))
+
+def _grade_rompimento(lows):
+    """lows: [(close, low)]. Devolve {prazo_dias: {barreira_pct: freq_pct}}.
+    Por janela: pior queda (menor minima / fechamento inicial) nos proximos
+    N pregoes; a frequencia de cada barreira e a fatia de janelas cuja pior
+    queda alcancou aquela profundidade."""
+    grade = {}
+    for dias in GRADE_PRAZOS_DIAS:
+        n = _pregoes_do_prazo(dias)
+        if len(lows) <= n + 20:
+            continue
+        piores = []
+        for i in range(len(lows) - n):
+            base = lows[i][0]
+            piores.append(min(lows[i + k][1] for k in range(1, n + 1)) / base - 1)
+        tot = len(piores)
+        grade[str(dias)] = {
+            str(b): round(100 * sum(1 for q in piores if q <= -b / 100) / tot, 1)
+            for b in GRADE_BARREIRAS_PCT}
+    return _grade_monotona(grade)
+
+def _grade_monotona(grade):
+    """Prazo maior nunca tem MENOS rompimento que um menor (a janela maior
+    contem a menor). Papeis com pouco historico (CRWD) geram inversoes de
+    ate ~9p por ruido de amostra; corrige com maximo acumulado por barreira."""
+    prazos = sorted(grade, key=float)
+    for b in (grade[prazos[0]] if prazos else {}):
+        acc = 0.0
+        for d in prazos:
+            acc = max(acc, grade[d][b])
+            grade[d][b] = acc
+    return grade
+
+def freq_rompimento_grade(papel, barreira_pct, prazo_dias):
+    """Frequencia historica (%) de o papel tocar uma barreira de
+    `barreira_pct` abaixo em `prazo_dias` dias corridos, interpolando a grade
+    entre prazos e profundidades vizinhos. None se o papel nao tem grade."""
+    g = (papel or {}).get('grade_rompimento')
+    if not g:
+        return None
+    def interp(pontos, x):
+        pontos = sorted(pontos)
+        if x <= pontos[0][0]:
+            return pontos[0][1]
+        if x >= pontos[-1][0]:
+            return pontos[-1][1]
+        for (x0, y0), (x1, y1) in zip(pontos, pontos[1:]):
+            if x0 <= x <= x1:
+                return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    por_prazo = []
+    for d, linha in g.items():
+        pts = [(float(b), f) for b, f in linha.items()]
+        if pts:
+            por_prazo.append((float(d), interp(pts, float(barreira_pct))))
+    if not por_prazo:
+        return None
+    return round(interp(por_prazo, float(prazo_dias)), 1)
+
+
 _REGEN = {'rodando': False, 'ultimo': None}
 
 def _regerar_bloco(qual, escopo='rapido'):
@@ -6538,6 +6609,7 @@ def _regerar_bloco(qual, escopo='rapido'):
                 fr60 = round(100 * sum(f60) / len(f60), 1)
                 p['rompe_20_em_60d_pct'] = fr60
                 p['fator_60d'] = round(100 * (1 - fr60 / 100), 1)
+            p['grade_rompimento'] = _grade_rompimento(dp['lows'])
             f = freq15(dp['lows'])
             m = min(len(f), len(base))
             fr = round(100 * sum(f) / len(f), 1)
