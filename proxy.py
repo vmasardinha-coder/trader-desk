@@ -5723,6 +5723,111 @@ def forcar_migracao_retroativa(analise_id):
 FUND_OVERRIDE_GLOBAL = DY_GLOBAL
 _SEM_DY_RELEVANTE = SEM_DY_RELEVANTE
 
+# ── PERFIL DE RISCO PARA QUALQUER TICKER (07/10/2026, backlog #2b) ────
+# O Fator so existia para os 74 papeis dos blocos Brasil/EUA. Metade do
+# ranking (VBBR3, BPAC11, RADL3, ENGI11, EQTL3, RDOR3, SPCX34...) ficava
+# sem Fator, sem Score misto e sem DY/Colchão. Aqui o perfil e calculado
+# para QUALQUER ticker, na mesma metodologia (5 anos, minima intradia,
+# janelas moveis, BOVA11 como indice) e tambem traz o DY de 12 meses, a
+# partir dos dividendos pagos no Yahoo. Camadas, da mais barata:
+#   1) papeis_br/eua.json (curado)  2) riscos_extra.json (pre-gerado)
+#   3) calculo na hora, guardado 24h em memoria.
+_PERFIL_MEM = {}
+_EXTRA_CACHE = {'ts': 0, 'v': {}}
+
+def _serie_5y(sym):
+    """close/low/dividendos de 5 anos do Yahoo. None se nao houver serie."""
+    for host in ('query1', 'query2'):
+        try:
+            r = requests.get(f'https://{host}.finance.yahoo.com/v8/finance/chart/{sym}'
+                             f'?range=5y&interval=1d&events=div',
+                             headers={'User-Agent': 'Mozilla/5.0'}, timeout=25)
+            if not r.ok:
+                continue
+            res = r.json()['chart']['result'][0]
+            q = res['indicators']['quote'][0]
+            pares = [(c, l) for c, l in zip(q['close'], q['low']) if c and l]
+            if len(pares) < 120:
+                return None
+            divs = [(int(v['date']), float(v['amount']))
+                    for v in ((res.get('events') or {}).get('dividends') or {}).values()]
+            return {'lows': pares, 'divs': divs, 'spot': res['meta'].get('regularMarketPrice')
+                    or pares[-1][0]}
+        except Exception:
+            continue
+    return None
+
+def _freq15_serie(pares, barr=-0.082):
+    return [any(pares[i + k][1] / pares[i][0] - 1 <= barr for k in range(1, 16))
+            for i in range(len(pares) - 15)]
+
+def _calcular_perfil_risco(ticker):
+    """Devolve {'grade_rompimento','rompe_com_indice_pct','dy_12m_pct',...}
+    ou None se nao ha serie. BSLV39 usa a prata (SLV) como proxy de preco."""
+    import time as _tp
+    t = str(ticker).upper()
+    base_t = t.replace('.SA', '')
+    sym = 'SLV' if base_t == 'BSLV39' else (t if t.endswith('.SA') else base_t + '.SA')
+    d = _serie_5y(sym)
+    if not d:
+        return None
+    out = {'grade_rompimento': _grade_rompimento(d['lows']), 'fonte_serie': sym,
+           'gerado_em': _dt_now_iso()[:10]}
+    # correlacao com o indice (mesma definicao do bloco Papeis)
+    try:
+        if 'BOVA11.SA' not in _PERFIL_MEM:
+            b = _serie_5y('BOVA11.SA')
+            _PERFIL_MEM['BOVA11.SA'] = _freq15_serie(b['lows']) if b else None
+        base = _PERFIL_MEM['BOVA11.SA']
+        if base:
+            f = _freq15_serie(d['lows'])
+            m = min(len(f), len(base))
+            out['rompe_com_indice_pct'] = round(100 * sum(1 for a, c in zip(f[-m:], base[-m:]) if a and c)
+                                                / max(sum(base[-m:]), 1), 0)
+    except Exception:
+        pass
+    # DY 12m = dividendos dos ultimos 365 dias / preco atual
+    try:
+        corte = _tp.time() - 365 * 86400
+        soma = sum(v for ts, v in d['divs'] if ts >= corte)
+        out['dy_12m_pct'] = round(100 * soma / d['spot'], 2) if d['spot'] else None
+    except Exception:
+        pass
+    return out
+
+def _extra_riscos():
+    import time as _tp
+    if _tp.time() - _EXTRA_CACHE['ts'] < 600 and _EXTRA_CACHE['v']:
+        return _EXTRA_CACHE['v']
+    try:
+        d = _ler_json_raw('riscos_extra.json')
+        v = (d.get('papeis') if isinstance(d, dict) else None) or {}
+    except Exception:
+        v = {}
+    _EXTRA_CACHE.update(ts=_tp.time(), v=v)
+    return v
+
+def _perfil_risco(ticker):
+    """Perfil de risco/DY de qualquer ticker (None se o Yahoo nao tem serie)."""
+    import time as _tp
+    chave = str(ticker).upper().replace('.SA', '')
+    p = _mapa_papeis_fator().get(chave)
+    if p and p.get('grade_rompimento'):
+        return p
+    e = _extra_riscos().get(chave)
+    if e:
+        return e
+    hit = _PERFIL_MEM.get('p:' + chave)
+    if hit and _tp.time() - hit[0] < 86400:
+        return hit[1]
+    try:
+        v = _calcular_perfil_risco(ticker)
+    except Exception:
+        v = None
+    _PERFIL_MEM['p:' + chave] = (_tp.time(), v)
+    return v
+
+
 # ── FATOR NO RANKING DE ANALISES (07/10/2026, backlog #2) ────────────
 # Antes o ranking ordenava por EV/score, que so enxerga a volatilidade
 # GARCH do momento. O Fator mede outra coisa: quantas vezes, em 5 anos, o
@@ -5760,7 +5865,7 @@ def _fator_da_oferta(ticker, kdo, preco_foto, prazo_dias, retorno_mensal):
     try:
         if not kdo or not preco_foto or not prazo_dias:
             return vazio
-        p = _mapa_papeis_fator().get(str(ticker).upper().replace('.SA', ''))
+        p = _perfil_risco(ticker)
         defesa = round((1 - float(kdo) / float(preco_foto)) * 100, 2)
         out = {**vazio, 'defesa_pct': defesa}
         freq = freq_rompimento_grade(p, defesa, prazo_dias) if p else None
@@ -6148,9 +6253,21 @@ def ranking_analises():
                 score = (ev_score * peso_prazo) if ev_score >= 0 else (ev_score / peso_prazo)
 
                 dy_anual = FUND_OVERRIDE_GLOBAL.get(symbol)
+                dy_fonte = 'fundamentos.json' if dy_anual is not None else None
+                if dy_anual is None:
+                    # 07/10/2026: DY de 12 meses pelos dividendos pagos no Yahoo,
+                    # para os papeis que nao estao no cadastro curado. 0 e um
+                    # valor valido (papel que nao paga), nao ausencia de dado.
+                    _pf = _perfil_risco(ticker) or {}
+                    if _pf.get('dy_12m_pct') is not None:
+                        dy_anual = _pf['dy_12m_pct']
+                        dy_fonte = 'Yahoo (dividendos 12m)'
                 tem_dy_relevante = (symbol not in _SEM_DY_RELEVANTE and dy_anual is not None and dy_anual > 0)
+                # Colchao = DY mensal - CDI mensal. Mostrado sempre que o DY e
+                # conhecido (negativo = o dividendo nao cobre o CDI). O bonus de
+                # +0,1 no score continua so para quem tem DY relevante.
                 colchao_vs_cdi = None
-                if tem_dy_relevante:
+                if dy_anual is not None:
                     colchao_vs_cdi = round((dy_anual/12) - cdi_mensal, 3)
 
                 # Score agora usa EV mensal (pondera TODOS os cenarios via
@@ -6214,7 +6331,8 @@ def ranking_analises():
                     'ev_mensal_pct': ev_mensal_pct,
                     'ev_mensal_fwd_pct': ev_mensal_fwd_pct,
                     'retorno_medio_fwd_pct': retorno_medio_fwd_pct,
-                    'dy_anual_pct': dy_anual if tem_dy_relevante else None,
+                    'dy_anual_pct': dy_anual,
+                    'dy_fonte': dy_fonte,
                     'cdi_mensal_pct': round(cdi_mensal, 3),
                     'colchao_dy_vs_cdi_pct': colchao_vs_cdi,
                     'vol_generica_usada': vol_generica_usada,
