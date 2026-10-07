@@ -5795,6 +5795,38 @@ def _calcular_perfil_risco(ticker):
         pass
     return out
 
+def _dy_12m(ticker):
+    """DY de 12 meses (%) pelos dividendos pagos no Yahoo; cache 24h.
+    Usado quando o perfil vem dos blocos Brasil/EUA, que nao trazem DY."""
+    import time as _tp
+    chave = 'dy:' + str(ticker).upper()
+    hit = _PERFIL_MEM.get(chave)
+    if hit and _tp.time() - hit[0] < 86400:
+        return hit[1]
+    v = None
+    t = str(ticker).upper()
+    sym = 'SLV' if t.replace('.SA', '') == 'BSLV39' else (t if t.endswith('.SA') else t + '.SA')
+    for host in ('query1', 'query2'):
+        try:
+            r = requests.get(f'https://{host}.finance.yahoo.com/v8/finance/chart/{sym}'
+                             f'?range=1y&interval=1d&events=div',
+                             headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
+            if not r.ok:
+                continue
+            res = r.json()['chart']['result'][0]
+            spot = res['meta'].get('regularMarketPrice')
+            divs = ((res.get('events') or {}).get('dividends') or {}).values()
+            corte = _tp.time() - 365 * 86400
+            soma = sum(float(x['amount']) for x in divs if int(x['date']) >= corte)
+            if spot:
+                v = round(100 * soma / spot, 2)
+            break
+        except Exception:
+            continue
+    _PERFIL_MEM[chave] = (_tp.time(), v)
+    return v
+
+
 def _extra_riscos():
     import time as _tp
     if _tp.time() - _EXTRA_CACHE['ts'] < 600 and _EXTRA_CACHE['v']:
@@ -6259,8 +6291,11 @@ def ranking_analises():
                     # para os papeis que nao estao no cadastro curado. 0 e um
                     # valor valido (papel que nao paga), nao ausencia de dado.
                     _pf = _perfil_risco(ticker) or {}
-                    if _pf.get('dy_12m_pct') is not None:
-                        dy_anual = _pf['dy_12m_pct']
+                    _dy = _pf.get('dy_12m_pct')
+                    if _dy is None:
+                        _dy = _dy_12m(ticker)
+                    if _dy is not None:
+                        dy_anual = _dy
                         dy_fonte = 'Yahoo (dividendos 12m)'
                 tem_dy_relevante = (symbol not in _SEM_DY_RELEVANTE and dy_anual is not None and dy_anual > 0)
                 # Colchao = DY mensal - CDI mensal. Mostrado sempre que o DY e
