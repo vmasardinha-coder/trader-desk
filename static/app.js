@@ -3740,7 +3740,7 @@ function tplRanking(d){
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:${evCor}" title="${evTitle}">${evTxt}</td>
       <td style="padding:6px 8px;text-align:right">${dy}</td>
       <td style="padding:6px 8px;text-align:right" title="DY mensal − CDI mensal: quanto o dividendo do papel rende a mais (ou menos) que o CDI por mês, se a estrutura quebrar e você ficar com o papel">${colchao}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = EV mensal × peso de prazo, + bônus se colchão positivo">${r.score.toFixed(3)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = (EV mensal × peso de prazo, + bônus se colchão positivo) ${r.fator_aplicado?`× Fator ${r.fator_oferta.toFixed(1)}/100. Antes do Fator: ${r.score_base!=null?r.score_base.toFixed(3):'—'}`:'(sem Fator: papel sem histórico ou não é Retorno Controlado)'}">${r.score.toFixed(3)}${r.fator_aplicado?'':' <span style="opacity:.5;font-size:9px">*</span>'}</td>
       <td style="padding:6px 8px;text-align:right;color:${r.fator_oferta==null?'var(--muted)':(r.fator_oferta>=75?'var(--green)':(r.fator_oferta<50?'var(--red)':'inherit'))}" title="${r.fator_oferta!=null?`Em 5 anos, ${r.ticker.replace('.SA','')} tocou uma queda de ${r.defesa_pct}% dentro do prazo desta oferta em ${r.freq_rompimento_hist_pct}% das janelas; acompanha o índice em ${r.correlacao_indice_pct}% das quedas. Fator = (1 − rompimento) × (1 − 0,5 × correlação).`:'Sem grade histórica para este papel ou não é Retorno Controlado'}">${r.fator_oferta!=null?r.fator_oferta.toFixed(1):'—'}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700" title="Score misto = retorno mensal (pelo prazo do contrato) × Fator/100. Retorno ajustado pelo risco histórico do papel.">${r.score_misto!=null?r.score_misto.toFixed(2):'—'}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
@@ -3751,7 +3751,7 @@ function tplRanking(d){
     </tr>`;
   }).join('');
   return `
-  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por score (EV daqui-pra-frente × peso de prazo, maior primeiro) — score é só ordenação, nenhuma linha é escondida</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por score (EV daqui-pra-frente × peso de prazo × Fator histórico, maior primeiro; * = sem Fator) — score é só ordenação, nenhuma linha é escondida</div>
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">

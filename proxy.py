@@ -6115,6 +6115,23 @@ def ranking_analises():
                 except Exception:
                     pass
 
+                # 07/10/2026 (backlog #2, decisao do Victor): o Fator historico
+                # ENTRA na ordenacao. score_final = score_base x Fator/100.
+                # Quem tem fama de romper aquela defesa naquele prazo desce.
+                # Simetrico como o peso_prazo: com score NEGATIVO divide pelo
+                # fator (piora), em vez de multiplicar (que melhoraria um EV
+                # ruim). Sem grade historica (papel novo, BSLV39, SPCX34) ou
+                # nao-Retorno Controlado: score inalterado e marcado
+                # fator_aplicado=False, para nao fingir que foi penalizado.
+                score_base = score
+                _fo = (_fator_da_oferta(ticker, a.get('kdo'), preco_foto, prazo_dias, retorno_mensal)
+                       if tipo == 'retorno_controlado' else {})
+                fator_aplicado = False
+                if _fo.get('fator_oferta') is not None and _fo['fator_oferta'] > 0:
+                    f_ = _fo['fator_oferta'] / 100.0
+                    score = (score_base * f_) if score_base >= 0 else (score_base / f_)
+                    fator_aplicado = True
+
                 resultado.append({
                     'id': a['id'], 'ticker': ticker, 'nome': a.get('nome'),
                     'barreira_valor': barreira_valor, 'barreira_tipo': barreira_tipo,
@@ -6141,8 +6158,9 @@ def ranking_analises():
                     'prob_overshoot_pct': prob_overshoot_pct,
                     'prob_overshoot_agora_pct': prob_overshoot_agora_pct,
                     'overshoot_medio_pct': overshoot_medio_pct,
-                    **(_fator_da_oferta(ticker, a.get('kdo'), preco_foto, prazo_dias, retorno_mensal)
-                       if tipo == 'retorno_controlado' else {}),
+                    **_fo,
+                    'score_base': round(score_base, 4),
+                    'fator_aplicado': fator_aplicado,
                 })
             except Exception as e_item:
                 resultado.append({**_linha_ranking_base(a), 'erro': str(e_item)})
