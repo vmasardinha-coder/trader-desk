@@ -3699,7 +3699,7 @@ function tplRanking(d){
     if(r.erro){
       return `<tr style="opacity:.55">
         <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
-        <td colspan="17" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+        <td colspan="16" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
       </tr>`;
     }
     const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(1)+'%':'—';
@@ -3776,13 +3776,13 @@ function tplRanking(d){
       <th style="padding:6px 8px;text-align:right" title="Distância até a barreira. Para KDO: quanto o papel pode cair antes de romper. Para STRIKE: quanto pode subir antes de ser exercida. É isto que explica uma probabilidade baixa mesmo faltando poucos dias.">Folga</th>
       <th style="padding:6px 8px;text-align:right" title="Probabilidade de NÃO tocar a barreira DAQUI PRA FRENTE (a partir de hoje, com o preço atual) -- é dinâmica, recalcula a cada vez que você roda o ranking. Diferente do número 'desde o início' que aparece no detalhe de cada análise (esse usa o prazo total a partir do preço da foto).">Prob. <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="RISCO DE OVERSHOOT NA DECISÃO (congelado: simulado do preço da foto pelo prazo cheio, não muda) -- probabilidade de o papel fechar ACIMA do retorno travado no Retorno Controlado, deixando dinheiro na mesa. Só existe pra Retorno Controlado (Bidirecional não trava um teto único do mesmo jeito).">Overshoot (na decisão) <span style="opacity:.6;cursor:help">ⓘ</span></th>
+      <th style="padding:6px 8px;text-align:right" title="OVERSHOOT AGORA: do preço de hoje, com os dias que faltam, contra o mesmo teto. Sobe conforme o papel avança e vai a 100% quando o teto já foi ultrapassado. Só Retorno Controlado.">Overshoot (agora) <span style="opacity:.6;cursor:help">ⓘ</span></th>
       <th style="padding:6px 8px;text-align:right" title="EV mensal -- retorno médio ponderando todos os cenários, não só se bateu a meta">EV mensal</th>
       <th style="padding:6px 8px;text-align:right">DY</th>
       <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
       <th style="padding:6px 8px;text-align:right" title="FATOR HISTÓRICO: 100 = o papel nunca rompeu essa defesa nesse prazo em 5 anos. Cai com a frequência de rompimento e com a correlação com o índice. Só Retorno Controlado.">Fator</th>
       <th style="padding:6px 8px;text-align:right" title="Retorno mensal × Fator/100. Compara ofertas que pagam igual levando em conta o risco histórico do papel.">Score misto</th>
-      <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest (carregado automaticamente só quando o filtro tem até 30 itens)">Últ. Prov.</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>
     <tbody>${rows}</tbody>

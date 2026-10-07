@@ -5285,6 +5285,29 @@ def get_analise_foto_bandas(id):
         if not bandas_congeladas:
             return jsonify({'encontrado': False, 'motivo': 'sem_bandas_congeladas', 'id': id})
 
+        # 07/10/2026 (backlog #15b): analises subidas em lote (21/09 e 29/09)
+        # guardam so os numeros congelados da decisao (preco_foto, KDO, prob,
+        # vol_garch_pct...) e NAO as bandas de percentis -- a rota quebrava
+        # com KeyError 'periodos' e a tela mostrava "erro ao carregar foto".
+        # Quando faltam as bandas, reconstroi na hora a partir dos MESMOS
+        # numeros congelados (preco_foto + vol GARCH da decisao + prazo do
+        # contrato). NADA e gravado: a foto congelada original segue intacta.
+        if not bandas_congeladas.get('periodos') or not bandas_congeladas.get('bandas'):
+            vol = bandas_congeladas.get('vol_garch_pct') or item.get('vol_garch_pct')
+            if not vol:
+                return jsonify({'encontrado': False, 'motivo': 'sem_volatilidade_congelada', 'id': id})
+            sigma_f = float(vol) / 100.0
+            prazo_f = int(item.get('prazo_dias') or 30)
+            periodos_f = [min(prazo_f, 180)]
+            bandas_f = _calc_bandas_foto(float(item['preco_foto']), sigma_f, periodos=periodos_f)
+            bandas_congeladas = {**bandas_congeladas,
+                                 'periodos': periodos_f, 'bandas': bandas_f,
+                                 'sigma_pct': round(sigma_f * 100, 2),
+                                 'reconstruida': True,
+                                 'aviso': 'Bandas reconstruidas dos numeros congelados na decisao '
+                                          '(preco da foto + volatilidade GARCH da decisao + prazo do contrato). '
+                                          'A foto original nao guardou os percentis.'}
+
         historico_real = _fetch_closes_for_foto(item['ticker'], item['data_foto'])
         periodo_ref = str(max(bandas_congeladas['periodos']))
         score = _score_assertividade_bandas(historico_real, bandas_congeladas['bandas'].get(periodo_ref))
