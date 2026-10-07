@@ -3632,16 +3632,29 @@ async function loadRankingAnalises(){
   const btn=document.getElementById('btn-ranking');
   if(!area)return;
   if(btn){btn.disabled=true;btn.style.opacity='.6';}
-  const LOTE=10;
+  const LOTE=5;
   let offset=0, totalGeral=null, todasLinhas=[], primeiraResposta=null;
   try{
     while(true){
       area.innerHTML=`Calculando probabilidade das análises em aberto (Monte Carlo em lote)... ${offset} de ${totalGeral!=null?totalGeral:'?'} processadas`;
-      const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),45000);
-      const r=await fetch(B+`/analises/ranking?offset=${offset}&limit=${LOTE}`,{signal:ctrl.signal,cache:'no-store'});
-      clearTimeout(to);
-      const d=await r.json();
-      if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+      // 07/10/2026 (backlog #15): uma pagina que estoura o gateway (502) ou
+      // o tempo limite so precisa ser pedida de novo -- o servidor guarda as
+      // linhas ja calculadas por 10 min, entao a 2a tentativa costuma ser
+      // quase instantanea. Tenta ate 3 vezes antes de desistir.
+      let r=null,d=null,tent=0;
+      while(true){
+        tent++;
+        const c2=new AbortController();const t2=setTimeout(()=>c2.abort(),45000);
+        try{
+          r=await fetch(B+`/analises/ranking?offset=${offset}&limit=${LOTE}`,{signal:c2.signal,cache:'no-store'});
+          d=await r.json().catch(()=>({}));
+          if(r.ok&&!d.error)break;
+          if(tent>=3)throw new Error(d.error||('HTTP '+r.status));
+        }catch(e){
+          if(tent>=3)throw e;
+        }finally{clearTimeout(t2);}
+        area.innerHTML=`Recalculando o lote ${offset+1}–${offset+LOTE} (tentativa ${tent+1} de 3)...`;
+      }
       if(!primeiraResposta)primeiraResposta=d;
       todasLinhas=todasLinhas.concat(d.ranking||[]);
       totalGeral=d.total_geral!=null?d.total_geral:todasLinhas.length;

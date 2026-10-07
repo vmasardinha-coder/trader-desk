@@ -5754,6 +5754,39 @@ def _fator_da_oferta(ticker, kdo, preco_foto, prazo_dias, retorno_mensal):
         return vazio
 
 
+# ── CACHE DO RANKING DE ANALISES (07/10/2026, backlog #15) ───────────
+# Medido em producao: ~1,5s por analise localmente, mas 4 a 20s por analise
+# no Render (CPU pequena + GARCH + Monte Carlo de 20 mil trajetorias), e uma
+# pagina de 10 ja encostava nos ~30s do gateway (502). O que MUDA entre duas
+# aberturas da tela em minutos e quase nada, entao:
+#   - CDI: 1 hora (uma chamada ao Bacen por analise era ~1s de espera pura)
+#   - leitura de analises.json: 60s (arquivo de ~1,3 MB, 2 chamadas a API)
+#   - linha calculada de cada analise: 10 min. ?forcar=1 recalcula tudo.
+# A linha calculada guarda o preco do momento; passados 10 min ele e
+# refeito. Nenhum dado gravado e afetado, so a leitura.
+_RANK_TTL = 600
+_RANK_LINHAS = {}          # id -> (ts, linha)
+_CDI_CACHE = {'ts': 0, 'v': None}
+_ANALISES_CACHE = {'ts': 0, 'v': None}
+
+def _cdi_cacheado():
+    import time as _tc
+    if _CDI_CACHE['v'] is not None and _tc.time() - _CDI_CACHE['ts'] < 3600:
+        return _CDI_CACHE['v']
+    v = get_cdi()
+    _CDI_CACHE.update(ts=_tc.time(), v=v)
+    return v
+
+def _analises_para_ranking(forcar=False):
+    import time as _tc
+    if not forcar and _ANALISES_CACHE['v'] is not None and _tc.time() - _ANALISES_CACHE['ts'] < 60:
+        return _ANALISES_CACHE['v']
+    conteudo_str, _ = _github_get_file('analises.json')
+    v = json.loads(conteudo_str) if conteudo_str.strip() else []
+    _ANALISES_CACHE.update(ts=_tc.time(), v=v)
+    return v
+
+
 @app.route('/analises/ranking', methods=['GET'])
 def ranking_analises():
     """
@@ -5778,8 +5811,10 @@ def ranking_analises():
         limit_str = request.args.get('limit')
         limit = int(limit_str) if limit_str else None
 
-        conteudo_str, _ = _github_get_file('analises.json')
-        lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+        import time as _tr
+        _t_ini = _tr.time()
+        forcar = request.args.get('forcar') in ('1', 'true', 'sim')
+        lista = _analises_para_ranking(forcar)
         # CORRIGIDO 25/06/2026: FII (tipo_estrutura='fii') NUNCA deve entrar
         # no ranking de probabilidades -- usa Monte Carlo, que nao se
         # aplica a FII (sem barreira/meta real). Causa raiz de um crash
@@ -5794,11 +5829,15 @@ def ranking_analises():
         total_geral = len(em_analise_total)
         em_analise = em_analise_total[offset:offset+limit] if limit else em_analise_total
 
-        cdi_anual = get_cdi()
+        cdi_anual = _cdi_cacheado()
         cdi_mensal = cdi_anual / 12
 
         resultado = []
         for a in em_analise:
+            _hit = _RANK_LINHAS.get(a.get('id'))
+            if (not forcar) and _hit and _tr.time() - _hit[0] < _RANK_TTL:
+                resultado.append(_hit[1]); continue
+            _n0 = len(resultado)
             try:
                 ticker = a['ticker']
                 symbol = ticker.replace('.SA', '').upper()
@@ -6164,6 +6203,8 @@ def ranking_analises():
                 })
             except Exception as e_item:
                 resultado.append({**_linha_ranking_base(a), 'erro': str(e_item)})
+            if len(resultado) == _n0 + 1 and 'erro' not in resultado[-1]:
+                _RANK_LINHAS[a.get('id')] = (_tr.time(), resultado[-1])
 
         resultado.sort(key=lambda r: r.get('score', -1) if r.get('score') is not None else -1, reverse=True)
         return jsonify({
@@ -6172,6 +6213,7 @@ def ranking_analises():
             'total_geral': total_geral,
             'offset': offset,
             'proxima_pagina_existe': bool(limit) and (offset + limit) < total_geral,
+            'tempo_ms': int((_tr.time() - _t_ini) * 1000),
             'ranking': resultado,
         })
     except Exception as e:
