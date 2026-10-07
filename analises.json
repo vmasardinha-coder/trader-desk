@@ -150073,7 +150073,7 @@
     "id": "an_1789100084",
     "ticker": "VBBR3.SA",
     "nome": "VBBR3 Retorno Controlado 15d barreira -12.2% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 39.73,
@@ -150404,7 +150404,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-07",
+    "motivo_rejeicao": "outro",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 1.107,
+    "score_na_rejeicao": 5.8728,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 37.65
   },
   {
     "id": "an_1789100085",
@@ -155995,7 +156003,7 @@
     "ticker": "RDOR3.SA",
     "nome": "RDOR3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 37.43,
     "kdo": 34.36,
@@ -156055,7 +156063,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-07",
+    "motivo_rejeicao": "outro",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": -1.153,
+    "score_na_rejeicao": 3.4111,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 44.37
   },
   {
     "id": "an_1790700015",
@@ -156626,7 +156642,7 @@
     "ticker": "ENEV3.SA",
     "nome": "ENEV3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 27.13,
     "kdo": 23.82,
@@ -156686,7 +156702,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-07",
+    "motivo_rejeicao": "outro",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": -1.155,
+    "score_na_rejeicao": 2.1553,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 30.44
   },
   {
     "id": "an_1790700024",
@@ -157123,7 +157147,7 @@
     "ticker": "POSI3.SA",
     "nome": "POSI3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 3.58,
     "kdo": 3.14,
@@ -157183,14 +157207,22 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-07",
+    "motivo_rejeicao": "outro",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": -0.728,
+    "score_na_rejeicao": 2.1687,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 4.13
   },
   {
     "id": "an_1790700031",
     "ticker": "RADL3.SA",
     "nome": "RADL3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 18.21,
     "kdo": 15.99,
@@ -157250,7 +157282,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-07",
+    "motivo_rejeicao": "outro",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": -0.559,
+    "score_na_rejeicao": 4.3537,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 21.22
   },
   {
     "id": "an_1790700032",
@@ -157616,7 +157656,7 @@
     "ticker": "SMTO3.SA",
     "nome": "SMTO3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 17.4,
     "kdo": 15.28,
@@ -157676,7 +157716,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-07",
+    "motivo_rejeicao": "outro",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 2.837,
+    "score_na_rejeicao": 9.6796,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 20.32
   },
   {
     "id": "an_1790700038",
