@@ -3686,7 +3686,7 @@ function tplRanking(d){
     if(r.erro){
       return `<tr style="opacity:.55">
         <td style="padding:6px 8px">${(r.ticker||'').replace('.SA','')}</td>
-        <td colspan="15" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
+        <td colspan="17" style="padding:6px 8px;color:var(--red);font-size:10px">⚠ ${r.erro}</td>
       </tr>`;
     }
     const dy=r.dy_anual_pct!=null?r.dy_anual_pct.toFixed(1)+'%':'—';
@@ -3741,6 +3741,8 @@ function tplRanking(d){
       <td style="padding:6px 8px;text-align:right">${dy}</td>
       <td style="padding:6px 8px;text-align:right" title="DY mensal − CDI mensal: quanto o dividendo do papel rende a mais (ou menos) que o CDI por mês, se a estrutura quebrar e você ficar com o papel">${colchao}</td>
       <td style="padding:6px 8px;text-align:right;font-weight:700;color:var(--accent)" title="Score = EV mensal × peso de prazo, + bônus se colchão positivo">${r.score.toFixed(3)}</td>
+      <td style="padding:6px 8px;text-align:right;color:${r.fator_oferta==null?'var(--muted)':(r.fator_oferta>=75?'var(--green)':(r.fator_oferta<50?'var(--red)':'inherit'))}" title="${r.fator_oferta!=null?`Em 5 anos, ${r.ticker.replace('.SA','')} tocou uma queda de ${r.defesa_pct}% dentro do prazo desta oferta em ${r.freq_rompimento_hist_pct}% das janelas; acompanha o índice em ${r.correlacao_indice_pct}% das quedas. Fator = (1 − rompimento) × (1 − 0,5 × correlação).`:'Sem grade histórica para este papel ou não é Retorno Controlado'}">${r.fator_oferta!=null?r.fator_oferta.toFixed(1):'—'}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700" title="Score misto = retorno mensal (pelo prazo do contrato) × Fator/100. Retorno ajustado pelo risco histórico do papel.">${r.score_misto!=null?r.score_misto.toFixed(2):'—'}</td>
       <td style="padding:6px 8px;text-align:right;white-space:nowrap">
         <button onclick="acaoRanking('${r.id}','ativa')" title="Marcar como Ativa" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
         <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;margin-right:4px">🚫</button>
@@ -3765,6 +3767,8 @@ function tplRanking(d){
       <th style="padding:6px 8px;text-align:right">DY</th>
       <th style="padding:6px 8px;text-align:right" title="DY mensal menos CDI mensal -- colchão se a estrutura quebrar e você ficar com o papel">Colchão</th>
       <th style="padding:6px 8px;text-align:right">Score</th>
+      <th style="padding:6px 8px;text-align:right" title="FATOR HISTÓRICO: 100 = o papel nunca rompeu essa defesa nesse prazo em 5 anos. Cai com a frequência de rompimento e com a correlação com o índice. Só Retorno Controlado.">Fator</th>
+      <th style="padding:6px 8px;text-align:right" title="Retorno mensal × Fator/100. Compara ofertas que pagam igual levando em conta o risco histórico do papel.">Score misto</th>
       <th style="padding:6px 8px;text-align:right" title="Último rendimento pago, via StatusInvest (carregado automaticamente só quando o filtro tem até 30 itens)">Últ. Prov.</th>
       <th style="padding:6px 8px;text-align:right">Ação</th>
     </tr></thead>

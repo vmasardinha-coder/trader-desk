@@ -5700,6 +5700,60 @@ def forcar_migracao_retroativa(analise_id):
 FUND_OVERRIDE_GLOBAL = DY_GLOBAL
 _SEM_DY_RELEVANTE = SEM_DY_RELEVANTE
 
+# ── FATOR NO RANKING DE ANALISES (07/10/2026, backlog #2) ────────────
+# Antes o ranking ordenava por EV/score, que so enxerga a volatilidade
+# GARCH do momento. O Fator mede outra coisa: quantas vezes, em 5 anos, o
+# papel de fato tocou uma barreira daquela profundidade naquele prazo, e se
+# ele cai junto com o indice. Duas ofertas que pagam igual deixam de ser
+# iguais. Usa a grade de rompimento (backlog #9) no PRAZO e na DEFESA reais
+# da oferta -- nao mais as duas barreiras fixas de 15 e 60.
+#   fator = (1 - freq_rompimento) x (1 - 0,5 x correlacao_com_indice)
+#   score_misto = retorno_mensal x fator/100
+# O score de ordenacao existente NAO muda; o misto vem como coluna ao lado.
+_FATOR_CACHE = {'ts': 0, 'mapa': {}}
+
+def _mapa_papeis_fator():
+    import time as _tf
+    if _tf.time() - _FATOR_CACHE['ts'] < 600 and _FATOR_CACHE['mapa']:
+        return _FATOR_CACHE['mapa']
+    mapa = {}
+    for arq in ('papeis_br.json', 'papeis_eua.json'):
+        try:
+            d = _ler_json_raw(arq)
+            for t, p in (d.get('papeis') or {}).items():
+                chave = (p.get('bdr') or t) if arq == 'papeis_eua.json' else t
+                mapa[str(chave).upper().replace('.SA', '')] = p
+        except Exception:
+            pass
+    if mapa:
+        _FATOR_CACHE.update(ts=_tf.time(), mapa=mapa)
+    return mapa
+
+def _fator_da_oferta(ticker, kdo, preco_foto, prazo_dias, retorno_mensal):
+    """Devolve dict com freq. historica de rompimento na defesa/prazo da
+    oferta, Fator e score misto. Campos None quando o papel nao tem grade."""
+    vazio = {'defesa_pct': None, 'freq_rompimento_hist_pct': None,
+             'correlacao_indice_pct': None, 'fator_oferta': None, 'score_misto': None}
+    try:
+        if not kdo or not preco_foto or not prazo_dias:
+            return vazio
+        p = _mapa_papeis_fator().get(str(ticker).upper().replace('.SA', ''))
+        defesa = round((1 - float(kdo) / float(preco_foto)) * 100, 2)
+        out = {**vazio, 'defesa_pct': defesa}
+        freq = freq_rompimento_grade(p, defesa, prazo_dias) if p else None
+        if freq is None:
+            return out
+        corr = p.get('rompe_com_indice_pct')
+        corr = float(corr) if corr is not None else 0.0
+        fator = round(100 * (1 - freq / 100) * (1 - 0.5 * corr / 100), 1)
+        out.update({'freq_rompimento_hist_pct': freq, 'correlacao_indice_pct': corr,
+                    'fator_oferta': fator,
+                    'score_misto': round(retorno_mensal * fator / 100, 3) if retorno_mensal is not None else None})
+        return out
+    except Exception:
+        return vazio
+
+
 @app.route('/analises/ranking', methods=['GET'])
 def ranking_analises():
     """
@@ -6087,6 +6141,8 @@ def ranking_analises():
                     'prob_overshoot_pct': prob_overshoot_pct,
                     'prob_overshoot_agora_pct': prob_overshoot_agora_pct,
                     'overshoot_medio_pct': overshoot_medio_pct,
+                    **(_fator_da_oferta(ticker, a.get('kdo'), preco_foto, prazo_dias, retorno_mensal)
+                       if tipo == 'retorno_controlado' else {}),
                 })
             except Exception as e_item:
                 resultado.append({**_linha_ranking_base(a), 'erro': str(e_item)})
