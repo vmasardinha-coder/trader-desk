@@ -54,7 +54,7 @@
       "vencimento": "2026-11-04",
       "entry": 25.1,
       "kdo": 21.21,
-      "kdo_pct": "-15.4%",
+      "kdo_pct": "-15.5%",
       "vol_impl": 0.275,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-09-01",
@@ -64,7 +64,7 @@
       "ganho_prefixado_pct": 7.89,
       "observacao": "AJUSTADO 01/09/2026: PDF atualizado mudou levemente os termos -- barreira -15,30%->-15,40%, retorno prefixado 8,00%->7,80%. Preco mantido provisorio (R$ ---) ate boleto oficial. CONFIRMADO 04/09/2026: Valor Inicial R$ --- (antes provisorio R$ ---), KDO R$ --- (antes R$ ---), vencimento 2026-11-03 (antes 2026-11-04). | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: venc 2026-11-03->2026-11-04. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (+3.39%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 77.28%. A recalculada de hoje (96.9%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
       "quantidade": 1200,
-      "fonte_numeros": "boleto_oficial + extrato_posicoes_banco_2026-09-14",
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
       "entry_confirmado": true,
       "strike": 27.08,
       "numeros_confirmados": true,
@@ -97,7 +97,7 @@
       "ganho_prefixado_pct": 5.4,
       "strike": 61.82,
       "quantidade": 510,
-      "fonte_numeros": "extrato_posicoes_banco_2026-09-14",
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
       "entry_confirmado": false,
       "observacao": "Numeros conferidos com o extrato de posicoes do banco (14/09/2026): strike R$ --- quantidade 510, KDO R$ --- vencimento 2026-11-09 -- barreira nao acionada. Antes: entry R$ --- KDO R$ --- vencimento 2026-11-10 (derivados assumindo barreira de -20,0% exatos). ATENCAO: o Valor Inicial R$ --- continua DERIVADO, nao veio do extrato -- media das duas contas (via KDO R$ --- e via strike R$ ---). Metodo validado contra tsmc34 (reproduz R$ --- confirmado) e sbsp3 (reproduz R$ ---). Substituir se/quando o boleto oficial chegar. | EXTRATO OFICIAL DE POSICOES ATIVAS 25/09/2026 (Itau). Corrigidos contra o documento do banco: entry 58.64->58.65, venc 2026-11-09->2026-11-10. MARCACAO A MERCADO gravada: aplicacao R$ --- estrutura hoje R$ --- (+0.96%). O ganho prefixado vem de strike/entry, relacao validada em 4 de 4 posicoes com boleto confirmado (TSMC34 8,11% vs 8,20%; SBSP3 7,89% vs 7,80%; TSLA34 5,40% vs 5,30%; BSLV39 8,30% vs 8,20%). | CORRIGIDO 25/09/2026: eu havia SOBRESCRITO prob_sucesso_prevista_pct com o valor recalculado de hoje. Erro grave -- esse campo e a probabilidade da FOTO, do momento da decisao, e e o baseline do tracking-acuracia; comparar o resultado contra uma probabilidade calculada no meio da vida da operacao nao mede previsao nenhuma. Restaurado para 65.94%. A recalculada de hoje (81.67%) foi para o campo novo prob_atual_pct, que e informativo e pode ser atualizado a vontade. REGRA: prob_sucesso_prevista_pct NUNCA se altera depois de gravada.",
       "numeros_confirmados": true,
@@ -170,9 +170,9 @@
       "prob_sucesso_prevista_pct": 59.8,
       "ganho_sem_barreira": "8.70% fixo",
       "ganho_prefixado_pct": 8.7,
-      "strike": 111.21,
+      "strike": 104.08,
       "quantidade": 290,
-      "fonte_numeros": "extrato_posicoes_banco_2026-09-14",
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
       "entry_confirmado": false,
       "observacao": "Rolagem de melhora da anterior em 27/09/2026 (ver cl-bslv39-rolagem-nov26). Ganho 8,70% em 60 dias = 4,35%/mes, KDO 76,98 (20% abaixo do preco de 96,23). Prob 59,8% (GARCH 54,1% via proxy SLV, pois o Yahoo nao tem serie da BSLV39). NUMEROS PROVISORIOS -- o Victor concilia e manda os definitivos.",
       "prob_sucesso_prevista_pct_auditavel": false,
@@ -198,6 +198,13 @@
           "para": 95.66,
           "em": "2026-09-30T10:51:47",
           "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "strike",
+          "de": 111.21,
+          "para": 104.08,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
         }
       ],
       "prob_overshoot_entrada_pct": 33.03,
@@ -210,10 +217,10 @@
       "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-27",
+      "vencimento": "2026-12-02",
       "entry": 28.06,
-      "kdo": 21.51,
-      "kdo_pct": "-20.34%",
+      "kdo": 21.58,
+      "kdo_pct": "-23.1%",
       "vol_impl": 0.5,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-09-30",
@@ -225,7 +232,7 @@
       "numeros_confirmados": false,
       "observacao": "Segunda rolagem de melhora da TEND3, em 30/09/2026 (ver cl-tend3-rolagem-out26). KDO 22,42 -> 21,51, mesma estrutura, premio de 2,26% capturado em 5 dias. PROVISORIO: vencimento, ganho e entry aguardam o boleto.",
       "prazo_dias": 63,
-      "strike": 33.16,
+      "strike": 30.82,
       "quantidade": 1000,
       "marcacao_mercado": {
         "data": "2026-09-29",
@@ -247,16 +254,36 @@
           "para": 28.06,
           "em": "2026-09-30T10:51:47",
           "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "strike",
+          "de": 33.16,
+          "para": 30.82,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 21.51,
+          "para": 21.58,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-27",
+          "para": "2026-12-02",
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
         }
       ],
       "aguardando_boleto": true,
       "campos_provisorios": [
-        "kdo",
-        "vencimento",
         "ganho_prefixado_pct",
         "entry",
         "prob_sucesso_prevista_pct"
-      ]
+      ],
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)"
     },
     {
       "id": "roxo35",
@@ -269,7 +296,7 @@
       "vencimento": "2026-12-08",
       "prazo_dias": 64,
       "entry": 12.6,
-      "kdo": 10.62,
+      "kdo": 10.61,
       "ganho_prefixado_pct": 12.0,
       "ganho_sem_barreira": "12.00% fixo",
       "protecao_pct": 15.7,
@@ -285,9 +312,34 @@
       "origem": "boleto Itau 05/10/2026 (53970.pdf)",
       "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
       "nome": "Nubank (ROXO34) — Retorno Controlado 12% / 64d",
-      "kdo_pct": -15.71,
+      "kdo_pct": -15.79,
       "entry_confirmado": false,
-      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)"
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
+      "historico_correcoes": [
+        {
+          "campo": "strike",
+          "de": null,
+          "para": 14.12,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 2560,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 10.62,
+          "para": 10.61,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        }
+      ],
+      "strike": 14.12,
+      "quantidade": 2560
     },
     {
       "id": "itlc34",
@@ -300,7 +352,7 @@
       "vencimento": "2026-11-05",
       "prazo_dias": 31,
       "entry": 98.0,
-      "kdo": 82.52,
+      "kdo": 82.42,
       "ganho_prefixado_pct": 8.5,
       "ganho_sem_barreira": "8.50% fixo",
       "protecao_pct": 15.8,
@@ -316,9 +368,34 @@
       "origem": "boleto Itau 05/10/2026 (53978.pdf)",
       "observacao": "Entrada em 05/10/2026. Defesa 15.8%, ganho 8.5% em 31 dias = 8.23%/mes. Prob do KDO 53.7%, overshoot na entrada 32.2%, EV -3.59%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 98.00, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
       "nome": "Intel (ITLC34) — Retorno Controlado 8,5% / 31d",
-      "kdo_pct": -15.8,
+      "kdo_pct": -15.9,
       "entry_confirmado": false,
-      "fonte_numeros": "boleto Itau 05/10/2026 + fechamento do dia (provisorio)"
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 (entry/ganho conforme campos provisorios)",
+      "historico_correcoes": [
+        {
+          "campo": "strike",
+          "de": null,
+          "para": 106.43,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 290,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 82.52,
+          "para": 82.42,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        }
+      ],
+      "strike": 106.43,
+      "quantidade": 290
     }
   ],
   "encerradas": [
