@@ -5809,7 +5809,10 @@ def ranking_analises():
 
         offset = int(request.args.get('offset', 0))
         limit_str = request.args.get('limit')
-        limit = int(limit_str) if limit_str else None
+        # 07/10/2026 (backlog #15): sem 'limit' a chamada processava TUDO e
+        # estourava o gateway (502). Agora o padrao e uma pagina de 10;
+        # 'proxima_pagina_existe' diz se ha mais. A tela ja pagina.
+        limit = int(limit_str) if limit_str else 10
 
         import time as _tr
         _t_ini = _tr.time()
