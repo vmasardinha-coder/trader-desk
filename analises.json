@@ -159237,44 +159237,6 @@
     "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.2%, ganho 4.6% em 33 dias = 4.238%/mes. Prob 68.92% (GARCH 46.0%), EV -1.894%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
   },
   {
-    "id": "an_1791460009",
-    "ticker": "BEEF3.SA",
-    "nome": "BEEF3",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
-    "data_foto": "2026-10-08",
-    "preco_foto": 4.71,
-    "kdo": 3.53,
-    "ganho_prefixado_pct": 7.9,
-    "ganho_sem_barreira": "7.9% fixo",
-    "vencimento": "2026-12-10",
-    "prazo_dias": 63,
-    "exercicio": "europeia",
-    "origem": "lote 08/10/2026 (menu Itau)",
-    "lote": "08/10/2026",
-    "protecao_pct": 25.1,
-    "vol_impl": 0.46,
-    "vol_impl_fonte": "garch",
-    "prob_sucesso_prevista_pct": 78.56,
-    "bandas_congeladas": {
-      "preco_foto": 4.71,
-      "kdo": 3.53,
-      "prob_sucesso_prevista_pct": 78.56,
-      "vol_garch_pct": 45.94,
-      "ev_mensal_pct": 0.22,
-      "retorno_mensal_pct": 3.812,
-      "protecao_pct": 25.1,
-      "prob_overshoot_pct": 33.17,
-      "teto_overshoot": 5.0821
-    },
-    "risco_historico": {
-      "rompe_com_indice_pct": 60.0,
-      "freq_rompimento_hist_pct": 13.0,
-      "fator": 60.9
-    },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 25.1%, ganho 7.9% em 63 dias = 3.812%/mes. Prob 78.56% (GARCH 45.94%), EV 0.22%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
-  },
-  {
     "id": "an_1791460010",
     "ticker": "XPBR31.SA",
     "nome": "XPBR31",
