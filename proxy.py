@@ -3963,13 +3963,30 @@ def get_analises_stats():
     mesmo apos os registros detalhados individuais terem sumido da
     listagem (ver filtro de 30 dias em GET /analises).
     """
+    # 08/10/2026: antes, qualquer falha momentanea do raw.githubusercontent
+    # devolvia zeros e a tela de Encerradas mostrava 0% / 0 de 223. Agora
+    # tenta o raw, depois a API do GitHub, depois o ultimo valor bom em memoria.
+    global _STATS_ULTIMO_OK
     try:
         r = _raw_repo_get('stats_analises.json')
-        if not r.ok:
-            return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
-        return jsonify(r.json())
+        if r.ok:
+            d = r.json()
+            _STATS_ULTIMO_OK = d
+            return jsonify(d)
     except Exception:
-        return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
+        pass
+    try:
+        conteudo, _sha = _github_get_file('stats_analises.json')
+        d = json.loads(conteudo)
+        _STATS_ULTIMO_OK = d
+        return jsonify(d)
+    except Exception:
+        pass
+    if _STATS_ULTIMO_OK:
+        return jsonify(_STATS_ULTIMO_OK)
+    return jsonify({'total_rejeitadas': 0, 'total_migradas': 0, 'ultima_atualizacao': None, 'indisponivel': True}), 503
+
+_STATS_ULTIMO_OK = None
 
 def _calibracao_por_versao(itens, campo_res, valor_sucesso='sucesso'):
     """#21 etapa 5: calibracao separada por motor_versao (1=antigo, 2=corrigido)."""
