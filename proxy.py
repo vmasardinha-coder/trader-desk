@@ -3971,6 +3971,24 @@ def get_analises_stats():
     except Exception:
         return jsonify({'total_rejeitadas': 0, 'ultima_atualizacao': None})
 
+def _calibracao_por_versao(itens, campo_res, valor_sucesso='sucesso'):
+    """#21 etapa 5: calibracao separada por motor_versao (1=antigo, 2=corrigido)."""
+    out = {}
+    for it in itens:
+        if it.get('erro'):
+            continue
+        v = str(it.get('motor_versao') or 1)
+        fi = int(it['prob_sucesso_prevista_pct'] // 10) * 10
+        d = out.setdefault(v, {}).setdefault(f"{fi}-{fi+10}%", {'total': 0, 'sucessos': 0})
+        d['total'] += 1
+        if it.get(campo_res) == valor_sucesso:
+            d['sucessos'] += 1
+    return {v: [{'faixa_prevista': k, 'total': d['total'],
+                 'taxa_sucesso_real_pct': round(d['sucessos'] / d['total'] * 100, 1)}
+                for k, d in sorted(fs.items(), key=lambda kv: int(kv[0].split('-')[0]))]
+            for v, fs in out.items()}
+
+
 def _tracking_hip_item(a, hoje):
     """Apura UMA analise para o tracker hipotetico (extraido do loop original
     em 21/09/2026, sem mudar a logica). Retorna o item ou None se nao elegivel."""
@@ -4008,7 +4026,7 @@ def _tracking_hip_item(a, hoje):
         return ({
             'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
             'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
-            'prob_sucesso_prevista_pct': prob, 'erro': 'historico indisponivel',
+            'prob_sucesso_prevista_pct': prob, 'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1, 'erro': 'historico indisponivel',
         })
         return None
 
@@ -4056,6 +4074,7 @@ def _tracking_hip_item(a, hoje):
         'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
         'motivo_encerramento': a.get('motivo_encerramento'),
         'prob_sucesso_prevista_pct': prob,
+        'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1,
         'resultado_hipotetico': resultado_hip,
         'ganho_pct_hipotetico': ganho_pct_hip,
         'overshoot_ocorreu': overshoot_ocorreu,
@@ -4124,6 +4143,7 @@ def _tracking_hip_agregar(itens):
         'total_avaliadas': total,
         'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
         'calibracao_por_faixa': calibracao,
+        'calibracao_por_versao': _calibracao_por_versao(itens, 'resultado_hipotetico'),
         'aproveitamento_realizado': realizado,
         'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
     }
@@ -5138,6 +5158,7 @@ def tracking_acuracia_previsoes():
                 'origem': 'analise_direta', 'id': a.get('id'), 'ticker': a.get('ticker'),
                 'data_foto': a.get('data_foto'), 'data_encerramento': a.get('data_encerramento'),
                 'prob_sucesso_prevista_pct': prob,
+                'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1,
                 'resultado_real': a.get('resultado'),
                 'acertou': (a.get('resultado') == 'sucesso') == (prob >= 50),
             })
@@ -5165,6 +5186,7 @@ def tracking_acuracia_previsoes():
                 'origem': 'posicao_real', 'id': p.get('id'), 'ticker': p.get('ticker'),
                 'data_foto': p.get('data_entrada'), 'data_encerramento': p.get('data_encerramento'),
                 'prob_sucesso_prevista_pct': prob,
+                'motor_versao': p.get('motor_versao') or 1,
                 'resultado_real': 'sucesso' if status == 'sucesso' else 'fracasso',
                 'acertou': (status == 'sucesso') == (prob >= 50),
                 'encerramento_antecipado': antecipada,
@@ -5202,6 +5224,7 @@ def tracking_acuracia_previsoes():
             'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
             'aviso': 'so inclui analises/posicoes fechadas a partir de 06/08/2026 -- registros anteriores nao tinham prob_sucesso_prevista_pct congelada' if total < 5 else None,
             'calibracao_por_faixa': calibracao,
+            'calibracao_por_versao': _calibracao_por_versao(ate_vencimento, 'resultado_real'),
             'itens': sorted(itens, key=lambda x: x.get('data_encerramento') or '', reverse=True),
         })
     except Exception as e:
@@ -5514,6 +5537,8 @@ def _migrar_para_positions(item_analise):
     prob_prevista = bandas_orig.get('prob_sucesso_prevista_pct')
     if prob_prevista is not None:
         novo_registro['prob_sucesso_prevista_pct'] = prob_prevista
+        # #21 etapa 5 (08/10/2026): versao do motor da previsao (ausente = 1)
+        novo_registro['motor_versao'] = bandas_orig.get('motor_versao') or 1
     if ganho_pct is not None:
         novo_registro['ganho_sem_barreira'] = f"{ganho_pct}% fixo"
         novo_registro['ganho_prefixado_pct'] = ganho_pct  # campo numerico, usado por /montecarlo/posicao_ativa para calcular EV completo
