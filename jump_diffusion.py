@@ -56,3 +56,24 @@ def prob_nao_tocar_jd(S, sigma, dias, barreira, saltos, n_sim=40000, tipo='baixo
     if tipo == 'baixo':
         return float((paths.min(axis=1) > barreira * aj).mean() * 100)
     return float((paths.max(axis=1) < barreira / aj).mean() * 100)
+
+
+def caminhos_jd(S, sigma, dias, saltos, n_sim=20000, seed=None):
+    """Caminhos diarios (dt=1/365) com saltos de Merton, variancia total = sigma^2.
+    Retorna (paths, sigma_difusao) -- sigma_difusao serve ao ajuste de barreira."""
+    rng = np.random.default_rng(seed)
+    dt = 1 / 365.0
+    n = int(dias)
+    lam = saltos['lam'] if saltos else 0.0
+    if saltos and saltos['sigma_hist'] > 0:
+        esc = sigma / saltos['sigma_hist']
+        mu_j, sig_j = saltos['mu_j'] * esc, saltos['sig_j'] * esc
+    else:
+        mu_j = sig_j = 0.0
+    sig_d2 = max(sigma ** 2 - lam * (mu_j ** 2 + sig_j ** 2), 0.3 * sigma ** 2)
+    kappa = math.exp(mu_j + 0.5 * sig_j ** 2) - 1
+    inc = (-0.5 * sig_d2 - lam * kappa) * dt + math.sqrt(sig_d2 * dt) * rng.standard_normal((n_sim, n))
+    if lam > 0:
+        N = rng.poisson(lam * dt, (n_sim, n))
+        inc += N * mu_j + np.sqrt(N) * sig_j * rng.standard_normal((n_sim, n))
+    return S * np.exp(np.cumsum(inc, axis=1)), math.sqrt(sig_d2)

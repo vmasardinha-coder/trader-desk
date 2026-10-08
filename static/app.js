@@ -975,7 +975,7 @@ async function loadRankingPosicoes(tipo){
         <td style="padding:6px 8px;text-align:right;color:var(--muted)">${i.prob_na_origem_pct!=null?i.prob_na_origem_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Overshoot na decisão: do preço de entrada, pelo prazo cheio (congelado).">${i.prob_overshoot_entrada_pct!=null?i.prob_overshoot_entrada_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:${(i.prob_overshoot_pct||0)>=40?'var(--warn,#e6a817)':'var(--muted)'}">${i.prob_overshoot_pct!=null?i.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
-        <td style="padding:6px 8px;text-align:right;font-size:10px;white-space:nowrap" title="Probabilidade calculada no momento da decisão (congelada) e a variação até hoje.">${evol}</td>
+        <td style="padding:6px 8px;text-align:right;font-size:10px;white-space:nowrap" title="Probabilidade calculada no momento da decisão (congelada) e a variação até hoje.">${evol}${i.prob_foto_saltos_pct!=null?`<br><span style="color:var(--muted)" title="Na decisão, contando quedas bruscas raras (Jump-Diffusion). Congelado; só comparação.">c/ saltos ${i.prob_foto_saltos_pct.toFixed(1)}%</span>`:''}</td>
       </tr>`;
     }).join('');
     cont.innerHTML=`

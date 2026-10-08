@@ -236,7 +236,7 @@ def _score_assertividade_bandas(historico_real, bandas_periodo):
     }
 
 def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, kdo=None, kuo=None, n_sim=5000,
-                                strike=None, exercicio='europeia'):
+                                strike=None, exercicio='europeia', saltos=None):
     """
     ADICIONADO 06/08/2026 -- tracking previsao-vs-realizado (item de
     backlog pedido pelo Victor). Calcula, no momento da FOTO (Fase B),
@@ -311,6 +311,12 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
         _aj = math.exp(0.5826 * sigma * math.sqrt(dt))
         z = np.random.standard_normal((n_sim, int(prazo_dias)))
         paths = preco_foto * np.exp(np.cumsum(drift + vol_step * z, axis=1))
+        if saltos:
+            # Backlog #3 (08/10/2026): versao com saltos (Jump-Diffusion), modo
+            # sombra. Mesma regra de sucesso; so o processo de preco muda.
+            from jump_diffusion import caminhos_jd
+            paths, _sd = caminhos_jd(preco_foto, sigma, prazo_dias, saltos, n_sim=n_sim)
+            _aj = math.exp(0.5826 * _sd * math.sqrt(dt))
 
         if tipo_estrutura in _VENDA_CALL:
             k = float(strike)

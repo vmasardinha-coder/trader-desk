@@ -2378,6 +2378,7 @@ def get_ranking_posicoes(tipo):
             prob_sucesso = rd.get(campo_sucesso)
             itens.append({
                 'probabilidade_saltos_pct': _pj, 'saltos_por_ano': _lam,
+                'prob_foto_saltos_pct': p.get('prob_sucesso_saltos_pct'),
                 'id': p['id'],
                 'ticker': p['ticker'],
                 'nome': p.get('nome'),
@@ -3996,12 +3997,11 @@ _STATS_ULTIMO_OK = None
 
 _JD_CACHE = {}
 
-def _prob_saltos_posicao(ticker, S, sigma, dias, kdo):
-    """Backlog #3 (08/10/2026, modo sombra): prob. de nao tocar o KDO COM saltos.
-    Historico de 5 anos (cache 6 h por ticker) so para estimar os saltos."""
+def _saltos_do_ticker(ticker):
+    """Parametros de saltos do papel (historico de 5 anos, cache 6 h)."""
     try:
         import time as _t
-        from jump_diffusion import estimar_saltos, prob_nao_tocar_jd
+        from jump_diffusion import estimar_saltos
         tk = (ticker or '').replace('.SA', '')
         ent = _JD_CACHE.get(tk)
         if not ent or _t.time() - ent[0] > 6 * 3600:
@@ -4018,11 +4018,39 @@ def _prob_saltos_posicao(ticker, S, sigma, dias, kdo):
                     continue
             ent = (_t.time(), sv)
             _JD_CACHE[tk] = ent
-        if not ent[1] or not S or not sigma or not dias or dias <= 0:
+        return ent[1]
+    except Exception:
+        return None
+
+
+def _prob_saltos_posicao(ticker, S, sigma, dias, kdo):
+    """Backlog #3 (08/10/2026, modo sombra): prob. de nao tocar o KDO COM saltos."""
+    try:
+        from jump_diffusion import prob_nao_tocar_jd
+        sv = _saltos_do_ticker(ticker)
+        if not sv or not S or not sigma or not dias or dias <= 0:
             return None, None
-        return round(prob_nao_tocar_jd(S, sigma, int(dias), kdo, ent[1], n_sim=8000, seed=7), 2), round(ent[1]['lam'], 1)
+        return round(prob_nao_tocar_jd(S, sigma, int(dias), kdo, sv, n_sim=8000, seed=7), 2), round(sv['lam'], 1)
     except Exception:
         return None, None
+
+def _calibracao_saltos(itens, campo_res):
+    """Backlog #3: mesmos itens medidos pela previsao ATUAL e pela COM SALTOS (so os que
+    tem as duas). Devolve previsto medio, taxa real e erro de Brier de cada uma."""
+    v = [i for i in itens if not i.get('erro') and i.get('prob_sucesso_saltos_pct') is not None
+         and i.get('prob_sucesso_prevista_pct') is not None]
+    if not v:
+        return {'n': 0}
+    y = [1.0 if i.get(campo_res) == 'sucesso' else 0.0 for i in v]
+    pa = [i['prob_sucesso_prevista_pct'] / 100 for i in v]
+    ps = [i['prob_sucesso_saltos_pct'] / 100 for i in v]
+    n = len(v)
+    return {'n': n, 'taxa_real_pct': round(sum(y) / n * 100, 1),
+            'previsto_modelo_atual_pct': round(sum(pa) / n * 100, 1),
+            'previsto_com_saltos_pct': round(sum(ps) / n * 100, 1),
+            'brier_modelo_atual': round(sum((a - b) ** 2 for a, b in zip(pa, y)) / n, 4),
+            'brier_com_saltos': round(sum((a - b) ** 2 for a, b in zip(ps, y)) / n, 4)}
+
 
 def _calibracao_por_versao(itens, campo_res, valor_sucesso='sucesso'):
     """#21 etapa 5: calibracao separada por motor_versao (1=antigo, 2=corrigido)."""
@@ -4079,7 +4107,7 @@ def _tracking_hip_item(a, hoje):
         return ({
             'id': a.get('id'), 'ticker': ticker, 'nome': a.get('nome'),
             'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
-            'prob_sucesso_prevista_pct': prob, 'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1, 'erro': 'historico indisponivel',
+            'prob_sucesso_prevista_pct': prob, 'prob_sucesso_saltos_pct': (a.get('bandas_congeladas') or {}).get('prob_sucesso_saltos_pct'), 'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1, 'erro': 'historico indisponivel',
         })
         return None
 
@@ -4127,6 +4155,7 @@ def _tracking_hip_item(a, hoje):
         'data_foto': a['data_foto'][:10], 'vencimento_estimado': venc.isoformat(),
         'motivo_encerramento': a.get('motivo_encerramento'),
         'prob_sucesso_prevista_pct': prob,
+        'prob_sucesso_saltos_pct': (a.get('bandas_congeladas') or {}).get('prob_sucesso_saltos_pct'),
         'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1,
         'resultado_hipotetico': resultado_hip,
         'ganho_pct_hipotetico': ganho_pct_hip,
@@ -4197,6 +4226,7 @@ def _tracking_hip_agregar(itens):
         'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
         'calibracao_por_faixa': calibracao,
         'calibracao_por_versao': _calibracao_por_versao(itens, 'resultado_hipotetico'),
+        'comparacao_saltos': _calibracao_saltos(itens, 'resultado_hipotetico'),
         'aproveitamento_realizado': realizado,
         'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
     }
@@ -5211,6 +5241,7 @@ def tracking_acuracia_previsoes():
                 'origem': 'analise_direta', 'id': a.get('id'), 'ticker': a.get('ticker'),
                 'data_foto': a.get('data_foto'), 'data_encerramento': a.get('data_encerramento'),
                 'prob_sucesso_prevista_pct': prob,
+                'prob_sucesso_saltos_pct': (a.get('bandas_congeladas') or {}).get('prob_sucesso_saltos_pct'),
                 'motor_versao': (a.get('bandas_congeladas') or {}).get('motor_versao') or 1,
                 'resultado_real': a.get('resultado'),
                 'acertou': (a.get('resultado') == 'sucesso') == (prob >= 50),
@@ -5239,6 +5270,7 @@ def tracking_acuracia_previsoes():
                 'origem': 'posicao_real', 'id': p.get('id'), 'ticker': p.get('ticker'),
                 'data_foto': p.get('data_entrada'), 'data_encerramento': p.get('data_encerramento'),
                 'prob_sucesso_prevista_pct': prob,
+                'prob_sucesso_saltos_pct': p.get('prob_sucesso_saltos_pct'),
                 'motor_versao': p.get('motor_versao') or 1,
                 'resultado_real': 'sucesso' if status == 'sucesso' else 'fracasso',
                 'acertou': (status == 'sucesso') == (prob >= 50),
@@ -5278,6 +5310,7 @@ def tracking_acuracia_previsoes():
             'aviso': 'so inclui analises/posicoes fechadas a partir de 06/08/2026 -- registros anteriores nao tinham prob_sucesso_prevista_pct congelada' if total < 5 else None,
             'calibracao_por_faixa': calibracao,
             'calibracao_por_versao': _calibracao_por_versao(ate_vencimento, 'resultado_real'),
+            'comparacao_saltos': _calibracao_saltos(ate_vencimento, 'resultado_real'),
             'itens': sorted(itens, key=lambda x: x.get('data_encerramento') or '', reverse=True),
         })
     except Exception as e:
@@ -5592,6 +5625,8 @@ def _migrar_para_positions(item_analise):
         novo_registro['prob_sucesso_prevista_pct'] = prob_prevista
         # #21 etapa 5 (08/10/2026): versao do motor da previsao (ausente = 1)
         novo_registro['motor_versao'] = bandas_orig.get('motor_versao') or 1
+        if bandas_orig.get('prob_sucesso_saltos_pct') is not None:
+            novo_registro['prob_sucesso_saltos_pct'] = bandas_orig['prob_sucesso_saltos_pct']
     if ganho_pct is not None:
         novo_registro['ganho_sem_barreira'] = f"{ganho_pct}% fixo"
         novo_registro['ganho_prefixado_pct'] = ganho_pct  # campo numerico, usado por /montecarlo/posicao_ativa para calcular EV completo
@@ -6874,6 +6909,21 @@ def _congelar_bandas_analise(novo):
                 exercicio=novo.get('exercicio') or 'europeia')
             if prob_prevista is not None:
                 resultado['prob_sucesso_prevista_pct'] = prob_prevista
+                # Backlog #3 (08/10/2026): a MESMA previsao, mas com saltos, congelada ao
+                # lado para o tracker medir qual das duas acerta mais. Nao substitui nada.
+                try:
+                    _sv = _saltos_do_ticker(ticker)
+                    if _sv:
+                        _ps = _calc_prob_sucesso_prevista(
+                            preco_foto, sigma, prazo_dias, novo.get('tipo_estrutura'),
+                            kdo=novo.get('kdo'), kuo=novo.get('kuo'),
+                            strike=novo.get('strike'),
+                            exercicio=novo.get('exercicio') or 'europeia',
+                            n_sim=20000, saltos=_sv)
+                        if _ps is not None:
+                            resultado['prob_sucesso_saltos_pct'] = _ps
+                except Exception:
+                    pass
         except Exception:
             pass
         return resultado
