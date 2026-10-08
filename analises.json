@@ -156903,7 +156903,7 @@
     "ticker": "JHSF3.SA",
     "nome": "JHSF3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 11.61,
     "kdo": 10.19,
@@ -156963,7 +156963,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-08",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": -0.521,
+    "score_na_rejeicao": 3.1985,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 12.75
   },
   {
     "id": "an_1790700027",
