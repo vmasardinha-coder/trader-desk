@@ -100773,7 +100773,7 @@
     "id": "an_1789100022",
     "ticker": "ENGI11.SA",
     "nome": "ENGI11 Retorno Controlado 43d barreira -16.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 53.0,
@@ -101890,7 +101890,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-08",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 0.36,
+    "score_na_rejeicao": 2.3531,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 66.25
   },
   {
     "id": "an_1789100023",
