@@ -155885,7 +155885,7 @@
     "ticker": "PETR4.SA",
     "nome": "PETR4",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 48.84,
     "kdo": 44.84,
@@ -155945,7 +155945,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-08",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "ev_mensal_na_rejeicao": -0.241,
+    "score_na_rejeicao": 4.2619,
+    "prob_meta_na_rejeicao": 99.98,
+    "preco_encerramento": 54.33
   },
   {
     "id": "an_1790700013",
