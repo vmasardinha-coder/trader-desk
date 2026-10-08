@@ -4052,6 +4052,33 @@ def _calibracao_saltos(itens, campo_res):
             'brier_com_saltos': round(sum((a - b) ** 2 for a, b in zip(ps, y)) / n, 4)}
 
 
+def _calibracao_overshoot(itens):
+    """Backlog #5 (08/10/2026): o overshoot previsto na foto (chance de terminar acima do
+    teto) contra o que ACONTECEU nas rejeitadas ja vencidas. Por faixa e por motor_versao."""
+    v = [i for i in itens if not i.get('erro') and i.get('overshoot_ocorreu') is not None
+         and i.get('prob_overshoot_prevista_pct') is not None]
+    if not v:
+        return {'n': 0}
+    def agr(lista):
+        n = len(lista)
+        y = [1.0 if i['overshoot_ocorreu'] else 0.0 for i in lista]
+        p = [i['prob_overshoot_prevista_pct'] / 100 for i in lista]
+        return {'n': n, 'previsto_medio_pct': round(sum(p) / n * 100, 1),
+                'realizado_pct': round(sum(y) / n * 100, 1),
+                'desvio_pp': round((sum(y) - sum(p)) / n * 100, 1),
+                'brier': round(sum((a - b) ** 2 for a, b in zip(p, y)) / n, 4)}
+    faixas = {}
+    for lo, hi, nome in ((0, 10, '0-10%'), (10, 25, '10-25%'), (25, 50, '25-50%'), (50, 101, '50%+')):
+        sub = [i for i in v if lo <= i['prob_overshoot_prevista_pct'] < hi]
+        if sub:
+            faixas[nome] = agr(sub)
+    por_versao = {}
+    for ver in sorted({str(i.get('motor_versao') or 1) for i in v}):
+        por_versao[ver] = agr([i for i in v if str(i.get('motor_versao') or 1) == ver])
+    return {'n': len(v), 'geral': agr(v), 'por_faixa': faixas, 'por_versao': por_versao,
+            'nota': 'desvio_pp > 0 = o overshoot aconteceu MAIS do que o modelo previu.'}
+
+
 def _calibracao_por_versao(itens, campo_res, valor_sucesso='sucesso'):
     """#21 etapa 5: calibracao separada por motor_versao (1=antigo, 2=corrigido)."""
     out = {}
@@ -4160,6 +4187,7 @@ def _tracking_hip_item(a, hoje):
         'resultado_hipotetico': resultado_hip,
         'ganho_pct_hipotetico': ganho_pct_hip,
         'overshoot_ocorreu': overshoot_ocorreu,
+        'prob_overshoot_prevista_pct': (a.get('bandas_congeladas') or {}).get('prob_overshoot_pct'),
         'variacao_no_vencimento_pct': variacao_no_vencimento_pct,
         'acertou_previsao': (resultado_hip == 'sucesso') == (prob >= 50),
         'min_close_real': round(min_c, 4), 'max_close_real': round(max_c, 4),
@@ -4227,6 +4255,7 @@ def _tracking_hip_agregar(itens):
         'calibracao_por_faixa': calibracao,
         'calibracao_por_versao': _calibracao_por_versao(itens, 'resultado_hipotetico'),
         'comparacao_saltos': _calibracao_saltos(itens, 'resultado_hipotetico'),
+        'calibracao_overshoot': _calibracao_overshoot(itens),
         'aproveitamento_realizado': realizado,
         'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
     }
