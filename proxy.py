@@ -1162,7 +1162,10 @@ def run_montecarlo_condicional():
                 'mensagem': 'Prazo original ja esgotado — sem tempo restante para nova simulacao condicional.'
             })
 
-        T = dias_restantes / 252.0
+        # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
+        # CORRIDOS, entao cada um vale 1/365 de ano (com 1/252 o tempo ficava 45% maior
+        # que o real e a probabilidade de nao tocar a barreira saia 8 a 10 p.p. baixa).
+        T = dias_restantes / 365.0
         sqT = math.sqrt(T)
         drift = -0.5 * sigma**2 * T
         z = np.random.standard_normal(n)
@@ -1197,7 +1200,10 @@ def run_montecarlo_condicional():
                 return jsonify({'error': "campo 'exercicio' obrigatorio quando k_call/k_put presente (sem kdo/kuo): 'americana' ou 'europeia'"}), 400
 
             steps = max(dias_restantes, 1)
-            dt2 = 1 / 252.0
+            # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
+            # CORRIDOS, entao cada um vale 1/365 de ano (com 1/252 o tempo ficava 45% maior
+            # que o real e a probabilidade de nao tocar a barreira saia 8 a 10 p.p. baixa).
+            dt2 = 1 / 365.0
             drift2 = -0.5 * sigma**2 * dt2
             vol_step2 = sigma * math.sqrt(dt2)
             z2 = np.random.standard_normal((n, steps))
@@ -1220,7 +1226,10 @@ def run_montecarlo_condicional():
             # Para barreira, precisamos do caminho completo, nao so do ponto final —
             # roda uma simulacao de trajetoria (steps diarios) so para esse caso
             steps = max(dias_restantes, 1)
-            dt2 = 1 / 252.0
+            # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
+            # CORRIDOS, entao cada um vale 1/365 de ano (com 1/252 o tempo ficava 45% maior
+            # que o real e a probabilidade de nao tocar a barreira saia 8 a 10 p.p. baixa).
+            dt2 = 1 / 365.0
             drift2 = -0.5 * sigma**2 * dt2
             vol_step2 = sigma * math.sqrt(dt2)
             z2 = np.random.standard_normal((n, steps))
@@ -1250,7 +1259,10 @@ def run_montecarlo_condicional():
         try:
             n_fan = 2000
             n_linhas_fan = 20
-            dt_fan = 1 / 252.0
+            # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
+            # CORRIDOS, entao cada um vale 1/365 de ano (com 1/252 o tempo ficava 45% maior
+            # que o real e a probabilidade de nao tocar a barreira saia 8 a 10 p.p. baixa).
+            dt_fan = 1 / 365.0
             drift_fan = -0.5 * sigma**2 * dt_fan
             vol_step_fan = sigma * math.sqrt(dt_fan)
             z_fan = np.random.standard_normal((n_fan, prazo_dias))
@@ -6100,7 +6112,10 @@ def ranking_analises():
                 prob_meta = None
 
                 n_sim = 20000
-                dt_sim = 1/252.0
+                # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
+                # CORRIDOS, entao cada um vale 1/365 de ano (com 1/252 o tempo ficava 45% maior
+                # que o real e a probabilidade de nao tocar a barreira saia 8 a 10 p.p. baixa).
+                dt_sim = 1/365.0
                 drift_sim = -0.5*sigma**2*dt_sim
                 vol_step_sim = sigma*math.sqrt(dt_sim)
                 z_sim = np.random.standard_normal((n_sim, dias_restantes))
