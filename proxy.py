@@ -2370,8 +2370,14 @@ def get_ranking_posicoes(tipo):
                 })
                 continue
 
+            _pj, _lam = (None, None)
+            if p.get('kdo') and rd.get('prob_kdo_condicional') is not None:
+                _pj, _lam = _prob_saltos_posicao(p['ticker'], rd.get('preco_atual'),
+                                                 (rd.get('volatilidade_historica_pct') or 0) / 100.0,
+                                                 rd.get('dias_restantes'), float(p['kdo']))
             prob_sucesso = rd.get(campo_sucesso)
             itens.append({
+                'probabilidade_saltos_pct': _pj, 'saltos_por_ano': _lam,
                 'id': p['id'],
                 'ticker': p['ticker'],
                 'nome': p.get('nome'),
@@ -3987,6 +3993,36 @@ def get_analises_stats():
     return jsonify({'total_rejeitadas': 0, 'total_migradas': 0, 'ultima_atualizacao': None, 'indisponivel': True}), 503
 
 _STATS_ULTIMO_OK = None
+
+_JD_CACHE = {}
+
+def _prob_saltos_posicao(ticker, S, sigma, dias, kdo):
+    """Backlog #3 (08/10/2026, modo sombra): prob. de nao tocar o KDO COM saltos.
+    Historico de 5 anos (cache 6 h por ticker) so para estimar os saltos."""
+    try:
+        import time as _t
+        from jump_diffusion import estimar_saltos, prob_nao_tocar_jd
+        tk = (ticker or '').replace('.SA', '')
+        ent = _JD_CACHE.get(tk)
+        if not ent or _t.time() - ent[0] > 6 * 3600:
+            sv = None
+            for suf in ('.SA', ''):
+                try:
+                    r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{tk}{suf}?interval=1d&range=5y',
+                                     headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                    cl = [x for x in r.json()['chart']['result'][0]['indicators']['quote'][0]['close'] if x]
+                    sv = estimar_saltos(cl)
+                    if sv:
+                        break
+                except Exception:
+                    continue
+            ent = (_t.time(), sv)
+            _JD_CACHE[tk] = ent
+        if not ent[1] or not S or not sigma or not dias or dias <= 0:
+            return None, None
+        return round(prob_nao_tocar_jd(S, sigma, int(dias), kdo, ent[1], n_sim=8000, seed=7), 2), round(ent[1]['lam'], 1)
+    except Exception:
+        return None, None
 
 def _calibracao_por_versao(itens, campo_res, valor_sucesso='sucesso'):
     """#21 etapa 5: calibracao separada por motor_versao (1=antigo, 2=corrigido)."""
@@ -6182,6 +6218,8 @@ def ranking_analises():
                 prob_overshoot_agora_pct = None
                 overshoot_medio_pct = None
                 prob_meta = None
+                prob_meta_saltos = None
+                saltos_ano = None
 
                 n_sim = 20000
                 # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
@@ -6218,6 +6256,16 @@ def ranking_analises():
                     kdo = float(a['kdo'])
                     tocou = min_sim <= kdo*_aj_barreira(sigma)
                     prob_meta = round(float((~tocou).mean()*100), 2)
+                    # 08/10/2026 (backlog #3, modo sombra): mesma probabilidade, mas
+                    # com saltos (Merton). Nao altera prob_meta, score nem EV.
+                    try:
+                        from jump_diffusion import estimar_saltos, prob_nao_tocar_jd
+                        _sv = estimar_saltos(cl) if len(cl) >= 120 else None
+                        if _sv:
+                            prob_meta_saltos = round(prob_nao_tocar_jd(S, sigma, dias_restantes, kdo, _sv, n_sim=8000, seed=7), 2)
+                            saltos_ano = round(_sv['lam'], 1)
+                    except Exception:
+                        pass
                     # EV: se nao tocou a barreira no prazo TOTAL, ganho prefixado;
                     # se tocou, fica exposto a variacao real (pode ser negativa)
                     tocou_full = min_full <= kdo*_aj_barreira(sigma)
@@ -6468,6 +6516,7 @@ def ranking_analises():
                     'folga_barreira_pct': folga_barreira_pct,
                     'tipo_estrutura': tipo, 'lote': a.get('lote'),
                     'backtest': a.get('backtest'),
+                    'prob_meta_saltos_pct': prob_meta_saltos, 'saltos_por_ano': saltos_ano,
                     'preco_foto': preco_foto, 'preco_atual': round(S, 2),
                     'dias_restantes': dias_restantes,
                     'meses_restantes': round(meses_restantes, 2),
