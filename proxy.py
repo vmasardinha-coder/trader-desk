@@ -5671,8 +5671,27 @@ def mudar_status_analise(analise_id):
             return jsonify({'error': f'analise {analise_id} nao encontrada'}), 404
 
         novo_conteudo = json.dumps(lista, indent=2, ensure_ascii=False)
-        _github_put_file('analises.json', novo_conteudo, sha,
-            f"feat: analise {analise_id} -> status={novo_status} via app")
+        # CORRIGIDO 08/10/2026 -- erro 409 ("does not match <sha>") ao rejeitar
+        # varias em sequencia: o SHA lido ficava velho porque outra gravacao
+        # (a rejeicao anterior, ainda propagando no GitHub, ou outro clique) mexeu
+        # no arquivo entre a leitura e a escrita. Em vez de devolver erro, relê o
+        # arquivo, reaplica SO a mudanca desta analise e tenta de novo (ate 3x).
+        _tent = 0
+        while True:
+            try:
+                _github_put_file('analises.json', novo_conteudo, sha,
+                    f"feat: analise {analise_id} -> status={novo_status} via app")
+                break
+            except RuntimeError as _e409:
+                if '(409)' not in str(_e409) or _tent >= 3:
+                    raise
+                _tent += 1
+                import time as _tm409
+                _tm409.sleep(1.0 * _tent)
+                conteudo_str, sha = _github_get_file('analises.json')
+                lista = json.loads(conteudo_str) if conteudo_str.strip() else []
+                lista = [item_encontrado if x.get('id') == analise_id else x for x in lista]
+                novo_conteudo = json.dumps(lista, indent=2, ensure_ascii=False)
 
         if motivo == 'rejeitada':
             _incrementar_contador_rejeitadas()
