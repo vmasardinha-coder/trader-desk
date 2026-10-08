@@ -158269,7 +158269,7 @@
     "ticker": "EQTL3.SA",
     "nome": "EQTL3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 39.76,
     "kdo": 34.19,
@@ -158329,7 +158329,15 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-08",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "ev_mensal_na_rejeicao": 0.538,
+    "score_na_rejeicao": 2.3497,
+    "prob_meta_na_rejeicao": 99.98,
+    "preco_encerramento": 49.85
   },
   {
     "id": "an_1790700045",
