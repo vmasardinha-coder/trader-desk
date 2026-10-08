@@ -4230,10 +4230,21 @@ def _arquivar_em_background():
     usuario, que ja foi concluida com sucesso neste ponto.
     """
     import threading
-    if getattr(_arquivar_em_background, '_rodando', False):
-        return
-    _arquivar_em_background._rodando = True
+    # CORRIGIDO 08/10/2026 -- rejeitar em sequencia dava erro na 2a. O
+    # arquivamento recalcula o tracker DUAS vezes (~37 s cada, busca preco de
+    # ~70 itens) e disparava IMEDIATAMENTE apos cada gravacao, no mesmo
+    # processo. A proxima rejeicao disputava CPU com ele, estourava os 15 s do
+    # front e ainda corria o risco de conflito de SHA no analises.json. Agora
+    # ele so roda depois de ARQ_ATRASO_S segundos SEM nenhuma gravacao: cada
+    # nova escrita cancela o agendamento anterior e reinicia a contagem.
+    ARQ_ATRASO_S = 240
+    ant = getattr(_arquivar_em_background, '_timer', None)
+    if ant is not None:
+        ant.cancel()
     def _tarefa():
+        if getattr(_arquivar_em_background, '_rodando', False):
+            return
+        _arquivar_em_background._rodando = True
         try:
             r1 = _arquivar_analises(dry_run=False)
             r2 = _arquivar_posicoes(dry_run=False)
@@ -4243,7 +4254,10 @@ def _arquivar_em_background():
             print(f'[arquivamento auto] falhou (ignorado): {e}')
         finally:
             _arquivar_em_background._rodando = False
-    threading.Thread(target=_tarefa, daemon=True).start()
+    t = threading.Timer(ARQ_ATRASO_S, _tarefa)
+    t.daemon = True
+    _arquivar_em_background._timer = t
+    t.start()
 
 @app.route('/analises/arquivar', methods=['POST'])
 @_requer_auth_escrita
