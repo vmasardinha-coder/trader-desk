@@ -736,6 +736,17 @@ def binance_funding():
     return jsonify({'error':'indisponivel'}),500
 
 # ── MONTE CARLO ───────────────────────────────────────
+def _aj_barreira(sigma, dt=1/365.0):
+    """Correcao de barreira CONTINUA (Broadie-Glasserman-Kou), backlog #21/#1.
+    O boleto do banco vale pelo TOQUE a qualquer momento; a simulacao so confere
+    o preco a cada passo (1 dia corrido). Isso deixa o toque subestimado.
+    Aproximacao padrao: aproximar a barreira do preco por exp(0,5826*sigma*sqrt(dt)).
+    BARREIRA DE BAIXA (KDO): multiplicar por este fator.  BARREIRA DE ALTA
+    (KUO) e exercicio americano de call: dividir. Conferido contra a formula fechada
+    da barreira continua (principio da reflexao): erro < 0,3 p.p."""
+    return math.exp(0.5826 * float(sigma) * math.sqrt(dt))
+
+
 @app.route('/montecarlo/barrier', methods=['POST'])
 def run_montecarlo_barrier():
     try:
@@ -1213,7 +1224,7 @@ def run_montecarlo_condicional():
             ST_path = paths[:, -1]
 
             if K_call is not None:
-                call_ex = (max_p > K_call) if exercicio == 'americana' else (ST_path > K_call)
+                call_ex = (max_p > K_call/_aj_barreira(sigma)) if exercicio == 'americana' else (ST_path > K_call)
                 res['prob_call_exercida'] = round(float(call_ex.mean() * 100), 2)
                 res['prob_sucesso'] = round(float((~call_ex).mean() * 100), 2)
                 res['exercicio'] = exercicio
@@ -1236,7 +1247,7 @@ def run_montecarlo_condicional():
             paths = S * np.exp(np.cumsum(drift2 + vol_step2 * z2, axis=1))
             max_p = np.max(paths, axis=1)
             min_p = np.min(paths, axis=1)
-            kuo_hit = max_p >= kuo
+            kuo_hit = max_p >= kuo/_aj_barreira(sigma)
             # CORRIGIDO 15/07/2026 -- suporte a kdo=None (estrutura
             # "Protecao Total", sem barreira de baixa nenhuma): antes,
             # esse bloco inteiro exigia kdo != None, entao a secao 1
@@ -1244,7 +1255,7 @@ def run_montecarlo_condicional():
             # so achado porque o Victor reportou que faltavam as secoes 2
             # e 3 tambem (mesma causa raiz, blocos diferentes). Com kdo
             # None, a barreira de baixa nunca toca (prob=0%).
-            kdo_hit = (min_p <= kdo) if kdo is not None else np.zeros_like(min_p, dtype=bool)
+            kdo_hit = (min_p <= kdo*_aj_barreira(sigma)) if kdo is not None else np.zeros_like(min_p, dtype=bool)
             no_barrier = ~kuo_hit & ~kdo_hit
             res['prob_sem_barreira'] = round(float(no_barrier.mean() * 100), 2)
             res['prob_barreira_alta'] = round(float(kuo_hit.mean() * 100), 2)
@@ -1344,8 +1355,8 @@ def run_montecarlo_condicional():
                 max_full = np.max(paths_full, axis=1)
                 min_full = np.min(paths_full, axis=1)
                 ST_full = paths_full[:, -1]
-                tocou_baixa_full = min_full <= kdo if kdo is not None else None
-                tocou_alta_full = max_full >= kuo
+                tocou_baixa_full = min_full <= kdo*_aj_barreira(sigma) if kdo is not None else None
+                tocou_alta_full = max_full >= kuo/_aj_barreira(sigma)
                 variacao_full = (ST_full / preco_foto - 1)
                 # CORRIGIDO 15/07/2026 -- delega pra funcao unica
                 # _retorno_bidirecional_full (ver docstring dela, topo do
@@ -1387,8 +1398,8 @@ def run_montecarlo_condicional():
                     paths_cond = S * np.exp(np.cumsum(drift_fan + vol_step_fan * z_cond, axis=1))
                     max_cond = np.max(paths_cond, axis=1)
                     min_cond = np.min(paths_cond, axis=1)
-                    tocou_baixa_cond = (min_cond <= kdo) if kdo is not None else np.zeros_like(min_cond, dtype=bool)
-                    tocou_alta_cond = max_cond >= kuo
+                    tocou_baixa_cond = (min_cond <= kdo*_aj_barreira(sigma)) if kdo is not None else np.zeros_like(min_cond, dtype=bool)
+                    tocou_alta_cond = max_cond >= kuo/_aj_barreira(sigma)
                     res['prob_sem_barreira_condicional'] = round(float((~tocou_baixa_cond & ~tocou_alta_cond).mean() * 100), 2)
                     res['prob_barreira_baixa_condicional'] = round(float(tocou_baixa_cond.mean() * 100), 2)
                     res['prob_barreira_alta_condicional'] = round(float(tocou_alta_cond.mean() * 100), 2)
@@ -1417,7 +1428,7 @@ def run_montecarlo_condicional():
                 paths_full2 = preco_foto * np.exp(np.cumsum(drift_fan + vol_step_fan * z_full2, axis=1))
                 min_full2 = np.min(paths_full2, axis=1)
                 ST_full2 = paths_full2[:, -1]
-                tocou_barreira2 = min_full2 <= kdo
+                tocou_barreira2 = min_full2 <= kdo*_aj_barreira(sigma)
                 variacao_full2 = (ST_full2 / preco_foto - 1)
                 # se nao tocou: ganho fixo prefixado; se tocou: fica com a
                 # variacao real da acao (pode ser negativa, positiva, qualquer valor)
@@ -1444,7 +1455,7 @@ def run_montecarlo_condicional():
                     z_cond2 = np.random.standard_normal((n_faixas2, dias_restantes))
                     paths_cond2 = S * np.exp(np.cumsum(drift_fan + vol_step_fan * z_cond2, axis=1))
                     min_cond2 = np.min(paths_cond2, axis=1)
-                    tocou_cond2 = min_cond2 <= kdo
+                    tocou_cond2 = min_cond2 <= kdo*_aj_barreira(sigma)
                     res['prob_ganho_prefixado_condicional'] = round(float((~tocou_cond2).mean() * 100), 2)
                 else:
                     res['prob_ganho_prefixado_condicional'] = None
@@ -1466,7 +1477,7 @@ def run_montecarlo_condicional():
                 paths_full3 = preco_foto * np.exp(np.cumsum(drift_fan + vol_step_fan * z_full3, axis=1))
                 ST_full3 = paths_full3[:, -1]
                 if exercicio == 'americana':
-                    call_ex_full3 = np.max(paths_full3, axis=1) > K_call
+                    call_ex_full3 = np.max(paths_full3, axis=1) > K_call/_aj_barreira(sigma)
                 else:
                     call_ex_full3 = ST_full3 > K_call
                 variacao_full3 = (ST_full3 / preco_foto - 1)
@@ -1966,8 +1977,8 @@ def run_montecarlo_posicao_ativa():
             z2 = np.random.standard_normal((n, dias_restantes))
             paths = S*np.exp(np.cumsum(drift2+vol_step2*z2, axis=1))
             max_p = np.max(paths, axis=1); min_p = np.min(paths, axis=1)
-            kuo_hit = max_p >= kuo
-            kdo_hit = (min_p <= kdo) if kdo is not None else np.zeros_like(min_p, dtype=bool)
+            kuo_hit = max_p >= kuo/_aj_barreira(sigma)
+            kdo_hit = (min_p <= kdo*_aj_barreira(sigma)) if kdo is not None else np.zeros_like(min_p, dtype=bool)
             no_barrier = ~kuo_hit & ~kdo_hit
             res['prob_sem_barreira'] = round(float(no_barrier.mean()*100), 2)
             res['prob_barreira_alta'] = round(float(kuo_hit.mean()*100), 2)
@@ -1994,7 +2005,7 @@ def run_montecarlo_posicao_ativa():
             z3 = np.random.standard_normal((n3, dias_restantes))
             paths3 = S*np.exp(np.cumsum(drift3+vol_step3*z3, axis=1))
             if exercicio == 'americana':
-                call_ex3 = np.max(paths3, axis=1) > K_call
+                call_ex3 = np.max(paths3, axis=1) > K_call/_aj_barreira(sigma)
             else:
                 call_ex3 = paths3[:, -1] > K_call
             res['prob_call_exercida'] = round(float(call_ex3.mean()*100), 2)
@@ -2079,8 +2090,8 @@ def run_montecarlo_posicao_ativa():
                 # CORRIGIDO 15/07/2026 -- suporte a kdo=None (Protecao
                 # Total), mesmo motivo do bloco identico em
                 # /montecarlo/condicional.
-                tocou_baixa_full = (min_full <= kdo) if kdo is not None else None
-                tocou_alta_full = max_full >= kuo
+                tocou_baixa_full = (min_full <= kdo*_aj_barreira(sigma)) if kdo is not None else None
+                tocou_alta_full = max_full >= kuo/_aj_barreira(sigma)
                 variacao_full = (ST_full/preco_entrada - 1)
                 # CORRIGIDO 15/07/2026 -- delega pra funcao unica
                 # _retorno_bidirecional_full (ver docstring dela, topo do
@@ -2115,7 +2126,7 @@ def run_montecarlo_posicao_ativa():
                 paths_full2 = preco_entrada*np.exp(np.cumsum(drift_fan+vol_step_fan*z_full2, axis=1))
                 min_full2 = np.min(paths_full2, axis=1)
                 ST_full2 = paths_full2[:,-1]
-                tocou_barreira2 = min_full2 <= kdo
+                tocou_barreira2 = min_full2 <= kdo*_aj_barreira(sigma)
                 variacao_full2 = (ST_full2/preco_entrada - 1)
                 retorno_full2 = np.where(~tocou_barreira2, ganho_prefixado, variacao_full2)
                 faixas2 = {
@@ -2142,7 +2153,7 @@ def run_montecarlo_posicao_ativa():
                 if dias_restantes and dias_restantes > 0:
                     z_cond2 = np.random.standard_normal((n_faixas2, dias_restantes))
                     paths_cond2 = S*np.exp(np.cumsum(drift_fan+vol_step_fan*z_cond2, axis=1))
-                    tocou_cond2 = np.min(paths_cond2, axis=1) <= kdo
+                    tocou_cond2 = np.min(paths_cond2, axis=1) <= kdo*_aj_barreira(sigma)
                     res['prob_kdo_condicional'] = round(float((~tocou_cond2).mean()*100), 2)
                     # OVERSHOOT (pedido do Victor): chance de a acao terminar
                     # ACIMA do teto travado. Mede o custo de oportunidade de
@@ -2165,7 +2176,7 @@ def run_montecarlo_posicao_ativa():
                 paths_full3 = preco_entrada*np.exp(np.cumsum(drift_fan+vol_step_fan*z_full3, axis=1))
                 ST_full3 = paths_full3[:,-1]
                 if exercicio == 'americana':
-                    call_ex_full3 = np.max(paths_full3, axis=1) > K_call
+                    call_ex_full3 = np.max(paths_full3, axis=1) > K_call/_aj_barreira(sigma)
                 else:
                     call_ex_full3 = ST_full3 > K_call
                 variacao_full3 = (ST_full3/preco_entrada - 1)
@@ -6144,11 +6155,11 @@ def ranking_analises():
                 if tipo == 'retorno_controlado' and a.get('kdo') is not None and a.get('ganho_prefixado_pct') is not None:
                     ganho_pct = float(a['ganho_prefixado_pct'])
                     kdo = float(a['kdo'])
-                    tocou = min_sim <= kdo
+                    tocou = min_sim <= kdo*_aj_barreira(sigma)
                     prob_meta = round(float((~tocou).mean()*100), 2)
                     # EV: se nao tocou a barreira no prazo TOTAL, ganho prefixado;
                     # se tocou, fica exposto a variacao real (pode ser negativa)
-                    tocou_full = min_full <= kdo
+                    tocou_full = min_full <= kdo*_aj_barreira(sigma)
                     retorno_full_ev = np.where(~tocou_full, ganho_pct/100, variacao_full)
                     retorno_medio_pct = round(float(retorno_full_ev.mean()*100), 3)
                     # ADICIONADO 15/09/2026 -- bug reportado pelo Victor.
@@ -6194,10 +6205,10 @@ def ranking_analises():
                 elif tipo == 'bidirecional' and a.get('kuo') is not None and a.get('teto_retorno_pct') is not None:
                     ganho_pct = float(a['teto_retorno_pct'])
                     kuo = float(a['kuo'])
-                    tocou_alta = max_sim >= kuo
+                    tocou_alta = max_sim >= kuo/_aj_barreira(sigma)
                     prob_meta = round(float(tocou_alta.mean()*100), 2)
                     alav = float(a.get('alavancagem', 1.0))
-                    tocou_alta_full = max_full >= kuo
+                    tocou_alta_full = max_full >= kuo/_aj_barreira(sigma)
                     # CORRIGIDO 15/07/2026 -- delega pra funcao unica
                     # _retorno_bidirecional_full (topo do arquivo). Mesma
                     # correcao ja aplicada em /montecarlo/condicional e
@@ -6731,6 +6742,10 @@ def _congelar_bandas_analise(novo):
             'garch': garch_info,
             'periodos': periodos,
             'bandas': bandas,
+            # 08/10/2026 (backlog #21): versao do motor que gerou a probabilidade
+            # congelada. Ausente = versao 1 (dias corridos contados como pregoes,
+            # probabilidade 8 a 10 p.p. baixa). 2 = 1/365 por dia corrido.
+            'motor_versao': 2,
         }
         # ADICIONADO 06/08/2026 -- tracking previsao-vs-realizado (pedido
         # do Victor). Congela a probabilidade prevista de sucesso (nao

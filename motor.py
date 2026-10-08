@@ -300,9 +300,15 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
         if not preco_foto or not sigma or not prazo_dias or prazo_dias <= 0:
             return None
         import numpy as np
-        dt = 1 / 252.0
+        # CORRIGIDO 08/10/2026 (backlog #21, etapa 4) -- os passos sao DIAS CORRIDOS
+        # (prazo_dias), entao cada um vale 1/365 de ano. Com 1/252 o tempo ficava 45%
+        # maior que o real e a probabilidade saia 8 a 10 p.p. baixa demais.
+        dt = 1 / 365.0
         drift = -0.5 * sigma**2 * dt
         vol_step = sigma * math.sqrt(dt)
+        # Correcao de barreira continua (BGK): o boleto vale pelo toque a qualquer momento,
+        # a simulacao confere 1x por dia corrido. Barreira de baixo x _aj; de alta e americana / _aj.
+        _aj = math.exp(0.5826 * sigma * math.sqrt(dt))
         z = np.random.standard_normal((n_sim, int(prazo_dias)))
         paths = preco_foto * np.exp(np.cumsum(drift + vol_step * z, axis=1))
 
@@ -310,7 +316,7 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
             k = float(strike)
             if str(exercicio or '').lower().startswith('ameri'):
                 # condicao de CAMINHO: exercicio antecipado se tocar o strike
-                exercida = np.max(paths, axis=1) >= k
+                exercida = np.max(paths, axis=1) >= k / _aj
             else:
                 exercida = paths[:, -1] >= k
             return round(float((~exercida).mean() * 100), 2)
@@ -318,7 +324,7 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
         if tipo_estrutura in _VENDA_PUT:
             k = float(strike)
             if str(exercicio or '').lower().startswith('ameri'):
-                exercida = np.min(paths, axis=1) <= k
+                exercida = np.min(paths, axis=1) <= k * _aj
             else:
                 exercida = paths[:, -1] <= k
             return round(float((~exercida).mean() * 100), 2)
@@ -327,7 +333,7 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
             if kdo is None:
                 return None
             min_path = np.min(paths, axis=1)
-            tocou = min_path <= float(kdo)
+            tocou = min_path <= float(kdo) * _aj
             return round(float((~tocou).mean() * 100), 2)
         else:  # bidirecional
             if kdo is not None:
@@ -335,7 +341,7 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
                 # (a que da prejuizo integral sem protecao) -- mesma
                 # semantica de "sucesso" do retorno_controlado.
                 min_path = np.min(paths, axis=1)
-                tocou = min_path <= float(kdo)
+                tocou = min_path <= float(kdo) * _aj
                 return round(float((~tocou).mean() * 100), 2)
             elif kuo is not None:
                 # Fallback raro: so tem kuo cadastrado, sem kdo. Ainda
@@ -343,7 +349,7 @@ def _calc_prob_sucesso_prevista(preco_foto, sigma, prazo_dias, tipo_estrutura, k
                 # consistente), mesmo sabendo que kuo normalmente nao
                 # representa perda, so limitacao de ganho.
                 max_path = np.max(paths, axis=1)
-                tocou = max_path >= float(kuo)
+                tocou = max_path >= float(kuo) / _aj
                 return round(float((~tocou).mean() * 100), 2)
             return None
     except Exception:
@@ -380,7 +386,10 @@ def _calc_risco_overshoot(preco_foto, sigma, prazo_dias, teto_retorno_pct, n_sim
         if teto_retorno_pct is None:
             return None
         import numpy as np
-        dt = 1 / 252.0
+        # CORRIGIDO 08/10/2026 (backlog #21, etapa 4) -- os passos sao DIAS CORRIDOS
+        # (prazo_dias), entao cada um vale 1/365 de ano. Com 1/252 o tempo ficava 45%
+        # maior que o real e a probabilidade saia 8 a 10 p.p. baixa demais.
+        dt = 1 / 365.0
         drift = -0.5 * sigma**2 * dt
         vol_step = sigma * math.sqrt(dt)
         z = np.random.standard_normal((n_sim, int(prazo_dias)))
@@ -444,7 +453,10 @@ def _calc_venda_opcao_premium(preco_foto, sigma, prazo_dias, strike, premio, dir
         if strike is None or premio is None or direcao not in ('call', 'put'):
             return None
         import numpy as np
-        dt = 1 / 252.0
+        # CORRIGIDO 08/10/2026 (backlog #21, etapa 4) -- os passos sao DIAS CORRIDOS
+        # (prazo_dias), entao cada um vale 1/365 de ano. Com 1/252 o tempo ficava 45%
+        # maior que o real e a probabilidade saia 8 a 10 p.p. baixa demais.
+        dt = 1 / 365.0
         drift = -0.5 * sigma**2 * dt
         vol_step = sigma * math.sqrt(dt)
         z = np.random.standard_normal((n_sim, int(prazo_dias)))
