@@ -1944,7 +1944,11 @@ def run_montecarlo_posicao_ativa():
         # CORRIGIDO 15/07/2026 -- suporte a kdo=None (Protecao Total).
         if kuo is not None and dias_restantes > 0:
             n = 5000
-            dt2 = 1/252.0
+            # CORRIGIDO 08/10/2026 (backlog #21) -- os passos aqui sao DIAS CORRIDOS
+            # (dias_restantes / prazo_dias), entao cada passo vale 1/365 de ano. Com
+            # 1/252 o tempo ficava 45% maior que o real (33 dias corridos = ~23 pregoes)
+            # e a probabilidade de NAO tocar a barreira saia 8 a 10 p.p. baixa demais.
+            dt2 = 1/365.0
             drift2 = -0.5*sigma**2*dt2
             vol_step2 = sigma*math.sqrt(dt2)
             z2 = np.random.standard_normal((n, dias_restantes))
@@ -1968,7 +1972,11 @@ def run_montecarlo_posicao_ativa():
             if exercicio not in ('americana', 'europeia'):
                 return jsonify({'error': "campo 'exercicio' obrigatorio quando k_call presente: 'americana' ou 'europeia'"}), 400
             n3 = 5000
-            dt3 = 1/252.0
+            # CORRIGIDO 08/10/2026 (backlog #21) -- os passos aqui sao DIAS CORRIDOS
+            # (dias_restantes / prazo_dias), entao cada passo vale 1/365 de ano. Com
+            # 1/252 o tempo ficava 45% maior que o real (33 dias corridos = ~23 pregoes)
+            # e a probabilidade de NAO tocar a barreira saia 8 a 10 p.p. baixa demais.
+            dt3 = 1/365.0
             drift3 = -0.5*sigma**2*dt3
             vol_step3 = sigma*math.sqrt(dt3)
             z3 = np.random.standard_normal((n3, dias_restantes))
@@ -1986,7 +1994,11 @@ def run_montecarlo_posicao_ativa():
         # prazo_dias TOTAL + serie de precos REAIS desde data_entrada até hoje
         try:
             n_fan = 2000
-            dt_fan = 1/252.0
+            # CORRIGIDO 08/10/2026 (backlog #21) -- os passos aqui sao DIAS CORRIDOS
+            # (dias_restantes / prazo_dias), entao cada passo vale 1/365 de ano. Com
+            # 1/252 o tempo ficava 45% maior que o real (33 dias corridos = ~23 pregoes)
+            # e a probabilidade de NAO tocar a barreira saia 8 a 10 p.p. baixa demais.
+            dt_fan = 1/365.0
             drift_fan = -0.5*sigma**2*dt_fan
             vol_step_fan = sigma*math.sqrt(dt_fan)
             z_fan = np.random.standard_normal((n_fan, prazo_dias))
