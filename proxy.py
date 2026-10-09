@@ -6345,6 +6345,10 @@ def ranking_analises():
                 prob_meta = None
                 prob_meta_saltos = None
                 saltos_ano = None
+                prob_meta_estresse = None
+                razao_vol = None
+                farol_vol = None
+                vol30_pct = None
 
                 n_sim = 20000
                 # CORRIGIDO 08/10/2026 (backlog #21, etapa 3) -- os passos/dias aqui sao DIAS
@@ -6389,6 +6393,24 @@ def ranking_analises():
                         if _sv:
                             prob_meta_saltos = round(prob_nao_tocar_jd(S, sigma, dias_restantes, kdo, _sv, n_sim=8000, seed=7), 2)
                             saltos_ano = round(_sv['lam'], 1)
+                    except Exception:
+                        pass
+                    # 09/10/2026 (backlog #22): farol de regime + cenario de estresse
+                    # (sigma = max(modelo, vol 30d)). Reaproveita 'cl' (1 ano), sem chamada extra.
+                    try:
+                        if len(cl) >= 120:
+                            _lr = np.diff(np.log(np.array(cl[-253:], dtype=float)))
+                            _v252 = float(_lr.std(ddof=1) * (252 ** 0.5))
+                            _v30 = float(_lr[-30:].std(ddof=1) * (252 ** 0.5))
+                            if _v252 > 0:
+                                razao_vol = round(_v30 / _v252, 2)
+                                vol30_pct = round(_v30 * 100, 1)
+                                farol_vol = 'verde' if razao_vol < 1.15 else ('amarelo' if razao_vol <= 1.30 else 'vermelho')
+                                if _v30 > sigma:
+                                    from jump_diffusion import prob_nao_tocar_jd as _pnt
+                                    prob_meta_estresse = round(_pnt(S, _v30, dias_restantes, kdo, None, n_sim=8000, seed=7), 2)
+                                else:
+                                    prob_meta_estresse = prob_meta
                     except Exception:
                         pass
                     # EV: se nao tocou a barreira no prazo TOTAL, ganho prefixado;
@@ -6642,6 +6664,8 @@ def ranking_analises():
                     'tipo_estrutura': tipo, 'lote': a.get('lote'),
                     'backtest': a.get('backtest'),
                     'prob_meta_saltos_pct': prob_meta_saltos, 'saltos_por_ano': saltos_ano,
+                    'prob_meta_estresse_pct': prob_meta_estresse, 'razao_vol_30_252': razao_vol,
+                    'farol_vol': farol_vol, 'vol_30d_pct': vol30_pct, 'sigma_modelo_pct': round(sigma*100, 1),
                     'preco_foto': preco_foto, 'preco_atual': round(S, 2),
                     'dias_restantes': dias_restantes,
                     'meses_restantes': round(meses_restantes, 2),
