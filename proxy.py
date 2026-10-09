@@ -2376,7 +2376,14 @@ def get_ranking_posicoes(tipo):
                                                  (rd.get('volatilidade_historica_pct') or 0) / 100.0,
                                                  rd.get('dias_restantes'), float(p['kdo']))
             prob_sucesso = rd.get(campo_sucesso)
+            _pe, _rz, _fa, _v30 = (None, None, None, None)
+            if p.get('kdo') and rd.get('prob_kdo_condicional') is not None:
+                _pe, _rz, _fa, _v30 = _estresse_posicao(p['ticker'], rd.get('preco_atual'),
+                                                        (rd.get('volatilidade_historica_pct') or 0) / 100.0,
+                                                        rd.get('dias_restantes'), float(p['kdo']),
+                                                        rd.get('prob_kdo_condicional'))
             itens.append({
+                'probabilidade_estresse_pct': _pe, 'razao_vol_30_252': _rz, 'farol_vol': _fa, 'vol_30d_pct': _v30,
                 'probabilidade_saltos_pct': _pj, 'saltos_por_ano': _lam,
                 'prob_foto_saltos_pct': p.get('prob_sucesso_saltos_pct'),
                 'id': p['id'],
@@ -4033,6 +4040,60 @@ def _prob_saltos_posicao(ticker, S, sigma, dias, kdo):
         return round(prob_nao_tocar_jd(S, sigma, int(dias), kdo, sv, n_sim=8000, seed=7), 2), round(sv['lam'], 1)
     except Exception:
         return None, None
+
+_REGIME_CACHE = {}
+
+def _regime_vol(ticker):
+    """Backlog #22 (09/10/2026): razao vol 30d / vol 252d do papel (cache 6 h).
+    Devolve {'vol30': , 'razao': } ou None. Fechamentos de 1 ano (Yahoo)."""
+    try:
+        import time as _t
+        import numpy as _np
+        tk = (ticker or '').replace('.SA', '')
+        ent = _REGIME_CACHE.get(tk)
+        if ent and _t.time() - ent[0] <= 6 * 3600:
+            return ent[1]
+        res = None
+        for suf in ('.SA', ''):
+            try:
+                r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{tk}{suf}?interval=1d&range=1y',
+                                 headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+                cl = [x for x in r.json()['chart']['result'][0]['indicators']['quote'][0]['close'] if x]
+                if len(cl) >= 120:
+                    lr = _np.diff(_np.log(cl[-253:]))
+                    v252 = float(lr.std(ddof=1) * (252 ** 0.5))
+                    v30 = float(lr[-30:].std(ddof=1) * (252 ** 0.5))
+                    if v252 > 0:
+                        res = {'vol30': v30, 'razao': v30 / v252}
+                        break
+            except Exception:
+                continue
+        _REGIME_CACHE[tk] = (_t.time(), res)
+        return res
+    except Exception:
+        return None
+
+
+def _estresse_posicao(ticker, S, sigma, dias, kdo, prob_base):
+    """Cenario de ESTRESSE (backlog #22): mesma simulacao, mas com sigma = max(modelo, vol 30d)
+    -- 'e se a volatilidade de hoje persistir ate o vencimento'. So comparacao; nao muda a
+    probabilidade principal. Se a vol de 30d nao supera o sigma do modelo, devolve a propria
+    probabilidade base (estresse identico). Farol pela razao vol30/vol252:
+    verde < 1,15 | amarelo 1,15-1,30 | vermelho > 1,30."""
+    try:
+        rg = _regime_vol(ticker)
+        if not rg or not S or not sigma or not dias or dias <= 0:
+            return None, None, None, None
+        razao = rg['razao']
+        farol = 'verde' if razao < 1.15 else ('amarelo' if razao <= 1.30 else 'vermelho')
+        if rg['vol30'] <= sigma:
+            return (round(prob_base, 2) if prob_base is not None else None), round(razao, 2), farol, round(rg['vol30'] * 100, 1)
+        from jump_diffusion import prob_nao_tocar_jd
+        pe = prob_nao_tocar_jd(S, rg['vol30'], int(dias), kdo, None, n_sim=8000, seed=7)
+        return round(pe, 2), round(razao, 2), farol, round(rg['vol30'] * 100, 1)
+    except Exception:
+        return None, None, None, None
+
 
 def _calibracao_saltos(itens, campo_res):
     """Backlog #3: mesmos itens medidos pela previsao ATUAL e pela COM SALTOS (so os que

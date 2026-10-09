@@ -966,12 +966,19 @@ async function loadRankingPosicoes(tipo){
           evol+=`<div style="font-size:9px;color:var(--muted);margin-top:2px">${i.pct_do_prazo_consumido}% do prazo · <span style="color:${cg};font-weight:600">${gt>0?'+':''}${gt}p por % de prazo</span></div>`;
         }
       }
+      // 09/10/2026 (backlog #22) -- farol de regime de volatilidade + cenario de estresse.
+      const _fCor={verde:'#2ecc71',amarelo:'#e6a817',vermelho:'#e74c3c'};
+      const _fTxt={verde:'volatilidade normal',amarelo:'volatilidade subindo',vermelho:'volatilidade disparada'};
+      const farolHtml=i.farol_vol
+        ? ` <span title="Regime de volatilidade: vol 30d = ${i.vol_30d_pct}% · razão vol30/vol252 = ${i.razao_vol_30_252} → ${_fTxt[i.farol_vol]}. Verde &lt; 1,15 · amarelo 1,15–1,30 · vermelho &gt; 1,30. Esperar a razão voltar a &lt; ~1,15 reduz o risco de entrar/rolar." style="color:${_fCor[i.farol_vol]};cursor:help">●</span>`
+        : '';
       return `<tr>
-        <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
+        <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}${farolHtml}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
         <td style="padding:6px 8px;text-align:right">${i.vencimento||'—'}</td>
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Mesma conta com saltos (Jump-Diffusion): parte da volatilidade vira quedas/altas bruscas raras, detectadas no histórico do papel (${i.saltos_por_ano!=null?i.saltos_por_ano+' por ano':'—'}). Só comparação, não altera nada.">${i.probabilidade_saltos_pct!=null?i.probabilidade_saltos_pct.toFixed(1)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:${i.probabilidade_estresse_pct!=null&&i.probabilidade_sucesso_pct!=null&&(i.probabilidade_sucesso_pct-i.probabilidade_estresse_pct)>=5?'var(--red,#e74c3c)':'var(--muted)'}" title="Cenário de ESTRESSE: a mesma conta, mas com a volatilidade dos últimos 30 dias (${i.vol_30d_pct!=null?i.vol_30d_pct+'%':'—'}) no lugar da do modelo, como se o regime de hoje persistisse até o vencimento. Se a vol de 30d não passa a do modelo, é igual à coluna 'Prob. KDO (agora)'. Só comparação, não altera nada.">${i.probabilidade_estresse_pct!=null?i.probabilidade_estresse_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)">${i.prob_na_origem_pct!=null?i.prob_na_origem_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Overshoot na decisão: do preço de entrada, pelo prazo cheio (congelado).">${i.prob_overshoot_entrada_pct!=null?i.prob_overshoot_entrada_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:${(i.prob_overshoot_pct||0)>=40?'var(--warn,#e6a817)':'var(--muted)'}">${i.prob_overshoot_pct!=null?i.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
@@ -988,6 +995,7 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de NÃO tocar o KDO daqui pra frente — do preço de hoje até o vencimento. É o que o contrato exige.">Prob. KDO (agora)</th>
         <th style="padding:6px 8px;text-align:right" title="Mesma conta, mas contando quedas bruscas raras (Jump-Diffusion). Compare com a coluna ao lado, que é o modelo atual.">Com saltos</th>
+        <th style="padding:6px 8px;text-align:right" title="Cenário de estresse: e se a volatilidade dos últimos 30 dias persistir até o vencimento? Vermelho = perde 5 p.p. ou mais em relação à coluna 'Prob. KDO (agora)'.">Estresse</th>
         <th style="padding:6px 8px;text-align:right" title="A mesma conta, mas simulando o prazo TOTAL a partir do preço de entrada. Responde 'qual era a chance quando começou'. É o que alimenta o tracker.">Na origem</th>
         <th style="padding:6px 8px;text-align:right" title="Overshoot NA DECISÃO (congelado): chance de a ação terminar ACIMA do teto, calculada do preço de entrada pelo prazo cheio. Não muda. Compare com o (agora) ao lado: mostra a evolução.">Overshoot (na decisão)</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de a ação terminar ACIMA do teto travado, calculada do preço de HOJE com os dias que faltam. Mede o custo de oportunidade de ter prefixado o ganho — quanto maior, mais teria valido a pena só comprar o papel.">Overshoot (agora)</th>
