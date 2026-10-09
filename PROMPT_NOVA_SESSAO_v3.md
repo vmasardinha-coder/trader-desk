@@ -112,6 +112,27 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 4. Straddle/Strangle e Autocall/COE ficam no fim da fila — mecânica bem diferente do resto, exigem desenho novo, só valem o esforço se Victor realmente for usar
 5. **Regra de processo daqui pra frente**: toda vez que uma função de cálculo central for criada ou alterada, rodar contra pelo menos 1 caso manual conhecido ANTES de considerar pronta — foi a falta disso que permitiu o bug da bidirecional passar batido por 2 sessões inteiras
 
+### 🔢 BACKLOG NUMERADO (lista mestre do Victor — atualizada 09/10/2026; os números #N são os citados no chat e nos comentários do código)
+| # | Item | Estado | Prio |
+|---|---|---|---|
+| 1 | Ponte de Brownian: correção de barreira contínua (BGK) já aplicada em ativas, ranking e análises novas. Falta auditar `/montecarlo/barrier` | Aberto (parcial) | Alta |
+| 2 | Fator no ranking de análises | ✅ Validado | — |
+| 3 | Jump-Diffusion | ✅ Entregue em modo sombra; falta coletar vencimentos para decidir se troca o motor | — |
+| 4 | Entry de TEND3, ROXO34, ITLC34 e ECOR3 encerrada; boleto da BEEF3 (~10/10); extrato de saída da SBSP3 | Depende do Victor | Média |
+| 5 | Calibrar o overshoot | ✅ Medido, sem recalibrar; só acompanha | — |
+| 10 | Monitorar prazos e barreiras a cada lote | Rotina manual | Média |
+| 11 | PETR4 e VALE3 como fracasso provável | Aberto | Média |
+| 12 | Botão de regeneração (aba 📈 Papéis) falha de vez em quando | Em estudo; dá para melhorar só no código, sem mexer no Render | Média |
+| 13 | FI-Infra e ETFs via Brapi; proventos 12m | Aberto | Média |
+| 15 | Ranking de análises dá 502 com 180+ linhas; paginação 5, cache 10 min, retry 3x e recarga adiada na rejeição feitos; ranking segue pesado (pré-aquecer após deploy pendente). Extensão frescor/prazo em reflexão (ver linha própria abaixo) | Em tratamento | Média/Alta |
+| 16 | Vol implícita (OpLab) + GARCH | ⏸️ Parado: fonte paga, sem acesso | Baixa |
+| 17 | Escalonar vencimentos no engine de 500k | Aberto | Baixa |
+| 18 | BOVA11 sem candle de 05/10 no Yahoo | Aberto | Baixa |
+| 19 | BRZD11, listas duplicadas, `yquote_estavel()` | Aberto | Baixa |
+| 20 | 15 BDRs sem preço justo (8 sem motivo explícito na tela) | Aberto | Baixa |
+| 21 | Motor com dias corridos: etapas 1–5 feitas; ranking de Análises validado pelo Victor em 09/10. Resta `_calc_bandas_foto` ainda em 1/252 | ✅ Fechado (resíduo menor) | — |
+| 22 | Regime de volatilidade: farol ●, coluna/linha Estresse e folga que o estresse pede (ativas e análises). Pendente: tracker do estresse | ✅ Entregue; medição pendente | Média |
+
 ### Modelagem
 | Item | Status |
 |---|---|
