@@ -115,7 +115,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 ### 🔢 BACKLOG NUMERADO (lista mestre do Victor — atualizada 09/10/2026; os números #N são os citados no chat e nos comentários do código)
 | # | Item | Estado | Prio |
 |---|---|---|---|
-| 1 | Ponte de Brownian: correção de barreira contínua (BGK) já aplicada em ativas, ranking e análises novas. Falta auditar `/montecarlo/barrier` | Aberto (parcial) | Alta |
+| 1 | Ponte de Brownian: correção de barreira contínua (BGK) aplicada em ativas, ranking e análises novas; `/montecarlo/barrier` auditado e corrigido em 09/10/2026 (simulava ~29% do tempo real — `steps=T//5` com dt=1/252 — e sem BGK: 113d/KDO-20%/KUO+26%/σ35% dava 95% de "sem barreira"; correto ≈ 51–53%. Agora 1 passo por dia, dt=1/365, BGK nos dois lados, `n` respeitado). Rota só é chamada por posições `tipo_posicao='barreira'` (hoje nenhuma ativa) | ✅ Fechado (resta `_calc_bandas_foto` 1/252, no #21) | — |
 | 2 | Fator no ranking de análises | ✅ Validado | — |
 | 3 | Jump-Diffusion | ✅ Entregue em modo sombra; falta coletar vencimentos para decidir se troca o motor | — |
 | 4 | Entry de TEND3, ROXO34, ITLC34 e ECOR3 encerrada; boleto da BEEF3 (~10/10); extrato de saída da SBSP3 | Depende do Victor | Média |

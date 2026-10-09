@@ -757,8 +757,15 @@ def run_montecarlo_barrier():
         kdo      = float(data.get('kdo', 43.39))
         kuo      = float(data.get('kuo', 68.48))
         T_days   = int(data.get('t_days', 113))
-        n        = 3000
-        steps    = max(T_days // 5, 10)
+        # 09/10/2026 (backlog #1): antes n fixo 3000 e steps=T//5 com dt=1/252 -- simulava so ~29%
+        # do tempo real ate o vencimento e deixava a probabilidade de nao tocar INFLADA (113d: 95%
+        # vs ~74% correto). Agora: 1 passo por dia corrido, dt=1/365, n pedido (3000-20000).
+        try:
+            n = int(data.get('n', 3000))
+        except Exception:
+            n = 3000
+        n = max(3000, min(n, 20000))
+        steps    = max(T_days, 1)
         S = float(data.get('price',0)) or None
         sigma = float(data.get('sigma', 0.35))
         usar_garch = data.get('usar_garch', True)
@@ -790,7 +797,7 @@ def run_montecarlo_barrier():
             except: pass
 
         def _simula_barrier(sig):
-            dt2 = 1/252.0
+            dt2 = 1/365.0
             drift2 = (0 - 0.5 * sig**2) * dt2
             vol_step2 = sig * (dt2**0.5)
             z2 = _np.random.standard_normal((n, steps))
@@ -798,8 +805,9 @@ def run_montecarlo_barrier():
             paths2 = S * _np.exp(_np.cumsum(log_returns2, axis=1))
             max_p2 = _np.max(paths2, axis=1)
             min_p2 = _np.min(paths2, axis=1)
-            kuo_hit2 = max_p2 >= kuo
-            kdo_hit2 = min_p2 <= kdo
+            _aj2 = _aj_barreira(sig, dt2)   # correcao BGK: toque continuo (KDO x aj, KUO / aj)
+            kuo_hit2 = max_p2 >= kuo / _aj2
+            kdo_hit2 = min_p2 <= kdo * _aj2
             no_barrier2 = ~kuo_hit2 & ~kdo_hit2
             return {
                 'prob_sem_barreira': round(float(no_barrier2.mean() * 100), 2),
