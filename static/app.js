@@ -3793,6 +3793,7 @@ function tplRanking(d){
         <button onclick="acaoRanking('${r.id}','ativa')" title="Marcar como Ativa" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
         <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;margin-right:4px">🚫</button>
         <button onclick="verFotoAnalise('${r.id}')" title="Ver foto do modelo — bandas congeladas no dia da análise, pra ver se está deixando dinheiro na mesa" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">📸</button>
+        ${_fx?`<button onclick="(function(){const e=document.getElementById('rk-fx-${r.id}');e.style.display=(e.style.display==='none'?'table-row':'none');})()" title="Estresse: quanta folga a oferta precisaria ter para 80% e 90% de chance se a volatilidade de 30 dias persistir até o vencimento" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit">Estresse</button>`:''}
       </td>
     </tr>${_fx}`;
   }).join('');
