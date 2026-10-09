@@ -3673,10 +3673,16 @@ async function loadRankingAnalises(){
     // ordenacao final e responsabilidade daqui, depois de juntar tudo.
     // Linhas com erro (score null) vao pro fim, nunca somem -- Victor ve
     // TODOS os registros, sempre.
+    // 08/10/2026 -- mesma hierarquia do backend: faixa de probabilidade >
+    // score misto > score (EV). Antes aqui ordenava so por score e desfazia a
+    // ordem do servidor ao juntar as paginas.
+    const _n=(v)=>(v!=null?v:-Infinity);
     todasLinhas.sort((a,b)=>{
-      const sa=(a && a.score!=null)?a.score:-Infinity;
-      const sb=(b && b.score!=null)?b.score:-Infinity;
-      return sb-sa;
+      const fa=(a&&a.faixa_prob!=null)?a.faixa_prob:6, fb=(b&&b.faixa_prob!=null)?b.faixa_prob:6;
+      if(fa!==fb)return fa-fb;
+      const ma=_n(a&&a.score_misto), mb=_n(b&&b.score_misto);
+      if(ma!==mb)return mb-ma;
+      return _n(b&&b.score)-_n(a&&a.score);
     });
     const merged={...primeiraResposta, ranking:todasLinhas};
     area.innerHTML=tplRanking(merged);
