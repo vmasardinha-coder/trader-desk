@@ -978,7 +978,7 @@ async function loadRankingPosicoes(tipo){
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Mesma conta com saltos (Jump-Diffusion): parte da volatilidade vira quedas/altas bruscas raras, detectadas no histórico do papel (${i.saltos_por_ano!=null?i.saltos_por_ano+' por ano':'—'}). Só comparação, não altera nada.">${i.probabilidade_saltos_pct!=null?i.probabilidade_saltos_pct.toFixed(1)+'%':'—'}</td>
-        <td style="padding:6px 8px;text-align:right;color:${i.probabilidade_estresse_pct!=null&&i.probabilidade_sucesso_pct!=null&&(i.probabilidade_sucesso_pct-i.probabilidade_estresse_pct)>=5?'var(--red,#e74c3c)':'var(--muted)'}" title="Cenário de ESTRESSE: a mesma conta, mas com a volatilidade dos últimos 30 dias (${i.vol_30d_pct!=null?i.vol_30d_pct+'%':'—'}) no lugar da do modelo, como se o regime de hoje persistisse até o vencimento. Se a vol de 30d não passa a do modelo, é igual à coluna 'Prob. KDO (agora)'. Só comparação, não altera nada.">${i.probabilidade_estresse_pct!=null?i.probabilidade_estresse_pct.toFixed(1)+'%':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:${i.probabilidade_estresse_pct!=null&&i.probabilidade_sucesso_pct!=null&&(i.probabilidade_sucesso_pct-i.probabilidade_estresse_pct)>=5?'var(--red,#e74c3c)':'var(--muted)'}" title="Cenário de ESTRESSE: a mesma conta, mas com a volatilidade dos últimos 30 dias (${i.vol_30d_pct!=null?i.vol_30d_pct+'%':'—'}) no lugar da do modelo, como se o regime de hoje persistisse até o vencimento. Se a vol de 30d não passa a do modelo, é igual à coluna 'Prob. KDO (agora)'. Só comparação, não altera nada.">${i.probabilidade_estresse_pct!=null?i.probabilidade_estresse_pct.toFixed(1)+'%':'—'}${(i.folga_atual_pct!=null&&i.folga_pede_80_estresse_pct!=null)?`<br><span style="font-weight:400;font-size:9px;color:${i.folga_atual_pct>=i.folga_pede_80_estresse_pct?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}" title="Folga de hoje (preço ÷ KDO − 1) contra a folga que o estresse (vol 30d) pede para 80% de chance de não tocar o KDO. ${i.folga_atual_pct>=i.folga_pede_80_estresse_pct?'Sobram':'Faltam'} ${Math.abs(i.folga_atual_pct-i.folga_pede_80_estresse_pct).toFixed(1)} p.p. Aproximação analítica.">folga ${i.folga_atual_pct.toFixed(1)}% · pede ${i.folga_pede_80_estresse_pct.toFixed(1)}%</span>`:''}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)">${i.prob_na_origem_pct!=null?i.prob_na_origem_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Overshoot na decisão: do preço de entrada, pelo prazo cheio (congelado).">${i.prob_overshoot_entrada_pct!=null?i.prob_overshoot_entrada_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:${(i.prob_overshoot_pct||0)>=40?'var(--warn,#e6a817)':'var(--muted)'}">${i.prob_overshoot_pct!=null?i.prob_overshoot_pct.toFixed(1)+'%':'—'}</td>
@@ -3762,8 +3762,17 @@ function tplRanking(d){
     const _fCor={verde:'#2ecc71',amarelo:'#e6a817',vermelho:'#e74c3c'};
     const _fTxt={verde:'volatilidade normal',amarelo:'volatilidade subindo',vermelho:'volatilidade disparada'};
     const farolHtml=r.farol_vol
-      ? ` <span title="Regime de volatilidade: vol 30d = ${r.vol_30d_pct}% (modelo usa ${r.sigma_modelo_pct}%) · razão vol30/vol252 = ${r.razao_vol_30_252} → ${_fTxt[r.farol_vol]}. Verde &lt; 1,15 · amarelo 1,15–1,30 · vermelho &gt; 1,30. Esperar a razão voltar a &lt; ~1,15 reduz o risco de entrar." style="color:${_fCor[r.farol_vol]};cursor:help">●</span>`
+      ? ` <span title="Regime de volatilidade: vol 30d = ${r.vol_30d_pct}% (modelo usa ${r.sigma_modelo_pct}%) · razão vol30/vol252 = ${r.razao_vol_30_252} → ${_fTxt[r.farol_vol]}. Verde &lt; 1,15 · amarelo 1,15–1,30 · vermelho &gt; 1,30. Esperar a razão voltar a &lt; ~1,15 reduz o risco de entrar." style="color:${_fCor[r.farol_vol]};cursor:pointer" onclick="document.getElementById('rk-fx-${r.id}').style.display=(document.getElementById('rk-fx-${r.id}').style.display==='none'?'table-row':'none')">●</span>`
       : '';
+    const _fx=(()=>{
+      if(r.folga_barreira_pct==null||r.folga_pede_80_estresse_pct==null)return '';
+      const lin=(alvo,pede)=>{
+        if(pede==null)return '';
+        const dif=r.folga_barreira_pct-pede, ok=dif>=0;
+        return `<div>Para <b>${alvo}%</b> de chance sob o estresse: pede folga <b>${pede.toFixed(1)}%</b> → <span style="color:${ok?'var(--green,#2ecc71)':'var(--red,#e74c3c)'};font-weight:700">${ok?'sobram':'faltam'} ${Math.abs(dif).toFixed(1)} p.p.</span></div>`;
+      };
+      return `<tr id="rk-fx-${r.id}" style="display:none"><td colspan="20" style="padding:6px 8px 10px 22px;font-size:11px;background:var(--bg3)"><div style="color:var(--muted);margin-bottom:3px">${r.ticker.replace('.SA','')} · ${r.dias_restantes}d · folga da oferta <b>${r.folga_barreira_pct.toFixed(1)}%</b> · estresse = vol 30d ${r.vol_30d_pct}% (modelo ${r.sigma_modelo_pct}%)</div>${lin(80,r.folga_pede_80_estresse_pct)}${lin(90,r.folga_pede_90_estresse_pct)}<div style="color:var(--muted);font-size:9px;margin-top:3px">Aproximação analítica. Só informativo: não altera a ordem do ranking.</div></td></tr>`;
+    })();
     return `<tr id="rk-row-${r.id}">
       <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
@@ -3785,10 +3794,10 @@ function tplRanking(d){
         <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;margin-right:4px">🚫</button>
         <button onclick="verFotoAnalise('${r.id}')" title="Ver foto do modelo — bandas congeladas no dia da análise, pra ver se está deixando dinheiro na mesa" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">📸</button>
       </td>
-    </tr>`;
+    </tr>${_fx}`;
   }).join('');
   return `
-  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por 1º faixa de probabilidade de pagamento (≥95, 90–95, 80–90, 70–80, 60–70, &lt;60), 2º score misto (retorno × Fator), 3º EV — nenhuma linha é escondida; ⚠️ &lt;2,5% = abaixo do piso de retorno</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por 1º faixa de probabilidade de pagamento (≥95, 90–95, 80–90, 70–80, 60–70, &lt;60), 2º score misto (retorno × Fator), 3º EV — nenhuma linha é escondida; ⚠️ &lt;2,5% = abaixo do piso de retorno · clique no ● do papel para ver quanta folga o estresse pede</div>
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">

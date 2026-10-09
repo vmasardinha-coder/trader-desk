@@ -2382,7 +2382,15 @@ def get_ranking_posicoes(tipo):
                                                         (rd.get('volatilidade_historica_pct') or 0) / 100.0,
                                                         rd.get('dias_restantes'), float(p['kdo']),
                                                         rd.get('prob_kdo_condicional'))
+            _fp80 = None
+            _folga_at = None
+            if p.get('kdo') and rd.get('preco_atual') and rd.get('dias_restantes'):
+                _folga_at = round((rd['preco_atual'] / float(p['kdo']) - 1) * 100, 1)
+                _sg = (rd.get('volatilidade_historica_pct') or 0) / 100.0
+                _se = max(_sg, (_v30 or 0) / 100.0)
+                _fp80 = _folga_pede(_se, rd.get('dias_restantes'), 0.80)
             itens.append({
+                'folga_atual_pct': _folga_at, 'folga_pede_80_estresse_pct': _fp80,
                 'probabilidade_estresse_pct': _pe, 'razao_vol_30_252': _rz, 'farol_vol': _fa, 'vol_30d_pct': _v30,
                 'probabilidade_saltos_pct': _pj, 'saltos_por_ano': _lam,
                 'prob_foto_saltos_pct': p.get('prob_sucesso_saltos_pct'),
@@ -4042,6 +4050,37 @@ def _prob_saltos_posicao(ticker, S, sigma, dias, kdo):
         return None, None
 
 _REGIME_CACHE = {}
+
+def _folga_pede(sigma, dias, p_alvo):
+    """Backlog #22, camada 3 (09/10/2026): folga (MESMA convencao da tela: preco/KDO - 1, em %)
+    que a oferta precisaria ter para atingir `p_alvo` (0-1) de nao tocar o KDO em `dias`
+    dias corridos com volatilidade `sigma` (anual). Formula analitica (barreira continua +
+    ajuste BGK), por bisseccao -- aproximacao, nao a simulacao."""
+    try:
+        import numpy as _np
+        from scipy.stats import norm as _n
+        if not sigma or sigma <= 0 or not dias or dias <= 0:
+            return None
+        T = dias / 365.0
+        a = -0.5 * sigma ** 2
+        aj = float(_np.exp(0.5826 * sigma * _np.sqrt(1 / 365.0)))
+        def pnt(d):
+            b = float(_np.log((1 - d) * aj))
+            pt = _n.cdf((b - a * T) / (sigma * _np.sqrt(T))) + _np.exp(2 * a * b / sigma ** 2) * _n.cdf((b + a * T) / (sigma * _np.sqrt(T)))
+            return 1 - float(pt)
+        lo, hi = 0.0005, 0.95
+        if pnt(hi) < p_alvo:
+            return None
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            if pnt(mid) >= p_alvo:
+                hi = mid
+            else:
+                lo = mid
+        return round((1 / (1 - hi) - 1) * 100, 1)
+    except Exception:
+        return None
+
 
 def _regime_vol(ticker):
     """Backlog #22 (09/10/2026): razao vol 30d / vol 252d do papel (cache 6 h).
@@ -6346,6 +6385,8 @@ def ranking_analises():
                 prob_meta_saltos = None
                 saltos_ano = None
                 prob_meta_estresse = None
+                folga_pede_80 = None
+                folga_pede_90 = None
                 razao_vol = None
                 farol_vol = None
                 vol30_pct = None
@@ -6411,6 +6452,9 @@ def ranking_analises():
                                     prob_meta_estresse = round(_pnt(S, _v30, dias_restantes, kdo, None, n_sim=8000, seed=7), 2)
                                 else:
                                     prob_meta_estresse = prob_meta
+                                _se = max(sigma, _v30)
+                                folga_pede_80 = _folga_pede(_se, dias_restantes, 0.80)
+                                folga_pede_90 = _folga_pede(_se, dias_restantes, 0.90)
                     except Exception:
                         pass
                     # EV: se nao tocou a barreira no prazo TOTAL, ganho prefixado;
@@ -6665,6 +6709,7 @@ def ranking_analises():
                     'backtest': a.get('backtest'),
                     'prob_meta_saltos_pct': prob_meta_saltos, 'saltos_por_ano': saltos_ano,
                     'prob_meta_estresse_pct': prob_meta_estresse, 'razao_vol_30_252': razao_vol,
+                    'folga_pede_80_estresse_pct': folga_pede_80, 'folga_pede_90_estresse_pct': folga_pede_90,
                     'farol_vol': farol_vol, 'vol_30d_pct': vol30_pct, 'sigma_modelo_pct': round(sigma*100, 1),
                     'preco_foto': preco_foto, 'preco_atual': round(S, 2),
                     'dias_restantes': dias_restantes,
