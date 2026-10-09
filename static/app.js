@@ -3937,7 +3937,6 @@ async function acaoRanking(id,acao){
     if(!ok)return;
   }
   try{
-    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),15000);
     const body={status:novoStatus};
     if(motivo){
       body.motivo_encerramento=motivo;
@@ -3953,12 +3952,31 @@ async function acaoRanking(id,acao){
         if(rCache.preco_atual!=null)body.preco_atual=rCache.preco_atual;
       }
     }
-    const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
-      method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:ctrl.signal,
-      body:JSON.stringify(body)
-    });
-    const d=await r.json();
-    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    // 08/10/2026 -- servidor ocupado (ranking) derrubava a gravacao com 502/timeout.
+    // Regravar o mesmo status e idempotente, entao tenta ate 4x com espera crescente
+    // e timeout maior; so avisa erro se todas falharem.
+    let d=null,ultimoErro=null;
+    for(let t=0;t<4;t++){
+      const c=new AbortController();const tm=setTimeout(()=>c.abort(),45000);
+      try{
+        const r=await fetch(B+'/analises/'+encodeURIComponent(id)+'/status',{
+          method:'PUT',headers:{'Content-Type':'application/json',..._authHeaders()},signal:c.signal,
+          body:JSON.stringify(body)
+        });
+        const txt=await r.text();
+        let j=null;try{j=JSON.parse(txt);}catch(_){}
+        if(j===null){ultimoErro=new Error('servidor ocupado (HTTP '+r.status+')');}
+        else if(!r.ok||j.error){
+          if(r.status>=400&&r.status<500)throw Object.assign(new Error(j.error||('HTTP '+r.status)),{definitivo:true});
+          ultimoErro=new Error(j.error||('HTTP '+r.status));
+        }else{d=j;break;}
+      }catch(e){
+        if(e.definitivo)throw e;
+        ultimoErro=e.name==='AbortError'?new Error('demorou demais'):e;
+      }finally{clearTimeout(tm);}
+      await new Promise(res=>setTimeout(res,2000*(t+1)));
+    }
+    if(!d)throw new Error((ultimoErro?ultimoErro.message:'falha')+' — nada foi confirmado; recarregue a lista e confira antes de tentar de novo');
     if(linha)linha.style.opacity='.4';
     if(motivo){
       // 08/10/2026 -- rejeitar varias em sequencia dava erro na 3a: cada rejeicao
