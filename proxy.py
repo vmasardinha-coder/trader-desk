@@ -4066,9 +4066,14 @@ def _folga_pede(sigma, dias, p_alvo):
     ajuste BGK), por bisseccao -- aproximacao, nao a simulacao."""
     try:
         import numpy as _np
-        from scipy.stats import norm as _n
+        import math as _m
         if not sigma or sigma <= 0 or not dias or dias <= 0:
             return None
+        # sem scipy (nao esta no requirements de producao): CDF normal via math.erf
+        class _n:
+            @staticmethod
+            def cdf(x):
+                return 0.5 * (1.0 + _m.erf(x / _m.sqrt(2.0)))
         T = dias / 365.0
         a = -0.5 * sigma ** 2
         aj = float(_np.exp(0.5826 * sigma * _np.sqrt(1 / 365.0)))
