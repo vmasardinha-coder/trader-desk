@@ -6611,7 +6611,20 @@ def ranking_analises():
             if len(resultado) == _n0 + 1 and 'erro' not in resultado[-1]:
                 _RANK_LINHAS[a.get('id')] = (_tr.time(), resultado[-1])
 
-        resultado.sort(key=lambda r: r.get('score', -1) if r.get('score') is not None else -1, reverse=True)
+        # 08/10/2026 -- ordem pedida pelo Victor: a PROBABILIDADE manda (faixas), dentro
+        # da faixa vale o score misto (retorno x Fator) e o EV (score) so desempata.
+        # Retorno abaixo de 2,5%/mes NAO corta: vira aviso (abaixo_piso_retorno).
+        def _faixa_prob(p):
+            if p is None: return 6
+            return 0 if p >= 95 else 1 if p >= 90 else 2 if p >= 80 else 3 if p >= 70 else 4 if p >= 60 else 5
+        for r_ in resultado:
+            r_['faixa_prob'] = _faixa_prob(r_.get('prob_meta_pct'))
+            rm_ = r_.get('retorno_mensal_pct')
+            r_['abaixo_piso_retorno'] = bool(rm_ is not None and rm_ < 2.5)
+        resultado.sort(key=lambda r: (
+            r.get('faixa_prob', 6),
+            -(r['score_misto'] if r.get('score_misto') is not None else -999),
+            -(r['score'] if r.get('score') is not None else -999)))
         return jsonify({
             'cdi_anual_pct': cdi_anual,
             'total_analises': len(em_analise),

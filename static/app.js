@@ -3742,8 +3742,11 @@ function tplRanking(d){
     const volAviso = r.vol_generica_usada
       ? ' <span title="Sem histórico suficiente pra calcular a volatilidade real deste papel — usando 35% genérico. EV/Score aqui podem estar subestimando o risco real." style="color:var(--orange,#f0a020);cursor:help">⚠️</span>'
       : '';
+    const pisoAviso = r.abaixo_piso_retorno
+      ? ' <span title="Retorno abaixo de 2,5%/mês (piso de corte). Não deveria ter chegado à análise — confira por que passou." style="color:var(--orange,#f0a020);cursor:help">⚠️ &lt;2,5%</span>'
+      : '';
     return `<tr id="rk-row-${r.id}">
-      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}${volAviso}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${loteTag}${volAviso}${pisoAviso}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
        <td style="padding:6px 8px;text-align:right" title="Pelo prazo do CONTRATO (fixo). Equivalente se entrasse hoje: ${r.retorno_mensal_hoje_pct!=null?r.retorno_mensal_hoje_pct.toFixed(2):'—'}%/mês — só informativo: a oferta envelhece e deixa de existir poucos dias depois.">${r.retorno_mensal_pct.toFixed(2)}%</td>
@@ -3766,7 +3769,7 @@ function tplRanking(d){
     </tr>`;
   }).join('');
   return `
-  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por score (EV daqui-pra-frente × peso de prazo × Fator histórico, maior primeiro; * = sem Fator) — score é só ordenação, nenhuma linha é escondida</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por 1º faixa de probabilidade de pagamento (≥95, 90–95, 80–90, 70–80, 60–70, &lt;60), 2º score misto (retorno × Fator), 3º EV — nenhuma linha é escondida; ⚠️ &lt;2,5% = abaixo do piso de retorno</div>
   <div style="overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left">
