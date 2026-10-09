@@ -3957,7 +3957,17 @@ async function acaoRanking(id,acao){
     const d=await r.json();
     if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
     if(linha)linha.style.opacity='.4';
-    await loadAnalises();
+    if(motivo){
+      // 08/10/2026 -- rejeitar varias em sequencia dava erro na 3a: cada rejeicao
+      // recarregava a lista inteira, e o ranking recalcula tudo no servidor (minutos),
+      // travando a proxima gravacao. Agora a linha so esmaece e a lista recarrega
+      // UMA vez, 25 s depois da ultima rejeicao.
+      if(linha){linha.style.textDecoration='line-through';}
+      clearTimeout(window._rejReloadT);
+      window._rejReloadT=setTimeout(()=>{loadAnalises();},25000);
+    }else{
+      await loadAnalises();
+    }
   }catch(e){
     alert('Erro ao aplicar ação: '+e.message);
   }
