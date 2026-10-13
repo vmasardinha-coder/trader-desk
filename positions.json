@@ -567,6 +567,26 @@
       "prob_sucesso_saltos_pct": 84.75,
       "ganho_sem_barreira": "5.2% fixo",
       "ganho_prefixado_pct": 5.2
+    },
+    {
+      "id": "cmin3",
+      "ticker": "CMIN3.SA",
+      "nome": "CMIN3",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-28",
+      "entry": 5.02,
+      "kdo": 4.41,
+      "kdo_pct": "-12.2%",
+      "vol_impl": 0.4004,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-13",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 86.6,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.0,
+      "ganho_sem_barreira": "4.11% fixo",
+      "ganho_prefixado_pct": 4.11
     }
   ],
   "encerradas": [
