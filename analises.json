@@ -161015,46 +161015,6 @@
     "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.99% em 15 dias = 4.033%/mes. Prob 91.32% (GARCH 36.9%; planilha dizia 96.0%), EV 1.242%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
   },
   {
-    "id": "an_1791900026",
-    "ticker": "POMO4.SA",
-    "nome": "POMO4",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "ativa",
-    "data_foto": "2026-10-13",
-    "preco_foto": 4.8,
-    "kdo": 4.21,
-    "ganho_prefixado_pct": 3.8,
-    "ganho_sem_barreira": "3.8% fixo",
-    "vencimento": "2026-10-28",
-    "prazo_dias": 15,
-    "exercicio": "europeia",
-    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
-    "lote": "13/10/2026",
-    "protecao_pct": 12.2,
-    "vol_impl": 0.39,
-    "vol_impl_fonte": "garch",
-    "prob_sucesso_prevista_pct": 90.14,
-    "bandas_congeladas": {
-      "preco_foto": 4.8,
-      "kdo": 4.21,
-      "prob_sucesso_prevista_pct": 90.14,
-      "vol_garch_pct": 38.94,
-      "ev_mensal_pct": 4.292,
-      "retorno_mensal_pct": 7.701,
-      "protecao_pct": 12.2,
-      "prob_overshoot_pct": 30.27,
-      "teto_overshoot": 4.9824,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 90.78
-    },
-    "risco_historico": {
-      "rompe_com_indice_pct": 70.0,
-      "freq_rompimento_hist_pct": 8.9,
-      "fator": 59.2
-    },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.8% em 15 dias = 7.701%/mes. Prob 90.14% (GARCH 38.94%; planilha dizia 92.4%), EV 4.292%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
-  },
-  {
     "id": "an_1791900028",
     "ticker": "TOTS3.SA",
     "nome": "TOTS3",
