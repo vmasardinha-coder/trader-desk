@@ -1638,6 +1638,7 @@ function tplEncerrada(p){
 }
 
 function calcDashboardEncerradas(encerradas){
+  encerradas=(encerradas||[]).filter(p=>!p.fora_das_estatisticas);
   const total=encerradas.length;
   const sucessos=encerradas.filter(p=>p.status==='sucesso').length;
   const taxaSucesso=total?Math.round(sucessos/total*100):0;

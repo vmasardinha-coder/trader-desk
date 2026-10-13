@@ -26,7 +26,9 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 9.64,
       "prob_foto_metodo": "europeia terminal: P(preco no vencimento < strike), com GARCH calculado SOMENTE com dados ate a data de entrada -- reconstruida em 28/09/2026 para destravar a coluna Evolucao da tese, que so existia para retorno controlado.",
-      "prob_foto_reconstruida": true
+      "prob_foto_reconstruida": true,
+      "fora_das_estatisticas": true,
+      "motivo_fora_estatisticas": "decisao anterior ao sistema (sem os mesmos parametros); nao computar como sucesso nem fracasso em nenhuma estatistica -- pedido do Victor em 13/10/2026"
     },
     {
       "id": "vl",
@@ -43,7 +45,9 @@
       "exercicio": "europeia",
       "prob_sucesso_prevista_pct": 9.32,
       "prob_foto_metodo": "europeia terminal: P(preco no vencimento < strike), com GARCH calculado SOMENTE com dados ate a data de entrada -- reconstruida em 28/09/2026 para destravar a coluna Evolucao da tese, que so existia para retorno controlado.",
-      "prob_foto_reconstruida": true
+      "prob_foto_reconstruida": true,
+      "fora_das_estatisticas": true,
+      "motivo_fora_estatisticas": "decisao anterior ao sistema (sem os mesmos parametros); nao computar como sucesso nem fracasso em nenhuma estatistica -- pedido do Victor em 13/10/2026"
     },
     {
       "id": "tsla342",

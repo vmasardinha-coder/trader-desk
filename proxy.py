@@ -4652,6 +4652,8 @@ def _giro_do_registro(rec):
         return {}
 
 def _tracking_victor_item(rec, hoje):
+    if rec.get('fora_das_estatisticas'):
+        return None
     from datetime import datetime as _dtv, timedelta as _tdv
     # AJUSTE 23/09/2026 (Victor): "quando digo que e sucesso, todos eles
     # ja sao meus". Toda posicao encerrada com status sucesso/fracasso e
@@ -5088,7 +5090,8 @@ def _resumo_encerradas():
     from datetime import datetime as _dr
     import statistics as _st
     pos = _ler_json_raw('positions.json') or {}
-    enc = list(pos.get('encerradas') or []) + list(_ler_json_raw('positions_arquivo.json') or [])
+    enc = [x for x in (list(pos.get('encerradas') or []) + list(_ler_json_raw('positions_arquivo.json') or []))
+           if not x.get('fora_das_estatisticas')]
     total = len(enc)
     suc = sum(1 for x in enc if x.get('status') == 'sucesso')
     frac = sum(1 for x in enc if x.get('status') in ('fracasso', 'parcial'))
@@ -5401,6 +5404,8 @@ def tracking_acuracia_previsoes():
         # nao pode tirar a operacao do tracker.
         _encerradas_tudo = list(dados_pos.get('encerradas') or []) + list(_ler_json_raw('positions_arquivo.json') or [])
         for p in _encerradas_tudo:
+            if p.get('fora_das_estatisticas'):
+                continue  # decisao anterior ao sistema (13/10/2026): nao conta nem como sucesso nem como fracasso
             status = p.get('status')
             if status not in ('sucesso', 'fracasso'):
                 continue

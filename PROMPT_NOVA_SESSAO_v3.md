@@ -121,7 +121,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 4 | ✅ Fechado em 13/10/2026: extrato Itaú conferido contra todas as ativas; BEEF3 corrigida (strike 4,78, qtd 6.500, KDO 3,30, entry 4,41 pela regra KDO/(1-defesa)); TEND3 confirmada; vencimentos alinhados ao extrato (um dia antes do que o app usava). Resta só o extrato de saída da SBSP3, se ainda for útil | ✅ Fechado | — |
 | 5 | Calibrar o overshoot | ✅ Medido, sem recalibrar; só acompanha | — |
 | 10 | Monitorar prazos e barreiras a cada lote | Rotina manual | Média |
-| 11 | PETR4 e VALE3 como fracasso provável | Aberto | Média |
+| 11 | PETR4 e VALE3 (anteriores ao sistema): marcadas `fora_das_estatisticas: true` em 13/10/2026 — quando encerrarem, não contam como sucesso nem fracasso em nenhum tracker/painel (acurácia, Victor, resumo, dashboard). Na tela aparecem normalmente; pode usar o status que quiser para o badge | ✅ Tratado | — |
 | 12 | Botão de regeneração (aba 📈 Papéis) falha de vez em quando | Em estudo; dá para melhorar só no código, sem mexer no Render | Média |
 | 13 | FI-Infra e ETFs via Brapi; proventos 12m | Aberto | Média |
 | 15 | Ranking de análises dá 502 com 180+ linhas; paginação 5, cache 10 min, retry 3x e recarga adiada na rejeição feitos; ranking segue pesado (pré-aquecer após deploy pendente). Extensão frescor/prazo em reflexão (ver linha própria abaixo) | Em tratamento | Média/Alta |
