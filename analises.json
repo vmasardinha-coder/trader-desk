@@ -18172,7 +18172,7 @@
     "id": "an_1787070644",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Bidirecional 9 meses (PDF Itau 18/08/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "bidirecional",
     "data_foto": "2026-08-19",
     "preco_foto": 17.92,
@@ -25175,7 +25175,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.49
   },
   {
     "id": "an_1787596415",
@@ -27497,7 +27502,7 @@
     "id": "an_1787672012",
     "ticker": "TSMC34.SA",
     "nome": "TSMC34 Proteção Parcial 4 meses (PDF Itau 25/08/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "bidirecional",
     "data_foto": "2026-08-25",
     "preco_foto": 267.58,
@@ -29071,7 +29076,12 @@
       "prob_sucesso_prevista_pct": 54.7
     },
     "observacao": "PDF Itau \"Material Publicitario\" 25/08/2026, Operacoes Estruturadas: Protecao Parcial (NAO e a Bidirecional classica -- mecanica diferente, ja mapeada em _retorno_bidirecional_full: downside_antes=protegida, downside_apos=perda_integral). Prazo 4 meses (125 dias corridos). Se desvalorizar ATE -18,10% (sem tocar KDO R$219.148): capital 100% protegido (0% de perda, nao acompanha a queda). Se romper KDO: perda integral, sem protecao nenhuma dali pra frente. Se valorizar ate +19,10% (sem tocar KUO R$318.6878): participa 2x da alta (cap 38%). Se romper KUO: trava em 19,00% fixo. Registrada A PEDIDO DO VICTOR para comparar contra a posicao TSMC34 Retorno Controlado ja ATIVA (id tsmc34, entry R$280,95, venc 2026-10-15, teto 8,20% fixo) -- decisao em aberto se vale migrar da atual pra essa. prob_sucesso_prevista_pct = 54.7% (chance de NAO tocar a barreira de baixo). | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
-    "origem": "pronta"
+    "origem": "pronta",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 276.51
   },
   {
     "id": "an_1787672037",
@@ -29121,7 +29131,7 @@
     "id": "an_1787856577",
     "ticker": "BSLV39.SA",
     "nome": "BSLV39 Retorno Controlado 62d (Lote 27/08/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-08-27",
     "preco_foto": 107.36,
@@ -31475,13 +31485,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 89.99
   },
   {
     "id": "an_1788225901",
     "ticker": "TSMC34.SA",
     "nome": "TSMC34 Proteção Parcial 6 meses (PDF Itau 31/08/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "bidirecional",
     "data_foto": "2026-09-01",
     "preco_foto": 268.21,
@@ -33355,7 +33370,12 @@
       "prob_sucesso_prevista_pct": 47.82
     },
     "observacao": "PDF Itau \"Material Publicitario\" 31/08/2026, Protecao Parcial. Prazo 6 meses (185 dias corridos, mais longo que a versao de 4 meses analisada em 25/08/2026). Se desvalorizar ATE -20,10% (sem tocar KDO): capital 100% protegido (0% perda). Se romper KDO: perda integral. Se valorizar ate +26,10% (sem tocar KUO): participa 2x da alta (cap 52%). Se romper KUO: trava em 26,00% fixo. prob_sucesso_prevista_pct = 47.82% (nao tocar KDO) -- BAIXA comparada as outras estruturas, prazo longo (185d) com vol. alta (36,75%) deixa risco de barreira elevado. ATENCAO: essa metrica reflete so a barreira de baixo, nao o EV completo -- calcular payoff dos 4 cenarios (como fizemos em 25/08) antes de comparar com a posicao TSMC34 Retorno Controlado ja ATIVA (id tsmc34, entry R$280,95, teto 8,20% fixo) se Victor quiser essa comparacao. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
-    "origem": "pronta"
+    "origem": "pronta",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 276.51
   },
   {
     "id": "an_1788281105",
@@ -33698,7 +33718,7 @@
     "id": "an_1788281106",
     "ticker": "A1MD34.SA",
     "nome": "A1MD34 (AMD) Retorno Controlado 64d (Lote 01/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-01",
     "preco_foto": 294.0,
@@ -36082,7 +36102,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 367.4
   },
   {
     "id": "an_1788281107",
@@ -40865,7 +40890,7 @@
     "id": "an_1788457745",
     "ticker": "BABA34.SA",
     "nome": "BABA34 (Alibaba) Retorno Controlado 63d (Lote 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 20.33,
@@ -43234,13 +43259,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 19.94
   },
   {
     "id": "an_1788457746",
     "ticker": "NFLX34.SA",
     "nome": "NFLX34 (Netflix) Retorno Controlado 63d (Lote 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 8.46,
@@ -45609,7 +45639,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 7.16
   },
   {
     "id": "an_1788458227",
@@ -47345,7 +47380,7 @@
     "id": "an_1788458230",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 22.24,
@@ -50104,7 +50139,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.49
   },
   {
     "id": "an_1788458231",
@@ -52600,7 +52640,7 @@
     "id": "an_1788458234",
     "ticker": "DIRR3.SA",
     "nome": "DIRR3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 11.56,
@@ -55359,7 +55399,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 12.01
   },
   {
     "id": "an_1788458235",
@@ -57090,7 +57135,7 @@
     "id": "an_1788458238",
     "ticker": "PRIO3.SA",
     "nome": "PRIO3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 61.97,
@@ -59849,7 +59894,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 65.81
   },
   {
     "id": "an_1788458239",
@@ -62669,7 +62719,7 @@
     "id": "an_1788458243",
     "ticker": "AXIA3.SA",
     "nome": "AXIA3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 56.04,
@@ -65428,13 +65478,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 59.82
   },
   {
     "id": "an_1788458244",
     "ticker": "CMIN3.SA",
     "nome": "CMIN3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 6.66,
@@ -68193,13 +68248,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 5.02
   },
   {
     "id": "an_1788458245",
     "ticker": "SBSP3.SA",
     "nome": "SBSP3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 26.11,
@@ -70958,7 +71018,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 32.63
   },
   {
     "id": "an_1788458246",
@@ -72044,7 +72109,7 @@
     "id": "an_1788458247",
     "ticker": "CYRE3.SA",
     "nome": "CYRE3 Retorno Controlado 89d (Menu Itau 03/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-03",
     "preco_foto": 25.59,
@@ -74803,7 +74868,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 34.22
   },
   {
     "id": "an_1788458248",
@@ -75889,7 +75959,7 @@
     "id": "an_1788970555",
     "ticker": "TSMC34.SA",
     "nome": "TSMC34 Proteção Parcial 125d (Lote 09/09/2026 - candidata rolagem)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "bidirecional",
     "data_foto": "2026-09-09",
     "preco_foto": 277.08,
@@ -77463,13 +77533,18 @@
       "prob_sucesso_prevista_pct": 54.68
     },
     "observacao": "PDF Itau 09/09/2026, Protecao Parcial. Candidata a rolagem da posicao ativa tsmc34 (venc 15/10, 36d restantes, ~88,2% prob de manter garantido 8,20% se ficar). Victor sinalizou que esse caso e diferente dos outros dois -- nao tem alternativa de retorno controlado mais curta disponivel no momento (so essa Protecao Parcial de 4 meses), vai questionar/buscar outra opcao antes de decidir. prob de nao tocar KDO = 54.68% -- baixa, prazo longo com vol. ainda elevada. | CORRIGIDO 15/09/2026: campo 'origem' estava ausente (obrigatorio em _validar_analise desde antes). Preenchido como 'pronta' -- todas as 36 sem origem vinham de estrutura pronta do banco (Menu Itau, Lote de boletos ou PDF Itau), nenhuma era customizada.",
-    "origem": "pronta"
+    "origem": "pronta",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 276.51
   },
   {
     "id": "an_1789000000",
     "ticker": "MBRF3.SA",
     "nome": "MBRF3 (Marfrig) Retorno Controlado 62d (Lote 16/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-16",
     "preco_foto": 17.17,
@@ -78870,13 +78945,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 18.98
   },
   {
     "id": "an_1789000001",
     "ticker": "SPCX34.SA",
     "nome": "SPCX34 (SpaceX) Retorno Controlado 62d (Lote 16/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-16",
     "preco_foto": 51.38,
@@ -80277,13 +80357,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 52.38
   },
   {
     "id": "an_1789000002",
     "ticker": "NVDC34.SA",
     "nome": "NVDC34 (NVIDIA) Retorno Controlado 62d (Lote 16/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-16",
     "preco_foto": 23.02,
@@ -81684,13 +81769,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 23.54
   },
   {
     "id": "an_1789000003",
     "ticker": "NFLX34.SA",
     "nome": "NFLX34 (Netflix) Retorno Controlado 62d (Lote 16/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-16",
     "preco_foto": 7.95,
@@ -83091,7 +83181,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 7.16
   },
   {
     "id": "an_1789100000",
@@ -88652,7 +88747,7 @@
     "id": "an_1789100007",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 43d barreira -18.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 23.22,
@@ -89769,13 +89864,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.49
   },
   {
     "id": "an_1789100008",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 43d barreira -16.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 23.22,
@@ -90892,13 +90992,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.49
   },
   {
     "id": "an_1789100009",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 43d barreira -14.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 23.22,
@@ -92015,13 +92120,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.49
   },
   {
     "id": "an_1789100010",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 43d barreira -12.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 23.22,
@@ -93138,7 +93248,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.49
   },
   {
     "id": "an_1789100011",
@@ -97913,7 +98028,7 @@
     "id": "an_1789100018",
     "ticker": "CMIG4.SA",
     "nome": "CMIG4 Retorno Controlado 43d barreira -12.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 11.28,
@@ -99030,7 +99145,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 11.99
   },
   {
     "id": "an_1789100019",
@@ -107543,7 +107663,7 @@
     "id": "an_1789100030",
     "ticker": "GGBR4.SA",
     "nome": "GGBR4 Retorno Controlado 43d barreira -18.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 25.63,
@@ -108660,13 +108780,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 25.78
   },
   {
     "id": "an_1789100031",
     "ticker": "GGBR4.SA",
     "nome": "GGBR4 Retorno Controlado 43d barreira -16.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 25.63,
@@ -109783,13 +109908,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 25.78
   },
   {
     "id": "an_1789100032",
     "ticker": "GGBR4.SA",
     "nome": "GGBR4 Retorno Controlado 43d barreira -14.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 25.63,
@@ -110906,13 +111036,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 25.78
   },
   {
     "id": "an_1789100033",
     "ticker": "GGBR4.SA",
     "nome": "GGBR4 Retorno Controlado 43d barreira -12.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 25.63,
@@ -112029,7 +112164,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 25.76
   },
   {
     "id": "an_1789100034",
@@ -121581,7 +121721,7 @@
     "id": "an_1789100048",
     "ticker": "PETR4.SA",
     "nome": "PETR4 Retorno Controlado 43d barreira -12.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 48.25,
@@ -122698,13 +122838,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 56.65
   },
   {
     "id": "an_1789100049",
     "ticker": "PETR4.SA",
     "nome": "PETR4 Retorno Controlado 91d barreira -22.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 48.25,
@@ -124541,7 +124686,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 56.65
   },
   {
     "id": "an_1789100050",
@@ -125582,7 +125732,7 @@
     "id": "an_1789100053",
     "ticker": "RADL3.SA",
     "nome": "RADL3 Retorno Controlado 43d barreira -18.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 20.58,
@@ -126699,13 +126849,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 20.85
   },
   {
     "id": "an_1789100054",
     "ticker": "RADL3.SA",
     "nome": "RADL3 Retorno Controlado 43d barreira -16.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 20.58,
@@ -127822,13 +127977,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 20.85
   },
   {
     "id": "an_1789100055",
     "ticker": "RADL3.SA",
     "nome": "RADL3 Retorno Controlado 43d barreira -14.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 20.58,
@@ -128945,7 +129105,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 20.85
   },
   {
     "id": "an_1789100056",
@@ -146655,7 +146820,7 @@
     "id": "an_1789100080",
     "ticker": "VBBR3.SA",
     "nome": "VBBR3 Retorno Controlado 43d barreira -16.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 39.73,
@@ -147772,13 +147937,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 36.35
   },
   {
     "id": "an_1789100081",
     "ticker": "VBBR3.SA",
     "nome": "VBBR3 Retorno Controlado 43d barreira -14.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 39.73,
@@ -148895,13 +149065,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 36.35
   },
   {
     "id": "an_1789100082",
     "ticker": "VBBR3.SA",
     "nome": "VBBR3 Retorno Controlado 43d barreira -12.0% (Laminas 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 39.73,
@@ -150018,7 +150193,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 36.35
   },
   {
     "id": "an_1789100083",
@@ -151059,7 +151239,7 @@
     "id": "an_1789100086",
     "ticker": "PETR4.SA",
     "nome": "PETR4 Retorno Controlado 63d barreira -17.5% (Boleto 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 48.25,
@@ -152476,13 +152656,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 56.65
   },
   {
     "id": "an_1789100087",
     "ticker": "BBDC4.SA",
     "nome": "BBDC4 Retorno Controlado 63d barreira -15.3% (Boleto 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 18.16,
@@ -153899,13 +154084,18 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 21.2
   },
   {
     "id": "an_1789100088",
     "ticker": "BPAC11.SA",
     "nome": "BPAC11 Retorno Controlado 63d barreira -18.7% (Boleto 21/09/2026)",
-    "status": "em_analise",
+    "status": "encerrada",
     "tipo_estrutura": "retorno_controlado",
     "data_foto": "2026-09-21",
     "preco_foto": 63.53,
@@ -155322,7 +155512,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 81.21
   },
   {
     "id": "an_1790700000",
@@ -158249,7 +158444,7 @@
     "ticker": "BBAS3.SA",
     "nome": "BBAS3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 22.08,
     "kdo": 18.55,
@@ -158309,14 +158504,19 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.5
   },
   {
     "id": "an_1790700041",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 22.08,
     "kdo": 18.11,
@@ -158376,7 +158576,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 24.5
   },
   {
     "id": "an_1790700042",
@@ -158683,7 +158888,7 @@
     "ticker": "SPCX34.SA",
     "nome": "SPCX34",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 51.54,
     "kdo": 42.06,
@@ -158744,14 +158949,19 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 52.38
   },
   {
     "id": "an_1790800001",
     "ticker": "AMZO34.SA",
     "nome": "AMZO34",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 64.69,
     "kdo": 58.22,
@@ -158812,14 +159022,19 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 65.19
   },
   {
     "id": "an_1790800002",
     "ticker": "A1MD34.SA",
     "nome": "A1MD34",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 397.97,
     "kdo": 318.38,
@@ -158880,14 +159095,19 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 367.4
   },
   {
     "id": "an_1790800003",
     "ticker": "AXIA3.SA",
     "nome": "AXIA3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 54.69,
     "kdo": 45.23,
@@ -158948,14 +159168,19 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 59.82
   },
   {
     "id": "an_1790800004",
     "ticker": "BPAC11.SA",
     "nome": "BPAC11",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 62.87,
     "kdo": 51.36,
@@ -159016,14 +159241,19 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 81.21
   },
   {
     "id": "an_1790800005",
     "ticker": "ECOR3.SA",
     "nome": "ECOR3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 8.66,
     "kdo": 6.93,
@@ -159084,7 +159314,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 14.19
   },
   {
     "id": "an_1790800006",
@@ -159167,7 +159402,7 @@
     "ticker": "SBSP3.SA",
     "nome": "SBSP3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-09-29",
     "preco_foto": 27.05,
     "kdo": 22.64,
@@ -159228,7 +159463,12 @@
         "em": "2026-10-06T11:54:10",
         "motivo": "acrescenta prob_overshoot_pct congelado na entrada (campo novo, nada existente alterado)"
       }
-    ]
+    ],
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-13",
+    "motivo_rejeicao": "sem_capital",
+    "rejeicao_em_lote": "limpeza 13/10/2026: fora da janela de decisao, segue no tracker hipotetico",
+    "preco_encerramento": 32.63
   },
   {
     "id": "an_1791460000",
@@ -159259,7 +159499,8 @@
       "retorno_mensal_pct": 3.501,
       "protecao_pct": 15.2,
       "prob_overshoot_pct": 37.31,
-      "teto_overshoot": 25.2442
+      "teto_overshoot": 25.2442,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 71.0,
@@ -159297,7 +159538,8 @@
       "retorno_mensal_pct": 4.882,
       "protecao_pct": 15.7,
       "prob_overshoot_pct": 33.25,
-      "teto_overshoot": 81.976
+      "teto_overshoot": 81.976,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 94.0,
@@ -159335,7 +159577,8 @@
       "retorno_mensal_pct": 4.005,
       "protecao_pct": 20.0,
       "prob_overshoot_pct": 34.27,
-      "teto_overshoot": 432.3336
+      "teto_overshoot": 432.3336,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 56.0,
@@ -159373,7 +159616,8 @@
       "retorno_mensal_pct": 6.466,
       "protecao_pct": 16.0,
       "prob_overshoot_pct": 21.54,
-      "teto_overshoot": 14.7193
+      "teto_overshoot": 14.7193,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 40.0,
@@ -159411,7 +159655,8 @@
       "retorno_mensal_pct": 5.7,
       "protecao_pct": 22.1,
       "prob_overshoot_pct": 26.78,
-      "teto_overshoot": 17.2044
+      "teto_overshoot": 17.2044,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 88.0,
@@ -159449,7 +159694,8 @@
       "retorno_mensal_pct": 7.83,
       "protecao_pct": 16.1,
       "prob_overshoot_pct": 32.77,
-      "teto_overshoot": 100.1672
+      "teto_overshoot": 100.1672,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 44.0,
@@ -159487,7 +159733,8 @@
       "retorno_mensal_pct": 6.466,
       "protecao_pct": 20.1,
       "prob_overshoot_pct": 28.95,
-      "teto_overshoot": 15.3317
+      "teto_overshoot": 15.3317,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 94.0,
@@ -159525,7 +159772,8 @@
       "retorno_mensal_pct": 3.812,
       "protecao_pct": 19.9,
       "prob_overshoot_pct": 32.46,
-      "teto_overshoot": 5.4058
+      "teto_overshoot": 5.4058,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 98.0,
@@ -159563,7 +159811,8 @@
       "retorno_mensal_pct": 4.238,
       "protecao_pct": 15.2,
       "prob_overshoot_pct": 35.92,
-      "teto_overshoot": 159.5568
+      "teto_overshoot": 159.5568,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 90.0,
@@ -159601,7 +159850,8 @@
       "retorno_mensal_pct": 4.391,
       "protecao_pct": 20.0,
       "prob_overshoot_pct": 30.82,
-      "teto_overshoot": 166.4211
+      "teto_overshoot": 166.4211,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 90.0,
@@ -159639,7 +159889,8 @@
       "retorno_mensal_pct": 2.653,
       "protecao_pct": 15.6,
       "prob_overshoot_pct": 30.18,
-      "teto_overshoot": 24.123
+      "teto_overshoot": 24.123,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 88.0,
@@ -159677,7 +159928,8 @@
       "retorno_mensal_pct": 4.238,
       "protecao_pct": 18.7,
       "prob_overshoot_pct": 38.12,
-      "teto_overshoot": 57.8333
+      "teto_overshoot": 57.8333,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": null,
@@ -159715,7 +159967,8 @@
       "retorno_mensal_pct": 5.988,
       "protecao_pct": 16.1,
       "prob_overshoot_pct": 34.88,
-      "teto_overshoot": 951.684
+      "teto_overshoot": 951.684,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 40.0,
@@ -159753,7 +160006,8 @@
       "retorno_mensal_pct": 8.203,
       "protecao_pct": 20.0,
       "prob_overshoot_pct": 24.23,
-      "teto_overshoot": 14.508
+      "teto_overshoot": 14.508,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 100.0,
@@ -159791,7 +160045,8 @@
       "retorno_mensal_pct": 3.812,
       "protecao_pct": 29.1,
       "prob_overshoot_pct": 34.19,
-      "teto_overshoot": 964.1944
+      "teto_overshoot": 964.1944,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": 40.0,
@@ -159829,7 +160084,8 @@
       "retorno_mensal_pct": 3.571,
       "protecao_pct": 25.2,
       "prob_overshoot_pct": 35.43,
-      "teto_overshoot": 59.3815
+      "teto_overshoot": 59.3815,
+      "motor_versao": 2
     },
     "risco_historico": {
       "rompe_com_indice_pct": null,
@@ -159837,5 +160093,2165 @@
       "fator": null
     },
     "observacao": "Lote 08/10/2026 (menu Itau). Defesa 25.2%, ganho 7.4% em 63 dias = 3.571%/mes. Prob 53.24% (GARCH 73.77%), EV -4.103%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900000",
+    "ticker": "SLCE3.SA",
+    "nome": "SLCE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 18.03,
+    "kdo": 15.83,
+    "ganho_prefixado_pct": 1.52,
+    "ganho_sem_barreira": "1.52% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.27,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 98.18,
+    "bandas_congeladas": {
+      "preco_foto": 18.03,
+      "kdo": 15.83,
+      "prob_sucesso_prevista_pct": 98.18,
+      "vol_garch_pct": 27.2,
+      "ev_mensal_pct": 2.495,
+      "retorno_mensal_pct": 3.081,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 37.9,
+      "teto_overshoot": 18.3041,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 98.02
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 39.0,
+      "freq_rompimento_hist_pct": 3.0,
+      "fator": 78.1
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.52% em 15 dias = 3.081%/mes. Prob 98.18% (GARCH 27.2%; planilha dizia 99.7%), EV 2.495%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900001",
+    "ticker": "VBBR3.SA",
+    "nome": "VBBR3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 36.41,
+    "kdo": 31.97,
+    "ganho_prefixado_pct": 1.63,
+    "ganho_sem_barreira": "1.63% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.29,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 97.2,
+    "bandas_congeladas": {
+      "preco_foto": 36.41,
+      "kdo": 31.97,
+      "prob_sucesso_prevista_pct": 97.2,
+      "vol_garch_pct": 28.51,
+      "ev_mensal_pct": 2.519,
+      "retorno_mensal_pct": 3.303,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 37.64,
+      "teto_overshoot": 37.0035,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.04
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 81.0,
+      "freq_rompimento_hist_pct": 4.9,
+      "fator": 56.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.63% em 15 dias = 3.303%/mes. Prob 97.2% (GARCH 28.51%; planilha dizia 99.2%), EV 2.519%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900002",
+    "ticker": "UGPA3.SA",
+    "nome": "UGPA3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 39.04,
+    "kdo": 34.28,
+    "ganho_prefixado_pct": 1.36,
+    "ganho_sem_barreira": "1.36% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.36,
+    "bandas_congeladas": {
+      "preco_foto": 39.04,
+      "kdo": 34.28,
+      "prob_sucesso_prevista_pct": 96.36,
+      "vol_garch_pct": 30.03,
+      "ev_mensal_pct": 1.923,
+      "retorno_mensal_pct": 2.756,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 40.58,
+      "teto_overshoot": 39.5709,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 96.73
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 71.0,
+      "freq_rompimento_hist_pct": 6.2,
+      "fator": 60.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.36% em 15 dias = 2.756%/mes. Prob 96.36% (GARCH 30.03%; planilha dizia 99.2%), EV 1.923%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900003",
+    "ticker": "SBSP3.SA",
+    "nome": "SBSP3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 32.65,
+    "kdo": 28.67,
+    "ganho_prefixado_pct": 2.04,
+    "ganho_sem_barreira": "2.04% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.1,
+    "bandas_congeladas": {
+      "preco_foto": 32.65,
+      "kdo": 28.67,
+      "prob_sucesso_prevista_pct": 96.1,
+      "vol_garch_pct": 30.11,
+      "ev_mensal_pct": 2.991,
+      "retorno_mensal_pct": 4.134,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 36.04,
+      "teto_overshoot": 33.3161,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.45
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 94.0,
+      "freq_rompimento_hist_pct": 3.0,
+      "fator": 51.4
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.04% em 15 dias = 4.134%/mes. Prob 96.1% (GARCH 30.11%; planilha dizia 99.0%), EV 2.991%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900004",
+    "ticker": "EQTL3.SA",
+    "nome": "EQTL3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 49.63,
+    "kdo": 43.58,
+    "ganho_prefixado_pct": 1.42,
+    "ganho_sem_barreira": "1.42% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.29,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.5,
+    "bandas_congeladas": {
+      "preco_foto": 49.63,
+      "kdo": 43.58,
+      "prob_sucesso_prevista_pct": 96.5,
+      "vol_garch_pct": 29.39,
+      "ev_mensal_pct": 1.767,
+      "retorno_mensal_pct": 2.878,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 39.34,
+      "teto_overshoot": 50.3347,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.43
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 44.0,
+      "freq_rompimento_hist_pct": 0.8,
+      "fator": 77.4
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.42% em 15 dias = 2.878%/mes. Prob 96.5% (GARCH 29.39%; planilha dizia 99.5%), EV 1.767%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900005",
+    "ticker": "MOTV3.SA",
+    "nome": "MOTV3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.23,
+    "kdo": 17.76,
+    "ganho_prefixado_pct": 2.13,
+    "ganho_sem_barreira": "2.13% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 95.86,
+    "bandas_congeladas": {
+      "preco_foto": 20.23,
+      "kdo": 17.76,
+      "prob_sucesso_prevista_pct": 95.86,
+      "vol_garch_pct": 30.43,
+      "ev_mensal_pct": 3.147,
+      "retorno_mensal_pct": 4.317,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 35.26,
+      "teto_overshoot": 20.6609,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 96.3
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 65.0,
+      "freq_rompimento_hist_pct": 2.6,
+      "fator": 65.7
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.13% em 15 dias = 4.317%/mes. Prob 95.86% (GARCH 30.43%; planilha dizia 99.1%), EV 3.147%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900006",
+    "ticker": "FLRY3.SA",
+    "nome": "FLRY3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 27.5,
+    "kdo": 24.14,
+    "ganho_prefixado_pct": 2.62,
+    "ganho_sem_barreira": "2.62% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.16,
+    "bandas_congeladas": {
+      "preco_foto": 27.5,
+      "kdo": 24.14,
+      "prob_sucesso_prevista_pct": 96.16,
+      "vol_garch_pct": 30.3,
+      "ev_mensal_pct": 4.035,
+      "retorno_mensal_pct": 5.31,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 32.62,
+      "teto_overshoot": 28.2205,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.16
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 78.0,
+      "freq_rompimento_hist_pct": 2.5,
+      "fator": 59.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.62% em 15 dias = 5.31%/mes. Prob 96.16% (GARCH 30.3%; planilha dizia 99.5%), EV 4.035%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900007",
+    "ticker": "GOAU4.SA",
+    "nome": "GOAU4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 11.77,
+    "kdo": 10.33,
+    "ganho_prefixado_pct": 1.36,
+    "ganho_sem_barreira": "1.36% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.31,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.08,
+    "bandas_congeladas": {
+      "preco_foto": 11.77,
+      "kdo": 10.33,
+      "prob_sucesso_prevista_pct": 96.08,
+      "vol_garch_pct": 30.85,
+      "ev_mensal_pct": 1.479,
+      "retorno_mensal_pct": 2.756,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 40.66,
+      "teto_overshoot": 11.9301,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 96.08
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 59.0,
+      "freq_rompimento_hist_pct": 5.6,
+      "fator": 66.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.36% em 15 dias = 2.756%/mes. Prob 96.08% (GARCH 30.85%; planilha dizia 99.1%), EV 1.479%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900008",
+    "ticker": "PETR4.SA",
+    "nome": "PETR4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 56.63,
+    "kdo": 49.72,
+    "ganho_prefixado_pct": 1.35,
+    "ganho_sem_barreira": "1.35% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.48,
+    "bandas_congeladas": {
+      "preco_foto": 56.63,
+      "kdo": 49.72,
+      "prob_sucesso_prevista_pct": 96.48,
+      "vol_garch_pct": 30.24,
+      "ev_mensal_pct": 1.38,
+      "retorno_mensal_pct": 2.736,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 40.59,
+      "teto_overshoot": 57.3945,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.32
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 83.0,
+      "freq_rompimento_hist_pct": 8.1,
+      "fator": 53.8
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.35% em 15 dias = 2.736%/mes. Prob 96.48% (GARCH 30.24%; planilha dizia 99.7%), EV 1.38%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900009",
+    "ticker": "MULT3.SA",
+    "nome": "MULT3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 38.36,
+    "kdo": 33.68,
+    "ganho_prefixado_pct": 2.54,
+    "ganho_sem_barreira": "2.54% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.31,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 96.3,
+    "bandas_congeladas": {
+      "preco_foto": 38.36,
+      "kdo": 33.68,
+      "prob_sucesso_prevista_pct": 96.3,
+      "vol_garch_pct": 30.75,
+      "ev_mensal_pct": 3.466,
+      "retorno_mensal_pct": 5.148,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 33.78,
+      "teto_overshoot": 39.3343,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 96.28
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 73.0,
+      "freq_rompimento_hist_pct": 3.0,
+      "fator": 61.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.54% em 15 dias = 5.148%/mes. Prob 96.3% (GARCH 30.75%; planilha dizia 98.6%), EV 3.466%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900010",
+    "ticker": "HYPE3.SA",
+    "nome": "HYPE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 25.86,
+    "kdo": 22.71,
+    "ganho_prefixado_pct": 1.83,
+    "ganho_sem_barreira": "1.83% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 93.88,
+    "bandas_congeladas": {
+      "preco_foto": 25.86,
+      "kdo": 22.71,
+      "prob_sucesso_prevista_pct": 93.88,
+      "vol_garch_pct": 32.34,
+      "ev_mensal_pct": 2.185,
+      "retorno_mensal_pct": 3.709,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 38.52,
+      "teto_overshoot": 26.3332,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.19
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 48.0,
+      "freq_rompimento_hist_pct": 4.3,
+      "fator": 72.7
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.83% em 15 dias = 3.709%/mes. Prob 93.88% (GARCH 32.34%; planilha dizia 96.9%), EV 2.185%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900011",
+    "ticker": "GGBR4.SA",
+    "nome": "GGBR4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 25.81,
+    "kdo": 22.66,
+    "ganho_prefixado_pct": 1.6,
+    "ganho_sem_barreira": "1.6% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.31,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 95.08,
+    "bandas_congeladas": {
+      "preco_foto": 25.81,
+      "kdo": 22.66,
+      "prob_sucesso_prevista_pct": 95.08,
+      "vol_garch_pct": 31.49,
+      "ev_mensal_pct": 1.854,
+      "retorno_mensal_pct": 3.243,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 38.75,
+      "teto_overshoot": 26.223,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.44
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 71.0,
+      "freq_rompimento_hist_pct": 6.1,
+      "fator": 60.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.6% em 15 dias = 3.243%/mes. Prob 95.08% (GARCH 31.49%; planilha dizia 99.1%), EV 1.854%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900012",
+    "ticker": "BBAS3.SA",
+    "nome": "BBAS3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 24.55,
+    "kdo": 21.55,
+    "ganho_prefixado_pct": 2.34,
+    "ganho_sem_barreira": "2.34% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 94.84,
+    "bandas_congeladas": {
+      "preco_foto": 24.55,
+      "kdo": 21.55,
+      "prob_sucesso_prevista_pct": 94.84,
+      "vol_garch_pct": 32.17,
+      "ev_mensal_pct": 2.852,
+      "retorno_mensal_pct": 4.742,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 35.42,
+      "teto_overshoot": 25.1245,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.47
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 71.0,
+      "freq_rompimento_hist_pct": 3.1,
+      "fator": 62.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.34% em 15 dias = 4.742%/mes. Prob 94.84% (GARCH 32.17%; planilha dizia 98.0%), EV 2.852%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900013",
+    "ticker": "RECV3.SA",
+    "nome": "RECV3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 12.47,
+    "kdo": 10.95,
+    "ganho_prefixado_pct": 1.64,
+    "ganho_sem_barreira": "1.64% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.34,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 93.58,
+    "bandas_congeladas": {
+      "preco_foto": 12.47,
+      "kdo": 10.95,
+      "prob_sucesso_prevista_pct": 93.58,
+      "vol_garch_pct": 34.14,
+      "ev_mensal_pct": 1.447,
+      "retorno_mensal_pct": 3.324,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 39.41,
+      "teto_overshoot": 12.6745,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 93.69
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 74.0,
+      "freq_rompimento_hist_pct": 10.3,
+      "fator": 56.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.64% em 15 dias = 3.324%/mes. Prob 93.58% (GARCH 34.14%; planilha dizia 97.2%), EV 1.447%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900014",
+    "ticker": "BBSE3.SA",
+    "nome": "BBSE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 40.99,
+    "kdo": 37.63,
+    "ganho_prefixado_pct": 1.3,
+    "ganho_sem_barreira": "1.3% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.23,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.08,
+    "bandas_congeladas": {
+      "preco_foto": 40.99,
+      "kdo": 37.63,
+      "prob_sucesso_prevista_pct": 92.08,
+      "vol_garch_pct": 23.36,
+      "ev_mensal_pct": 1.301,
+      "retorno_mensal_pct": 2.635,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 38.09,
+      "teto_overshoot": 41.5229,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.84
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 15.0,
+      "freq_rompimento_hist_pct": 6.9,
+      "fator": 86.1
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.3% em 15 dias = 2.635%/mes. Prob 92.08% (GARCH 23.36%; planilha dizia 98.6%), EV 1.301%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900015",
+    "ticker": "ENEV3.SA",
+    "nome": "ENEV3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 31.4,
+    "kdo": 27.57,
+    "ganho_prefixado_pct": 2.46,
+    "ganho_sem_barreira": "2.46% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.35,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.52,
+    "bandas_congeladas": {
+      "preco_foto": 31.4,
+      "kdo": 27.57,
+      "prob_sucesso_prevista_pct": 92.52,
+      "vol_garch_pct": 34.9,
+      "ev_mensal_pct": 2.89,
+      "retorno_mensal_pct": 4.986,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 34.73,
+      "teto_overshoot": 32.1724,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 93.75
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 81.0,
+      "freq_rompimento_hist_pct": 5.2,
+      "fator": 56.4
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.46% em 15 dias = 4.986%/mes. Prob 92.52% (GARCH 34.9%; planilha dizia 98.1%), EV 2.89%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900016",
+    "ticker": "MDIA3.SA",
+    "nome": "MDIA3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.13,
+    "kdo": 17.67,
+    "ganho_prefixado_pct": 1.85,
+    "ganho_sem_barreira": "1.85% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.34,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 93.42,
+    "bandas_congeladas": {
+      "preco_foto": 20.13,
+      "kdo": 17.67,
+      "prob_sucesso_prevista_pct": 93.42,
+      "vol_garch_pct": 34.11,
+      "ev_mensal_pct": 1.731,
+      "retorno_mensal_pct": 3.749,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 38.46,
+      "teto_overshoot": 20.5024,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 94.88
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 72.0,
+      "freq_rompimento_hist_pct": 8.1,
+      "fator": 58.8
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.85% em 15 dias = 3.749%/mes. Prob 93.42% (GARCH 34.11%; planilha dizia 92.8%), EV 1.731%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900017",
+    "ticker": "CXSE3.SA",
+    "nome": "CXSE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.88,
+    "kdo": 19.17,
+    "ganho_prefixado_pct": 2.12,
+    "ganho_sem_barreira": "2.12% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.23,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.74,
+    "bandas_congeladas": {
+      "preco_foto": 20.88,
+      "kdo": 19.17,
+      "prob_sucesso_prevista_pct": 92.74,
+      "vol_garch_pct": 23.07,
+      "ev_mensal_pct": 2.856,
+      "retorno_mensal_pct": 4.297,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 32.21,
+      "teto_overshoot": 21.3227,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 93.36
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 62.0,
+      "freq_rompimento_hist_pct": 9.7,
+      "fator": 62.3
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 2.12% em 15 dias = 4.297%/mes. Prob 92.74% (GARCH 23.07%; planilha dizia 97.6%), EV 2.856%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900018",
+    "ticker": "PRIO3.SA",
+    "nome": "PRIO3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 65.87,
+    "kdo": 57.83,
+    "ganho_prefixado_pct": 1.39,
+    "ganho_sem_barreira": "1.39% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.36,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 91.9,
+    "bandas_congeladas": {
+      "preco_foto": 65.87,
+      "kdo": 57.83,
+      "prob_sucesso_prevista_pct": 91.9,
+      "vol_garch_pct": 35.9,
+      "ev_mensal_pct": 0.792,
+      "retorno_mensal_pct": 2.817,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 40.88,
+      "teto_overshoot": 66.7856,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.38
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 56.0,
+      "freq_rompimento_hist_pct": 8.0,
+      "fator": 66.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.39% em 15 dias = 2.817%/mes. Prob 91.9% (GARCH 35.9%; planilha dizia 97.0%), EV 0.792%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900019",
+    "ticker": "RDOR3.SA",
+    "nome": "RDOR3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 44.85,
+    "kdo": 39.38,
+    "ganho_prefixado_pct": 1.31,
+    "ganho_sem_barreira": "1.31% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.35,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.76,
+    "bandas_congeladas": {
+      "preco_foto": 44.85,
+      "kdo": 39.38,
+      "prob_sucesso_prevista_pct": 92.76,
+      "vol_garch_pct": 35.13,
+      "ev_mensal_pct": 0.582,
+      "retorno_mensal_pct": 2.655,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 41.62,
+      "teto_overshoot": 45.4375,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 93.31
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 96.0,
+      "freq_rompimento_hist_pct": 11.3,
+      "fator": 46.1
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.31% em 15 dias = 2.655%/mes. Prob 92.76% (GARCH 35.13%; planilha dizia 97.4%), EV 0.582%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900020",
+    "ticker": "JBSS32.SA",
+    "nome": "JBSS32",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 64.74,
+    "kdo": 56.84,
+    "ganho_prefixado_pct": 1.34,
+    "ganho_sem_barreira": "1.34% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.35,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 91.98,
+    "bandas_congeladas": {
+      "preco_foto": 64.74,
+      "kdo": 56.84,
+      "prob_sucesso_prevista_pct": 91.98,
+      "vol_garch_pct": 35.44,
+      "ev_mensal_pct": 0.584,
+      "retorno_mensal_pct": 2.716,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 41.49,
+      "teto_overshoot": 65.6075,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.55
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 61.0,
+      "freq_rompimento_hist_pct": 5.0,
+      "fator": 66.0
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.34% em 15 dias = 2.716%/mes. Prob 91.98% (GARCH 35.44%; planilha dizia 96.6%), EV 0.584%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900021",
+    "ticker": "IGTI11.SA",
+    "nome": "IGTI11",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 32.38,
+    "kdo": 28.43,
+    "ganho_prefixado_pct": 2.65,
+    "ganho_sem_barreira": "2.65% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 94.7,
+    "bandas_congeladas": {
+      "preco_foto": 32.38,
+      "kdo": 28.43,
+      "prob_sucesso_prevista_pct": 94.7,
+      "vol_garch_pct": 32.44,
+      "ev_mensal_pct": 2.959,
+      "retorno_mensal_pct": 5.371,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 34.55,
+      "teto_overshoot": 33.2381,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 94.97
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 79.0,
+      "freq_rompimento_hist_pct": 3.3,
+      "fator": 58.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.65% em 15 dias = 5.371%/mes. Prob 94.7% (GARCH 32.44%; planilha dizia 98.4%), EV 2.959%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900022",
+    "ticker": "RAIL3.SA",
+    "nome": "RAIL3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 19.09,
+    "kdo": 16.76,
+    "ganho_prefixado_pct": 1.68,
+    "ganho_sem_barreira": "1.68% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.36,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 91.92,
+    "bandas_congeladas": {
+      "preco_foto": 19.09,
+      "kdo": 16.76,
+      "prob_sucesso_prevista_pct": 91.92,
+      "vol_garch_pct": 36.03,
+      "ev_mensal_pct": 1.005,
+      "retorno_mensal_pct": 3.405,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 39.18,
+      "teto_overshoot": 19.4107,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.27
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 77.0,
+      "freq_rompimento_hist_pct": 4.3,
+      "fator": 58.9
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.68% em 15 dias = 3.405%/mes. Prob 91.92% (GARCH 36.03%; planilha dizia 96.5%), EV 1.005%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900023",
+    "ticker": "CMIG4.SA",
+    "nome": "CMIG4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 11.98,
+    "kdo": 11.0,
+    "ganho_prefixado_pct": 2.47,
+    "ganho_sem_barreira": "2.47% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.24,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 91.12,
+    "bandas_congeladas": {
+      "preco_foto": 11.98,
+      "kdo": 11.0,
+      "prob_sucesso_prevista_pct": 91.12,
+      "vol_garch_pct": 23.98,
+      "ev_mensal_pct": 3.17,
+      "retorno_mensal_pct": 5.006,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 30.06,
+      "teto_overshoot": 12.2759,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.42
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 81.0,
+      "freq_rompimento_hist_pct": 9.1,
+      "fator": 54.1
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 2.47% em 15 dias = 5.006%/mes. Prob 91.12% (GARCH 23.98%; planilha dizia 96.5%), EV 3.17%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900024",
+    "ticker": "ENGI11.SA",
+    "nome": "ENGI11",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 67.17,
+    "kdo": 58.98,
+    "ganho_prefixado_pct": 2.84,
+    "ganho_sem_barreira": "2.84% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 94.8,
+    "bandas_congeladas": {
+      "preco_foto": 67.17,
+      "kdo": 58.98,
+      "prob_sucesso_prevista_pct": 94.8,
+      "vol_garch_pct": 32.13,
+      "ev_mensal_pct": 3.158,
+      "retorno_mensal_pct": 5.756,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 33.45,
+      "teto_overshoot": 69.0776,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.3
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 46.0,
+      "freq_rompimento_hist_pct": 1.8,
+      "fator": 75.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.84% em 15 dias = 5.756%/mes. Prob 94.8% (GARCH 32.13%; planilha dizia 99.3%), EV 3.158%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900025",
+    "ticker": "RADL3.SA",
+    "nome": "RADL3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.91,
+    "kdo": 18.36,
+    "ganho_prefixado_pct": 1.99,
+    "ganho_sem_barreira": "1.99% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.37,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 91.32,
+    "bandas_congeladas": {
+      "preco_foto": 20.91,
+      "kdo": 18.36,
+      "prob_sucesso_prevista_pct": 91.32,
+      "vol_garch_pct": 36.9,
+      "ev_mensal_pct": 1.242,
+      "retorno_mensal_pct": 4.033,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 38.16,
+      "teto_overshoot": 21.3261,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.42
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 83.0,
+      "freq_rompimento_hist_pct": 5.5,
+      "fator": 55.3
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.99% em 15 dias = 4.033%/mes. Prob 91.32% (GARCH 36.9%; planilha dizia 96.0%), EV 1.242%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900026",
+    "ticker": "POMO4.SA",
+    "nome": "POMO4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 4.8,
+    "kdo": 4.21,
+    "ganho_prefixado_pct": 3.8,
+    "ganho_sem_barreira": "3.8% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.39,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 90.14,
+    "bandas_congeladas": {
+      "preco_foto": 4.8,
+      "kdo": 4.21,
+      "prob_sucesso_prevista_pct": 90.14,
+      "vol_garch_pct": 38.94,
+      "ev_mensal_pct": 4.292,
+      "retorno_mensal_pct": 7.701,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 30.27,
+      "teto_overshoot": 4.9824,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 90.78
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 70.0,
+      "freq_rompimento_hist_pct": 8.9,
+      "fator": 59.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.8% em 15 dias = 7.701%/mes. Prob 90.14% (GARCH 38.94%; planilha dizia 92.4%), EV 4.292%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900027",
+    "ticker": "CMIN3.SA",
+    "nome": "CMIN3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 5.02,
+    "kdo": 4.41,
+    "ganho_prefixado_pct": 4.11,
+    "ganho_sem_barreira": "4.11% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.41,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 86.6,
+    "bandas_congeladas": {
+      "preco_foto": 5.02,
+      "kdo": 4.41,
+      "prob_sucesso_prevista_pct": 86.6,
+      "vol_garch_pct": 41.22,
+      "ev_mensal_pct": 4.29,
+      "retorno_mensal_pct": 8.33,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 29.36,
+      "teto_overshoot": 5.2263,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.0
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 75.0,
+      "freq_rompimento_hist_pct": 12.0,
+      "fator": 55.0
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 4.11% em 15 dias = 8.33%/mes. Prob 86.6% (GARCH 41.22%; planilha dizia 91.7%), EV 4.29%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900028",
+    "ticker": "TOTS3.SA",
+    "nome": "TOTS3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 42.11,
+    "kdo": 36.97,
+    "ganho_prefixado_pct": 2.79,
+    "ganho_sem_barreira": "2.79% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.4,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.76,
+    "bandas_congeladas": {
+      "preco_foto": 42.11,
+      "kdo": 36.97,
+      "prob_sucesso_prevista_pct": 87.76,
+      "vol_garch_pct": 40.05,
+      "ev_mensal_pct": 2.017,
+      "retorno_mensal_pct": 5.654,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 35.3,
+      "teto_overshoot": 43.2849,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.92
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 89.0,
+      "freq_rompimento_hist_pct": 7.0,
+      "fator": 51.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.79% em 15 dias = 5.654%/mes. Prob 87.76% (GARCH 40.05%; planilha dizia 92.4%), EV 2.017%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900029",
+    "ticker": "EGIE3.SA",
+    "nome": "EGIE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 31.18,
+    "kdo": 28.62,
+    "ganho_prefixado_pct": 1.68,
+    "ganho_sem_barreira": "1.68% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.27,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.42,
+    "bandas_congeladas": {
+      "preco_foto": 31.18,
+      "kdo": 28.62,
+      "prob_sucesso_prevista_pct": 87.42,
+      "vol_garch_pct": 26.86,
+      "ev_mensal_pct": 0.959,
+      "retorno_mensal_pct": 3.405,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 37.37,
+      "teto_overshoot": 31.7038,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.98
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 15.0,
+      "freq_rompimento_hist_pct": 3.2,
+      "fator": 89.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.68% em 15 dias = 3.405%/mes. Prob 87.42% (GARCH 26.86%; planilha dizia 93.1%), EV 0.959%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900030",
+    "ticker": "VALE3.SA",
+    "nome": "VALE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 67.26,
+    "kdo": 61.74,
+    "ganho_prefixado_pct": 1.57,
+    "ganho_sem_barreira": "1.57% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.27,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.0,
+    "bandas_congeladas": {
+      "preco_foto": 67.26,
+      "kdo": 61.74,
+      "prob_sucesso_prevista_pct": 87.0,
+      "vol_garch_pct": 27.19,
+      "ev_mensal_pct": 0.701,
+      "retorno_mensal_pct": 3.182,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 37.47,
+      "teto_overshoot": 68.316,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.52
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 79.0,
+      "freq_rompimento_hist_pct": 16.1,
+      "fator": 50.8
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.57% em 15 dias = 3.182%/mes. Prob 87.0% (GARCH 27.19%; planilha dizia 94.3%), EV 0.701%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900031",
+    "ticker": "BPAC11.SA",
+    "nome": "BPAC11",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 81.2,
+    "kdo": 71.29,
+    "ganho_prefixado_pct": 3.97,
+    "ganho_sem_barreira": "3.97% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.4,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 89.22,
+    "bandas_congeladas": {
+      "preco_foto": 81.2,
+      "kdo": 71.29,
+      "prob_sucesso_prevista_pct": 89.22,
+      "vol_garch_pct": 39.57,
+      "ev_mensal_pct": 3.928,
+      "retorno_mensal_pct": 8.046,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 30.88,
+      "teto_overshoot": 84.4236,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 90.27
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 94.0,
+      "freq_rompimento_hist_pct": 5.9,
+      "fator": 49.9
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.97% em 15 dias = 8.046%/mes. Prob 89.22% (GARCH 39.57%; planilha dizia 97.6%), EV 3.928%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900032",
+    "ticker": "VIVA3.SA",
+    "nome": "VIVA3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 29.24,
+    "kdo": 25.67,
+    "ganho_prefixado_pct": 2.11,
+    "ganho_sem_barreira": "2.11% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.41,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.16,
+    "bandas_congeladas": {
+      "preco_foto": 29.24,
+      "kdo": 25.67,
+      "prob_sucesso_prevista_pct": 87.16,
+      "vol_garch_pct": 40.64,
+      "ev_mensal_pct": 0.507,
+      "retorno_mensal_pct": 4.276,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 38.82,
+      "teto_overshoot": 29.857,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.13
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 98.0,
+      "freq_rompimento_hist_pct": 9.3,
+      "fator": 46.3
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.11% em 15 dias = 4.276%/mes. Prob 87.16% (GARCH 40.64%; planilha dizia 93.0%), EV 0.507%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900033",
+    "ticker": "B3SA3.SA",
+    "nome": "B3SA3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 22.78,
+    "kdo": 20.0,
+    "ganho_prefixado_pct": 3.34,
+    "ganho_sem_barreira": "3.34% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.41,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.5,
+    "bandas_congeladas": {
+      "preco_foto": 22.78,
+      "kdo": 20.0,
+      "prob_sucesso_prevista_pct": 87.5,
+      "vol_garch_pct": 41.17,
+      "ev_mensal_pct": 2.448,
+      "retorno_mensal_pct": 6.769,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 32.95,
+      "teto_overshoot": 23.5409,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.78
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 94.0,
+      "freq_rompimento_hist_pct": 5.2,
+      "fator": 50.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.34% em 15 dias = 6.769%/mes. Prob 87.5% (GARCH 41.17%; planilha dizia 97.8%), EV 2.448%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900034",
+    "ticker": "TUPY3.SA",
+    "nome": "TUPY3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 19.86,
+    "kdo": 17.44,
+    "ganho_prefixado_pct": 2.08,
+    "ganho_sem_barreira": "2.08% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.2,
+    "vol_impl": 0.41,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.22,
+    "bandas_congeladas": {
+      "preco_foto": 19.86,
+      "kdo": 17.44,
+      "prob_sucesso_prevista_pct": 87.22,
+      "vol_garch_pct": 41.14,
+      "ev_mensal_pct": 0.259,
+      "retorno_mensal_pct": 4.215,
+      "protecao_pct": 12.2,
+      "prob_overshoot_pct": 38.93,
+      "teto_overshoot": 20.2731,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.01
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 41.0,
+      "freq_rompimento_hist_pct": 5.3,
+      "fator": 75.3
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.08% em 15 dias = 4.215%/mes. Prob 87.22% (GARCH 41.14%; planilha dizia 95.8%), EV 0.259%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900035",
+    "ticker": "SUZB3.SA",
+    "nome": "SUZB3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 42.92,
+    "kdo": 39.4,
+    "ganho_prefixado_pct": 1.27,
+    "ganho_sem_barreira": "1.27% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.29,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 84.32,
+    "bandas_congeladas": {
+      "preco_foto": 42.92,
+      "kdo": 39.4,
+      "prob_sucesso_prevista_pct": 84.32,
+      "vol_garch_pct": 28.59,
+      "ev_mensal_pct": -0.365,
+      "retorno_mensal_pct": 2.574,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 39.62,
+      "teto_overshoot": 43.4651,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 87.48
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 59.0,
+      "freq_rompimento_hist_pct": 13.2,
+      "fator": 61.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.27% em 15 dias = 2.574%/mes. Prob 84.32% (GARCH 28.59%; planilha dizia 91.3%), EV -0.365%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900036",
+    "ticker": "WEGE3.SA",
+    "nome": "WEGE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 51.28,
+    "kdo": 47.08,
+    "ganho_prefixado_pct": 1.5,
+    "ganho_sem_barreira": "1.5% fixo",
+    "vencimento": "2026-10-28",
+    "prazo_dias": 15,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 8.2,
+    "vol_impl": 0.29,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 84.58,
+    "bandas_congeladas": {
+      "preco_foto": 51.28,
+      "kdo": 47.08,
+      "prob_sucesso_prevista_pct": 84.58,
+      "vol_garch_pct": 28.83,
+      "ev_mensal_pct": 0.085,
+      "retorno_mensal_pct": 3.04,
+      "protecao_pct": 8.2,
+      "prob_overshoot_pct": 38.77,
+      "teto_overshoot": 52.0492,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 87.97
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 77.0,
+      "freq_rompimento_hist_pct": 14.0,
+      "fator": 52.9
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.5% em 15 dias = 3.04%/mes. Prob 84.58% (GARCH 28.83%; planilha dizia 94.5%), EV 0.085%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900037",
+    "ticker": "SBSP3.SA",
+    "nome": "SBSP3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 32.6,
+    "kdo": 26.73,
+    "ganho_prefixado_pct": 4.13,
+    "ganho_sem_barreira": "4.13% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 94.68,
+    "bandas_congeladas": {
+      "preco_foto": 32.6,
+      "kdo": 26.73,
+      "prob_sucesso_prevista_pct": 94.68,
+      "vol_garch_pct": 30.13,
+      "ev_mensal_pct": 2.118,
+      "retorno_mensal_pct": 3.062,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 32.84,
+      "teto_overshoot": 33.9464,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.73
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 94.0,
+      "freq_rompimento_hist_pct": 2.7,
+      "fator": 51.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.13% em 41 dias = 3.062%/mes. Prob 94.68% (GARCH 30.13%; planilha dizia 98.4%), EV 2.118%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900038",
+    "ticker": "FLRY3.SA",
+    "nome": "FLRY3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 27.49,
+    "kdo": 22.54,
+    "ganho_prefixado_pct": 4.98,
+    "ganho_sem_barreira": "4.98% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 93.9,
+    "bandas_congeladas": {
+      "preco_foto": 27.49,
+      "kdo": 22.54,
+      "prob_sucesso_prevista_pct": 93.9,
+      "vol_garch_pct": 30.31,
+      "ev_mensal_pct": 2.728,
+      "retorno_mensal_pct": 3.692,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 29.68,
+      "teto_overshoot": 28.859,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.32
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 78.0,
+      "freq_rompimento_hist_pct": 2.4,
+      "fator": 59.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.98% em 41 dias = 3.692%/mes. Prob 93.9% (GARCH 30.31%; planilha dizia 99.5%), EV 2.728%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900039",
+    "ticker": "MOTV3.SA",
+    "nome": "MOTV3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.2,
+    "kdo": 16.56,
+    "ganho_prefixado_pct": 4.07,
+    "ganho_sem_barreira": "4.07% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 94.48,
+    "bandas_congeladas": {
+      "preco_foto": 20.2,
+      "kdo": 16.56,
+      "prob_sucesso_prevista_pct": 94.48,
+      "vol_garch_pct": 30.44,
+      "ev_mensal_pct": 2.098,
+      "retorno_mensal_pct": 3.018,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 33.2,
+      "teto_overshoot": 21.0221,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 94.76
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 65.0,
+      "freq_rompimento_hist_pct": 1.3,
+      "fator": 66.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.07% em 41 dias = 3.018%/mes. Prob 94.48% (GARCH 30.44%; planilha dizia 98.8%), EV 2.098%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900040",
+    "ticker": "MULT3.SA",
+    "nome": "MULT3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 38.3,
+    "kdo": 31.41,
+    "ganho_prefixado_pct": 4.09,
+    "ganho_sem_barreira": "4.09% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.31,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 94.04,
+    "bandas_congeladas": {
+      "preco_foto": 38.3,
+      "kdo": 31.41,
+      "prob_sucesso_prevista_pct": 94.04,
+      "vol_garch_pct": 30.76,
+      "ev_mensal_pct": 2.023,
+      "retorno_mensal_pct": 3.033,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 33.53,
+      "teto_overshoot": 39.8665,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 93.78
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 73.0,
+      "freq_rompimento_hist_pct": 3.1,
+      "fator": 61.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.09% em 41 dias = 3.033%/mes. Prob 94.04% (GARCH 30.76%; planilha dizia 98.4%), EV 2.023%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900041",
+    "ticker": "BBAS3.SA",
+    "nome": "BBAS3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 24.54,
+    "kdo": 20.12,
+    "ganho_prefixado_pct": 4.93,
+    "ganho_sem_barreira": "4.93% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.88,
+    "bandas_congeladas": {
+      "preco_foto": 24.54,
+      "kdo": 20.12,
+      "prob_sucesso_prevista_pct": 92.88,
+      "vol_garch_pct": 32.17,
+      "ev_mensal_pct": 2.291,
+      "retorno_mensal_pct": 3.655,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 30.36,
+      "teto_overshoot": 25.7498,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.93
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 71.0,
+      "freq_rompimento_hist_pct": 3.5,
+      "fator": 62.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.93% em 41 dias = 3.655%/mes. Prob 92.88% (GARCH 32.17%; planilha dizia 97.0%), EV 2.291%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900042",
+    "ticker": "ENGI11.SA",
+    "nome": "ENGI11",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 67.17,
+    "kdo": 55.08,
+    "ganho_prefixado_pct": 4.26,
+    "ganho_sem_barreira": "4.26% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.4,
+    "bandas_congeladas": {
+      "preco_foto": 67.17,
+      "kdo": 55.08,
+      "prob_sucesso_prevista_pct": 92.4,
+      "vol_garch_pct": 32.13,
+      "ev_mensal_pct": 1.83,
+      "retorno_mensal_pct": 3.159,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 33.0,
+      "teto_overshoot": 70.0314,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 93.05
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 46.0,
+      "freq_rompimento_hist_pct": 0.7,
+      "fator": 76.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.26% em 41 dias = 3.159%/mes. Prob 92.4% (GARCH 32.13%; planilha dizia 99.1%), EV 1.83%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900043",
+    "ticker": "IGTI11.SA",
+    "nome": "IGTI11",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 32.36,
+    "kdo": 26.54,
+    "ganho_prefixado_pct": 4.27,
+    "ganho_sem_barreira": "4.27% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 92.38,
+    "bandas_congeladas": {
+      "preco_foto": 32.36,
+      "kdo": 26.54,
+      "prob_sucesso_prevista_pct": 92.38,
+      "vol_garch_pct": 32.44,
+      "ev_mensal_pct": 1.876,
+      "retorno_mensal_pct": 3.166,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 33.91,
+      "teto_overshoot": 33.7418,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 92.45
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 79.0,
+      "freq_rompimento_hist_pct": 4.5,
+      "fator": 57.8
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.27% em 41 dias = 3.166%/mes. Prob 92.38% (GARCH 32.44%; planilha dizia 98.0%), EV 1.876%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900044",
+    "ticker": "RECV3.SA",
+    "nome": "RECV3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 12.45,
+    "kdo": 10.21,
+    "ganho_prefixado_pct": 3.59,
+    "ganho_sem_barreira": "3.59% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.34,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 90.78,
+    "bandas_congeladas": {
+      "preco_foto": 12.45,
+      "kdo": 10.21,
+      "prob_sucesso_prevista_pct": 90.78,
+      "vol_garch_pct": 34.13,
+      "ev_mensal_pct": 1.126,
+      "retorno_mensal_pct": 2.662,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 35.45,
+      "teto_overshoot": 12.897,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 90.85
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 74.0,
+      "freq_rompimento_hist_pct": 11.7,
+      "fator": 55.6
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 3.59% em 41 dias = 2.662%/mes. Prob 90.78% (GARCH 34.13%; planilha dizia 95.9%), EV 1.126%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900045",
+    "ticker": "MDIA3.SA",
+    "nome": "MDIA3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.12,
+    "kdo": 16.5,
+    "ganho_prefixado_pct": 5.45,
+    "ganho_sem_barreira": "5.45% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.34,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 90.52,
+    "bandas_congeladas": {
+      "preco_foto": 20.12,
+      "kdo": 16.5,
+      "prob_sucesso_prevista_pct": 90.52,
+      "vol_garch_pct": 34.11,
+      "ev_mensal_pct": 2.413,
+      "retorno_mensal_pct": 4.041,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 30.34,
+      "teto_overshoot": 21.2165,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 91.84
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 72.0,
+      "freq_rompimento_hist_pct": 10.6,
+      "fator": 57.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 5.45% em 41 dias = 4.041%/mes. Prob 90.52% (GARCH 34.11%; planilha dizia 90.3%), EV 2.413%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900046",
+    "ticker": "ENEV3.SA",
+    "nome": "ENEV3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 31.4,
+    "kdo": 25.75,
+    "ganho_prefixado_pct": 3.62,
+    "ganho_sem_barreira": "3.62% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.35,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 89.86,
+    "bandas_congeladas": {
+      "preco_foto": 31.4,
+      "kdo": 25.75,
+      "prob_sucesso_prevista_pct": 89.86,
+      "vol_garch_pct": 34.9,
+      "ev_mensal_pct": 1.045,
+      "retorno_mensal_pct": 2.684,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 36.01,
+      "teto_overshoot": 32.5367,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 90.66
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 81.0,
+      "freq_rompimento_hist_pct": 5.5,
+      "fator": 56.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 3.62% em 41 dias = 2.684%/mes. Prob 89.86% (GARCH 34.9%; planilha dizia 98.4%), EV 1.045%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900047",
+    "ticker": "HYPE3.SA",
+    "nome": "HYPE3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 25.84,
+    "kdo": 21.71,
+    "ganho_prefixado_pct": 3.79,
+    "ganho_sem_barreira": "3.79% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 16.0,
+    "vol_impl": 0.32,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.58,
+    "bandas_congeladas": {
+      "preco_foto": 25.84,
+      "kdo": 21.71,
+      "prob_sucesso_prevista_pct": 87.58,
+      "vol_garch_pct": 32.34,
+      "ev_mensal_pct": 1.077,
+      "retorno_mensal_pct": 2.81,
+      "protecao_pct": 16.0,
+      "prob_overshoot_pct": 34.48,
+      "teto_overshoot": 26.8193,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 88.67
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 48.0,
+      "freq_rompimento_hist_pct": 11.3,
+      "fator": 67.4
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 16.0%, ganho 3.79% em 41 dias = 2.81%/mes. Prob 87.58% (GARCH 32.34%; planilha dizia 93.6%), EV 1.077%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900048",
+    "ticker": "CMIG4.SA",
+    "nome": "CMIG4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 11.99,
+    "kdo": 10.55,
+    "ganho_prefixado_pct": 3.83,
+    "ganho_sem_barreira": "3.83% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 12.0,
+    "vol_impl": 0.24,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.06,
+    "bandas_congeladas": {
+      "preco_foto": 11.99,
+      "kdo": 10.55,
+      "prob_sucesso_prevista_pct": 87.06,
+      "vol_garch_pct": 23.98,
+      "ev_mensal_pct": 1.425,
+      "retorno_mensal_pct": 2.84,
+      "protecao_pct": 12.0,
+      "prob_overshoot_pct": 30.39,
+      "teto_overshoot": 12.4492,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 89.01
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 81.0,
+      "freq_rompimento_hist_pct": 12.2,
+      "fator": 52.2
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.0%, ganho 3.83% em 41 dias = 2.84%/mes. Prob 87.06% (GARCH 23.98%; planilha dizia 94.9%), EV 1.425%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900049",
+    "ticker": "RADL3.SA",
+    "nome": "RADL3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 20.88,
+    "kdo": 17.12,
+    "ganho_prefixado_pct": 4.02,
+    "ganho_sem_barreira": "4.02% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.37,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.24,
+    "bandas_congeladas": {
+      "preco_foto": 20.88,
+      "kdo": 17.12,
+      "prob_sucesso_prevista_pct": 87.24,
+      "vol_garch_pct": 36.91,
+      "ev_mensal_pct": 1.029,
+      "retorno_mensal_pct": 2.981,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 35.19,
+      "teto_overshoot": 21.7194,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 89.12
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 83.0,
+      "freq_rompimento_hist_pct": 8.6,
+      "fator": 53.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.02% em 41 dias = 2.981%/mes. Prob 87.24% (GARCH 36.91%; planilha dizia 93.9%), EV 1.029%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900050",
+    "ticker": "VBBR3.SA",
+    "nome": "VBBR3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 36.35,
+    "kdo": 31.26,
+    "ganho_prefixado_pct": 4.04,
+    "ganho_sem_barreira": "4.04% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 14.0,
+    "vol_impl": 0.29,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 87.06,
+    "bandas_congeladas": {
+      "preco_foto": 36.35,
+      "kdo": 31.26,
+      "prob_sucesso_prevista_pct": 87.06,
+      "vol_garch_pct": 28.52,
+      "ev_mensal_pct": 1.284,
+      "retorno_mensal_pct": 2.996,
+      "protecao_pct": 14.0,
+      "prob_overshoot_pct": 32.28,
+      "teto_overshoot": 37.8185,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 87.36
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 81.0,
+      "freq_rompimento_hist_pct": 15.9,
+      "fator": 50.0
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 4.04% em 41 dias = 2.996%/mes. Prob 87.06% (GARCH 28.52%; planilha dizia 97.1%), EV 1.284%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900051",
+    "ticker": "EQTL3.SA",
+    "nome": "EQTL3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 49.62,
+    "kdo": 42.67,
+    "ganho_prefixado_pct": 3.96,
+    "ganho_sem_barreira": "3.96% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 14.0,
+    "vol_impl": 0.29,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 85.8,
+    "bandas_congeladas": {
+      "preco_foto": 49.62,
+      "kdo": 42.67,
+      "prob_sucesso_prevista_pct": 85.8,
+      "vol_garch_pct": 29.4,
+      "ev_mensal_pct": 1.08,
+      "retorno_mensal_pct": 2.936,
+      "protecao_pct": 14.0,
+      "prob_overshoot_pct": 32.84,
+      "teto_overshoot": 51.585,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 87.86
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 44.0,
+      "freq_rompimento_hist_pct": 4.1,
+      "fator": 74.8
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 3.96% em 41 dias = 2.936%/mes. Prob 85.8% (GARCH 29.4%; planilha dizia 96.7%), EV 1.08%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900052",
+    "ticker": "POMO4.SA",
+    "nome": "POMO4",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 4.8,
+    "kdo": 3.94,
+    "ganho_prefixado_pct": 5.8,
+    "ganho_sem_barreira": "5.8% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 18.0,
+    "vol_impl": 0.39,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 85.56,
+    "bandas_congeladas": {
+      "preco_foto": 4.8,
+      "kdo": 3.94,
+      "prob_sucesso_prevista_pct": 85.56,
+      "vol_garch_pct": 38.94,
+      "ev_mensal_pct": 1.786,
+      "retorno_mensal_pct": 4.3,
+      "protecao_pct": 18.0,
+      "prob_overshoot_pct": 31.7,
+      "teto_overshoot": 5.0784,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 86.23
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 70.0,
+      "freq_rompimento_hist_pct": 13.1,
+      "fator": 56.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 5.8% em 41 dias = 4.3%/mes. Prob 85.56% (GARCH 38.94%; planilha dizia 87.1%), EV 1.786%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+  },
+  {
+    "id": "an_1791900053",
+    "ticker": "UGPA3.SA",
+    "nome": "UGPA3",
+    "tipo_estrutura": "retorno_controlado",
+    "status": "em_analise",
+    "data_foto": "2026-10-13",
+    "preco_foto": 38.99,
+    "kdo": 33.53,
+    "ganho_prefixado_pct": 3.89,
+    "ganho_sem_barreira": "3.89% fixo",
+    "vencimento": "2026-11-23",
+    "prazo_dias": 41,
+    "exercicio": "europeia",
+    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
+    "lote": "13/10/2026",
+    "protecao_pct": 14.0,
+    "vol_impl": 0.3,
+    "vol_impl_fonte": "garch",
+    "prob_sucesso_prevista_pct": 86.46,
+    "bandas_congeladas": {
+      "preco_foto": 38.99,
+      "kdo": 33.53,
+      "prob_sucesso_prevista_pct": 86.46,
+      "vol_garch_pct": 30.03,
+      "ev_mensal_pct": 1.04,
+      "retorno_mensal_pct": 2.884,
+      "protecao_pct": 14.0,
+      "prob_overshoot_pct": 33.27,
+      "teto_overshoot": 40.5067,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 86.19
+    },
+    "risco_historico": {
+      "rompe_com_indice_pct": 71.0,
+      "freq_rompimento_hist_pct": 17.1,
+      "fator": 53.5
+    },
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 3.89% em 41 dias = 2.884%/mes. Prob 86.46% (GARCH 30.03%; planilha dizia 97.1%), EV 1.04%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
   }
 ]
