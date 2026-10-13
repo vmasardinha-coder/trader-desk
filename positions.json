@@ -487,6 +487,26 @@
         }
       ],
       "quantidade": 6500
+    },
+    {
+      "id": "hype3",
+      "ticker": "HYPE3.SA",
+      "nome": "HYPE3",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-28",
+      "entry": 25.86,
+      "kdo": 22.71,
+      "kdo_pct": "-12.2%",
+      "vol_impl": 0.3236,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-13",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 93.88,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.19,
+      "ganho_sem_barreira": "1.83% fixo",
+      "ganho_prefixado_pct": 1.83
     }
   ],
   "encerradas": [
