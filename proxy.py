@@ -7922,6 +7922,139 @@ rotas_etfs.registrar_rotas(
 
 
 
+# ---------------------------------------------------------------------------
+# 14/10/2026 (backlog #23A): botao grafico de POC (volume profile) nas Analises.
+# Somente leitura, sob demanda (1 chamada Yahoo por papel, cache de 6 h), NAO
+# entra no score nem no ranking. Perfil de volume igual ao do TradingView do
+# Victor: ultimos 150 candles diarios, 24 linhas, area de valor de 70%. O
+# volume de cada candle e espalhado uniformemente entre minima e maxima.
+# Faixas de toque historico vem do teste de 13/10/2026 (40 papeis, 6 anos,
+# KDO a 12,2%, 11 pregoes, toque pela minima): media 6,0%.
+# ---------------------------------------------------------------------------
+_POC_CACHE = {}
+_POC_TTL = 6 * 3600
+
+def _poc_toque_faixa(dist_pct, kdo_vs_poc_pct):
+    d = dist_pct / 100.0
+    k = kdo_vs_poc_pct / 100.0
+    bd = 6.1 if d < 0 else 5.3 if d < .10 else 6.1 if d < .20 else 5.3 if d < .30 else 8.6 if d < .50 else 11.2
+    bk = 5.9 if k < -.05 else 5.3 if k < 0 else 5.9 if k < .05 else 5.6 if k < .10 else 7.3 if k < .20 else 9.4
+    return max(bd, bk)
+
+def _poc_perfil_ohlcv(ticker):
+    ult = None
+    for host in ['query1', 'query2']:
+        try:
+            r = requests.get(
+                f'https://{host}.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y',
+                headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+            if not r.ok:
+                continue
+            res = r.json()['chart']['result'][0]
+            q = res['indicators']['quote'][0]
+            ts = res['timestamp']
+            rows = []
+            for i, t in enumerate(ts):
+                h, l, c, v = q['high'][i], q['low'][i], q['close'][i], q['volume'][i]
+                if None in (h, l, c, v):
+                    continue
+                rows.append((t, float(h), float(l), float(c), float(v)))
+            px = float(res['meta'].get('regularMarketPrice', rows[-1][3]))
+            return rows, px
+        except Exception as e:
+            ult = e
+            continue
+    raise RuntimeError(f'Yahoo indisponivel para {ticker}: {ult}')
+
+@app.route('/analises/<aid>/poc', methods=['GET'])
+def analise_poc(aid):
+    try:
+        import math, time as _tm
+        from datetime import datetime as _dtp
+        a = next((x for x in _analises_para_ranking(False) if x.get('id') == aid), None)
+        if not a:
+            return jsonify({'error': 'analise nao encontrada'}), 404
+        ticker = a['ticker']
+        chave = (aid, request.args.get('fresh'))
+        hit = _POC_CACHE.get(aid)
+        if hit and not request.args.get('fresh') and _tm.time() - hit[0] < _POC_TTL:
+            return jsonify(hit[1])
+        rows, px = _poc_perfil_ohlcv(ticker)
+        if len(rows) < 60:
+            return jsonify({'error': 'historico insuficiente para o perfil de volume'}), 422
+        kdo = float(a.get('kdo') or 0)
+        w = rows[-150:]
+        lo = min(r[2] for r in w); hi = max(r[1] for r in w)
+        nb = 24
+        step = (hi - lo) / nb if hi > lo else 1.0
+        vol = [0.0] * nb
+        for (_t, h, l, _c, v) in w:
+            ia = max(min(int((l - lo) / step), nb - 1), 0)
+            ib = max(min(int((h - lo) / step), nb - 1), ia)
+            n = ib - ia + 1
+            for j in range(ia, ib + 1):
+                vol[j] += v / n
+        mids = [lo + step * (j + .5) for j in range(nb)]
+        tot = sum(vol) or 1.0
+        jp = max(range(nb), key=lambda j: vol[j])
+        poc = mids[jp]
+        acc, sel = 0.0, []
+        for j in sorted(range(nb), key=lambda j: -vol[j]):
+            sel.append(j); acc += vol[j]
+            if acc >= .7 * tot:
+                break
+        val, vah = mids[min(sel)], mids[max(sel)]
+        vol_defesa = sum(vol[j] for j in range(nb) if kdo <= mids[j] <= px) / tot * 100 if kdo else None
+        dist = (px / poc - 1) * 100
+        kvp = (kdo / poc - 1) * 100 if kdo else None
+        def_acima = None
+        if kdo and px > kdo:
+            def_acima = max(0.0, min(1.0, (px - max(poc, kdo)) / (px - kdo))) * 100
+        toque = _poc_toque_faixa(dist, kvp) if kvp is not None else None
+        # banda de Monte Carlo analitica (lognormal, drift 0): P10/P50/P90 por dia corrido
+        closes = [r[3] for r in rows]
+        data_foto = _dtp.strptime(a['data_foto'][:10], '%Y-%m-%d').date()
+        dias_rest = max(int(a['prazo_dias']) - (_dtp.now().date() - data_foto).days, 1)
+        try:
+            gi = garch_11(closes, horizon_days=min(max(dias_rest, 1), 60))
+            sigma = gi['vol_garch_projetada_pct'] / 100 if gi else vol_hist(closes)
+        except Exception:
+            sigma = vol_hist(closes)
+        banda = []
+        for t in range(0, dias_rest + 1):
+            sd = sigma * math.sqrt(t / 365.0)
+            m = -0.5 * sigma * sigma * t / 365.0
+            # 'p10x'/'p90x': a mesma banda da foto do app (dt=1/252 por dia corrido,
+            # residuo do #21: ~45% mais larga). Mostrada pontilhada so para o
+            # Victor comparar com a foto de Monte Carlo que ele ja conhece.
+            sdx = sigma * math.sqrt(t / 252.0)
+            mx = -0.5 * sigma * sigma * t / 252.0
+            banda.append({'d': t, 'p10': px * math.exp(m - 1.2816 * sd), 'p50': px * math.exp(m),
+                          'p90': px * math.exp(m + 1.2816 * sd),
+                          'p10x': px * math.exp(mx - 1.2816 * sdx), 'p90x': px * math.exp(mx + 1.2816 * sdx)})
+        hist = [{'t': r[0], 'c': r[3], 'h': r[1], 'l': r[2]} for r in rows[-60:]]
+        out = {
+            'id': aid, 'ticker': ticker, 'preco': round(px, 2), 'kdo': kdo or None,
+            'poc': round(poc, 2), 'val': round(val, 2), 'vah': round(vah, 2),
+            'dist_poc_pct': round(dist, 1), 'kdo_vs_poc_pct': round(kvp, 1) if kvp is not None else None,
+            'defesa_acima_poc_pct': round(def_acima) if def_acima is not None else None,
+            'vol_na_defesa_pct': round(vol_defesa) if vol_defesa is not None else None,
+            'toque_hist_faixa_pct': toque, 'toque_hist_medio_pct': 6.0,
+            'sigma_pct': round(sigma * 100, 1), 'dias_restantes': dias_rest,
+            'janela_candles': len(w), 'linhas': nb,
+            'perfil': [{'preco': round(mids[j], 4), 'vol': round(vol[j] / max(vol) * 100, 1)} for j in range(nb)],
+            'banda': [{k: (round(v, 4) if k != 'd' else v) for k, v in b.items()} for b in banda],
+            'historico': hist,
+            'p10_final': round(banda[-1]['p10'], 2), 'p50_final': round(banda[-1]['p50'], 2),
+            'p10_foto_app': round(banda[-1]['p10x'], 2),
+            'aviso': 'Informativo: nao altera o ranking nem o score. Banda analitica (lognormal, sigma GARCH, drift 0).'
+        }
+        _POC_CACHE[aid] = (_tm.time(), out)
+        return jsonify(out)
+    except Exception as e:
+        return jsonify({'error': str(e)[:300]}), 500
+
+
 # 14/10/2026 (backlog #15): pre-aquecimento do ranking de Analises. Apos cada
 # deploy o Render reinicia e o cache (_RANK_LINHAS) fica vazio, entao a
 # primeira abertura da aba levava dezenas de segundos (ou 502). Agora, so no

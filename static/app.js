@@ -1637,6 +1637,77 @@ function tplEncerrada(p){
   </div>`;
 }
 
+
+// 14/10/2026 (backlog #23A): painel grafico POC + banda de Monte Carlo + KDO.
+// Sob demanda (clique no 📊), somente leitura; nao entra no score.
+window.rkPocToggle=async function(id){
+  const tr=document.getElementById('rk-poc-'+id); if(!tr) return;
+  const open=tr.style.display==='none'; tr.style.display=open?'table-row':'none';
+  if(!open||tr.dataset.loaded==='1') return;
+  const body=document.getElementById('rk-poc-body-'+id);
+  body.textContent='Carregando o diário do papel…';
+  for(let t=0;t<3;t++){
+    try{
+      const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),40000);
+      const r=await fetch(B+'/analises/'+id+'/poc',{cache:'no-store',signal:ctrl.signal}); clearTimeout(to);
+      const d=await r.json();
+      if(!r.ok||d.error){ body.textContent='Não consegui montar o gráfico: '+(d.error||r.status); return; }
+      body.innerHTML=rkPocSvg(d); tr.dataset.loaded='1'; return;
+    }catch(e){ if(t<2) await new Promise(res=>setTimeout(res,2000*(t+1))); }
+  }
+  body.textContent='O servidor não respondeu (pode estar acordando). Feche e clique no 📊 de novo.';
+};
+window.rkPocSvg=function(d){
+  const W=840,H=330,mL=52,mR=130,mT=14,mB=26;
+  const hist=d.historico, banda=d.banda, nh=hist.length, nf=banda.length-1;
+  const xs=nh+nf; const pw=W-mL-mR, ph=H-mT-mB;
+  const lows=hist.map(h=>h.l).concat([d.kdo||1e9,d.poc,Math.min(...banda.map(b=>b.p10x))]);
+  const highs=hist.map(h=>h.h).concat([Math.max(...banda.map(b=>b.p90x)),d.poc]);
+  let lo=Math.min(...lows)*0.985, hi=Math.max(...highs)*1.015;
+  const X=i=>mL+pw*(i/(xs-1)); const Y=v=>mT+ph*(1-(v-lo)/(hi-lo));
+  const ok=v=>v>=lo&&v<=hi;
+  const fmt=v=>v.toFixed(2);
+  let g='';
+  // grade de preco
+  for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4;g+=`<line x1="${mL}" x2="${W-mR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--border)" stroke-width="0.5" opacity=".5"/><text x="${mL-6}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="var(--muted)">${fmt(v)}</text>`;}
+  // volume profile (direita)
+  const vx0=W-mR+8, vw=mR-18;
+  d.perfil.forEach(b=>{ if(!ok(b.preco)) return; const hbin=Math.max(ph/24*0.85,2);
+    const inVA=b.preco>=d.val&&b.preco<=d.vah; const isPoc=Math.abs(b.preco-d.poc)<(hi-lo)/60;
+    g+=`<rect x="${vx0}" y="${Y(b.preco)-hbin/2}" width="${vw*b.vol/100}" height="${hbin}" fill="${isPoc?'#f0883e':(inVA?'#4f8cff':'#7d8590')}" opacity="${isPoc?0.95:0.55}"/>`; });
+  g+=`<text x="${vx0}" y="${H-8}" font-size="9" fill="var(--muted)">volume profile</text>`;
+  // banda do Monte Carlo (dias 0..nf)
+  const bx=i=>X(nh-1+i);
+  const poly=(k1,k2)=>banda.map((b,i)=>`${bx(i)},${Y(b[k1])}`).join(' ')+' '+banda.slice().reverse().map((b,i)=>`${bx(nf-i)},${Y(b[k2])}`).join(' ');
+  g+=`<polygon points="${poly('p10','p90')}" fill="var(--accent)" opacity=".18"/>`;
+  g+=`<polyline points="${banda.map((b,i)=>`${bx(i)},${Y(b.p10x)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>`;
+  g+=`<polyline points="${banda.map((b,i)=>`${bx(i)},${Y(b.p90x)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>`;
+  g+=`<polyline points="${banda.map((b,i)=>`${bx(i)},${Y(b.p50)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.4" opacity=".9"/>`;
+  // historico (fechamento)
+  g+=`<polyline points="${hist.map((h,i)=>`${X(i)},${Y(h.c)}`).join(' ')}" fill="none" stroke="var(--text)" stroke-width="1.5"/>`;
+  g+=`<line x1="${X(nh-1)}" x2="${X(nh-1)}" y1="${mT}" y2="${H-mB}" stroke="var(--muted)" stroke-width="0.6" stroke-dasharray="2 3"/><text x="${X(nh-1)+3}" y="${H-mB+12}" font-size="9" fill="var(--muted)">hoje</text><text x="${X(xs-1)-2}" y="${H-mB+12}" text-anchor="end" font-size="9" fill="var(--muted)">+${nf}d</text>`;
+  // linhas horizontais
+  const hl=(v,cor,rot,dash,w,dx)=>ok(v)?`<line x1="${mL}" x2="${W-mR}" y1="${Y(v)}" y2="${Y(v)}" stroke="${cor}" stroke-width="${w||1.2}" ${dash?'stroke-dasharray="'+dash+'"':''}/><text x="${mL+4+(dx||0)}" y="${Y(v)-3}" font-size="10" font-weight="700" fill="${cor}">${rot} ${fmt(v)}</text>`:'';
+  g+=hl(d.poc,'#f0883e','POC','',1.6,0);
+  if(d.kdo) g+=hl(d.kdo,'#e5534b','KDO','5 3',1.4,90);
+  g+=hl(d.vah,'#4f8cff','VAH','2 3',0.8,180)+hl(d.val,'#4f8cff','VAL','2 3',0.8,180);
+  g+=hl(d.preco,'var(--text)','preço','1 3',0.8,270);
+  const sgn=v=>(v>0?'+':'')+v;
+  const pocNaBanda=d.poc>=d.p10_final;
+  const leitura=d.kdo_vs_poc_pct==null?'':(d.kdo_vs_poc_pct<=0?`O POC está <b>acima</b> do KDO (a ${Math.abs(d.kdo_vs_poc_pct)}%): o papel precisa perder o POC antes de chegar à barreira.`:(d.kdo_vs_poc_pct<=5?`O POC está logo <b>abaixo</b> do KDO (a ${d.kdo_vs_poc_pct}%): o KDO senta em cima do suporte.`:`O POC está <b>longe abaixo</b> do KDO (a ${d.kdo_vs_poc_pct}%): pouco suporte de volume entre o KDO e o POC.`));
+  const bandaTxt=`P10 em ${d.dias_restantes}d: <b>${fmt(d.p10_final)}</b> (banda da foto do app: ${fmt(d.p10_foto_app)}). O POC ${d.poc>=d.p10_final?'fica <b>dentro</b> da banda P10–P90 (o suporte entra em jogo num cenário comum)':'fica <b>abaixo</b> do P10 (só entra em jogo nos ~10% piores cenários)'}.`;
+  const tq=d.toque_hist_faixa_pct;
+  const tqCor=tq>=8?'var(--red)':'var(--muted)';
+  return `<div style="font-weight:700;color:var(--text);margin-bottom:4px">${d.ticker.replace('.SA','')} · preço ${fmt(d.preco)} · KDO ${d.kdo?fmt(d.kdo):'—'} · σ ${d.sigma_pct}% · ${d.dias_restantes}d restantes</div>
+  <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block">${g}</svg></div>
+  <div style="margin-top:6px;line-height:1.55;color:var(--text)">
+    POC <b>${fmt(d.poc)}</b> (preço ${sgn(d.dist_poc_pct)}% do POC) · área de valor ${fmt(d.val)}–${fmt(d.vah)} · KDO vs POC <b>${d.kdo_vs_poc_pct!=null?sgn(d.kdo_vs_poc_pct)+'%':'—'}</b> · defesa acima do POC <b>${d.defesa_acima_poc_pct!=null?d.defesa_acima_poc_pct+'%':'—'}</b> · volume na defesa <b>${d.vol_na_defesa_pct!=null?d.vol_na_defesa_pct+'%':'—'}</b>
+  </div>
+  <div style="margin-top:3px;line-height:1.55">${leitura} ${bandaTxt}</div>
+  <div style="margin-top:3px;color:${tqCor}">Toque histórico em situações parecidas (distância ao POC): <b>${tq}%</b> (média geral ${d.toque_hist_medio_pct}%). Acima de 30% do POC o toque sobe de 6% para 9–11%.</div>
+  <div style="margin-top:4px;font-size:9px;color:var(--muted)">Perfil: últimos ${d.janela_candles} candles diários, ${d.linhas} linhas, área de valor de 70% (mesmos parâmetros do TradingView). Faixa azul sólida = P10–P90 de dias corridos (1/365); tracejada = banda da foto do app (1/252, mais larga). ${d.aviso}</div>`;
+};
+
 function calcDashboardEncerradas(encerradas){
   encerradas=(encerradas||[]).filter(p=>!p.fora_das_estatisticas);
   const total=encerradas.length;
@@ -3794,9 +3865,9 @@ function tplRanking(d){
         <button onclick="acaoRanking('${r.id}','ativa')" title="Marcar como Ativa" style="background:var(--green);border:none;color:#06140c;padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:700;margin-right:4px">✓</button>
         <button onclick="acaoRanking('${r.id}','rejeitada')" title="Rejeitar" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;margin-right:4px">🚫</button>
         <button onclick="verFotoAnalise('${r.id}')" title="Ver foto do modelo — bandas congeladas no dia da análise, pra ver se está deixando dinheiro na mesa" style="background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">📸</button>
-        ${_fx?`<button onclick="(function(){const e=document.getElementById('rk-fx-${r.id}');e.style.display=(e.style.display==='none'?'table-row':'none');})()" title="Estresse (volatilidade de 30d persistindo): ${(r.folga_barreira_pct!=null&&r.folga_pede_90_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_90_estresse_pct)?'folga cobre 90% mesmo sob estresse':(r.folga_barreira_pct!=null&&r.folga_pede_80_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_80_estresse_pct)?'folga cobre 80%, mas não 90% sob estresse':'folga NÃO cobre nem 80% sob estresse'} — clique para ver quanta folga a oferta precisaria ter" style="background:var(--bg3);border:1px solid var(--border);color:${(r.folga_barreira_pct!=null&&r.folga_pede_90_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_90_estresse_pct)?'var(--green,#3fb950)':(r.folga_barreira_pct!=null&&r.folga_pede_80_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_80_estresse_pct)?'#d29922':'var(--red,#f85149)'};padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">⚡</button>`:''}
+        ${_fx?`<button onclick="(function(){const e=document.getElementById('rk-fx-${r.id}');e.style.display=(e.style.display==='none'?'table-row':'none');})()" title="Estresse (volatilidade de 30d persistindo): ${(r.folga_barreira_pct!=null&&r.folga_pede_90_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_90_estresse_pct)?'folga cobre 90% mesmo sob estresse':(r.folga_barreira_pct!=null&&r.folga_pede_80_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_80_estresse_pct)?'folga cobre 80%, mas não 90% sob estresse':'folga NÃO cobre nem 80% sob estresse'} — clique para ver quanta folga a oferta precisaria ter" style="background:var(--bg3);border:1px solid var(--border);color:${(r.folga_barreira_pct!=null&&r.folga_pede_90_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_90_estresse_pct)?'var(--green,#3fb950)':(r.folga_barreira_pct!=null&&r.folga_pede_80_estresse_pct!=null&&r.folga_barreira_pct>=r.folga_pede_80_estresse_pct)?'#d29922':'var(--red,#f85149)'};padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">⚡</button>`:''}${r.barreira_valor!=null&&r.tipo_estrutura==='retorno_controlado'?` <button onclick="rkPocToggle('${r.id}')" title="Gráfico: banda do Monte Carlo + POC (volume profile 150 candles) + KDO. Só informativo, não altera o score." style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 9px;font-size:10px;cursor:pointer;font-family:inherit;font-weight:600">📊</button>`:''}
       </td>
-    </tr>${_fx}`;
+    </tr>${_fx}${r.barreira_valor!=null&&r.tipo_estrutura==='retorno_controlado'?`<tr id="rk-poc-${r.id}" style="display:none"><td colspan="20" style="padding:8px 10px 12px 22px;background:var(--bg3)"><div id="rk-poc-body-${r.id}" style="font-size:11px;color:var(--muted)">Carregando…</div></td></tr>`:''}`;
   }).join('');
   return `
   <div style="font-size:10px;color:var(--muted);margin-bottom:8px">CDI atual: ${d.cdi_anual_pct.toFixed(2)}% a.a. · ${d.total_analises} análises em_analise · ordenado por 1º faixa de probabilidade de pagamento (≥95, 90–95, 80–90, 70–80, 60–70, &lt;60), 2º score misto (retorno × Fator), 3º EV — nenhuma linha é escondida; ⚠️ &lt;2,5% = abaixo do piso de retorno · clique no ● do papel para ver quanta folga o estresse pede</div>
