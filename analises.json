@@ -160855,46 +160855,6 @@
     "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.34% em 15 dias = 2.716%/mes. Prob 91.98% (GARCH 35.44%; planilha dizia 96.6%), EV 0.584%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
   },
   {
-    "id": "an_1791900021",
-    "ticker": "IGTI11.SA",
-    "nome": "IGTI11",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "ativa",
-    "data_foto": "2026-10-13",
-    "preco_foto": 32.38,
-    "kdo": 28.43,
-    "ganho_prefixado_pct": 2.65,
-    "ganho_sem_barreira": "2.65% fixo",
-    "vencimento": "2026-10-28",
-    "prazo_dias": 15,
-    "exercicio": "europeia",
-    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
-    "lote": "13/10/2026",
-    "protecao_pct": 12.2,
-    "vol_impl": 0.32,
-    "vol_impl_fonte": "garch",
-    "prob_sucesso_prevista_pct": 94.7,
-    "bandas_congeladas": {
-      "preco_foto": 32.38,
-      "kdo": 28.43,
-      "prob_sucesso_prevista_pct": 94.7,
-      "vol_garch_pct": 32.44,
-      "ev_mensal_pct": 2.959,
-      "retorno_mensal_pct": 5.371,
-      "protecao_pct": 12.2,
-      "prob_overshoot_pct": 34.55,
-      "teto_overshoot": 33.2381,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 94.97
-    },
-    "risco_historico": {
-      "rompe_com_indice_pct": 79.0,
-      "freq_rompimento_hist_pct": 3.3,
-      "fator": 58.5
-    },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.65% em 15 dias = 5.371%/mes. Prob 94.7% (GARCH 32.44%; planilha dizia 98.4%), EV 2.959%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
-  },
-  {
     "id": "an_1791900022",
     "ticker": "RAIL3.SA",
     "nome": "RAIL3",
