@@ -112,7 +112,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 4. Straddle/Strangle e Autocall/COE ficam no fim da fila — mecânica bem diferente do resto, exigem desenho novo, só valem o esforço se Victor realmente for usar
 5. **Regra de processo daqui pra frente**: toda vez que uma função de cálculo central for criada ou alterada, rodar contra pelo menos 1 caso manual conhecido ANTES de considerar pronta — foi a falta disso que permitiu o bug da bidirecional passar batido por 2 sessões inteiras
 
-### 🔢 BACKLOG NUMERADO (lista mestre do Victor — atualizada 09/10/2026; os números #N são os citados no chat e nos comentários do código)
+### 🔢 BACKLOG NUMERADO (lista mestre do Victor — atualizada 14/10/2026; os números #N são os citados no chat e nos comentários do código)
 | # | Item | Estado | Prio |
 |---|---|---|---|
 | 1 | Ponte de Brownian: correção de barreira contínua (BGK) aplicada em ativas, ranking e análises novas; `/montecarlo/barrier` auditado e corrigido em 09/10/2026 (simulava ~29% do tempo real — `steps=T//5` com dt=1/252 — e sem BGK: 113d/KDO-20%/KUO+26%/σ35% dava 95% de "sem barreira"; correto ≈ 51–53%. Agora 1 passo por dia, dt=1/365, BGK nos dois lados, `n` respeitado). Rota só é chamada por posições `tipo_posicao='barreira'` (hoje nenhuma ativa) | ✅ Fechado (resta `_calc_bandas_foto` 1/252, no #21) | — |
@@ -132,6 +132,12 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 20 | 15 BDRs sem preço justo (8 sem motivo explícito na tela) | Aberto | Baixa |
 | 21 | Motor com dias corridos: etapas 1–5 feitas; ranking de Análises validado pelo Victor em 09/10. Resta `_calc_bandas_foto` ainda em 1/252 | ✅ Fechado (resíduo menor) | — |
 | 22 | Regime de volatilidade: farol ●, coluna/linha Estresse e folga que o estresse pede (ativas e análises). Pendente: tracker do estresse | ✅ Entregue; medição pendente | Média |
+| 23 | **Botão gráfico de POC (14/10/2026, EM ESTUDO — não implementar ainda)**: 5º botão por linha, sob demanda (1 chamada Yahoo, cache 24h), desenhando a banda do Monte Carlo (P10/P50/P90) com POC de 150 candles/24 linhas, VAL/VAH, KDO e preço; order blocks numa 2ª fase. Fase 1 só informativa; fase 2 marca na tabela dos papéis em análise; score só se o estudo justificar. Achados de 13/10 (40 papéis, 6 anos, KDO 12,2%, 11 pregões, toque pela mínima): toque médio 6,0%; preço >50% acima do POC = 11,2%, 30–50% = 8,6%, <30% = 5,3–6,1%; KDO >20% acima do POC = 9,4%; volume na defesa NÃO discrimina. Sinal fraco (observações sobrepostas) | Aberto (estudo) | Média |
+| 24 | Tracking por papel (ticker-level): quantas vezes cada papel apareceu nos lotes e como foi (acerto, toque, retorno) — agrupar o tracker atual por ticker, sem mexer nos arquivos grandes. Pedido do Victor em 13/10 | Aberto | Média |
+| 25 | Rotina de cada lote novo: rodar todo lote (sem ADR/BDR), 15d com corte de motor 85% e melhor oferta por papel; 41d só para estudo. 13/10: carga ampliada (+9 abaixo do corte, campo `abaixo_corte_85`) para medir depois se o corte de 85% estava certo | Rotina | Média |
+| 26 | Enxugar tamanho de `analises.json` (3,9 MB; campos pesados `historico_correcoes`, `bandas_congeladas`) mantendo o tracking; alternativa: arquivo/Excel para o histórico | Aberto | Média |
+| 27 | Coluna "defesa %" ao lado de Preço/Barreira (Análises) | ✅ Entregue 13/10/2026 (commit 2db96a1) | — |
+| 28 | Ranking de seleção final do Victor (13/10): critério final = dinheiro × probabilidade × POC (gráfico manual). 6 escolhidos: SMTO3, CMIN3, POMO4, IGTI11, HYPE3, VBBR3 (fora FLRY3, ENEV3, SBSP3, MULT3, ENGI11, MOTV3). Acompanhar quando encerrarem (28/10) | Acompanhar | Média |
 
 ### Modelagem
 | Item | Status |
