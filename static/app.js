@@ -4158,7 +4158,12 @@ async function preencherPaineisHipotetico(){
   if(!elR&&!elC)return;
   if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Carregando aproveitamento realizado…</div></div>';
   let h=null;
-  try{ const r=await fetch(B+'/analises/tracking-hipotetico',{cache:'no-store'}); if(r.ok)h=await r.json(); }catch(e){}
+  for(let t=0;t<3&&!h;t++){
+    const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),70000);
+    try{ const r=await fetch(B+'/analises/tracking-hipotetico',{cache:'no-store',signal:ctrl.signal}); if(r.ok)h=await r.json(); }catch(e){}
+    clearTimeout(to);
+    if(!h&&t<2)await new Promise(res=>setTimeout(res,2500*(t+1)));
+  }
   if(!h){ if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Aproveitamento realizado indisponível no momento (a rota do tracker não respondeu).</div></div>'; return; }
   const r=h.aproveitamento_realizado;
   if(elR&&r&&r.avaliadas_com_valor>0){

@@ -4581,8 +4581,16 @@ def tracking_hipotetico_previsoes():
         # REESCRITO 21/09/2026: agora le o arquivo ativo E o arquivo morto
         # (analises_arquivo.json). A logica de apuracao nao mudou -- so foi
         # extraida para _tracking_hip_item/_tracking_hip_agregar.
+        # CACHE 13/10/2026: com lote novo vencendo, o calculo busca preco no
+        # Yahoo de cada analise nova e passava de 20 s -- o painel de
+        # Encerradas desistia ("tracker nao respondeu"). Resultado fica 30 min.
+        import time as _tm
+        c = globals().get('_TRACK_HIP_CACHE')
+        if c and _tm.time() - c[0] < 1800 and request.args.get('fresh') != '1':
+            return jsonify(c[1])
         res = _tracking_hip_calcular(_ler_json_raw('analises.json'),
                                      _ler_json_raw('analises_arquivo.json'))
+        globals()['_TRACK_HIP_CACHE'] = (_tm.time(), res)
         return jsonify(res)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
