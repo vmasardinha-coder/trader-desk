@@ -162258,47 +162258,6 @@
     "abaixo_corte_85": true
   },
   {
-    "id": "an_1791900103",
-    "ticker": "SMTO3.SA",
-    "nome": "SMTO3",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "ativa",
-    "data_foto": "2026-10-13",
-    "preco_foto": 21.4,
-    "kdo": 18.79,
-    "ganho_prefixado_pct": 5.2,
-    "ganho_sem_barreira": "5.2% fixo",
-    "vencimento": "2026-10-28",
-    "prazo_dias": 15,
-    "exercicio": "europeia",
-    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
-    "lote": "13/10/2026",
-    "protecao_pct": 12.2,
-    "vol_impl": 0.45,
-    "vol_impl_fonte": "garch",
-    "prob_sucesso_prevista_pct": 82.44,
-    "bandas_congeladas": {
-      "preco_foto": 21.4,
-      "kdo": 18.79,
-      "prob_sucesso_prevista_pct": 82.44,
-      "vol_garch_pct": 45.01,
-      "ev_mensal_pct": 4.68,
-      "retorno_mensal_pct": 10.539,
-      "protecao_pct": 12.2,
-      "prob_overshoot_pct": 27.81,
-      "teto_overshoot": 22.5128,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 84.75
-    },
-    "risco_historico": {
-      "rompe_com_indice_pct": 52.0,
-      "freq_rompimento_hist_pct": 9.5,
-      "fator": 67.0
-    },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; ABAIXO DO CORTE de 85% (carga ampliada a pedido, para medir o corte)). Defesa 12.2%, ganho 5.2% em 15 dias = 10.539%/mes. Prob 82.44% (GARCH 45.01%; planilha dizia 92.8%), EV 4.68%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
-    "abaixo_corte_85": true
-  },
-  {
     "id": "an_1791900104",
     "ticker": "ALPA4.SA",
     "nome": "ALPA4",
