@@ -118,7 +118,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 1 | Ponte de Brownian: correção de barreira contínua (BGK) aplicada em ativas, ranking e análises novas; `/montecarlo/barrier` auditado e corrigido em 09/10/2026 (simulava ~29% do tempo real — `steps=T//5` com dt=1/252 — e sem BGK: 113d/KDO-20%/KUO+26%/σ35% dava 95% de "sem barreira"; correto ≈ 51–53%. Agora 1 passo por dia, dt=1/365, BGK nos dois lados, `n` respeitado). Rota só é chamada por posições `tipo_posicao='barreira'` (hoje nenhuma ativa) | ✅ Fechado (resta `_calc_bandas_foto` 1/252, no #21) | — |
 | 2 | Fator no ranking de análises | ✅ Validado | — |
 | 3 | Jump-Diffusion | ✅ Entregue em modo sombra; falta coletar vencimentos para decidir se troca o motor | — |
-| 4 | Entry de TEND3, ROXO34, ITLC34 e ECOR3 encerrada; boleto da BEEF3 (~10/10); extrato de saída da SBSP3 | Depende do Victor | Média |
+| 4 | ✅ Fechado em 13/10/2026: extrato Itaú conferido contra todas as ativas; BEEF3 corrigida (strike 4,78, qtd 6.500, KDO 3,30, entry 4,41 pela regra KDO/(1-defesa)); TEND3 confirmada; vencimentos alinhados ao extrato (um dia antes do que o app usava). Resta só o extrato de saída da SBSP3, se ainda for útil | ✅ Fechado | — |
 | 5 | Calibrar o overshoot | ✅ Medido, sem recalibrar; só acompanha | — |
 | 10 | Monitorar prazos e barreiras a cada lote | Rotina manual | Média |
 | 11 | PETR4 e VALE3 como fracasso provável | Aberto | Média |

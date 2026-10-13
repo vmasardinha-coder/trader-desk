@@ -51,7 +51,7 @@
       "nome": "TSLA34 Retorno Controlado 62d (Lote 09/09/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-10",
+      "vencimento": "2026-11-09",
       "entry": 58.65,
       "kdo": 46.86,
       "kdo_pct": "-20.1%",
@@ -76,7 +76,16 @@
       },
       "prob_overshoot_entrada_pct": 36.55,
       "teto_overshoot_entrada": 61.8171,
-      "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
+      "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada.",
+      "historico_correcoes": [
+        {
+          "campo": "vencimento",
+          "de": "2026-11-10",
+          "para": "2026-11-09",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
+        }
+      ]
     },
     {
       "id": "bb3",
@@ -126,7 +135,7 @@
       "nome": "BSLV39 Retorno Controlado 62d (Lote 09/09/2026)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-12-02",
+      "vencimento": "2026-12-01",
       "entry": 95.66,
       "kdo": 76.43,
       "kdo_pct": "-20.1%",
@@ -172,6 +181,13 @@
           "para": 104.08,
           "em": "2026-10-07",
           "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-12-02",
+          "para": "2026-12-01",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
         }
       ],
       "prob_overshoot_entrada_pct": 33.03,
@@ -184,7 +200,7 @@
       "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-12-02",
+      "vencimento": "2026-12-01",
       "entry": 26.97,
       "kdo": 21.58,
       "kdo_pct": -20.0,
@@ -196,7 +212,7 @@
       "ganho_sem_barreira": "14.11% fixo",
       "ganho_prefixado_pct": 14.11,
       "rolagem_de": "cl-tend3-rolagem-out26",
-      "numeros_confirmados": false,
+      "numeros_confirmados": true,
       "observacao": "Segunda rolagem de melhora da TEND3, em 30/09/2026 (ver cl-tend3-rolagem-out26). KDO 22,42 -> 21,51, mesma estrutura, premio de 2,26% capturado em 5 dias. PROVISORIO: vencimento, ganho e entry aguardam o boleto.",
       "prazo_dias": 63,
       "strike": 30.82,
@@ -249,6 +265,13 @@
           "para": 26.97,
           "em": "2026-10-07",
           "motivo": "entry = KDO oficial / (1 - defesa do boleto); defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-12-02",
+          "para": "2026-12-01",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
         }
       ],
       "aguardando_boleto": true,
@@ -267,7 +290,7 @@
       "tipo_estrutura": "retorno_controlado",
       "exercicio": "europeia",
       "data_entrada": "2026-10-05",
-      "vencimento": "2026-12-08",
+      "vencimento": "2026-12-07",
       "prazo_dias": 64,
       "entry": 12.59,
       "kdo": 10.61,
@@ -314,6 +337,13 @@
           "para": 12.59,
           "em": "2026-10-07",
           "motivo": "entry = KDO oficial / (1 - defesa do boleto); boleto 05/10 (53970) + KDO do extrato 07/10"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-12-08",
+          "para": "2026-12-07",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
         }
       ],
       "strike": 14.12,
@@ -327,7 +357,7 @@
       "tipo_estrutura": "retorno_controlado",
       "exercicio": "europeia",
       "data_entrada": "2026-10-05",
-      "vencimento": "2026-11-05",
+      "vencimento": "2026-11-04",
       "prazo_dias": 31,
       "entry": 97.89,
       "kdo": 82.42,
@@ -374,6 +404,13 @@
           "para": 97.89,
           "em": "2026-10-07",
           "motivo": "entry = KDO oficial / (1 - defesa do boleto); boleto 05/10 (53978) + KDO do extrato 07/10"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-05",
+          "para": "2026-11-04",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
         }
       ],
       "strike": 106.43,
@@ -388,26 +425,64 @@
       "tipo_estrutura": "retorno_controlado",
       "exercicio": "europeia",
       "data_entrada": "2026-10-08",
-      "vencimento": "2026-12-10",
+      "vencimento": "2026-12-09",
       "prazo_dias": 63,
-      "entry": 4.71,
-      "kdo": 3.53,
+      "entry": 4.41,
+      "kdo": 3.3,
       "kdo_pct": -25.1,
       "ganho_prefixado_pct": 7.9,
       "ganho_sem_barreira": "7.9% fixo",
-      "strike": 5.08,
+      "strike": 4.78,
       "protecao_pct": 25.1,
       "prob_sucesso_prevista_pct": 78.56,
       "prob_overshoot_entrada_pct": 33.17,
       "teto_overshoot_entrada": 5.0821,
       "vol_impl": 0.46,
       "vol_impl_fonte": "garch",
-      "numeros_confirmados": false,
-      "entry_confirmado": false,
-      "aguardando_boleto": true,
+      "numeros_confirmados": true,
+      "entry_confirmado": true,
+      "aguardando_boleto": false,
       "origem": "lote 08/10/2026 (planilha do estudo, sem PDF) -- analise an_1791460009",
-      "fonte_numeros": "planilha lote 08/10/2026: preco de referencia, defesa 25,1%, ganho 7,9% e vencimento; KDO DERIVADO = preco x (1 - defesa)",
-      "observacao": "Entrada em 08/10/2026 trocando de posicao (giro da SBSP3, sem aumentar o risco). Defesa 25,1%, ganho 7,9% em 63 dias = 3,81%/mes. Prob 78.56% (motor v2, GARCH 45.94%), EV 0,22%/mes, Fator 60.9. PROVISORIO: entry, KDO, strike e quantidade vem da planilha, nao do boleto. O boleto oficial chega em ~2 dias (10/10) -- ratificar entry/KDO/strike/vencimento/quantidade e usar a regra entry = KDO oficial / (1 - defesa)."
+      "fonte_numeros": "extrato oficial Itau 13/10/2026 (strike, quantidade, KDO, vencimento) + defesa 25,1% e ganho 7,9% da planilha do lote 08/10; entry = KDO/(1-defesa)",
+      "observacao": "Entrada em 08/10/2026 trocando de posicao (giro da SBSP3, sem aumentar o risco). Defesa 25,1%, ganho 7,9% em 63 dias = 3,81%/mes. Prob 78.56% (motor v2, GARCH 45.94%), EV 0,22%/mes, Fator 60.9. CONFIRMADO em 13/10 pelo extrato (strike/qtd/KDO/venc). Prob e overshoot da entrada foram calculados com os numeros provisorios da planilha e ficam congelados. ANTES: entry, KDO, strike e quantidade vem da planilha, nao do boleto. O boleto oficial chega em ~2 dias (10/10) -- ratificar entry/KDO/strike/vencimento/quantidade e usar a regra entry = KDO oficial / (1 - defesa).",
+      "historico_correcoes": [
+        {
+          "campo": "vencimento",
+          "de": "2026-12-10",
+          "para": "2026-12-09",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
+        },
+        {
+          "campo": "strike",
+          "de": 5.08,
+          "para": 4.78,
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 6500,
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 3.53,
+          "para": 3.3,
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 4.71,
+          "para": 4.41,
+          "em": "2026-10-13",
+          "motivo": "entry = KDO oficial / (1 - defesa 25,1% da planilha do lote 08/10)"
+        }
+      ],
+      "quantidade": 6500
     }
   ],
   "encerradas": [
