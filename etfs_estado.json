@@ -16,7 +16,12 @@
     {
       "ticker": "QQQI11",
       "preco_entrada": 97.59,
-      "data_entrada": "2026-07-04"
+      "data_entrada": "2026-07-04",
+      "status": "encerrada",
+      "data_encerramento": "2026-10-13",
+      "resultado": "sucesso",
+      "valor_financeiro_resultado": 200.0,
+      "observacao_encerramento": "rotação "
     },
     {
       "ticker": "XBCI11",
