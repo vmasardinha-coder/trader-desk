@@ -161055,46 +161055,6 @@
     "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.8% em 15 dias = 7.701%/mes. Prob 90.14% (GARCH 38.94%; planilha dizia 92.4%), EV 4.292%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
   },
   {
-    "id": "an_1791900027",
-    "ticker": "CMIN3.SA",
-    "nome": "CMIN3",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "ativa",
-    "data_foto": "2026-10-13",
-    "preco_foto": 5.02,
-    "kdo": 4.41,
-    "ganho_prefixado_pct": 4.11,
-    "ganho_sem_barreira": "4.11% fixo",
-    "vencimento": "2026-10-28",
-    "prazo_dias": 15,
-    "exercicio": "europeia",
-    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
-    "lote": "13/10/2026",
-    "protecao_pct": 12.2,
-    "vol_impl": 0.41,
-    "vol_impl_fonte": "garch",
-    "prob_sucesso_prevista_pct": 86.6,
-    "bandas_congeladas": {
-      "preco_foto": 5.02,
-      "kdo": 4.41,
-      "prob_sucesso_prevista_pct": 86.6,
-      "vol_garch_pct": 41.22,
-      "ev_mensal_pct": 4.29,
-      "retorno_mensal_pct": 8.33,
-      "protecao_pct": 12.2,
-      "prob_overshoot_pct": 29.36,
-      "teto_overshoot": 5.2263,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 88.0
-    },
-    "risco_historico": {
-      "rompe_com_indice_pct": 75.0,
-      "freq_rompimento_hist_pct": 12.0,
-      "fator": 55.0
-    },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 4.11% em 15 dias = 8.33%/mes. Prob 86.6% (GARCH 41.22%; planilha dizia 91.7%), EV 4.29%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
-  },
-  {
     "id": "an_1791900028",
     "ticker": "TOTS3.SA",
     "nome": "TOTS3",
