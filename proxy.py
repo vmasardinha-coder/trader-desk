@@ -6299,6 +6299,8 @@ def ranking_analises():
     Resposta inclui 'total_geral' (quantas existem no total) para o
     frontend saber quando parar de pedir mais paginas.
     """
+    if not request.headers.get('X-Prewarm'):
+        globals()['_RANK_ULTIMO_ACESSO'] = __import__('time').time()
     try:
         import numpy as np
         from datetime import datetime as _dt3
@@ -7918,6 +7920,53 @@ rotas_etfs.registrar_rotas(
 # _etf_yahoo_ticker e _fetch_yahoo_series ja importadas de fontes_etfs.py
 # mais acima (Prioridade 2, fase 2, 03/07/2026)
 
+
+
+# 14/10/2026 (backlog #15): pre-aquecimento do ranking de Analises. Apos cada
+# deploy o Render reinicia e o cache (_RANK_LINHAS) fica vazio, entao a
+# primeira abertura da aba levava dezenas de segundos (ou 502). Agora, so no
+# Render (variavel RENDER; nunca em scripts locais/testes), uma thread de
+# fundo (1) espera ~25 s, (2) aquece o ranking paginado de 5 em 5 e (3) so
+# repete a cada 8 min SE alguem usou o ranking nos ultimos 30 min -- assim
+# nao gasta CPU a toa quando ninguem esta olhando. Somente leitura, aditivo.
+_RANK_ULTIMO_ACESSO = 0.0
+_PREWARM_STATUS = {'rodando': False, 'ultimo': None}
+
+def _prewarm_ranking_uma_vez():
+    c = app.test_client()
+    off, paginas = 0, 0
+    while paginas < 80:
+        r = c.get(f'/analises/ranking?limit=5&offset={off}', headers={'X-Prewarm': '1'})
+        j = r.get_json(silent=True) or {}
+        paginas += 1
+        if not j.get('proxima_pagina_existe'):
+            break
+        off += 5
+    return paginas
+
+def _prewarm_ranking_loop():
+    import time as _t
+    _t.sleep(25)
+    primeira = True
+    while True:
+        if primeira or (_t.time() - globals().get('_RANK_ULTIMO_ACESSO', 0)) < 1800:
+            _PREWARM_STATUS['rodando'] = True
+            try:
+                n = _prewarm_ranking_uma_vez()
+                _PREWARM_STATUS['ultimo'] = {'em': _dt_now_iso(), 'paginas': n}
+            except Exception as e:
+                _PREWARM_STATUS['ultimo'] = {'em': _dt_now_iso(), 'erro': str(e)[:200]}
+            finally:
+                _PREWARM_STATUS['rodando'] = False
+            primeira = False
+        _t.sleep(480)
+
+@app.route('/analises/ranking/prewarm/status', methods=['GET'])
+def rota_prewarm_status():
+    return jsonify(_PREWARM_STATUS)
+
+if __import__('os').environ.get('RENDER') and not __import__('os').environ.get('RANK_PREWARM_OFF'):
+    __import__('threading').Thread(target=_prewarm_ranking_loop, daemon=True).start()
 
 
 if __name__=='__main__':

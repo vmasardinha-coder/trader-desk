@@ -124,7 +124,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 11 | PETR4 e VALE3 (anteriores ao sistema): marcadas `fora_das_estatisticas: true` em 13/10/2026 — quando encerrarem, não contam como sucesso nem fracasso em nenhum tracker/painel (acurácia, Victor, resumo, dashboard). Na tela aparecem normalmente; pode usar o status que quiser para o badge | ✅ Tratado | — |
 | 12 | Botão de regeneração (aba 📈 Papéis) falha de vez em quando | Em estudo; dá para melhorar só no código, sem mexer no Render | Média |
 | 13 | FI-Infra e ETFs via Brapi; proventos 12m | Aberto | Média |
-| 15 | Ranking de análises dá 502 com 180+ linhas; paginação 5, cache 10 min, retry 3x e recarga adiada na rejeição feitos; ranking segue pesado (pré-aquecer após deploy pendente). Extensão frescor/prazo em reflexão (ver linha própria abaixo) | Em tratamento | Média/Alta |
+| 15 | Ranking de análises dá 502 com 180+ linhas; paginação 5, cache 10 min, retry 3x e recarga adiada na rejeição feitos; pré-aquecimento feito em 14/10/2026 (thread de fundo só no Render: aquece 25 s após subir e repete a cada 8 min só se alguém usou o ranking nos últimos 30 min; status em `/analises/ranking/prewarm/status`; desliga com `RANK_PREWARM_OFF`). Extensão frescor/prazo em reflexão (ver linha própria abaixo) | ✅ Entregue 14/10 (validar no site após o deploy) | Média/Alta |
 | 16 | Vol implícita (OpLab) + GARCH | ⏸️ Parado: fonte paga, sem acesso | Baixa |
 | 17 | Escalonar vencimentos no engine de 500k | Aberto | Baixa |
 | 18 | BOVA11 sem candle de 05/10 no Yahoo | Aberto | Baixa |
