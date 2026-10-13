@@ -160495,46 +160495,6 @@
     "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.54% em 15 dias = 5.148%/mes. Prob 96.3% (GARCH 30.75%; planilha dizia 98.6%), EV 3.466%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
   },
   {
-    "id": "an_1791900010",
-    "ticker": "HYPE3.SA",
-    "nome": "HYPE3",
-    "tipo_estrutura": "retorno_controlado",
-    "status": "ativa",
-    "data_foto": "2026-10-13",
-    "preco_foto": 25.86,
-    "kdo": 22.71,
-    "ganho_prefixado_pct": 1.83,
-    "ganho_sem_barreira": "1.83% fixo",
-    "vencimento": "2026-10-28",
-    "prazo_dias": 15,
-    "exercicio": "europeia",
-    "origem": "lote 13/10/2026 (menu Itau, planilha ChatGPT v2)",
-    "lote": "13/10/2026",
-    "protecao_pct": 12.2,
-    "vol_impl": 0.32,
-    "vol_impl_fonte": "garch",
-    "prob_sucesso_prevista_pct": 93.88,
-    "bandas_congeladas": {
-      "preco_foto": 25.86,
-      "kdo": 22.71,
-      "prob_sucesso_prevista_pct": 93.88,
-      "vol_garch_pct": 32.34,
-      "ev_mensal_pct": 2.185,
-      "retorno_mensal_pct": 3.709,
-      "protecao_pct": 12.2,
-      "prob_overshoot_pct": 38.52,
-      "teto_overshoot": 26.3332,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 95.19
-    },
-    "risco_historico": {
-      "rompe_com_indice_pct": 48.0,
-      "freq_rompimento_hist_pct": 4.3,
-      "fator": 72.7
-    },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.83% em 15 dias = 3.709%/mes. Prob 93.88% (GARCH 32.34%; planilha dizia 96.9%), EV 2.185%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
-  },
-  {
     "id": "an_1791900011",
     "ticker": "GGBR4.SA",
     "nome": "GGBR4",
