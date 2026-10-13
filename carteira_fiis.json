@@ -102,7 +102,10 @@
     "data_ativacao": "2026-06-30",
     "preco_ativacao": 95.03,
     "dy_anual_pct_ativacao": 12.43,
-    "status": "ativa"
+    "status": "encerrada",
+    "data_encerramento": "2026-10-13",
+    "resultado": "sucesso",
+    "valor_financeiro_resultado": 5000.0
   },
   {
     "id": "fii_1782822990",
