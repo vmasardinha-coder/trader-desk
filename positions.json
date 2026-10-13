@@ -607,6 +607,26 @@
       "prob_sucesso_saltos_pct": 88.0,
       "ganho_sem_barreira": "4.11% fixo",
       "ganho_prefixado_pct": 4.11
+    },
+    {
+      "id": "pomo4",
+      "ticker": "POMO4.SA",
+      "nome": "POMO4",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-28",
+      "entry": 4.8,
+      "kdo": 4.21,
+      "kdo_pct": "-12.3%",
+      "vol_impl": 0.3904,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-13",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 90.14,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 90.78,
+      "ganho_sem_barreira": "3.8% fixo",
+      "ganho_prefixado_pct": 3.8
     }
   ],
   "encerradas": [
