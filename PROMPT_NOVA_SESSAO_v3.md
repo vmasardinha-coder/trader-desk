@@ -138,7 +138,8 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 25 | Carga do lote 13/10: 15d com corte de motor 85%, melhor oferta por papel, 41d só para estudo; +9 abaixo do corte (campo `abaixo_corte_85`). **Rotina para os próximos lotes:** repetir a mesma regra (sem ADR/BDR) | ✅ Feito para o lote 13/10; rotina segue a cada lote | Média |
 | 26 | Enxugar tamanho de `analises.json` (3,9 MB; campos pesados `historico_correcoes`, `bandas_congeladas`) mantendo o tracking; alternativa: arquivo/Excel para o histórico | Aberto | Média |
 | 27 | Coluna "defesa %" ao lado de Preço/Barreira (Análises) | ✅ Entregue 13/10/2026 (commit 2db96a1) | — |
-| 28 | Ranking de seleção final do Victor (13/10): critério final = dinheiro × probabilidade × POC (gráfico manual). 6 escolhidos: SMTO3, CMIN3, POMO4, IGTI11, HYPE3, VBBR3 (fora FLRY3, ENEV3, SBSP3, MULT3, ENGI11, MOTV3). Acompanhar quando encerrarem (28/10) | Aguardando o Victor passar as operações realizadas e o tracking dos encerramentos (vencimento 28/10) | Média |
+| 28A | Operações realizadas do lote 13/10 (SMTO3, CMIN3, POMO4, IGTI11, HYPE3, VBBR3) | ✅ Fechado 14/10/2026: notas Itaú 155441 (compras à vista), 1665 (FPA/FCA) e 155442 (vendas de fundos que financiaram) conferidas; as 6 ativas atualizadas com entry médio das execuções, strike, KDO oficial e quantidade (capital R$ 293.512; ganho R$ 9.815 se todas pagarem; perda se todas terminarem no KDO R$ 35.488). Vencimento mantido em 28/10 (convenção do extrato; a nota diz 29/10). Probabilidade e overshoot seguem os da foto | — |
+| 28B | Acompanhar o encerramento das 6 (28–29/10) e comparar com a seleção/probabilidade da foto; alimenta o item 23B | Aguardando o vencimento | Média |
 
 ### Modelagem
 | Item | Status |
