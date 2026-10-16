@@ -1468,8 +1468,8 @@
    "papel_preco_saida": 80.72,
    "papel_retorno_pct": -17.54,
    "papel_fonte": "Yahoo: fechamento de 15/10/2026 (80,72). Cliente fica com as 290 acoes em custodia; prejuizo so se vender",
-   "aguardando_extrato_saida": true,
-   "resultado_texto": "FRACASSO (criterio de fechamento, o do banco para BDR/ADR): KDO R$ 82,42; fechamentos de 13/10 (86,65) e 14/10 (82,82) ficaram acima, e o de 15/10 (80,72, Yahoo) ficou ABAIXO. Ganho prefixado de 8,5% nao recebido; cliente fica com 290 acoes (entrada 97,89, fechamento 80,72: -17,5% no papel, nao realizado). Probabilidade da foto 53,7%. Encerrado a pedido do Victor em 15/10/2026. PROVISORIO: o extrato do Itau das 17h24 de 15/10 ainda mostra \"Nao acionada\" (reflete ate o fechamento de 14/10); ratificar no extrato de 16/10. Registro inicial usou a minima intradia de 13/10 (conservador); corrigido para o criterio do banco."
+   "aguardando_extrato_saida": false,
+   "resultado_texto": "FRACASSO (criterio de fechamento, o do banco para BDR/ADR): KDO R$ 82,42; fechamentos de 13/10 (86,65) e 14/10 (82,82) ficaram acima, e o de 15/10 (80,72, Yahoo) ficou ABAIXO. Ganho prefixado de 8,5% nao recebido; cliente fica com 290 acoes (entrada 97,89, fechamento 80,72: -17,5% no papel, nao realizado). Probabilidade da foto 53,7%. Encerrado a pedido do Victor em 15/10/2026. RATIFICADO em 16/10/2026: a posicao saiu do portal do Itau (confirmado pelo Victor). Registro inicial usou a minima intradia de 13/10 (conservador); corrigido para o criterio do banco."
   }
  ]
 }
