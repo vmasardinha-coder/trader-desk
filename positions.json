@@ -515,8 +515,8 @@
       "estrategia": "Retorno Controlado",
       "vencimento": "2026-10-28",
       "entry": 32.23,
-      "kdo": 28.34,
-      "kdo_pct": "-12.1%",
+      "kdo": 28.19,
+      "kdo_pct": "-12.5%",
       "vol_impl": 0.3567,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-13",
@@ -561,15 +561,23 @@
           "para": 2.76,
           "em": "2026-10-14",
           "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "kdo/strike",
+          "de": "kdo 28.34 / strike 33.12",
+          "para": "kdo 28.19 / strike 32.95",
+          "em": "2026-10-19",
+          "motivo": "extrato oficial Itau 19/10/2026"
         }
       ],
-      "strike": 33.12,
+      "strike": 32.95,
       "quantidade": 1500,
       "entry_confirmado": true,
       "numeros_confirmados": true,
       "aguardando_boleto": false,
       "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
-      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota"
+      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota",
+      "observacao": " | 19/10/2026: KDO e strike corrigidos pelo extrato oficial (28.19 e 32.95). ATENCAO: entry (32.23) e ganho (2.76%) continuam do lote e NAO batem com o extrato (com o ganho de 2,70% dito pelo Victor, entry seria ~32.08). Confirmar no boleto."
     },
     {
       "id": "smto3",
