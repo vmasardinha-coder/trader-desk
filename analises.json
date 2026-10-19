@@ -160381,7 +160381,7 @@
     "ticker": "PETR4.SA",
     "nome": "PETR4",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 56.63,
     "kdo": 49.72,
@@ -160414,7 +160414,15 @@
       "freq_rompimento_hist_pct": 8.1,
       "fator": 53.8
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.35% em 15 dias = 2.736%/mes. Prob 96.48% (GARCH 30.24%; planilha dizia 99.7%), EV 1.38%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.35% em 15 dias = 2.736%/mes. Prob 96.48% (GARCH 30.24%; planilha dizia 99.7%), EV 1.38%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-19",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "ev_mensal_na_rejeicao": 1.382,
+    "score_na_rejeicao": 1.9526,
+    "prob_meta_na_rejeicao": 99.97,
+    "preco_encerramento": 59.68
   },
   {
     "id": "an_1791900009",
