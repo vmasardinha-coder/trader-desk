@@ -762,6 +762,29 @@
       "aguardando_boleto": false,
       "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
       "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota"
+    },
+    {
+      "id": "tsla34",
+      "ticker": "TSLA34.SA",
+      "nome": "TSLA34 Retorno Controlado 60d (Lote 19/10/2026 - rolagem)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-12-18",
+      "entry": 58.21,
+      "kdo": 47.32,
+      "kdo_pct": "-18.7%",
+      "vol_impl": 0.4512,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-19",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 71.66,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 72.37,
+      "ganho_sem_barreira": "6.3% fixo",
+      "ganho_prefixado_pct": 6.3,
+      "observacao": "Rolagem da Tesla (lote 09/09) aprovada pelo Victor em 19/10/2026. entry = fechamento 19/10 (58.21) PROVISORIO; quantidade e strike pendentes do extrato/boleto. Boleto: ganho 6,3%, barreira -18,7% (81,2%), strike 106,4%, vencimento 18/12/2026.",
+      "entry_confirmado": false,
+      "strike": 61.94
     }
   ],
   "encerradas": [
