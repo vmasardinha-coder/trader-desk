@@ -140,6 +140,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 27 | Coluna "defesa %" ao lado de Preço/Barreira (Análises) | ✅ Entregue 13/10/2026 (commit 2db96a1) | — |
 | 28A | Operações realizadas do lote 13/10 (SMTO3, CMIN3, POMO4, IGTI11, HYPE3, VBBR3) | ✅ Fechado 14/10/2026: notas Itaú 155441 (compras à vista), 1665 (FPA/FCA) e 155442 (vendas de fundos que financiaram) conferidas; as 6 ativas atualizadas com entry médio das execuções, strike, KDO oficial e quantidade (capital R$ 293.512; ganho R$ 9.815 se todas pagarem; perda se todas terminarem no KDO R$ 35.488). Vencimento mantido em 28/10 (convenção do extrato; a nota diz 29/10). Probabilidade e overshoot seguem os da foto | — |
 | 28B | Acompanhar o encerramento das 6 (28–29/10) e comparar com a seleção/probabilidade da foto; alimenta o item 23B | Aguardando o vencimento | Média |
+| 29 | **Varredura de limpeza de Em Análise (pedido do Victor, 19/10/2026):** a base de análises vira volume grande. Regra: (a) prob. viva < 70% em papel que NÃO é BDR/ADR = rejeição por RISCO (`motivo_rejeicao=risco_alto`) — Claude lista e o Victor confirma; (b) prob. viva ≥ ~100% = candidata a `sem_capital` — Claude lista e o Victor diz quais manteria; (c) nas BDRs/ADRs perguntar papel a papel. Depois da resposta, Claude encerra em lote (mantendo o tracking). Corte futuro: o lote novo nem sobe com prob. < 70%. Primeira varredura feita em 19/10 | Aberto (rotina; 1ª varredura aguarda respostas) | Média |
 
 ### Modelagem
 | Item | Status |
