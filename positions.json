@@ -650,21 +650,61 @@
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
       "vencimento": "2026-12-18",
-      "entry": 58.21,
-      "kdo": 47.32,
-      "kdo_pct": "-18.7%",
+      "entry": 58.16,
+      "kdo": 47.19,
+      "kdo_pct": "-18.9%",
       "vol_impl": 0.4512,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-19",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 71.66,
+      "prob_sucesso_prevista_pct": 74.39,
       "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 72.37,
-      "ganho_sem_barreira": "6.3% fixo",
-      "ganho_prefixado_pct": 6.3,
+      "prob_sucesso_saltos_pct": 75.04,
+      "ganho_sem_barreira": "6.33% fixo",
+      "ganho_prefixado_pct": 6.33,
       "observacao": "Rolagem da Tesla (lote 09/09) aprovada pelo Victor em 19/10/2026. entry = fechamento 19/10 (58.21) PROVISORIO; quantidade e strike pendentes do extrato/boleto. Boleto: ganho 6,3%, barreira -18,7% (81,2%), strike 106,4%, vencimento 18/12/2026.",
-      "entry_confirmado": false,
-      "strike": 61.94
+      "entry_confirmado": true,
+      "strike": 61.84,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 58.21,
+          "para": 58.16,
+          "em": "2026-10-20",
+          "motivo": "nota Itau 19/10/2026 (226167 compra a vista 20 @ 58,16; 3254 FPA/FCA 18/12: qtd 530, strike 61,84, KO down 47,19)"
+        },
+        {
+          "campo": "kdo",
+          "de": 47.32,
+          "para": 47.19,
+          "em": "2026-10-20",
+          "motivo": "nota Itau 19/10/2026 (226167 compra a vista 20 @ 58,16; 3254 FPA/FCA 18/12: qtd 530, strike 61,84, KO down 47,19)"
+        },
+        {
+          "campo": "strike",
+          "de": 61.94,
+          "para": 61.84,
+          "em": "2026-10-20",
+          "motivo": "nota Itau 19/10/2026 (226167 compra a vista 20 @ 58,16; 3254 FPA/FCA 18/12: qtd 530, strike 61,84, KO down 47,19)"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 530,
+          "em": "2026-10-20",
+          "motivo": "nota Itau 19/10/2026 (226167 compra a vista 20 @ 58,16; 3254 FPA/FCA 18/12: qtd 530, strike 61,84, KO down 47,19)"
+        },
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 6.3,
+          "para": 6.33,
+          "em": "2026-10-20",
+          "motivo": "nota Itau 19/10/2026 (226167 compra a vista 20 @ 58,16; 3254 FPA/FCA 18/12: qtd 530, strike 61,84, KO down 47,19)"
+        }
+      ],
+      "quantidade": 530,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false
     },
     {
       "id": "cmin32",
@@ -1423,6 +1463,13 @@
           "para": "2026-11-09",
           "em": "2026-10-13",
           "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
+        },
+        {
+          "campo": "realizado_pct",
+          "de": 3.34,
+          "para": 3.5,
+          "em": "2026-10-20",
+          "motivo": "nota Itau 3254: liquido do resgate/rolagem conferido; campo em R$ removido do repo"
         }
       ],
       "status": "sucesso",
@@ -1433,8 +1480,7 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "resgate_antecipado_lucro",
       "alvo_pct": 5.4,
-      "realizado_pct": 3.34,
-      "premio_resgate_reais": 1000.0,
+      "realizado_pct": 3.5,
       "papel_preco_entrada": 58.65,
       "papel_preco_saida": 58.21,
       "papel_retorno_pct": -0.75,
