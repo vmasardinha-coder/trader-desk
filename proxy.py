@@ -2315,6 +2315,24 @@ def _evolucao_por_tempo(p, prob_hoje):
     except Exception:
         return {}
 
+def _ganho_contrato_posicao(p):
+    """20/10/2026: ganho fixo contratado (%), prazo contratado (dias) e equivalente ao mes."""
+    try:
+        from datetime import date as _d
+        ganho = p.get('ganho_prefixado_pct')
+        if ganho is None and p.get('estrategia') == 'Bidirecional':
+            ganho = p.get('teto_retorno_pct')
+        if ganho is None:
+            return {'ganho_contrato_pct': None, 'prazo_contrato_dias': None, 'ganho_contrato_mes_pct': None}
+        ganho = float(ganho)
+        di = _d.fromisoformat(str(p.get('data_entrada'))[:10])
+        dv = _d.fromisoformat(str(p.get('vencimento'))[:10])
+        prazo = (dv - di).days
+        mes = round(ganho * 30.0 / prazo, 2) if prazo > 0 else None
+        return {'ganho_contrato_pct': round(ganho, 2), 'prazo_contrato_dias': prazo, 'ganho_contrato_mes_pct': mes}
+    except Exception:
+        return {'ganho_contrato_pct': None, 'prazo_contrato_dias': None, 'ganho_contrato_mes_pct': None}
+
 @app.route('/posicoes/ranking/<tipo>', methods=['GET'])
 def get_ranking_posicoes(tipo):
     """
@@ -2408,6 +2426,11 @@ def get_ranking_posicoes(tipo):
                 'estrategia': p.get('estrategia'),
                 'vencimento': p.get('vencimento'),
                 'dias_restantes': rd.get('dias_restantes'),
+                # 20/10/2026 (pedido do Victor): GANHO DO CONTRATO real ao lado dos dias,
+                # para comparar na hora de trocar/rolar sem abrir a posicao. Retorno
+                # Controlado = prefixado; Bidirecional = teto; coberta/put nao tem
+                # ganho fixo (None). Por mes = ganho x 30 / prazo contratado (entrada->vencimento).
+                **_ganho_contrato_posicao(p),
                 'preco_atual': rd.get('preco_atual'),
                 # 29/09/2026: a coluna principal passa a ser a CONDICIONAL
                 # (barreira, do preco de hoje, dias que faltam) -- e o que o

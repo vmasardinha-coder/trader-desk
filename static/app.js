@@ -945,7 +945,7 @@ async function loadRankingPosicoes(tipo){
     }
     const linhas=d.itens.map(i=>{
       if(i.erro){
-        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="8" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
+        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="9" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
       }
       const p=i.probabilidade_sucesso_pct;
       const cor = p>=70?'var(--green,#2ecc71)':p>=40?'var(--warn,#e6a817)':'var(--red,#e74c3c)';
@@ -976,6 +976,7 @@ async function loadRankingPosicoes(tipo){
         <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}${farolHtml}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
         <td style="padding:6px 8px;text-align:right">${i.vencimento||'—'}</td>
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
+        <td style="padding:6px 8px;text-align:right;white-space:nowrap" title="Ganho fixo do contrato (prefixado no Retorno Controlado, teto no Bidirecional) e o equivalente ao mês, pelo prazo contratado (${i.prazo_contrato_dias!=null?i.prazo_contrato_dias+' dias':'—'}). Coberta/put não têm ganho fixo.">${i.ganho_contrato_pct!=null?`<b>${i.ganho_contrato_pct.toFixed(2).replace('.',',')}%</b>${i.ganho_contrato_mes_pct!=null?`<br><span style="font-size:9px;color:var(--muted)">${i.ganho_contrato_mes_pct.toFixed(1).replace('.',',')}%/mês</span>`:''}`:'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Mesma conta com saltos (Jump-Diffusion): parte da volatilidade vira quedas/altas bruscas raras, detectadas no histórico do papel (${i.saltos_por_ano!=null?i.saltos_por_ano+' por ano':'—'}). Só comparação, não altera nada.">${i.probabilidade_saltos_pct!=null?i.probabilidade_saltos_pct.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:${i.probabilidade_estresse_pct!=null&&i.probabilidade_sucesso_pct!=null&&(i.probabilidade_sucesso_pct-i.probabilidade_estresse_pct)>=5?'var(--red,#e74c3c)':'var(--muted)'}" title="Cenário de ESTRESSE: a mesma conta, mas com a volatilidade dos últimos 30 dias (${i.vol_30d_pct!=null?i.vol_30d_pct+'%':'—'}) no lugar da do modelo, como se o regime de hoje persistisse até o vencimento. Se a vol de 30d não passa a do modelo, é igual à coluna 'Prob. KDO (agora)'. Só comparação, não altera nada.">${i.probabilidade_estresse_pct!=null?i.probabilidade_estresse_pct.toFixed(1)+'%':'—'}${(i.folga_atual_pct!=null&&i.folga_pede_80_estresse_pct!=null)?`<br><span style="font-weight:400;font-size:9px;color:${i.folga_atual_pct>=i.folga_pede_80_estresse_pct?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}" title="Folga de hoje (preço ÷ KDO − 1) contra a folga que o estresse (vol 30d) pede para 80% de chance de não tocar o KDO. ${i.folga_atual_pct>=i.folga_pede_80_estresse_pct?'Sobram':'Faltam'} ${Math.abs(i.folga_atual_pct-i.folga_pede_80_estresse_pct).toFixed(1)} p.p. Aproximação analítica.">folga ${i.folga_atual_pct.toFixed(1)}% · pede ${i.folga_pede_80_estresse_pct.toFixed(1)}%</span>`:''}</td>
@@ -993,6 +994,7 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px">Ticker</th>
         <th style="padding:6px 8px;text-align:right">Vencimento</th>
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
+        <th style="padding:6px 8px;text-align:right" title="Ganho fixo do contrato e equivalente ao mês (pelo prazo contratado).">Ganho contrato</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de NÃO tocar o KDO daqui pra frente — do preço de hoje até o vencimento. É o que o contrato exige.">Prob. KDO (agora)</th>
         <th style="padding:6px 8px;text-align:right" title="Mesma conta, mas contando quedas bruscas raras (Jump-Diffusion). Compare com a coluna ao lado, que é o modelo atual.">Com saltos</th>
         <th style="padding:6px 8px;text-align:right" title="Cenário de estresse: e se a volatilidade dos últimos 30 dias persistir até o vencimento? Vermelho = perde 5 p.p. ou mais em relação à coluna 'Prob. KDO (agora)'.">Estresse</th>
