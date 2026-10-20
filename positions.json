@@ -524,8 +524,8 @@
       "prob_sucesso_prevista_pct": 94.7,
       "motor_versao": 2,
       "prob_sucesso_saltos_pct": 94.97,
-      "ganho_sem_barreira": "2.76% fixo",
-      "ganho_prefixado_pct": 2.76,
+      "ganho_sem_barreira": "2.62% fixo",
+      "ganho_prefixado_pct": 2.62,
       "historico_correcoes": [
         {
           "campo": "entry",
@@ -568,6 +568,13 @@
           "para": "kdo 28.19 / strike 32.95",
           "em": "2026-10-19",
           "motivo": "extrato oficial Itau 19/10/2026"
+        },
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 2.76,
+          "para": 2.62,
+          "em": "2026-10-20",
+          "motivo": "confirmado pelo Victor (2,62%); entry segue nao confirmado"
         }
       ],
       "strike": 32.95,
