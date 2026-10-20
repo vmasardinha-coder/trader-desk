@@ -2355,9 +2355,8 @@ def get_ranking_posicoes(tipo):
         if not candidatas:
             return jsonify({'tipo': tipo, 'total': 0, 'itens': []})
 
-        client = app.test_client()
-        itens = []
-        for p in candidatas:
+        def _item_posicao(p):
+            client = app.test_client()
             payload = {
                 'ticker': p['ticker'],
                 'data_entrada': p['data_entrada'],
@@ -2389,12 +2388,11 @@ def get_ranking_posicoes(tipo):
                 rd = {'error': str(e)}
 
             if not rd or rd.get('error'):
-                itens.append({
+                return {
                     'id': p['id'], 'ticker': p['ticker'], 'nome': p.get('nome'),
                     'erro': (rd or {}).get('error', 'falha ao calcular'),
                     'probabilidade_sucesso_pct': None,
-                })
-                continue
+                }
 
             _pj, _lam = (None, None)
             if p.get('kdo') and rd.get('prob_kdo_condicional') is not None:
@@ -2415,7 +2413,7 @@ def get_ranking_posicoes(tipo):
                 _sg = (rd.get('volatilidade_historica_pct') or 0) / 100.0
                 _se = max(_sg, (_v30 or 0) / 100.0)
                 _fp80 = _folga_pede(_se, rd.get('dias_restantes'), 0.80)
-            itens.append({
+            return {
                 'folga_atual_pct': _folga_at, 'folga_pede_80_estresse_pct': _fp80,
                 'probabilidade_estresse_pct': _pe, 'razao_vol_30_252': _rz, 'farol_vol': _fa, 'vol_30d_pct': _v30,
                 'probabilidade_saltos_pct': _pj, 'saltos_por_ano': _lam,
@@ -2461,7 +2459,20 @@ def get_ranking_posicoes(tipo):
                 # aplicada a probabilidade.
                 **_evolucao_por_tempo(p, prob_sucesso),
                 'campo_origem': campo_sucesso,
-            })
+            }
+
+        # 20/10/2026: antes era um laco serial (cada posicao baixa preco + roda Monte
+        # Carlo + saltos + estresse). Com 16 ativas passou dos 30s do servidor e
+        # a tela dava 'Unexpected token <'. Agora em paralelo, mesma ordem de saida.
+        from concurrent.futures import ThreadPoolExecutor
+        def _seguro(p):
+            try:
+                return _item_posicao(p)
+            except Exception as e:
+                return {'id': p['id'], 'ticker': p['ticker'], 'nome': p.get('nome'),
+                        'erro': str(e)[:120], 'probabilidade_sucesso_pct': None}
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            itens = list(ex.map(_seguro, candidatas))
 
         # Ordena: itens com probabilidade calculada primeiro (ascendente --
         # menor prob de sucesso = mais risco = aparece no topo), erros por
