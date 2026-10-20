@@ -1586,10 +1586,10 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 3.59,
-      "realizado_pct": -0.6,
-      "papel_preco_saida": 4.86,
+      "realizado_pct": 2.1,
+      "papel_preco_saida": 4.87,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolada em 20/10/2026 antes do vencimento (28/10); realizado aproximado informado pelo Victor (-0.6% sobre o capital), aguardando extrato de saida."
+      "resultado_texto": "Rolada em 20/10/2026 antes do vencimento (28/10). Papel 4,74 -> 4,87 (+2,7%) travado na nova estrutura, menos custo da saida da opcao: realizado ~2,1% (estimado, aguardando nota)."
     }
   ]
 }
