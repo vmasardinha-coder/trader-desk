@@ -689,7 +689,8 @@
       "entry_confirmado": false,
       "numeros_confirmados": false,
       "aguardando_boleto": true,
-      "observacao": "Rolagem executada em 20/10/2026 (fixing 04/11, strike 104.29% do spot, KO 87,80%). Entry = preco de tela provisorio e quantidade pendente do boleto."
+      "observacao": "Rolagem executada em 20/10/2026 (fixing 04/11, strike 104.29% do spot, KO 87,80%). Entry = preco de tela provisorio e quantidade pendente do boleto.",
+      "quantidade": 10000
     },
     {
       "id": "pomo42",
@@ -714,7 +715,8 @@
       "entry_confirmado": false,
       "numeros_confirmados": false,
       "aguardando_boleto": true,
-      "observacao": "Rolagem executada em 20/10/2026 (fixing 04/11, strike 104.00% do spot, KO 87,80%). Entry = preco de tela provisorio e quantidade pendente do boleto."
+      "observacao": "Rolagem executada em 20/10/2026 (fixing 04/11, strike 104.00% do spot, KO 87,80%). Entry = preco de tela provisorio e quantidade pendente do boleto.",
+      "quantidade": 10400
     }
   ],
   "encerradas": [
