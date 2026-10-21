@@ -666,13 +666,22 @@
       "prob_sucesso_prevista_pct": 98.02,
       "motor_versao": 2,
       "prob_sucesso_saltos_pct": 97.88,
-      "ganho_sem_barreira": "5.1% fixo",
-      "ganho_prefixado_pct": 5.1,
-      "strike": 144.83,
+      "ganho_sem_barreira": "5.18% fixo",
+      "ganho_prefixado_pct": 5.18,
+      "strike": 144.94,
       "entry_confirmado": false,
       "numeros_confirmados": false,
       "aguardando_boleto": true,
-      "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau."
+      "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau.",
+      "historico_correcoes": [
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 5.1,
+          "para": 5.18,
+          "em": "2026-10-21",
+          "motivo": "informado pela mesa (5,18% de ganho, 12,2% de protecao); entry/quantidade ainda por nota"
+        }
+      ]
     },
     {
       "id": "cmin3",
@@ -1603,9 +1612,9 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "resgate_antecipado_lucro",
       "alvo_pct": 6.05,
-      "realizado_pct": 2.0,
+      "realizado_pct": 2.33,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Encerrada em 21/10/2026 vendendo o papel: ~2% de lucro na operacao toda, com 7 dias de prazo restantes (contrato 6,05%). Migrada para SMAL11."
+      "resultado_texto": "Encerrada em 21/10/2026 vendendo o papel: 2,33% de lucro na operacao toda (informado pela mesa), com 7 dias restantes (contrato 6,05% efetivo / 5,2% base do menu). Migrada para SMAL11. Aguardando nota."
     }
   ]
 }
