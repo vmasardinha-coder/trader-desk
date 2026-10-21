@@ -1526,9 +1526,8 @@
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 3.61,
       "realizado_pct": 2.2,
-      "papel_preco_saida": 4.94,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolada em 20/10/2026. Opcoes: ~R$1.111 (informado pelo Victor), ~2,2% do capital; aguardando extrato."
+      "resultado_texto": "Rolagem antecipada. Opcoes ~+R$1.111 (informado pelo Victor), ~2,2% do capital. Papel nao vendido; nao entra no realizado. Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
     },
     {
       "id": "pomo4",
@@ -1600,10 +1599,9 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 3.59,
-      "realizado_pct": 3.1,
-      "papel_preco_saida": 4.95,
+      "realizado_pct": -1.4,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolada em 20/10/2026. Opcoes -R$675 (informado) + papel 4,74 -> ~4,95 travado: ~3,1% do capital, estimado; aguardando extrato."
+      "resultado_texto": "Rolagem antecipada. Opcoes ~-R$675 (informado pelo Victor), ~-1,4% do capital. Papel nao vendido; ganho/perda de papel nao entra no realizado (convencao: so o caixa das opcoes). Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
     },
     {
       "id": "cmin32",
@@ -1667,10 +1665,9 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 4.29,
-      "realizado_pct": 1.8,
+      "realizado_pct": 2.2,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolada em 21/10/2026 (2a rolagem). Opcoes ~+R$1.100 (provisorio, Victor), papel 5,00 -> ~4,98: estrutura inteira ~+1,8% do capital (estimado); aguardando nota.",
-      "papel_preco_saida": 4.98
+      "resultado_texto": "Rolagem antecipada. Opcoes ~+R$1.100 (provisorio, Victor), ~2,2% do capital. Papel nao vendido. Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
     },
     {
       "id": "pomo42",
@@ -1734,10 +1731,9 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 4.0,
-      "realizado_pct": -1.3,
+      "realizado_pct": 3.1,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolada em 21/10/2026 (2a rolagem). Opcoes ~+R$1.600 (provisorio, Victor) mas o papel caiu de ~4,95 para ~4,73: estrutura inteira ~-1,3% do capital (estimado); aguardando nota. Barreira nao tocada.",
-      "papel_preco_saida": 4.73
+      "resultado_texto": "Rolagem antecipada. Opcoes ~+R$1.600 (provisorio, Victor), ~3,1% do capital. Papel nao vendido (a queda do papel e nao realizada e nao entra no realizado). Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
     },
     {
       "id": "smto3",
