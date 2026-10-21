@@ -719,9 +719,9 @@
       "nome": "CMIN3 Retorno Controlado 15d (Lote 20/10/2026 - rolagem)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-04",
-      "entry": 4.94,
-      "kdo": 4.34,
+      "vencimento": "2026-11-05",
+      "entry": 5.0,
+      "kdo": 4.39,
       "kdo_pct": "-12.2%",
       "vol_impl": 0.4121,
       "vol_impl_fonte": "garch",
@@ -732,12 +732,42 @@
       "prob_sucesso_saltos_pct": 87.4,
       "ganho_sem_barreira": "4.29% fixo",
       "ganho_prefixado_pct": 4.29,
-      "strike": 5.15,
+      "strike": 5.22,
       "entry_confirmado": false,
-      "numeros_confirmados": false,
-      "aguardando_boleto": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
       "observacao": "Rolagem executada em 20/10/2026 (fixing 04/11, strike 104.29% do spot, KO 87,80%). Entry = preco de tela provisorio e quantidade pendente do boleto.",
-      "quantidade": 10000
+      "quantidade": 10000,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 4.94,
+          "para": 5.0,
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        },
+        {
+          "campo": "kdo",
+          "de": 4.34,
+          "para": 4.39,
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        },
+        {
+          "campo": "strike",
+          "de": 5.15,
+          "para": 5.22,
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-04",
+          "para": "2026-11-05",
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        }
+      ]
     },
     {
       "id": "pomo42",
@@ -745,10 +775,10 @@
       "nome": "POMO4 Retorno Controlado 15d (Lote 20/10/2026 - rolagem)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-04",
-      "entry": 4.87,
-      "kdo": 4.28,
-      "kdo_pct": "-12.2%",
+      "vencimento": "2026-11-05",
+      "entry": 4.95,
+      "kdo": 4.35,
+      "kdo_pct": "-12.1%",
       "vol_impl": 0.3931,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-20",
@@ -758,12 +788,42 @@
       "prob_sucesso_saltos_pct": 89.01,
       "ganho_sem_barreira": "4.0% fixo",
       "ganho_prefixado_pct": 4.0,
-      "strike": 5.06,
+      "strike": 5.15,
       "entry_confirmado": false,
-      "numeros_confirmados": false,
-      "aguardando_boleto": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
       "observacao": "Rolagem executada em 20/10/2026 (fixing 04/11, strike 104.00% do spot, KO 87,80%). Entry = preco de tela provisorio e quantidade pendente do boleto.",
-      "quantidade": 10400
+      "quantidade": 10400,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 4.87,
+          "para": 4.95,
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        },
+        {
+          "campo": "kdo",
+          "de": 4.28,
+          "para": 4.35,
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        },
+        {
+          "campo": "strike",
+          "de": 5.06,
+          "para": 5.15,
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-04",
+          "para": "2026-11-05",
+          "em": "2026-10-21",
+          "motivo": "nota Itau 2346 (pregao 20/10/2026): FPA abertura venc 05/11 (entry derivado: strike/(1+ganho), confere com KO/0,878)"
+        }
+      ]
     }
   ],
   "encerradas": [
