@@ -1525,9 +1525,13 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 3.61,
-      "realizado_pct": 2.2,
+      "realizado_pct": 2.43,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolagem antecipada. Opcoes ~+R$1.111 (informado pelo Victor), ~2,2% do capital. Papel nao vendido; nao entra no realizado. Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
+      "resultado_texto": "Rolagem antecipada. Retorno total do trecho = opcoes +2.23% + variacao do papel +0.20% (papel 4.99 -> 5.0, nao vendido, rebase na nova estrutura) = +2.43% (provisorio, aguardando nota).",
+      "realizado_opcoes_pct": 2.23,
+      "variacao_papel_pct": 0.2,
+      "papel_preco_entrada": 4.99,
+      "papel_preco_saida": 5.0
     },
     {
       "id": "pomo4",
@@ -1599,9 +1603,13 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 3.59,
-      "realizado_pct": -1.4,
+      "realizado_pct": 3.06,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolagem antecipada. Opcoes ~-R$675 (informado pelo Victor), ~-1,4% do capital. Papel nao vendido; ganho/perda de papel nao entra no realizado (convencao: so o caixa das opcoes). Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
+      "resultado_texto": "Rolagem antecipada. Retorno total do trecho = opcoes -1.37% + variacao do papel +4.43% (papel 4.74 -> 4.95, nao vendido, rebase na nova estrutura) = +3.06% (provisorio, aguardando nota).",
+      "realizado_opcoes_pct": -1.37,
+      "variacao_papel_pct": 4.43,
+      "papel_preco_entrada": 4.74,
+      "papel_preco_saida": 4.95
     },
     {
       "id": "cmin32",
@@ -1665,9 +1673,13 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 4.29,
-      "realizado_pct": 2.2,
+      "realizado_pct": 1.8,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolagem antecipada. Opcoes ~+R$1.100 (provisorio, Victor), ~2,2% do capital. Papel nao vendido. Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
+      "resultado_texto": "Rolagem antecipada. Retorno total do trecho = opcoes +2.20% + variacao do papel -0.40% (papel 5.0 -> 4.98, nao vendido, rebase na nova estrutura) = +1.80% (provisorio, aguardando nota).",
+      "realizado_opcoes_pct": 2.2,
+      "variacao_papel_pct": -0.4,
+      "papel_preco_entrada": 5.0,
+      "papel_preco_saida": 4.98
     },
     {
       "id": "pomo42",
@@ -1731,9 +1743,13 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "rolagem_antecipada",
       "alvo_pct": 4.0,
-      "realizado_pct": 3.1,
+      "realizado_pct": -1.33,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolagem antecipada. Opcoes ~+R$1.600 (provisorio, Victor), ~3,1% do capital. Papel nao vendido (a queda do papel e nao realizada e nao entra no realizado). Aguardando nota. (Tirei papel_preco_saida: nao houve venda do papel.)"
+      "resultado_texto": "Rolagem antecipada. Retorno total do trecho = opcoes +3.11% + variacao do papel -4.44% (papel 4.95 -> 4.73, nao vendido, rebase na nova estrutura) = -1.33% (provisorio, aguardando nota).",
+      "realizado_opcoes_pct": 3.11,
+      "variacao_papel_pct": -4.44,
+      "papel_preco_entrada": 4.95,
+      "papel_preco_saida": 4.73
     },
     {
       "id": "smto3",
