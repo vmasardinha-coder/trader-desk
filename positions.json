@@ -666,12 +666,12 @@
       "prob_sucesso_prevista_pct": 98.02,
       "motor_versao": 2,
       "prob_sucesso_saltos_pct": 97.88,
-      "ganho_sem_barreira": "5.18% fixo",
-      "ganho_prefixado_pct": 5.18,
-      "strike": 143.84,
+      "ganho_sem_barreira": "5.2% fixo",
+      "ganho_prefixado_pct": 5.2,
+      "strike": 143.87,
       "entry_confirmado": true,
-      "numeros_confirmados": false,
-      "aguardando_boleto": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
       "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau.",
       "historico_correcoes": [
         {
@@ -708,9 +708,17 @@
           "para": 120.08,
           "em": "2026-10-22",
           "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "strike",
+          "de": 143.84,
+          "para": 143.87,
+          "em": "2026-10-22",
+          "motivo": "nota Itau 2573 (pregao 21/10): FPA/FCA 06/11, qtd 300, strike 143,87, KO 120,08"
         }
       ],
-      "quantidade": 300
+      "quantidade": 300,
+      "ganho_banco_pct": 5.18
     },
     {
       "id": "cmin32",
@@ -1623,13 +1631,14 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "resgate_antecipado_lucro",
       "alvo_pct": 6.05,
-      "realizado_pct": 2.33,
-      "aguardando_extrato_saida": true,
-      "resultado_texto": "Encerrada em 21/10/2026 vendendo o papel (2.300 a R$20,93, execucao do home broker 11:55). Papel: -2,30% vs preco medio de compra (R$21,423); realizado total da estrutura 2,33% (informado pela mesa), logo opcoes implicitas ~+4,6%. Aguardando nota.",
+      "realizado_pct": 3.42,
+      "aguardando_extrato_saida": false,
+      "resultado_texto": "Encerrada em 21/10/2026: venda das 2.300 do papel (home broker, ~R$20,93; pode ter sido R$20,85, confirmar na nota de renda variavel) e reversao do FPA (nota 2573). Opcoes +5.72% + papel -2.30% (vs preco medio R$21,423) = +3.42% de retorno total. A mesa havia informado ~2,33%; a nota de estruturados da outro numero (ver conversa). Migrada para SMAL11.",
       "papel_preco_entrada": 21.423,
       "papel_preco_saida": 20.93,
       "papel_retorno_pct": -2.3,
-      "variacao_papel_pct": -2.3
+      "variacao_papel_pct": -2.3,
+      "realizado_opcoes_pct": 5.72
     },
     {
       "id": "cmin3",
@@ -1703,7 +1712,7 @@
       "alvo_pct": 3.61,
       "realizado_pct": 2.43,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolagem antecipada. Retorno total do trecho = opcoes +2.23% + variacao do papel +0.20% (papel 4.99 -> 5.0, nao vendido, rebase na nova estrutura) = +2.43% (provisorio, aguardando nota).",
+      "resultado_texto": "Rolagem antecipada em 20/10/2026. Retorno total do trecho = opcoes +2.23% + variacao do papel +0.20% (papel 4.99 -> 5.0, nao vendido, rebase na nova estrutura) = +2.43% (provisorio, aguardando nota).",
       "realizado_opcoes_pct": 2.23,
       "variacao_papel_pct": 0.2,
       "papel_preco_entrada": 4.99,
@@ -1781,7 +1790,7 @@
       "alvo_pct": 3.59,
       "realizado_pct": 3.06,
       "aguardando_extrato_saida": true,
-      "resultado_texto": "Rolagem antecipada. Retorno total do trecho = opcoes -1.37% + variacao do papel +4.43% (papel 4.74 -> 4.95, nao vendido, rebase na nova estrutura) = +3.06% (provisorio, aguardando nota).",
+      "resultado_texto": "Rolagem antecipada em 20/10/2026. Retorno total do trecho = opcoes -1.37% + variacao do papel +4.43% (papel 4.74 -> 4.95, nao vendido, rebase na nova estrutura) = +3.06% (provisorio, aguardando nota).",
       "realizado_opcoes_pct": -1.37,
       "variacao_papel_pct": 4.43,
       "papel_preco_entrada": 4.74,
