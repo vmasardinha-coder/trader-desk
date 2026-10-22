@@ -1559,7 +1559,7 @@
       "papel_preco_saida": 58.21,
       "papel_retorno_pct": -0.75,
       "aguardando_extrato_saida": false,
-      "resultado_texto": "Encerrada com sucesso em 19/10/2026 por resgate antecipado: R$ 1.000 de resultado informado pelo Victor (3.34% sobre R$ 29912). Barreira nunca tocada; faltavam 21 dias. Valor informado pelo Victor, a confirmar no extrato."
+      "resultado_texto": "Encerrada com sucesso em 19/10/2026 por resgate antecipado: resultado informado pelo Victor (~3,5% do capital). Barreira nunca tocada; faltavam 21 dias. Valor informado pelo Victor, a confirmar no extrato."
     },
     {
       "id": "smto3",
