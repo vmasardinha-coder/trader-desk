@@ -4349,7 +4349,81 @@ def _tracking_hip_item(a, hoje):
 
 
 
-def _tracking_hip_agregar(itens):
+
+def _custo_oportunidade(itens, meta=None):
+    """21/10/2026 (pedido do Victor): CUSTO DE OPORTUNIDADE das rejeitadas que ja
+    venceram por completo, em duas visoes ao vivo (recalculadas a cada apuracao):
+      geral    = todas, como se houvesse capital para pegar tudo (teto teorico);
+      realista = so as que passavam no piso de 80% na foto, no maximo 6 por lote,
+                 na ordem do ranking dele (faixa de probabilidade e depois score
+                 misto = retorno mensal x Fator). Mesmo com capital, ele concentra
+                 pela regra, entao esta e a leitura mais proxima da operacao real.
+    Retorno por operacao = resultado hipotetico / (preco da foto x 100 acoes);
+    desconta 0,10% de taxas B3 por operacao; CDI de 13,65% a.a. pelos mesmos dias.
+    Valores em R$ aparecem so como 'por R$ 100 mil alocados' (base hipotetica
+    normalizada), nunca como valor real dele. IR de 15% mostrado como sensibilidade."""
+    from datetime import date as _d
+    import statistics as _st
+    meta = meta or {}
+    FEE, CDI = 0.10, 0.1365
+    rows = []
+    for it in itens:
+        if it.get('erro') or it.get('resultado_rs_lote100') is None or not it.get('preco_foto'):
+            continue
+        try:
+            d = (_d.fromisoformat(it['vencimento_estimado']) - _d.fromisoformat(it['data_foto'])).days
+        except Exception:
+            continue
+        a = meta.get(it.get('id')) or {}
+        g = a.get('ganho_prefixado_pct') or it.get('ganho_pct_hipotetico') or 0
+        pz = a.get('prazo_dias') or d or 1
+        fator = ((a.get('risco_historico') or {}).get('fator')) or 100
+        prob = it.get('prob_sucesso_prevista_pct') or 0
+        rows.append({'lote': it['data_foto'], 'ticker': it.get('ticker'), 'ret': it['resultado_rs_lote100'] / (it['preco_foto'] * 100.0) * 100.0,
+                     'cdi': ((1 + CDI) ** (d / 365.0) - 1) * 100.0, 'd': d, 'ok': it.get('resultado_hipotetico') == 'sucesso',
+                     'prob': prob, 'score': g * 30.0 / max(pz, 1) * fator / 100.0})
+
+    def resumo(sel):
+        if not sel:
+            return None
+        liq = [r['ret'] - FEE for r in sel]
+        R = _st.mean(liq); C = _st.mean(r['cdi'] for r in sel)
+        ir = _st.mean([x * 0.85 if x > 0 else x for x in liq])
+        faixas = [('perda > 10%', -1e9, -10), ('perda 0 a 10%', -10, 0), ('0 a 1%', 0, 1), ('1 a 2%', 1, 2),
+                  ('2 a 3%', 2, 3), ('3 a 5%', 3, 5), ('5 a 10%', 5, 10), ('> 10%', 10, 1e9)]
+        dist = [{'faixa': n, 'ops': sum(1 for r in sel if lo <= r['ret'] < hi)} for n, lo, hi in faixas]
+        pl = {}
+        for r in sel:
+            pl.setdefault(r['lote'], []).append(r)
+        por_lote = []
+        for k in sorted(pl):
+            v = pl[k]
+            por_lote.append({'lote': k, 'ops': len(v), 'pagaram': sum(1 for r in v if r['ok']),
+                             'liquido_pct': round(_st.mean(r['ret'] - FEE for r in v), 2),
+                             'cdi_pct': round(_st.mean(r['cdi'] for r in v), 2),
+                             'toques': [r['ticker'] for r in v if not r['ok']]})
+        return {'ops': len(sel), 'pagaram': sum(1 for r in sel if r['ok']), 'dias_medios': round(_st.mean(r['d'] for r in sel)),
+                'bruto_pct': round(_st.mean(r['ret'] for r in sel), 2), 'liquido_pct': round(R, 2), 'cdi_pct': round(C, 2),
+                'dif_pp': round(R - C, 2), 'liquido_ir15_pct': round(ir, 2),
+                'por_100k_liquido': round(R * 1000), 'por_100k_cdi': round(C * 1000),
+                'mediana_pct': round(_st.median(r['ret'] for r in sel), 2),
+                'pior_pct': round(min(r['ret'] for r in sel), 1), 'melhor_pct': round(max(r['ret'] for r in sel), 1),
+                'distribuicao': dist, 'por_lote': por_lote}
+
+    def banda(p):
+        return 0 if p >= 95 else 1 if p >= 90 else 2
+    elig = [r for r in rows if r['prob'] >= 80]
+    pl = {}
+    for r in elig:
+        pl.setdefault(r['lote'], []).append(r)
+    top = []
+    for v in pl.values():
+        top += sorted(v, key=lambda r: (banda(r['prob']), -r['score']))[:6]
+    return {'regras': {'taxas_b3_pct_por_op': FEE, 'cdi_aa_pct': CDI * 100, 'piso_prob_pct': 80, 'max_por_lote': 6},
+            'geral': resumo(rows), 'realista': resumo(top),
+            'nota': 'Hipotetico. Mercado em alta e lotes correlacionados: leia como indicativo. Sem desconto da mesa na saida; IR so na coluna ir15.'}
+
+def _tracking_hip_agregar(itens, meta=None):
     """Agrega itens em calibracao por faixa (extraido em 21/09/2026)."""
     # Calibracao por faixa de 10pp (mesmo padrao do tracking oficial)
     faixas = {}
@@ -4404,6 +4478,7 @@ def _tracking_hip_agregar(itens):
         'comparacao_saltos': _calibracao_saltos(itens, 'resultado_hipotetico'),
         'calibracao_overshoot': _calibracao_overshoot(itens),
         'aproveitamento_realizado': realizado,
+        'custo_oportunidade': _custo_oportunidade(validos, meta),
         'itens': sorted(itens, key=lambda x: x.get('vencimento_estimado') or '', reverse=True),
     }
 
@@ -4441,7 +4516,8 @@ def _tracking_hip_calcular(lista_an, arquivo):
         it = _tracking_hip_item(a, hoje)
         if it is not None:
             itens.append(it)
-    return _tracking_hip_agregar(itens)
+    meta = {a['id']: a for a in list(lista_an) + list(arquivo or []) if a.get('id')}
+    return _tracking_hip_agregar(itens, meta)
 
 _CAMPOS_ARQUIVO = ('id','ticker','nome','tipo_estrutura','status','motivo_encerramento',
     'data_rejeicao','data_foto','prazo_dias','vencimento','preco_foto','kdo','kuo',

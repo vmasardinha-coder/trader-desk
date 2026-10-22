@@ -4224,6 +4224,40 @@ async function acaoRankingFii(analiseId,ticker,acao,cotacao,dyPct,segmento,nivel
 }
 
 
+
+// 21/10/2026 (pedido do Victor): custo de oportunidade das rejeitadas que ja
+// venceram, em duas visoes vivas: GERAL (teto teorico, capital ilimitado) e
+// REALISTA (suas regras: piso 80%, ate 6 por lote, ordem do ranking).
+function renderCustoOp(c){
+  if(!c||!c.geral)return '';
+  const f=(x,d=2)=>x==null?'—':Number(x).toFixed(d).replace('.',',');
+  const sg=x=>(x>=0?'+':'')+f(x);
+  const R=x=>'R$ '+Number(x).toLocaleString('pt-BR');
+  const bloco=(titulo,sub,v,cor)=>{
+    if(!v)return `<div style="flex:1;min-width:300px"><div class="cl">${titulo}</div><div class="cc" style="color:var(--muted)">Sem operações neste recorte.</div></div>`;
+    const mx=Math.max(1,...v.distribuicao.map(d=>d.ops));
+    const bars=v.distribuicao.map(d=>`<div style="display:flex;align-items:center;gap:6px;font-size:10px;margin:2px 0"><span style="width:84px;color:var(--muted)">${d.faixa}</span><span style="flex:1;background:var(--border,#333);height:8px;border-radius:2px;overflow:hidden"><span style="display:block;height:8px;width:${Math.round(d.ops/mx*100)}%;background:${d.faixa.startsWith('perda')?'var(--red,#e74c3c)':cor}"></span></span><span style="width:24px;text-align:right">${d.ops}</span></div>`).join('');
+    const linhas=v.por_lote.map(l=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)"><td style="text-align:left;padding:3px 4px">${l.lote.slice(8,10)+'/'+l.lote.slice(5,7)}</td><td style="padding:3px 4px">${l.ops}</td><td style="padding:3px 4px;${l.pagaram<l.ops?'color:var(--red,#e74c3c)':''}">${l.pagaram}</td><td style="padding:3px 4px;color:${l.liquido_pct>=l.cdi_pct?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${sg(l.liquido_pct)}%</td><td style="padding:3px 4px;color:var(--muted)">${sg(l.cdi_pct)}%</td></tr>`).join('');
+    return `<div style="flex:1;min-width:300px">
+      <div class="cl">${titulo}</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:6px">${sub}</div>
+      <div class="cp" style="font-size:18px;color:${cor}">${sg(v.liquido_pct)}% <span style="font-size:11px;color:var(--muted)">líquido de taxas · CDI ${sg(v.cdi_pct)}% · <b style="color:${v.dif_pp>=0?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${sg(v.dif_pp)} pp</b></span></div>
+      <div class="cc" style="color:var(--muted)">${v.ops} operações · ${v.pagaram} pagaram · ${v.dias_medios} dias em média · mediana ${sg(v.mediana_pct)}% · pior ${f(v.pior_pct,1)}% · melhor ${sg(v.melhor_pct)}%</div>
+      <div class="cc" style="color:var(--muted)">A cada ${R(100000)} alocados: <b>${R(v.por_100k_liquido)}</b> contra ${R(v.por_100k_cdi)} do CDI · com IR de 15%: ${sg(v.liquido_ir15_pct)}%</div>
+      <div style="margin:8px 0">${bars}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px"><tr style="color:var(--muted);text-align:right"><th style="text-align:left;padding:3px 4px">Lote</th><th style="padding:3px 4px">Ops</th><th style="padding:3px 4px">Pagaram</th><th style="padding:3px 4px">Líquido</th><th style="padding:3px 4px">CDI</th></tr>${linhas}</table>
+    </div>`;
+  };
+  return `<div class="card" style="margin-bottom:16px;border-left:2px solid var(--accent)">
+    <div class="cl">⚖️ Custo de oportunidade das rejeitadas <span style="font-size:9px;color:var(--muted);font-weight:400">(só as que já venceram por completo · taxas B3 ${f(c.regras.taxas_b3_pct_por_op)}% por operação · CDI ${f(c.regras.cdi_aa_pct)}% a.a.)</span></div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:8px">
+      ${bloco('Geral','Todas as rejeitadas, como se houvesse capital para pegar tudo. É um teto teórico.',c.geral,'var(--accent)')}
+      ${bloco('Realista (suas regras)','Só as com ≥ '+c.regras.piso_prob_pct+'% na foto, no máximo '+c.regras.max_por_lote+' por lote, na ordem do ranking (faixa de probabilidade, depois score).',c.realista,'var(--green,#2ecc71)')}
+    </div>
+    <div style="font-size:9px;color:var(--muted);margin-top:8px">${c.nota} Valores em reais são só a base hipotética de R$ 100 mil, não o seu capital.</div>
+  </div>`;
+}
+
 // Preenche os dois paineis que dependem do tracker hipotetico, sem
 // bloquear nem derrubar o resto da tela se a rota demorar ou falhar.
 async function preencherPaineisHipotetico(){
@@ -4252,6 +4286,7 @@ async function preencherPaineisHipotetico(){
       <div style="font-size:9px;color:var(--muted);margin-top:6px">Soma teórica: assume que daria para ter pego todas ao mesmo tempo. Cada uma exigiria capital próprio, então é um teto, não uma perda efetiva.</div>
     </div>`;
   }else if(elR){ elR.innerHTML=''; }
+  if(elR&&h.custo_oportunidade){ elR.innerHTML+=renderCustoOp(h.custo_oportunidade); }
   if(elC&&(h.calibracao_por_faixa||[]).length){
     elC.innerHTML=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
       <div class="cl">🎯 Calibração por faixa de probabilidade <span style="font-size:9px;color:var(--muted);font-weight:400">(${h.total_avaliadas} rejeitadas já vencidas · ${h.taxa_acerto_binario_pct}% de acerto)</span></div>
