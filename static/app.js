@@ -4582,7 +4582,7 @@ async function loadAnalisesEncerradas(){
     // em cima, o detalhe a um clique.
     cont.innerHTML=blocoOperacoes+dashboard
       +'<div id="enc-calib-panel"></div>'
-      +'<div id="enc-somatorio-panel" style="margin-bottom:16px"></div>'
+      +'<div id="enc-somatorio-panel" style="display:none"></div>' /* 22/10/2026: card Somatorio de aproveitamento (R$ lote de 100) escondido a pedido do Victor; fica so o Custo de oportunidade. O calculo por analise continua alimentando cada card. */
       +'<div id="enc-realizado-panel"></div>'
       +'<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;color:var(--muted);padding:6px 0">Detalhe por análise ('+listaCards.length+') — para conferir o processamento</summary><div style="margin-top:10px">'
       +cards+'</div></details>';
