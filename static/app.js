@@ -4264,7 +4264,7 @@ async function preencherPaineisHipotetico(){
   const elR=document.getElementById('enc-realizado-panel');
   const elC=document.getElementById('enc-calib-panel');
   if(!elR&&!elC)return;
-  if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Carregando aproveitamento realizado…</div></div>';
+  if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Carregando custo de oportunidade…</div></div>';
   let h=null;
   for(let t=0;t<3&&!h;t++){
     const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),70000);
@@ -4274,7 +4274,8 @@ async function preencherPaineisHipotetico(){
   }
   if(!h){ if(elR)elR.innerHTML='<div class="card" style="margin-bottom:16px"><div class="cl" style="color:var(--muted)">Aproveitamento realizado indisponível no momento (a rota do tracker não respondeu).</div></div>'; return; }
   const r=h.aproveitamento_realizado;
-  if(elR&&r&&r.avaliadas_com_valor>0){
+  // 22/10/2026: card antigo 'Aproveitamento realizado' (R$ por lote de 100 acoes) substituido pelo painel 'Custo de oportunidade' (renderCustoOp). A rota ainda devolve o dado.
+  if(false&&elR&&r&&r.avaliadas_com_valor>0){
     elR.innerHTML=`<div class="card" style="margin-bottom:16px;border-left:2px solid var(--accent)">
       <div class="cl">💸 Aproveitamento realizado das rejeitadas <span style="font-size:9px;color:var(--muted);font-weight:400">(${r.avaliadas_com_valor} já venceram · R$ por lote de 100 ações)</span></div>
       <div class="cp" style="font-size:18px">
