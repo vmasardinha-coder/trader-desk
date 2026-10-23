@@ -741,7 +741,7 @@
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-22",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 83.94,
+      "prob_sucesso_prevista_pct": 87.8,
       "motor_versao": 2,
       "ganho_sem_barreira": "3.21% fixo",
       "ganho_prefixado_pct": 3.21,
@@ -749,7 +749,7 @@
       "entry_confirmado": true,
       "numeros_confirmados": true,
       "aguardando_boleto": false,
-      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878.",
+      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878. Prazo contratado 15d: fixing 06/11 (sexta); a nota mostra liquidacao em 09/11 (proximo dia util). Probabilidade calculada ate o fixing.",
       "quantidade": 10100,
       "historico_correcoes": [
         {
@@ -767,7 +767,9 @@
           "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
         }
       ],
-      "ganho_banco_pct": 4.25
+      "ganho_banco_pct": 4.25,
+      "fixing": "2026-11-06",
+      "prazo_dias": 15
     },
     {
       "id": "pomo43",
@@ -783,7 +785,7 @@
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-22",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 85.56,
+      "prob_sucesso_prevista_pct": 93.23,
       "motor_versao": 2,
       "ganho_sem_barreira": "4.22% fixo",
       "ganho_prefixado_pct": 4.22,
@@ -791,7 +793,7 @@
       "entry_confirmado": true,
       "numeros_confirmados": true,
       "aguardando_boleto": false,
-      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878.",
+      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878. Prazo contratado 15d: fixing 06/11 (sexta); a nota mostra liquidacao em 09/11 (proximo dia util). Probabilidade calculada ate o fixing.",
       "quantidade": 10500,
       "historico_correcoes": [
         {
@@ -823,7 +825,9 @@
           "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
         }
       ],
-      "ganho_banco_pct": 4.0
+      "ganho_banco_pct": 4.0,
+      "fixing": "2026-11-06",
+      "prazo_dias": 15
     }
   ],
   "encerradas": [
