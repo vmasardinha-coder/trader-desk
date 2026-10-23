@@ -733,7 +733,7 @@
       "nome": "CMIN3 Retorno Controlado 15d (Lote 22/10/2026 - rolagem)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-09",
+      "vencimento": "2026-11-06",
       "entry": 4.99,
       "kdo": 4.34,
       "kdo_pct": "-13.0%",
@@ -765,11 +765,19 @@
           "para": "2026-11-09",
           "em": "2026-10-23",
           "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-09",
+          "para": "2026-11-06",
+          "em": "2026-10-23",
+          "motivo": "prazo contratado 15d corridos (fixing 06/11); 09/11 e a liquidacao da nota 2814; site contava 17 dias"
         }
       ],
       "ganho_banco_pct": 4.25,
       "fixing": "2026-11-06",
-      "prazo_dias": 15
+      "prazo_dias": 15,
+      "liquidacao": "2026-11-09"
     },
     {
       "id": "pomo43",
@@ -777,7 +785,7 @@
       "nome": "POMO4 Retorno Controlado 15d (Lote 22/10/2026 - rolagem)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-09",
+      "vencimento": "2026-11-06",
       "entry": 4.74,
       "kdo": 4.17,
       "kdo_pct": "-12.0%",
@@ -823,11 +831,19 @@
           "para": "2026-11-09",
           "em": "2026-10-23",
           "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-09",
+          "para": "2026-11-06",
+          "em": "2026-10-23",
+          "motivo": "prazo contratado 15d corridos (fixing 06/11); 09/11 e a liquidacao da nota 2814; site contava 17 dias"
         }
       ],
       "ganho_banco_pct": 4.0,
       "fixing": "2026-11-06",
-      "prazo_dias": 15
+      "prazo_dias": 15,
+      "liquidacao": "2026-11-09"
     }
   ],
   "encerradas": [
