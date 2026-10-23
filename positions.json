@@ -733,26 +733,41 @@
       "nome": "CMIN3 Retorno Controlado 15d (Lote 22/10/2026 - rolagem)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-06",
-      "entry": 4.94,
+      "vencimento": "2026-11-09",
+      "entry": 4.99,
       "kdo": 4.34,
-      "kdo_pct": "-12.1%",
+      "kdo_pct": "-13.0%",
       "vol_impl": 0.4121,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-22",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 87.02,
+      "prob_sucesso_prevista_pct": 83.94,
       "motor_versao": 2,
-      "ganho_sem_barreira": "4.29% fixo",
-      "ganho_prefixado_pct": 4.29,
+      "ganho_sem_barreira": "3.21% fixo",
+      "ganho_prefixado_pct": 3.21,
       "strike": 5.15,
-      "entry_confirmado": false,
-      "numeros_confirmados": false,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
       "aguardando_boleto": false,
-      "observacao": "PROVISORIO 22/10/2026: rolagem com mesmas caracteristicas (ganho %, KO 87,8%), entry = preco de tela, +100 acoes. Aguardando nota/strike/KDO reais.",
+      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878.",
       "quantidade": 10100,
-      "historico_correcoes": [],
-      "provisorio": true
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 4.94,
+          "para": 4.99,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-06",
+          "para": "2026-11-09",
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        }
+      ],
+      "ganho_banco_pct": 4.25
     },
     {
       "id": "pomo43",
@@ -760,26 +775,55 @@
       "nome": "POMO4 Retorno Controlado 15d (Lote 22/10/2026 - rolagem)",
       "tipo_posicao": "barreira_simples",
       "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-06",
-      "entry": 4.73,
-      "kdo": 4.15,
-      "kdo_pct": "-12.3%",
+      "vencimento": "2026-11-09",
+      "entry": 4.74,
+      "kdo": 4.17,
+      "kdo_pct": "-12.0%",
       "vol_impl": 0.3931,
       "vol_impl_fonte": "garch",
       "data_entrada": "2026-10-22",
       "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 87.96,
+      "prob_sucesso_prevista_pct": 85.56,
       "motor_versao": 2,
-      "ganho_sem_barreira": "4.0% fixo",
-      "ganho_prefixado_pct": 4.0,
-      "strike": 4.92,
-      "entry_confirmado": false,
-      "numeros_confirmados": false,
+      "ganho_sem_barreira": "4.22% fixo",
+      "ganho_prefixado_pct": 4.22,
+      "strike": 4.94,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
       "aguardando_boleto": false,
-      "observacao": "PROVISORIO 22/10/2026: rolagem com mesmas caracteristicas (ganho %, KO 87,8%), entry = preco de tela, +100 acoes. Aguardando nota/strike/KDO reais.",
+      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878.",
       "quantidade": 10500,
-      "historico_correcoes": [],
-      "provisorio": true
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 4.73,
+          "para": 4.74,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "strike",
+          "de": 4.92,
+          "para": 4.94,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "kdo",
+          "de": 4.15,
+          "para": 4.17,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-06",
+          "para": "2026-11-09",
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        }
+      ],
+      "ganho_banco_pct": 4.0
     }
   ],
   "encerradas": [
@@ -1580,15 +1624,15 @@
       "encerramento_antecipado": true,
       "motivo_encerramento": "resgate_antecipado_lucro",
       "alvo_pct": 6.05,
-      "realizado_pct": 3.42,
+      "realizado_pct": 3.13,
       "aguardando_extrato_saida": false,
-      "resultado_texto": "Encerrada em 21/10/2026: venda das 2.300 a R$20,93 (nota de corretagem confirmada) e reversao do FPA (nota 2573). Opcoes +5,72% e papel -2,30% (vs preco medio R$21,423) = +3,42% bruto; ~+3,35% liquido de corretagem/taxas (estimado: compra de 13/10 nao conferida). A mesa havia informado ~2,33%, ainda sem explicacao.",
+      "resultado_texto": "Encerrada em 21/10/2026 (notas 2573 e renda variavel 21/10): venda 2.300 a R$20,93; reversao do FPA/FCA +2,67% liquido nas opcoes; papel -2,30%. Total liquido +3.13% (sem a corretagem/taxas da compra de 13/10, nao conferida).",
       "papel_preco_entrada": 21.423,
       "papel_preco_saida": 20.93,
       "papel_retorno_pct": -2.3,
       "variacao_papel_pct": -2.3,
-      "realizado_opcoes_pct": 5.72,
-      "realizado_liquido_pct": 3.35
+      "realizado_opcoes_pct": 5.46,
+      "realizado_liquido_pct": 3.13
     },
     {
       "id": "cmin3",
@@ -1804,10 +1848,9 @@
       "status": "encerrada",
       "data_encerramento": "2026-10-22",
       "motivo_encerramento": "sucesso_rolagem",
-      "realizado_opcoes_pct": 3.23,
-      "realizado_pct": 3.23,
-      "resultado_texto": "Encerrada com sucesso em 22/10/2026 e rolada (cmin33). Resultado das opcoes +3.23% (informado pelo cliente, aguardando nota). Variacao do papel segue na nova posicao.",
-      "provisorio": true
+      "realizado_opcoes_pct": 3.21,
+      "realizado_pct": 3.21,
+      "resultado_texto": "Encerrada com sucesso em 22/10/2026 (nota 2814): opcoes +3.21% liquido de taxas. Variacao do papel segue na nova posicao."
     },
     {
       "id": "pomo42",
@@ -1867,10 +1910,9 @@
       "status": "encerrada",
       "data_encerramento": "2026-10-22",
       "motivo_encerramento": "sucesso_rolagem",
-      "realizado_opcoes_pct": 3.47,
-      "realizado_pct": 3.47,
-      "resultado_texto": "Encerrada com sucesso em 22/10/2026 e rolada (pomo43). Resultado das opcoes +3.47% (informado pelo cliente, aguardando nota). Variacao do papel segue na nova posicao.",
-      "provisorio": true
+      "realizado_opcoes_pct": 3.6,
+      "realizado_pct": 3.6,
+      "resultado_texto": "Encerrada com sucesso em 22/10/2026 (nota 2814): opcoes +3.6% liquido de taxas. Variacao do papel segue na nova posicao."
     }
   ]
 }
