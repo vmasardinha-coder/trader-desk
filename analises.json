@@ -160965,7 +160965,7 @@
     "ticker": "RDOR3.SA",
     "nome": "RDOR3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 44.85,
     "kdo": 39.38,
@@ -160998,7 +160998,14 @@
       "freq_rompimento_hist_pct": 11.3,
       "fator": 46.1
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.31% em 15 dias = 2.655%/mes. Prob 92.76% (GARCH 35.13%; planilha dizia 97.4%), EV 0.582%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.31% em 15 dias = 2.655%/mes. Prob 92.76% (GARCH 35.13%; planilha dizia 97.4%), EV 0.582%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.1,
+    "preco_encerramento": 44.03,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "id": "an_1791900020",
@@ -161226,7 +161233,7 @@
     "ticker": "TOTS3.SA",
     "nome": "TOTS3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 42.11,
     "kdo": 36.97,
@@ -161259,14 +161266,21 @@
       "freq_rompimento_hist_pct": 7.0,
       "fator": 51.6
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.79% em 15 dias = 5.654%/mes. Prob 87.76% (GARCH 40.05%; planilha dizia 92.4%), EV 2.017%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 2.79% em 15 dias = 5.654%/mes. Prob 87.76% (GARCH 40.05%; planilha dizia 92.4%), EV 2.017%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.98,
+    "preco_encerramento": 43.75,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "id": "an_1791900029",
     "ticker": "EGIE3.SA",
     "nome": "EGIE3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 31.18,
     "kdo": 28.62,
@@ -161299,7 +161313,14 @@
       "freq_rompimento_hist_pct": 3.2,
       "fator": 89.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.68% em 15 dias = 3.405%/mes. Prob 87.42% (GARCH 26.86%; planilha dizia 93.1%), EV 0.959%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.68% em 15 dias = 3.405%/mes. Prob 87.42% (GARCH 26.86%; planilha dizia 93.1%), EV 0.959%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.07,
+    "preco_encerramento": 31.09,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "id": "an_1791900030",
@@ -162663,7 +162684,7 @@
     "data_foto": "2026-10-19",
     "origem": "pronta",
     "lote": "19/10/2026",
-    "status": "em_analise",
+    "status": "encerrada",
     "exercicio": "europeia",
     "id": "an_itlc34_20261019",
     "ticker": "ITLC34.SA",
@@ -162987,7 +163008,14 @@
       "prob_sucesso_saltos_pct": 60.62
     },
     "prob_sucesso_prevista_pct": 57.6,
-    "observacao": "Lote 19/10/2026 (PDFs Itau). Boleto aceito como premissa fixa. Registrada em 19/10 por pedido do Victor; Tesla RC aprovada como rolagem."
+    "observacao": "Lote 19/10/2026 (PDFs Itau). Boleto aceito como premissa fixa. Registrada em 19/10 por pedido do Victor; Tesla RC aprovada como rolagem.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 38.38,
+    "preco_encerramento": 71.85,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "data_foto": "2026-10-19",
@@ -166098,7 +166126,7 @@
     "ticker": "TOTS3.SA",
     "nome": "TOTS3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 41.34,
     "prazo_dias": 15,
@@ -166223,7 +166251,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 87.72,
       "prob_sucesso_saltos_pct": 88.83
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.18,
+    "preco_encerramento": 43.75,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "id": "an_egie3_20261019",
@@ -167036,7 +167071,7 @@
     "ticker": "TIMS3.SA",
     "nome": "TIMS3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 18.76,
     "prazo_dias": 15,
@@ -167161,7 +167196,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 96.54,
       "prob_sucesso_saltos_pct": 96.83
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.9,
+    "preco_encerramento": 19.5,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "id": "an_enev3_20261019",
@@ -172796,7 +172838,7 @@
     "ticker": "ALPA4.SA",
     "nome": "ALPA4 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 18.37,
     "prazo_dias": 15,
@@ -172921,7 +172963,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 82.72,
       "prob_sucesso_saltos_pct": 85.36
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-23",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 36.27,
+    "preco_encerramento": 16.77,
+    "rejeicao_em_lote": "limpeza 23/10/2026: sem capital; nao ficaria com o papel"
   },
   {
     "id": "an_smto3_20261019",
