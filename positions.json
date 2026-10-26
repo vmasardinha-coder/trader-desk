@@ -245,73 +245,6 @@
       "entry_confirmado": true
     },
     {
-      "id": "roxo35",
-      "ticker": "ROXO34.SA",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "tipo_estrutura": "retorno_controlado",
-      "exercicio": "europeia",
-      "data_entrada": "2026-10-05",
-      "vencimento": "2026-12-07",
-      "prazo_dias": 64,
-      "entry": 12.59,
-      "kdo": 10.61,
-      "ganho_prefixado_pct": 12.0,
-      "ganho_sem_barreira": "12.00% fixo",
-      "protecao_pct": 15.7,
-      "prob_sucesso_prevista_pct": 65.9,
-      "prob_overshoot_entrada_pct": 23.5,
-      "vol_impl": 0.3598,
-      "vol_impl_fonte": "garch",
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "origem": "boleto Itau 05/10/2026 (53970.pdf)",
-      "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
-      "nome": "Nubank (ROXO34) — Retorno Controlado 12% / 64d",
-      "kdo_pct": -15.7,
-      "entry_confirmado": true,
-      "fonte_numeros": "extrato oficial Itau 07/10/2026 + boleto 05/10 (53970) + KDO do extrato 07/10",
-      "historico_correcoes": [
-        {
-          "campo": "strike",
-          "de": null,
-          "para": 14.12,
-          "em": "2026-10-07",
-          "motivo": "extrato oficial Itau 07/10/2026"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 2560,
-          "em": "2026-10-07",
-          "motivo": "extrato oficial Itau 07/10/2026"
-        },
-        {
-          "campo": "kdo",
-          "de": 10.62,
-          "para": 10.61,
-          "em": "2026-10-07",
-          "motivo": "extrato oficial Itau 07/10/2026"
-        },
-        {
-          "campo": "entry",
-          "de": 12.6,
-          "para": 12.59,
-          "em": "2026-10-07",
-          "motivo": "entry = KDO oficial / (1 - defesa do boleto); boleto 05/10 (53970) + KDO do extrato 07/10"
-        },
-        {
-          "campo": "vencimento",
-          "de": "2026-12-08",
-          "para": "2026-12-07",
-          "em": "2026-10-13",
-          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
-        }
-      ],
-      "strike": 14.12,
-      "quantidade": 2560
-    },
-    {
       "id": "beef3",
       "ticker": "BEEF3.SA",
       "nome": "BEEF3 Retorno Controlado 63d (Lote 08/10/2026)",
@@ -648,84 +581,6 @@
       "quantidade": 530,
       "numeros_confirmados": true,
       "aguardando_boleto": false
-    },
-    {
-      "id": "smal111",
-      "ticker": "SMAL11.SA",
-      "nome": "SMAL11 Retorno Controlado 15d (21/10/2026 - migracao da SMTO3)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-06",
-      "entry": 137.13,
-      "kdo": 120.08,
-      "kdo_pct": "-12.4%",
-      "vol_impl": 0.2679,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-10-21",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 98.17,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 97.88,
-      "ganho_sem_barreira": "4.92% fixo",
-      "ganho_prefixado_pct": 4.92,
-      "strike": 143.87,
-      "entry_confirmado": true,
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau.",
-      "historico_correcoes": [
-        {
-          "campo": "ganho_prefixado_pct",
-          "de": 5.1,
-          "para": 5.18,
-          "em": "2026-10-21",
-          "motivo": "informado pela mesa (5,18% de ganho, 12,2% de protecao); entry/quantidade ainda por nota"
-        },
-        {
-          "campo": "entry",
-          "de": 137.8,
-          "para": 136.76,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 300,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "strike",
-          "de": 144.94,
-          "para": 143.84,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "kdo",
-          "de": 120.99,
-          "para": 120.08,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "strike",
-          "de": 143.84,
-          "para": 143.87,
-          "em": "2026-10-22",
-          "motivo": "nota Itau 2573 (pregao 21/10): FPA/FCA 06/11, qtd 300, strike 143,87, KO 120,08"
-        },
-        {
-          "campo": "entry",
-          "de": 136.76,
-          "para": 137.13,
-          "em": "2026-10-22",
-          "motivo": "nota de corretagem Itau pregao 21/10: SMAL11 300 @ 137,13 (136,76 era o preco de tela); ganho efetivo 4,92% (strike 143,87), base banco 5,18%"
-        }
-      ],
-      "quantidade": 300,
-      "ganho_banco_pct": 5.18
     },
     {
       "id": "cmin33",
@@ -1933,6 +1788,165 @@
       "realizado_opcoes_pct": 3.6,
       "realizado_pct": 3.6,
       "resultado_texto": "Encerrada com sucesso em 22/10/2026 (nota 2814): opcoes +3.6% liquido de taxas. Variacao do papel segue na nova posicao."
+    },
+    {
+      "id": "smal111",
+      "ticker": "SMAL11.SA",
+      "nome": "SMAL11 Retorno Controlado 15d (21/10/2026 - migracao da SMTO3)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-06",
+      "entry": 137.13,
+      "kdo": 120.08,
+      "kdo_pct": "-12.4%",
+      "vol_impl": 0.2679,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-21",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 98.17,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.88,
+      "ganho_sem_barreira": "4.92% fixo",
+      "ganho_prefixado_pct": 4.92,
+      "strike": 143.87,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau.",
+      "historico_correcoes": [
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 5.1,
+          "para": 5.18,
+          "em": "2026-10-21",
+          "motivo": "informado pela mesa (5,18% de ganho, 12,2% de protecao); entry/quantidade ainda por nota"
+        },
+        {
+          "campo": "entry",
+          "de": 137.8,
+          "para": 136.76,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 300,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "strike",
+          "de": 144.94,
+          "para": 143.84,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "kdo",
+          "de": 120.99,
+          "para": 120.08,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "strike",
+          "de": 143.84,
+          "para": 143.87,
+          "em": "2026-10-22",
+          "motivo": "nota Itau 2573 (pregao 21/10): FPA/FCA 06/11, qtd 300, strike 143,87, KO 120,08"
+        },
+        {
+          "campo": "entry",
+          "de": 136.76,
+          "para": 137.13,
+          "em": "2026-10-22",
+          "motivo": "nota de corretagem Itau pregao 21/10: SMAL11 300 @ 137,13 (136,76 era o preco de tela); ganho efetivo 4,92% (strike 143,87), base banco 5,18%"
+        }
+      ],
+      "quantidade": 300,
+      "ganho_banco_pct": 5.18,
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "motivo_encerramento": "saida_antecipada",
+      "resultado": "sucesso",
+      "ficou_com_papel": true,
+      "resultado_texto": "Opcoes encerradas antes do vencimento com sucesso (Victor, 26/10/2026); ficou com o papel livre. PROVISORIO: valor realizado das opcoes aguarda a nota/extrato.",
+      "aguardando_nota": true
+    },
+    {
+      "id": "roxo35",
+      "ticker": "ROXO34.SA",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "tipo_estrutura": "retorno_controlado",
+      "exercicio": "europeia",
+      "data_entrada": "2026-10-05",
+      "vencimento": "2026-12-07",
+      "prazo_dias": 64,
+      "entry": 12.59,
+      "kdo": 10.61,
+      "ganho_prefixado_pct": 12.0,
+      "ganho_sem_barreira": "12.00% fixo",
+      "protecao_pct": 15.7,
+      "prob_sucesso_prevista_pct": 65.9,
+      "prob_overshoot_entrada_pct": 23.5,
+      "vol_impl": 0.3598,
+      "vol_impl_fonte": "garch",
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "origem": "boleto Itau 05/10/2026 (53970.pdf)",
+      "observacao": "Entrada em 05/10/2026. Defesa 15.7%, ganho 12.0% em 64 dias = 5.62%/mes. Prob do KDO 65.9%, overshoot na entrada 23.5%, EV 1.02%/mes. PROVISORIO: o Victor entrou sem rodar a probabilidade (sem token) e mandou os boletos depois; entry e KDO calculados sobre o FECHAMENTO DE 05/10 R$ 12.60, que pode divergir do preco de contratacao (leilao de fechamento). Ratificar com o extrato.",
+      "nome": "Nubank (ROXO34) — Retorno Controlado 12% / 64d",
+      "kdo_pct": -15.7,
+      "entry_confirmado": true,
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 + boleto 05/10 (53970) + KDO do extrato 07/10",
+      "historico_correcoes": [
+        {
+          "campo": "strike",
+          "de": null,
+          "para": 14.12,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 2560,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 10.62,
+          "para": 10.61,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 12.6,
+          "para": 12.59,
+          "em": "2026-10-07",
+          "motivo": "entry = KDO oficial / (1 - defesa do boleto); boleto 05/10 (53970) + KDO do extrato 07/10"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-12-08",
+          "para": "2026-12-07",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
+        }
+      ],
+      "strike": 14.12,
+      "quantidade": 2560,
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "motivo_encerramento": "saida_antecipada",
+      "resultado": "fracasso",
+      "ficou_com_papel": true,
+      "resultado_texto": "Opcoes encerradas antes do vencimento em fracasso (Victor, 26/10/2026); ficou com a acao livre. PROVISORIO: valor realizado das opcoes aguarda a nota/extrato.",
+      "aguardando_nota": true
     }
   ]
 }
