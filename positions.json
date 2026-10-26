@@ -1669,7 +1669,8 @@
       "preco_fechamento_toque": 20.88,
       "ficou_com_papel": true,
       "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "realizado_pct": 0.0
     },
     {
       "id": "pomo43",
@@ -1745,7 +1746,8 @@
       "preco_fechamento_toque": 4.09,
       "ficou_com_papel": true,
       "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "realizado_pct": 0.0
     },
     {
       "id": "hype3",
@@ -1819,7 +1821,8 @@
       "preco_fechamento_toque": 20.56,
       "ficou_com_papel": true,
       "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "realizado_pct": 0.0
     },
     {
       "id": "igti11",
@@ -1908,7 +1911,8 @@
       "preco_fechamento_toque": 24.51,
       "ficou_com_papel": true,
       "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "realizado_pct": 0.0
     },
     {
       "id": "smal111",
@@ -1996,7 +2000,8 @@
       "preco_fechamento_toque": 99.84,
       "ficou_com_papel": true,
       "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "realizado_pct": 0.0
     }
   ]
 }
