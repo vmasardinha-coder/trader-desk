@@ -139,7 +139,7 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 26 | Enxugar tamanho de `analises.json` (3,9 MB; campos pesados `historico_correcoes`, `bandas_congeladas`) mantendo o tracking; alternativa: arquivo/Excel para o histórico | Aberto | Média |
 | 27 | Coluna "defesa %" ao lado de Preço/Barreira (Análises) | ✅ Entregue 13/10/2026 (commit 2db96a1) | — |
 | 28A | Operações realizadas do lote 13/10 (SMTO3, CMIN3, POMO4, IGTI11, HYPE3, VBBR3) | ✅ Fechado 14/10/2026: notas Itaú 155441 (compras à vista), 1665 (FPA/FCA) e 155442 (vendas de fundos que financiaram) conferidas; as 6 ativas atualizadas com entry médio das execuções, strike, KDO oficial e quantidade (capital R$ 293.512; ganho R$ 9.815 se todas pagarem; perda se todas terminarem no KDO R$ 35.488). Vencimento mantido em 28/10 (convenção do extrato; a nota diz 29/10). Probabilidade e overshoot seguem os da foto | — |
-| 28B | Acompanhar o encerramento das 6 (28–29/10) e comparar com a seleção/probabilidade da foto; alimenta o item 23B | Aguardando o vencimento. Atualização 20/10: CMIN3 e POMO4 rolaram (novas 15d, vencem 04/11); restam SMTO3, IGTI11, HYPE3, VBBR3 (28–29/10). Decisão 20/10: carregar todas até depois da eleição, reavaliar na sexta 23/10 | Média |
+| 28B | Acompanhar o encerramento das 6 e comparar com a seleção/probabilidade da foto; alimenta o item 23B | Atualização 26/10/2026: SMTO3 encerrada (+3,13% líquido); CMIN3 e POMO4 rolaram de novo (15d, fixing 06/11). IGTI11, HYPE3 e VBBR3 vencem 28/10 e seguem abertas após o choque da eleição (26/10: IBOV ~-15%, dólar +9%); barreira conferida no fechamento (critério da mesa). Resultado entra aqui no vencimento | Média |
 | 29 | **Varredura de limpeza de Em Análise (pedido do Victor, 19/10/2026):** a base de análises vira volume grande. Regra: (a) prob. viva < 70% em papel que NÃO é BDR/ADR = rejeição por RISCO (`motivo_rejeicao=risco_alto`) — Claude lista e o Victor confirma; (b) prob. viva ≥ ~100% = candidata a `sem_capital` — Claude lista e o Victor diz quais manteria; (c) nas BDRs/ADRs perguntar papel a papel. Depois da resposta, Claude encerra em lote (mantendo o tracking). Corte futuro: o lote novo nem sobe com prob. < 70%. Primeira varredura feita em 19/10 | Aberto (rotina; 1ª varredura aguarda respostas) | Média |
 | 30 | **Coluna "Ganho contrato" no ranking das Posições Ativas (20/10/2026):** ganho fixo do contrato + equivalente ao mês (ganho × 30 ÷ prazo entrada→vencimento); calls mostram "—" | ✅ Entregue 20/10 (commit 9f460f8) | — |
 | 31 | **Ranking das ativas em paralelo (20/10/2026):** o laço serial estourava os 30 s do servidor com 16 posições (tela "Unexpected token <"); agora ThreadPool, ~5 s | ✅ Entregue 20/10 (commit 13b597d) | — |
@@ -149,6 +149,12 @@ Pedido do Victor após o bug do motor bidirecional: mapear TODOS os tipos de ope
 | 35 | Parados/não aprovados: painel do lote (gráfico), alerta de rolagem por regra, alerta de preço do PETR4 (~R$50) | Parado | Baixa |
 | 36 | Política de tokens para segunda de manhã: guardar fôlego para as operações da 1h30 da tarde | Rotina | Média |
 | 37 | **Rotina D0/D+1 e convenção de ganho (21/10/2026, Victor):** no dia da operação ele conta o que fez e eu crio posição/encerramento PROVISÓRIO (mesmas características da anterior, entry = preço de tela); no D+1 ele manda as notas (renda variável + estruturados) e eu acerto entry médio, strike, KO, quantidade e realizado. **A nota é suprema.** Ganho efetivo = strike sobre o preço médio pago (vem da nota; pode subir ou descer vs o menu). Guardar também o ganho da base do banco/menu (ex.: SMTO3 5,2% menu vs 6,05% efetivo) para bater com a tela do Itaú; o giro/coluna usa o do banco com o efetivo em detalhe (a confirmar na próxima rodada). Realizado das rolagens = só o caixa das opções (papel não vendido não entra). Ao receber cada nota, devolver tabela de diferenças vs o que estava gravado | **Regra do Itaú descoberta em 21/10: encerramento antecipado/rolagem de estruturada só liquida em D+2** (a 2ª rolagem de CMIN3/POMO4 (21/10) não liquidou e foi desfeita no app, será refeita em D+2; a 1ª (20/10) liquidou e segue registrada; só registrar encerramento no app depois da confirmação/nota). Rotina combinada; campo `ganho_banco_pct` ainda por implementar | Média |
+| 38 | **Coluna "pior dia em 10 anos" por papel (26/10/2026):** maior queda em 1 dia de cada papel, já com o 26/10, ao lado da folga (Análises e Ativas). Só % | **Aprovado pelo Victor; NÃO implementar agora** (ele aguarda renovar o semanal de monitoramento). Usar o fechamento completo do 26/10 | Alta |
+| 39 | **Alerta de folga contra gap (26/10/2026):** aviso amarelo se a folga < pior dia do papel; vermelho se < metade. Só aviso, não bloqueia | Aprovado; NÃO implementar agora | Alta |
+| 40 | **Trava de evento binário (26/10/2026):** calendário simples no código (Copom 3–4/11, eleições, balanços); se cair na janela de 15 dias, aviso "evento na janela" na análise. Lição: eleição tinha data marcada e a matemática dava ~100% | Aprovado; NÃO implementar agora | Alta |
+| 41 | **Cenário de crise da carteira (26/10/2026):** linha em Ativas com a perda num choque correlacionado (IBOV -16%, dólar +12%, beta por papel; BDRs seguem o dólar), em %. Estresse atual (vol 30d) permanece separado | Aprovado; NÃO implementar agora | Média |
+| 42 | **Conferência do estresse após o choque (26/10/2026):** a folga que o estresse pede explodiu (80%: SMAL11 ~12% → ~47%) porque 1 dia de -30% entra na vol de 30d. Decisão: NÃO mudar a fórmula da vol; GARCH ajusta sozinho. Rodar um lote novo após o fechamento e comparar coluna antiga × nova; verificar o que o modelo de saltos faz com o dia | Pendente (depois do fechamento) | Média |
+| 43 | **Lição de concentração (26/10/2026):** 6 operações domésticas correlacionadas (~50k cada) agiram como uma só. Estudar limite por segmento/correlação no lote (liga com #41). Estresse e colunas de saltos subestimaram o risco correlacionado: choque ~4× o pior dia de 5 anos do IBOV (-4,3%), pior dia em 10 anos para IGTI11, SMAL11, HYPE3, TEND3 e BEEF3 | Estudo, sem implementar | Média |
 
 ### Modelagem
 | Item | Status |
@@ -329,32 +335,28 @@ de entrada funciona, mas com n=5 ainda não é comprovação.
 
 ---
 
-## 📌 Operações em andamento (RECONSTRUÍDA 09/09/2026 direto do `positions.json`)
+## 📌 Operações em andamento (ATUALIZADA 26/10/2026 direto do `positions.json`; só %, sem R$)
 
-**A versão anterior desta seção estava travada em 05/08/2026 e não batia mais com a realidade** —
-listava `a3b`/`a3c` (já encerradas), `bslv39` venc. 05/10, `rx` venc. 17/09, `bb2` venc. 15/10.
-Nenhum desses estava certo. Tabela abaixo lida do arquivo real (9 ativas, 18 encerradas).
+Estado após a eleição de 25/10 (Lula 51,78%): 26/10 IBOV ~-15%, dólar ~+9%, EWZ ~-21%. Preços de 12:10, com atraso;
+barreira vale no FECHAMENTO (critério da mesa, confirmar). Distância à KDO = quanto falta subir (+) ou folga acima (−).
 
-| ID | Ticker | Tipo | Exercício | Vencimento | Números |
-|---|---|---|---|---|---|
-| `pt` | PETR4 | simples (call vendida) | europeia | 17/12/2026 | PETRL319, strike 30,85 — objetivo é rollover |
-| `vl` | VALE3 | simples (call vendida) | europeia | 18/02/2027 | VALEB574, strike 57,40 — objetivo é rollover |
-| `rx` | ROXO34 | simples (call vendida) | europeia | 17/12/2026 | ROXOL112, strike 11,25, 2.500 ações, delta 0,677 — **id SEMPRE `rx`** |
-| `bb2` | BBAS3 | simples (call vendida) | europeia | 17/12/2026 | BBASL212, strike 20,81, 2.200 ações — risco elevado de exercício, papel com força |
-| `tsmc34` | TSMC34 | retorno_controlado | europeia | 15/10/2026 | entry 280,95, KDO 224,52, prefixado 8,20% — boleto confirmado 19/08 |
-| `sbsp3` | SBSP3 | retorno_controlado | europeia | 03/11/2026 | entry 25,10, KDO 21,21, prefixado 7,80% — boleto confirmado 04/09 |
-| `inbr32` | INBR32 | retorno_controlado | europeia | 05/11/2026 | entry 29,97, KDO 23,58, prefixado 10,50% — boleto confirmado 04/09 |
-| `tsla342` | TSLA34 | retorno_controlado | europeia | 10/11/2026 | entry 59,05, KDO 47,24, prefixado 5,30% — lote 09/09/2026 |
-| `bslv392` | BSLV39 | retorno_controlado | europeia | 10/11/2026 | entry 103,22, KDO 82,58, prefixado 8,20% — lote 09/09/2026 |
+| ID | Ticker | Vencimento | Distância à KDO (26/10 12:10) |
+|---|---|---|---|
+| `tsla34` | TSLA34 | 18/12 | folga ~30% (dólar ajuda) |
+| `bslv393` | BSLV39 | 01/12 | folga ~14% (dólar ajuda) |
+| `cmin33` | CMIN3 | fixing 06/11 (liq. 09/11) | folga ~6% |
+| `tend33` | TEND3 | 01/12 | folga ~5% (oscila) |
+| `beef3` | BEEF3 | 09/12 | falta ~1% |
+| `pomo43` | POMO4 | fixing 06/11 | falta ~2% |
+| `vbbr3` | VBBR3 | 28/10 | falta ~2% |
+| `igti11` | IGTI11 | 28/10 | falta ~10% |
+| `hype3` | HYPE3 | 28/10 | falta ~14% |
+| `smal111` | SMAL11 | 06/11 | falta ~19% |
+| `roxo35` | ROXO34 (estrutura 12%/64d) | 07/12 | sem cotação na hora |
+| calls | PETR4 (`pt`), VALE3 (`vl`), BBAS3 (`bb3`), ROXO34 (`rx2`) | — | sem dados no app |
 
-**Ponto de atenção (09/09/2026):** `tsla342` e `bslv392` entraram como "candidata rolagem" no lote
-de 09/09 e, diferente de `tsmc34`/`sbsp3`/`inbr32`, **não têm nota de "CONFIRMADO com o boleto
-real"** na observação. Se os `entry` ainda forem provisórios, marcar como tal e corrigir só quando
-o documento oficial de liquidação chegar — regra permanente de nunca fixar número financeiro por
-estimativa. Confirmar com o Victor.
-
-**Nota histórica:** `bslv39` (venc. 05/10) e `a3b`/`a3c` (AXIA3) saíram de ativas entre 05/08 e
-09/09 — ver `encerradas` no `positions.json` para o desfecho de cada uma.
+Pendente: cotações de rolagem da mesa (reunião 26/10 11:30).
+Encerradas recentes: SMTO3 (+3,13% líquido), CMIN3/POMO4 (rolagens 22/10).
 
 ## Encerradas relevantes recentes
 - ROXO34 (ROXOG105, strike R$10,50): fracasso — estourou barreira, opção era AMERICANA.
