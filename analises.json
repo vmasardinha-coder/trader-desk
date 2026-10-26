@@ -159477,7 +159477,7 @@
     "ticker": "BBAS3.SA",
     "nome": "BBAS3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-08",
     "preco_foto": 24.32,
     "kdo": 20.62,
@@ -159509,14 +159509,21 @@
       "freq_rompimento_hist_pct": 5.3,
       "fator": 61.1
     },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.2%, ganho 3.8% em 33 dias = 3.501%/mes. Prob 81.46% (GARCH 35.86%), EV -0.584%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.2%, ganho 3.8% em 33 dias = 3.501%/mes. Prob 81.46% (GARCH 35.86%), EV -0.584%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 16.97,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791460001",
     "ticker": "BPAC11.SA",
     "nome": "BPAC11",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-08",
     "preco_foto": 77.85,
     "kdo": 65.63,
@@ -159548,7 +159555,14 @@
       "freq_rompimento_hist_pct": 7.9,
       "fator": 48.8
     },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.7%, ganho 5.3% em 33 dias = 4.882%/mes. Prob 79.06% (GARCH 39.52%), EV 0.338%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.7%, ganho 5.3% em 33 dias = 4.882%/mes. Prob 79.06% (GARCH 39.52%), EV 0.338%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 50.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791460002",
@@ -159785,7 +159799,7 @@
     "ticker": "LWSA3.SA",
     "nome": "LWSA3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-08",
     "preco_foto": 5.01,
     "kdo": 4.01,
@@ -159817,14 +159831,21 @@
       "freq_rompimento_hist_pct": 37.1,
       "fator": 32.1
     },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 19.9%, ganho 7.9% em 63 dias = 3.812%/mes. Prob 66.32% (GARCH 46.18%), EV -0.963%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 19.9%, ganho 7.9% em 63 dias = 3.812%/mes. Prob 66.32% (GARCH 46.18%), EV -0.963%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 3.57,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791460008",
     "ticker": "XPBR31.SA",
     "nome": "XPBR31",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-08",
     "preco_foto": 152.54,
     "kdo": 129.35,
@@ -159856,14 +159877,21 @@
       "freq_rompimento_hist_pct": 22.6,
       "fator": 42.6
     },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.2%, ganho 4.6% em 33 dias = 4.238%/mes. Prob 68.92% (GARCH 46.0%), EV -1.894%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 15.2%, ganho 4.6% em 33 dias = 4.238%/mes. Prob 68.92% (GARCH 46.0%), EV -1.894%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 80.64,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791460010",
     "ticker": "XPBR31.SA",
     "nome": "XPBR31",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-08",
     "preco_foto": 152.54,
     "kdo": 122.03,
@@ -159895,7 +159923,14 @@
       "freq_rompimento_hist_pct": 22.5,
       "fator": 42.6
     },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 20.0%, ganho 9.1% em 63 dias = 4.391%/mes. Prob 66.58% (GARCH 45.99%), EV -0.489%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 20.0%, ganho 9.1% em 63 dias = 4.391%/mes. Prob 66.58% (GARCH 45.99%), EV -0.489%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 80.64,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791460011",
@@ -160040,7 +160075,7 @@
     "ticker": "CEAB3.SA",
     "nome": "CEAB3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-08",
     "preco_foto": 12.4,
     "kdo": 9.92,
@@ -160072,7 +160107,14 @@
       "freq_rompimento_hist_pct": 35.3,
       "fator": 32.4
     },
-    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 20.0%, ganho 17.0% em 63 dias = 8.203%/mes. Prob 56.68% (GARCH 56.41%), EV 0.021%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 08/10/2026 (menu Itau). Defesa 20.0%, ganho 17.0% em 63 dias = 8.203%/mes. Prob 56.68% (GARCH 56.41%), EV 0.021%/mes. KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 6.92,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791460015",
@@ -161012,7 +161054,7 @@
     "ticker": "JBSS32.SA",
     "nome": "JBSS32",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 64.74,
     "kdo": 56.84,
@@ -161045,7 +161087,14 @@
       "freq_rompimento_hist_pct": 5.0,
       "fator": 66.0
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.34% em 15 dias = 2.716%/mes. Prob 91.98% (GARCH 35.44%; planilha dizia 96.6%), EV 0.584%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.34% em 15 dias = 2.716%/mes. Prob 91.98% (GARCH 35.44%; planilha dizia 96.6%), EV 0.584%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.98,
+    "preco_encerramento": 63.8,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900022",
@@ -161099,7 +161148,7 @@
     "ticker": "CMIG4.SA",
     "nome": "CMIG4",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 11.98,
     "kdo": 11.0,
@@ -161132,7 +161181,14 @@
       "freq_rompimento_hist_pct": 9.1,
       "fator": 54.1
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 2.47% em 15 dias = 5.006%/mes. Prob 91.12% (GARCH 23.98%; planilha dizia 96.5%), EV 3.17%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 2.47% em 15 dias = 5.006%/mes. Prob 91.12% (GARCH 23.98%; planilha dizia 96.5%), EV 3.17%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 10.29,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900024",
@@ -161327,7 +161383,7 @@
     "ticker": "VALE3.SA",
     "nome": "VALE3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 67.26,
     "kdo": 61.74,
@@ -161360,14 +161416,21 @@
       "freq_rompimento_hist_pct": 16.1,
       "fator": 50.8
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.57% em 15 dias = 3.182%/mes. Prob 87.0% (GARCH 27.19%; planilha dizia 94.3%), EV 0.701%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.57% em 15 dias = 3.182%/mes. Prob 87.0% (GARCH 27.19%; planilha dizia 94.3%), EV 0.701%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 65.89,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900031",
     "ticker": "BPAC11.SA",
     "nome": "BPAC11",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 81.2,
     "kdo": 71.29,
@@ -161400,7 +161463,14 @@
       "freq_rompimento_hist_pct": 5.9,
       "fator": 49.9
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.97% em 15 dias = 8.046%/mes. Prob 89.22% (GARCH 39.57%; planilha dizia 97.6%), EV 3.928%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 3.97% em 15 dias = 8.046%/mes. Prob 89.22% (GARCH 39.57%; planilha dizia 97.6%), EV 3.928%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 50.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900032",
@@ -161548,7 +161618,7 @@
     "ticker": "SUZB3.SA",
     "nome": "SUZB3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 42.92,
     "kdo": 39.4,
@@ -161581,7 +161651,14 @@
       "freq_rompimento_hist_pct": 13.2,
       "fator": 61.2
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.27% em 15 dias = 2.574%/mes. Prob 84.32% (GARCH 28.59%; planilha dizia 91.3%), EV -0.365%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 8.2%, ganho 1.27% em 15 dias = 2.574%/mes. Prob 84.32% (GARCH 28.59%; planilha dizia 91.3%), EV -0.365%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 47.44,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900036",
@@ -161635,7 +161712,7 @@
     "ticker": "SBSP3.SA",
     "nome": "SBSP3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 32.6,
     "kdo": 26.73,
@@ -161668,14 +161745,21 @@
       "freq_rompimento_hist_pct": 2.7,
       "fator": 51.6
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.13% em 41 dias = 3.062%/mes. Prob 94.68% (GARCH 30.13%; planilha dizia 98.4%), EV 2.118%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.13% em 41 dias = 3.062%/mes. Prob 94.68% (GARCH 30.13%; planilha dizia 98.4%), EV 2.118%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 1.08,
+    "preco_encerramento": 26.25,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900038",
     "ticker": "FLRY3.SA",
     "nome": "FLRY3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 27.49,
     "kdo": 22.54,
@@ -161708,14 +161792,21 @@
       "freq_rompimento_hist_pct": 2.4,
       "fator": 59.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.98% em 41 dias = 3.692%/mes. Prob 93.9% (GARCH 30.31%; planilha dizia 99.5%), EV 2.728%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.98% em 41 dias = 3.692%/mes. Prob 93.9% (GARCH 30.31%; planilha dizia 99.5%), EV 2.728%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 1.68,
+    "preco_encerramento": 22.27,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900039",
     "ticker": "MOTV3.SA",
     "nome": "MOTV3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 20.2,
     "kdo": 16.56,
@@ -161748,14 +161839,21 @@
       "freq_rompimento_hist_pct": 1.3,
       "fator": 66.6
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.07% em 41 dias = 3.018%/mes. Prob 94.48% (GARCH 30.44%; planilha dizia 98.8%), EV 2.098%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.07% em 41 dias = 3.018%/mes. Prob 94.48% (GARCH 30.44%; planilha dizia 98.8%), EV 2.098%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 12.44,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900040",
     "ticker": "MULT3.SA",
     "nome": "MULT3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 38.3,
     "kdo": 31.41,
@@ -161788,14 +161886,21 @@
       "freq_rompimento_hist_pct": 3.1,
       "fator": 61.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.09% em 41 dias = 3.033%/mes. Prob 94.04% (GARCH 30.76%; planilha dizia 98.4%), EV 2.023%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.09% em 41 dias = 3.033%/mes. Prob 94.04% (GARCH 30.76%; planilha dizia 98.4%), EV 2.023%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 22.51,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900041",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 24.54,
     "kdo": 20.12,
@@ -161828,14 +161933,21 @@
       "freq_rompimento_hist_pct": 3.5,
       "fator": 62.2
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.93% em 41 dias = 3.655%/mes. Prob 92.88% (GARCH 32.17%; planilha dizia 97.0%), EV 2.291%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.93% em 41 dias = 3.655%/mes. Prob 92.88% (GARCH 32.17%; planilha dizia 97.0%), EV 2.291%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 16.97,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900042",
     "ticker": "ENGI11.SA",
     "nome": "ENGI11",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 67.17,
     "kdo": 55.08,
@@ -161868,14 +161980,21 @@
       "freq_rompimento_hist_pct": 0.7,
       "fator": 76.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.26% em 41 dias = 3.159%/mes. Prob 92.4% (GARCH 32.13%; planilha dizia 99.1%), EV 1.83%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.26% em 41 dias = 3.159%/mes. Prob 92.4% (GARCH 32.13%; planilha dizia 99.1%), EV 1.83%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 43.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900043",
     "ticker": "IGTI11.SA",
     "nome": "IGTI11",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 32.36,
     "kdo": 26.54,
@@ -161908,7 +162027,14 @@
       "freq_rompimento_hist_pct": 4.5,
       "fator": 57.8
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.27% em 41 dias = 3.166%/mes. Prob 92.38% (GARCH 32.44%; planilha dizia 98.0%), EV 1.876%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.27% em 41 dias = 3.166%/mes. Prob 92.38% (GARCH 32.44%; planilha dizia 98.0%), EV 1.876%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 18.5,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900044",
@@ -161955,7 +162081,7 @@
     "ticker": "MDIA3.SA",
     "nome": "MDIA3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 20.12,
     "kdo": 16.5,
@@ -161988,14 +162114,21 @@
       "freq_rompimento_hist_pct": 10.6,
       "fator": 57.2
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 5.45% em 41 dias = 4.041%/mes. Prob 90.52% (GARCH 34.11%; planilha dizia 90.3%), EV 2.413%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 5.45% em 41 dias = 4.041%/mes. Prob 90.52% (GARCH 34.11%; planilha dizia 90.3%), EV 2.413%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 1.65,
+    "preco_encerramento": 16.36,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900046",
     "ticker": "ENEV3.SA",
     "nome": "ENEV3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 31.4,
     "kdo": 25.75,
@@ -162028,14 +162161,21 @@
       "freq_rompimento_hist_pct": 5.5,
       "fator": 56.2
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 3.62% em 41 dias = 2.684%/mes. Prob 89.86% (GARCH 34.9%; planilha dizia 98.4%), EV 1.045%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 3.62% em 41 dias = 2.684%/mes. Prob 89.86% (GARCH 34.9%; planilha dizia 98.4%), EV 1.045%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 2.65,
+    "preco_encerramento": 25.51,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900047",
     "ticker": "HYPE3.SA",
     "nome": "HYPE3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 25.84,
     "kdo": 21.71,
@@ -162068,14 +162208,21 @@
       "freq_rompimento_hist_pct": 11.3,
       "fator": 67.4
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 16.0%, ganho 3.79% em 41 dias = 2.81%/mes. Prob 87.58% (GARCH 32.34%; planilha dizia 93.6%), EV 1.077%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 16.0%, ganho 3.79% em 41 dias = 2.81%/mes. Prob 87.58% (GARCH 32.34%; planilha dizia 93.6%), EV 1.077%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 19.82,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900048",
     "ticker": "CMIG4.SA",
     "nome": "CMIG4",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 11.99,
     "kdo": 10.55,
@@ -162108,14 +162255,21 @@
       "freq_rompimento_hist_pct": 12.2,
       "fator": 52.2
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.0%, ganho 3.83% em 41 dias = 2.84%/mes. Prob 87.06% (GARCH 23.98%; planilha dizia 94.9%), EV 1.425%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.0%, ganho 3.83% em 41 dias = 2.84%/mes. Prob 87.06% (GARCH 23.98%; planilha dizia 94.9%), EV 1.425%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.07,
+    "preco_encerramento": 10.29,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900049",
     "ticker": "RADL3.SA",
     "nome": "RADL3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 20.88,
     "kdo": 17.12,
@@ -162148,7 +162302,14 @@
       "freq_rompimento_hist_pct": 8.6,
       "fator": 53.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.02% em 41 dias = 2.981%/mes. Prob 87.24% (GARCH 36.91%; planilha dizia 93.9%), EV 1.029%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 4.02% em 41 dias = 2.981%/mes. Prob 87.24% (GARCH 36.91%; planilha dizia 93.9%), EV 1.029%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 14.18,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900050",
@@ -162195,7 +162356,7 @@
     "ticker": "EQTL3.SA",
     "nome": "EQTL3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 49.62,
     "kdo": 42.67,
@@ -162228,14 +162389,21 @@
       "freq_rompimento_hist_pct": 4.1,
       "fator": 74.8
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 3.96% em 41 dias = 2.936%/mes. Prob 85.8% (GARCH 29.4%; planilha dizia 96.7%), EV 1.08%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 3.96% em 41 dias = 2.936%/mes. Prob 85.8% (GARCH 29.4%; planilha dizia 96.7%), EV 1.08%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 32.84,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900052",
     "ticker": "POMO4.SA",
     "nome": "POMO4",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 4.8,
     "kdo": 3.94,
@@ -162268,7 +162436,14 @@
       "freq_rompimento_hist_pct": 13.1,
       "fator": 56.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 5.8% em 41 dias = 4.3%/mes. Prob 85.56% (GARCH 38.94%; planilha dizia 87.1%), EV 1.786%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 5.8% em 41 dias = 4.3%/mes. Prob 85.56% (GARCH 38.94%; planilha dizia 87.1%), EV 1.786%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 1.88,
+    "preco_encerramento": 3.88,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900053",
@@ -162315,7 +162490,7 @@
     "ticker": "ALOS3.SA",
     "nome": "ALOS3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 35.05,
     "kdo": 32.18,
@@ -162349,7 +162524,14 @@
       "fator": 42.8
     },
     "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; ABAIXO DO CORTE de 85% (carga ampliada a pedido, para medir o corte)). Defesa 8.2%, ganho 1.76% em 15 dias = 3.567%/mes. Prob 84.76% (GARCH 28.24%; planilha dizia 95.1%), EV 0.517%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
-    "abaixo_corte_85": true
+    "abaixo_corte_85": true,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 24.01,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_1791900101",
@@ -163972,7 +164154,7 @@
     "ticker": "TUPY3.SA",
     "nome": "TUPY3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 20.12,
     "prazo_dias": 15,
@@ -164097,7 +164279,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 86.68,
       "prob_sucesso_saltos_pct": 88.27
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 16.3,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_eqtl3_20261019",
@@ -164243,7 +164432,7 @@
     "ticker": "ASAI3.SA",
     "nome": "ASAI3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 13.37,
     "prazo_dias": 15,
@@ -164368,14 +164557,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 77.24,
       "prob_sucesso_saltos_pct": 78.42
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 7.12,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_hype3_20261019",
     "ticker": "HYPE3.SA",
     "nome": "HYPE3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 26.65,
     "prazo_dias": 15,
@@ -164500,14 +164696,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 95.26,
       "prob_sucesso_saltos_pct": 95.14
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 19.82,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_sbsp3_20261019",
     "ticker": "SBSP3.SA",
     "nome": "SBSP3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 32.22,
     "prazo_dias": 15,
@@ -164632,7 +164835,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 96.2,
       "prob_sucesso_saltos_pct": 97.42
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 26.25,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_engi11_20261019",
@@ -165056,7 +165266,7 @@
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 23.88,
     "prazo_dias": 15,
@@ -165181,14 +165391,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 95.46,
       "prob_sucesso_saltos_pct": 95.68
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 16.97,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_bpac11_20261019",
     "ticker": "BPAC11.SA",
     "nome": "BPAC11 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 78.29,
     "prazo_dias": 15,
@@ -165313,7 +165530,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 88.4,
       "prob_sucesso_saltos_pct": 90.12
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 50.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_flry3_20261019",
@@ -165459,7 +165683,7 @@
     "ticker": "B3SA3.SA",
     "nome": "B3SA3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 22.56,
     "prazo_dias": 15,
@@ -165584,7 +165808,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 87.18,
       "prob_sucesso_saltos_pct": 89.01
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 11.84,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_itub4_20261019",
@@ -165730,7 +165961,7 @@
     "ticker": "CSMG3.SA",
     "nome": "CSMG3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 62.3,
     "prazo_dias": 15,
@@ -165855,7 +166086,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 94.7,
       "prob_sucesso_saltos_pct": 95.22
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.02,
+    "preco_encerramento": 53.86,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_petr4_20261019",
@@ -166536,7 +166774,7 @@
     "ticker": "GGBR4.SA",
     "nome": "GGBR4 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 25.82,
     "prazo_dias": 15,
@@ -166661,14 +166899,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 95.64,
       "prob_sucesso_saltos_pct": 96.16
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 26.39,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_natu3_20261019",
     "ticker": "NATU3.SA",
     "nome": "NATU3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 7.12,
     "prazo_dias": 15,
@@ -166793,14 +167038,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 82.0,
       "prob_sucesso_saltos_pct": 90.59
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 8.62,
+    "preco_encerramento": 6.09,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_rail3_20261019",
     "ticker": "RAIL3.SA",
     "nome": "RAIL3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 18.61,
     "prazo_dias": 15,
@@ -166925,7 +167177,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 91.62,
       "prob_sucesso_saltos_pct": 92.82
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.02,
+    "preco_encerramento": 15.28,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_goau4_20261019",
@@ -167210,7 +167469,7 @@
     "ticker": "ENEV3.SA",
     "nome": "ENEV3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 31.44,
     "prazo_dias": 15,
@@ -167335,14 +167594,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 92.62,
       "prob_sucesso_saltos_pct": 93.99
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 25.51,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_viva3_20261019",
     "ticker": "VIVA3.SA",
     "nome": "VIVA3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 27.37,
     "prazo_dias": 15,
@@ -167467,14 +167733,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 87.0,
       "prob_sucesso_saltos_pct": 88.56
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 19.9,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_mult3_20261019",
     "ticker": "MULT3.SA",
     "nome": "MULT3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 37.49,
     "prazo_dias": 15,
@@ -167599,7 +167872,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 95.78,
       "prob_sucesso_saltos_pct": 96.41
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 22.51,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_cmig4_20261019",
@@ -167745,7 +168025,7 @@
     "ticker": "POSI3.SA",
     "nome": "POSI3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 4.9,
     "prazo_dias": 15,
@@ -167870,14 +168150,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 84.98,
       "prob_sucesso_saltos_pct": 87.03
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 3.71,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_lren3_20261019",
     "ticker": "LREN3.SA",
     "nome": "LREN3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 14.15,
     "prazo_dias": 15,
@@ -168002,14 +168289,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 84.82,
       "prob_sucesso_saltos_pct": 85.49
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 9.51,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_motv3_20261019",
     "ticker": "MOTV3.SA",
     "nome": "MOTV3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 20.03,
     "prazo_dias": 15,
@@ -168134,14 +168428,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 96.26,
       "prob_sucesso_saltos_pct": 96.75
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 12.44,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_axia3_20261019",
     "ticker": "AXIA3.SA",
     "nome": "AXIA3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 58.31,
     "prazo_dias": 15,
@@ -168266,14 +168567,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 87.22,
       "prob_sucesso_saltos_pct": 90.46
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 47.59,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_cury3_20261019",
     "ticker": "CURY3.SA",
     "nome": "CURY3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 31.54,
     "prazo_dias": 15,
@@ -168398,14 +168706,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 83.0,
       "prob_sucesso_saltos_pct": 82.58
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 21.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_mdia3_20261019",
     "ticker": "MDIA3.SA",
     "nome": "MDIA3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 20.5,
     "prazo_dias": 15,
@@ -168530,14 +168845,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 93.56,
       "prob_sucesso_saltos_pct": 94.8
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 16.36,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_jhsf3_20261019",
     "ticker": "JHSF3.SA",
     "nome": "JHSF3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 13.58,
     "prazo_dias": 15,
@@ -168662,14 +168984,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 86.84,
       "prob_sucesso_saltos_pct": 86.77
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 10.72,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_radl3_20261019",
     "ticker": "RADL3.SA",
     "nome": "RADL3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 21.44,
     "prazo_dias": 15,
@@ -168794,14 +169123,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 91.8,
       "prob_sucesso_saltos_pct": 92.51
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 14.18,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_dirr3_20261019",
     "ticker": "DIRR3.SA",
     "nome": "DIRR3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 10.81,
     "prazo_dias": 15,
@@ -168926,14 +169262,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 82.68,
       "prob_sucesso_saltos_pct": 82.78
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 8.75,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_eztc3_20261019",
     "ticker": "EZTC3.SA",
     "nome": "EZTC3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 18.29,
     "prazo_dias": 15,
@@ -169058,7 +169401,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 80.22,
       "prob_sucesso_saltos_pct": 82.77
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 9.96,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_recv3_20261019",
@@ -169197,7 +169547,7 @@
     "ticker": "RENT3.SA",
     "nome": "RENT3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 50.85,
     "prazo_dias": 15,
@@ -169322,7 +169672,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 84.18,
       "prob_sucesso_saltos_pct": 85.9
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 26.74,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_ecor3_20261019",
@@ -169468,7 +169825,7 @@
     "ticker": "CYRE3.SA",
     "nome": "CYRE3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 32.43,
     "prazo_dias": 15,
@@ -169593,14 +169950,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 77.62,
       "prob_sucesso_saltos_pct": 80.53
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 17.87,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_rapt4_20261019",
     "ticker": "RAPT4.SA",
     "nome": "RAPT4 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 7.7,
     "prazo_dias": 15,
@@ -169725,7 +170089,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 81.0,
       "prob_sucesso_saltos_pct": 81.96
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 4.77,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_movi3_20261019",
@@ -170010,7 +170381,7 @@
     "ticker": "CEAB3.SA",
     "nome": "CEAB3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 13.39,
     "prazo_dias": 15,
@@ -170135,7 +170506,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 72.02,
       "prob_sucesso_saltos_pct": 73.44
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 6.92,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_mglu3_20261019",
@@ -170281,7 +170659,7 @@
     "ticker": "RDOR3.SA",
     "nome": "RDOR3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 43.41,
     "prazo_dias": 15,
@@ -170406,14 +170784,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 92.28,
       "prob_sucesso_saltos_pct": 92.98
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 31.33,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_yduq3_20261019",
     "ticker": "YDUQ3.SA",
     "nome": "YDUQ3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 14.02,
     "prazo_dias": 15,
@@ -170538,7 +170923,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 76.56,
       "prob_sucesso_saltos_pct": 79.98
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 8.68,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_pomo4_20261019",
@@ -171372,7 +171764,7 @@
     "ticker": "MRVE3.SA",
     "nome": "MRVE3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 8.06,
     "prazo_dias": 15,
@@ -171497,14 +171889,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 71.86,
       "prob_sucesso_saltos_pct": 74.39
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 4.21,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_tend3_20261019",
     "ticker": "TEND3.SA",
     "nome": "TEND3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 27.57,
     "prazo_dias": 15,
@@ -171629,7 +172028,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 77.04,
       "prob_sucesso_saltos_pct": 80.34
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 20.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_vamo3_20261019",
@@ -171775,7 +172181,7 @@
     "ticker": "AZZA3.SA",
     "nome": "AZZA3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 25.75,
     "prazo_dias": 15,
@@ -171900,14 +172306,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 69.76,
       "prob_sucesso_saltos_pct": 72.95
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 16.05,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_csan3_20261019",
     "ticker": "CSAN3.SA",
     "nome": "CSAN3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 5.12,
     "prazo_dias": 15,
@@ -172032,7 +172445,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 77.3,
       "prob_sucesso_saltos_pct": 79.43
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 2.6,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_vbbr3_20261019",
@@ -172178,7 +172598,7 @@
     "ticker": "SBFG3.SA",
     "nome": "SBFG3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 10.79,
     "prazo_dias": 15,
@@ -172303,7 +172723,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 70.0,
       "prob_sucesso_saltos_pct": 73.33
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 5.74,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_embj3_20261019",
@@ -172574,7 +173001,7 @@
     "ticker": "LWSA3.SA",
     "nome": "LWSA3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 5.28,
     "prazo_dias": 15,
@@ -172699,14 +173126,21 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 79.48,
       "prob_sucesso_saltos_pct": 81.01
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 3.57,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_cogn3_20261019",
     "ticker": "COGN3.SA",
     "nome": "COGN3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 3.11,
     "prazo_dias": 15,
@@ -172831,7 +173265,14 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 79.92,
       "prob_sucesso_saltos_pct": 81.22
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 1.85,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "id": "an_alpa4_20261019",
@@ -173108,7 +173549,7 @@
     "data_foto": "2026-10-20",
     "origem": "pronta",
     "lote": "20/10/2026",
-    "status": "em_analise",
+    "status": "encerrada",
     "exercicio": "europeia",
     "id": "an_tend3_15d_20261020",
     "ticker": "TEND3.SA",
@@ -173130,13 +173571,20 @@
       "protecao_pct": 12.2
     },
     "prob_sucesso_prevista_pct": 77.25,
-    "observacao": "Oferta de 20/10/2026 enviada pelo Victor (ex: fixing/strike/KO). KDO derivado de preco x (1 - defesa)."
+    "observacao": "Oferta de 20/10/2026 enviada pelo Victor (ex: fixing/strike/KO). KDO derivado de preco x (1 - defesa).",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 20.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   },
   {
     "data_foto": "2026-10-20",
     "origem": "pronta",
     "lote": "20/10/2026",
-    "status": "em_analise",
+    "status": "encerrada",
     "exercicio": "europeia",
     "id": "an_tend3_60d_20261020",
     "ticker": "TEND3.SA",
@@ -173158,6 +173606,13 @@
       "protecao_pct": 20.0
     },
     "prob_sucesso_prevista_pct": 67.42,
-    "observacao": "Oferta de 20/10/2026 enviada pelo Victor (ex: fixing/strike/KO). KDO derivado de preco x (1 - defesa). PDF oficial TEND3 60d: ganho 15,40%, barreira -20%."
+    "observacao": "Oferta de 20/10/2026 enviada pelo Victor (ex: fixing/strike/KO). KDO derivado de preco x (1 - defesa). PDF oficial TEND3 60d: ganho 15,40%, barreira -20%.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-26",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 20.0,
+    "rejeicao_em_lote": "limpeza 26/10/2026 (queda do IBOV pos-eleicao, ~-17%): probabilidade viva >=99% ou <=10%; segue no tracker hipotetico"
   }
 ]
