@@ -2333,6 +2333,25 @@ def _ganho_contrato_posicao(p):
     except Exception:
         return {'ganho_contrato_pct': None, 'prazo_contrato_dias': None, 'ganho_contrato_mes_pct': None}
 
+@app.route('/carteira/risco', methods=['GET'])
+def rota_carteira_risco():
+    """Backlog #40/#41/#43 (26/10/2026): cenario de crise da carteira, concentracao por
+    segmento/grupo e proximos eventos de risco. ?ibov=-16 (queda do IBOV no cenario).
+    Tudo em % -- sem R$. Informativo: nao altera posicoes nem score."""
+    try:
+        import risco_carteira as _rc
+        try:
+            ibov = float(request.args.get('ibov', '-16'))
+        except Exception:
+            ibov = -16.0
+        r = _raw_repo_get('positions.json')
+        if not r.ok:
+            return jsonify({'error': 'positions.json indisponivel'}), 500
+        return jsonify(_rc.risco_carteira(r.json(), ibov))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/posicoes/ranking/<tipo>', methods=['GET'])
 def get_ranking_posicoes(tipo):
     """
@@ -6887,6 +6906,7 @@ def ranking_analises():
                     'folga_barreira_pct': folga_barreira_pct,
                     'pior_dia_10a_pct': (_pd or {}).get('pior_dia_pct'), 'pior_dia_10a_data': (_pd or {}).get('data'),
                     'queda_ate_barreira_pct': _queda_bar, 'alerta_gap': _alerta_g,
+                    'eventos_na_janela': __import__('risco_carteira').eventos_na_janela(dias_restantes),
                     'tipo_estrutura': tipo, 'lote': a.get('lote'),
                     'backtest': a.get('backtest'),
                     'prob_meta_saltos_pct': prob_meta_saltos, 'saltos_por_ano': saltos_ano,

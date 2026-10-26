@@ -4,217 +4,266 @@
   "A1MD34.SA": {
    "pior_dia_pct": -16.5,
    "data": "2026-02-04",
-   "anos": 6.7
+   "anos": 6.7,
+   "ret_ref_pct": 10.65
   },
   "ALOS3.SA": {
    "pior_dia_pct": -25.5,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -25.47
   },
   "ALPA4.SA": {
    "pior_dia_pct": -21.5,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -21.49
   },
   "AMZO34.SA": {
    "pior_dia_pct": -22.2,
    "data": "2022-10-27",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 8.03
   },
   "ANIM3.SA": {
    "pior_dia_pct": -43.8,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -43.85
   },
   "ASAI3.SA": {
    "pior_dia_pct": -43.0,
    "data": "2026-10-26",
-   "anos": 5.6
+   "anos": 5.6,
+   "ret_ref_pct": -42.97
   },
   "AXIA3.SA": {
    "pior_dia_pct": -22.5,
    "data": "2025-12-22",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -12.41
   },
   "AZZA3.SA": {
    "pior_dia_pct": -35.2,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -35.23
   },
   "B3SA3.SA": {
    "pior_dia_pct": -36.3,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -36.28
   },
   "BABA34.SA": {
    "pior_dia_pct": -14.0,
    "data": "2020-12-28",
-   "anos": 6.8
+   "anos": 6.8,
+   "ret_ref_pct": 8.81
   },
   "BBAS3.SA": {
    "pior_dia_pct": -29.3,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -29.33
   },
   "BBDC4.SA": {
    "pior_dia_pct": -21.7,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -21.7
   },
   "BBSE3.SA": {
    "pior_dia_pct": -10.4,
    "data": "2026-02-13",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -1.24
+  },
+  "BCDI11.SA": {
+   "pior_dia_pct": -4.5,
+   "data": "2026-08-10",
+   "anos": 0.2,
+   "ret_ref_pct": -1.51
   },
   "BEEF3.SA": {
    "pior_dia_pct": -22.2,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -22.25
   },
   "BPAC11.SA": {
    "pior_dia_pct": -26.9,
    "data": "2020-03-12",
-   "anos": 9.6
+   "anos": 9.6,
+   "ret_ref_pct": -24.83
   },
   "BPML11.SA": {
    "pior_dia_pct": -9.2,
    "data": "2020-01-13",
-   "anos": 6.9
+   "anos": 6.9,
+   "ret_ref_pct": -4.97
   },
   "BTCI11.SA": {
    "pior_dia_pct": -14.5,
    "data": "2020-03-18",
-   "anos": 7.7
+   "anos": 7.7,
+   "ret_ref_pct": -4.35
   },
   "CEAB3.SA": {
    "pior_dia_pct": -47.5,
    "data": "2026-10-26",
-   "anos": 6.9
+   "anos": 6.9,
+   "ret_ref_pct": -47.47
   },
   "CMIG4.SA": {
    "pior_dia_pct": -20.4,
    "data": "2017-05-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -11.4
   },
   "CMIN3.SA": {
    "pior_dia_pct": -11.9,
    "data": "2024-10-04",
-   "anos": 5.6
+   "anos": 5.6,
+   "ret_ref_pct": -6.21
   },
   "COGN3.SA": {
    "pior_dia_pct": -38.4,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -38.39
   },
   "CPLE3.SA": {
    "pior_dia_pct": -14.4,
    "data": "2020-03-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -12.92
   },
   "CSAN3.SA": {
    "pior_dia_pct": -46.7,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -46.73
   },
   "CSMG3.SA": {
    "pior_dia_pct": -23.7,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -23.74
   },
   "CSNA3.SA": {
    "pior_dia_pct": -25.3,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -17.46
   },
   "CURY3.SA": {
    "pior_dia_pct": -16.7,
    "data": "2026-10-26",
-   "anos": 6.0
+   "anos": 6.0,
+   "ret_ref_pct": -16.68
   },
   "CXSE3.SA": {
    "pior_dia_pct": -7.5,
    "data": "2022-04-22",
-   "anos": 5.4
+   "anos": 5.4,
+   "ret_ref_pct": -1.45
   },
   "CYRE3.SA": {
    "pior_dia_pct": -44.8,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -44.81
   },
   "DIRR3.SA": {
    "pior_dia_pct": -24.0,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -24.05
   },
   "DXCO3.SA": {
    "pior_dia_pct": -40.0,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -40.02
   },
   "ECOR3.SA": {
    "pior_dia_pct": -60.5,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -60.53
   },
   "EGIE3.SA": {
    "pior_dia_pct": -10.7,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -10.69
   },
   "EMBJ3.SA": {
    "pior_dia_pct": -26.4,
    "data": "2020-03-12",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 8.89
   },
   "ENDD11.SA": {
    "pior_dia_pct": -10.5,
    "data": "2026-06-24",
-   "anos": 5.7
+   "anos": 5.7,
+   "ret_ref_pct": -5.61
   },
   "ENEV3.SA": {
    "pior_dia_pct": -19.3,
    "data": "2020-03-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -15.28
   },
   "ENGI11.SA": {
    "pior_dia_pct": -28.9,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -28.86
   },
   "EQTL3.SA": {
    "pior_dia_pct": -28.7,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -28.72
   },
   "EZTC3.SA": {
    "pior_dia_pct": -42.4,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -42.42
   },
   "FLRY3.SA": {
    "pior_dia_pct": -20.7,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -20.7
   },
   "GGBR4.SA": {
    "pior_dia_pct": -18.0,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 0.91
   },
   "GOAU4.SA": {
    "pior_dia_pct": -21.3,
    "data": "2020-03-12",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 1.05
   },
   "HYPE3.SA": {
    "pior_dia_pct": -24.6,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -24.55
   },
   "IGTI11.SA": {
    "pior_dia_pct": -23.9,
    "data": "2026-10-26",
-   "anos": 4.9
+   "anos": 4.9,
+   "ret_ref_pct": -23.88
   },
   "INBR32.SA": {
    "pior_dia_pct": -8.4,
@@ -224,332 +273,514 @@
   "ITIT11.SA": {
    "pior_dia_pct": -6.8,
    "data": "2026-07-03",
-   "anos": 4.6
+   "anos": 4.6,
+   "ret_ref_pct": -5.57
   },
   "ITLC34.SA": {
    "pior_dia_pct": -20.4,
    "data": "2024-08-02",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 12.5
   },
   "ITUB4.SA": {
    "pior_dia_pct": -18.0,
    "data": "2021-10-04",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -13.66
   },
   "JBSS32.SA": {
    "pior_dia_pct": -31.3,
    "data": "2017-05-22",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 9.73
   },
   "JHSF3.SA": {
    "pior_dia_pct": -23.0,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -23.04
   },
   "KDIF11.SA": {
    "pior_dia_pct": -7.3,
    "data": "2026-10-26",
-   "anos": 2.2
+   "anos": 2.2,
+   "ret_ref_pct": -7.32
   },
   "KNDI11.SA": {
    "pior_dia_pct": -4.6,
    "data": "2024-12-06",
-   "anos": 1.9
+   "anos": 1.9,
+   "ret_ref_pct": -2.09
   },
   "KNHF11.SA": {
    "pior_dia_pct": -4.4,
    "data": "2026-10-26",
-   "anos": 3.1
+   "anos": 3.1,
+   "ret_ref_pct": -4.44
   },
   "KNHY11.SA": {
    "pior_dia_pct": -15.7,
    "data": "2020-03-18",
-   "anos": 8.1
+   "anos": 8.1,
+   "ret_ref_pct": -5.38
   },
   "KNIP11.SA": {
    "pior_dia_pct": -9.2,
    "data": "2020-03-18",
-   "anos": 8.9
+   "anos": 8.9,
+   "ret_ref_pct": -6.07
   },
   "KNRI11.SA": {
    "pior_dia_pct": -10.9,
    "data": "2020-03-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -5.45
   },
   "KNSC11.SA": {
    "pior_dia_pct": -4.8,
    "data": "2024-12-04",
-   "anos": 4.6
+   "anos": 4.6,
+   "ret_ref_pct": -2.18
   },
   "KNUQ11.SA": {
    "pior_dia_pct": -2.8,
    "data": "2024-12-09",
-   "anos": 3.0
+   "anos": 3.0,
+   "ret_ref_pct": -1.45
   },
   "KORE11.SA": {
    "pior_dia_pct": -11.6,
    "data": "2026-10-26",
-   "anos": 2.9
+   "anos": 2.9,
+   "ret_ref_pct": -11.63
   },
   "LREN3.SA": {
    "pior_dia_pct": -33.6,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -33.61
   },
   "LWSA3.SA": {
    "pior_dia_pct": -27.3,
    "data": "2026-10-26",
-   "anos": 6.6
+   "anos": 6.6,
+   "ret_ref_pct": -27.34
   },
   "MBRF3.SA": {
    "pior_dia_pct": -23.9,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -10.6
   },
   "MDIA3.SA": {
    "pior_dia_pct": -21.6,
    "data": "2023-03-20",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -14.55
   },
   "MGLU3.SA": {
    "pior_dia_pct": -58.2,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -58.23
   },
   "MOTV3.SA": {
    "pior_dia_pct": -26.9,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -26.93
   },
   "MOVI3.SA": {
    "pior_dia_pct": -58.5,
    "data": "2026-10-26",
-   "anos": 9.3
+   "anos": 9.3,
+   "ret_ref_pct": -58.49
   },
   "MRVE3.SA": {
    "pior_dia_pct": -42.5,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -42.53
   },
   "MULT3.SA": {
    "pior_dia_pct": -25.3,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -25.26
   },
   "MUTC34.SA": {
    "pior_dia_pct": -19.1,
    "data": "2026-06-05",
-   "anos": 7.3
+   "anos": 7.3,
+   "ret_ref_pct": 11.04
   },
   "NATU3.SA": {
    "pior_dia_pct": -72.4,
    "data": "2025-07-02",
-   "anos": 4.3
+   "anos": 4.3,
+   "ret_ref_pct": -25.19
   },
   "NFLX34.SA": {
    "pior_dia_pct": -24.3,
    "data": "2022-04-20",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 6.56
   },
   "NVDC34.SA": {
    "pior_dia_pct": -16.8,
    "data": "2025-01-27",
-   "anos": 7.4
+   "anos": 7.4,
+   "ret_ref_pct": 10.53
   },
   "PETR3.SA": {
    "pior_dia_pct": -29.7,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -6.81
   },
   "PETR4.SA": {
    "pior_dia_pct": -29.7,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -8.18
   },
   "POMO4.SA": {
    "pior_dia_pct": -25.1,
    "data": "2020-03-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -14.26
   },
   "POSI3.SA": {
    "pior_dia_pct": -34.6,
    "data": "2020-03-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -29.33
   },
   "PRIO3.SA": {
    "pior_dia_pct": -36.5,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -3.6
   },
   "QUAL3.SA": {
    "pior_dia_pct": -39.9,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -39.91
   },
   "RADL3.SA": {
    "pior_dia_pct": -22.5,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -22.53
   },
   "RAIL3.SA": {
    "pior_dia_pct": -16.9,
    "data": "2017-05-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -16.76
   },
   "RAPT4.SA": {
    "pior_dia_pct": -48.4,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -48.39
   },
   "RBRY11.SA": {
    "pior_dia_pct": -12.4,
    "data": "2020-03-19",
-   "anos": 7.3
+   "anos": 7.3,
+   "ret_ref_pct": -7.23
   },
   "RDOR3.SA": {
    "pior_dia_pct": -19.9,
    "data": "2026-10-26",
-   "anos": 5.8
+   "anos": 5.8,
+   "ret_ref_pct": -19.92
   },
   "RECV3.SA": {
    "pior_dia_pct": -19.3,
    "data": "2023-03-15",
-   "anos": 5.4
+   "anos": 5.4,
+   "ret_ref_pct": -12.97
   },
   "RENT3.SA": {
    "pior_dia_pct": -39.6,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -39.58
   },
   "RINV11.SA": {
    "pior_dia_pct": -3.4,
    "data": "2024-12-05",
-   "anos": 3.6
+   "anos": 3.6,
+   "ret_ref_pct": -2.99
   },
   "ROXO34.SA": {
    "pior_dia_pct": -15.7,
    "data": "2022-02-23",
-   "anos": 4.8
+   "anos": 4.8,
+   "ret_ref_pct": -10.84
   },
   "SBFG3.SA": {
    "pior_dia_pct": -51.4,
    "data": "2026-10-26",
-   "anos": 7.4
+   "anos": 7.4,
+   "ret_ref_pct": -51.41
   },
   "SBSP3.SA": {
    "pior_dia_pct": -21.0,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -20.98
   },
   "SIMH3.SA": {
    "pior_dia_pct": -64.9,
    "data": "2026-10-26",
-   "anos": 6.0
+   "anos": 6.0,
+   "ret_ref_pct": -64.86
   },
   "SLCE3.SA": {
    "pior_dia_pct": -10.5,
    "data": "2017-10-02",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -0.23
   },
   "SMAL11.SA": {
    "pior_dia_pct": -28.0,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -27.96
   },
   "SMFT3.SA": {
    "pior_dia_pct": -32.7,
    "data": "2026-10-26",
-   "anos": 5.2
+   "anos": 5.2,
+   "ret_ref_pct": -32.74
   },
   "SMTO3.SA": {
    "pior_dia_pct": -32.4,
    "data": "2020-03-09",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -4.66
   },
   "SPCX34.SA": {
    "pior_dia_pct": -14.7,
    "data": "2026-06-22",
-   "anos": 0.4
+   "anos": 0.4,
+   "ret_ref_pct": 8.16
   },
   "SUZB3.SA": {
    "pior_dia_pct": -16.1,
    "data": "2020-03-12",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 10.08
   },
   "TEND3.SA": {
    "pior_dia_pct": -26.4,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -26.38
   },
   "TIMS3.SA": {
    "pior_dia_pct": -14.8,
    "data": "2020-03-12",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -5.19
   },
   "TOTS3.SA": {
    "pior_dia_pct": -15.3,
    "data": "2020-03-18",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -14.5
   },
   "TSLA34.SA": {
    "pior_dia_pct": -25.7,
    "data": "2020-02-05",
-   "anos": 9.7
+   "anos": 9.7,
+   "ret_ref_pct": 13.58
   },
   "TSMC34.SA": {
    "pior_dia_pct": -14.3,
    "data": "2025-01-27",
-   "anos": 6.9
+   "anos": 6.9,
+   "ret_ref_pct": 9.89
   },
   "TUPY3.SA": {
    "pior_dia_pct": -23.6,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -23.62
   },
   "UGPA3.SA": {
    "pior_dia_pct": -21.4,
    "data": "2020-03-16",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -8.59
   },
   "USIM5.SA": {
    "pior_dia_pct": -23.6,
    "data": "2024-07-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -10.71
   },
   "VALE3.SA": {
    "pior_dia_pct": -24.6,
    "data": "2019-01-28",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 4.01
   },
   "VAMO3.SA": {
    "pior_dia_pct": -56.8,
    "data": "2026-10-26",
-   "anos": 5.7
+   "anos": 5.7,
+   "ret_ref_pct": -56.79
   },
   "VBBR3.SA": {
    "pior_dia_pct": -15.3,
    "data": "2020-03-12",
-   "anos": 8.5
+   "anos": 8.5,
+   "ret_ref_pct": -10.08
   },
   "VIVA3.SA": {
    "pior_dia_pct": -31.9,
    "data": "2020-03-18",
-   "anos": 6.9
+   "anos": 6.9,
+   "ret_ref_pct": -27.75
   },
   "WEGE3.SA": {
    "pior_dia_pct": -20.6,
    "data": "2020-03-16",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": 4.21
   },
   "XPBR31.SA": {
    "pior_dia_pct": -45.1,
    "data": "2026-10-26",
-   "anos": 5.0
+   "anos": 5.0,
+   "ret_ref_pct": -45.06
   },
   "YDUQ3.SA": {
    "pior_dia_pct": -35.5,
    "data": "2026-10-26",
-   "anos": 9.9
+   "anos": 9.9,
+   "ret_ref_pct": -35.54
+  }
+ },
+ "choque_ref": {
+  "data": "2026-10-26",
+  "ibov_pct": -13.88,
+  "retornos": {
+   "A1MD34.SA": 10.65,
+   "ALOS3.SA": -25.47,
+   "ALPA4.SA": -21.49,
+   "AMZO34.SA": 8.03,
+   "ANIM3.SA": -43.85,
+   "ASAI3.SA": -42.97,
+   "AXIA3.SA": -12.41,
+   "AZZA3.SA": -35.23,
+   "B3SA3.SA": -36.28,
+   "BABA34.SA": 8.81,
+   "BBAS3.SA": -29.33,
+   "BBDC4.SA": -21.7,
+   "BBSE3.SA": -1.24,
+   "BCDI11.SA": -1.51,
+   "BEEF3.SA": -22.25,
+   "BPAC11.SA": -24.83,
+   "BPML11.SA": -4.97,
+   "BTCI11.SA": -4.35,
+   "CEAB3.SA": -47.47,
+   "CMIG4.SA": -11.4,
+   "CMIN3.SA": -6.21,
+   "COGN3.SA": -38.39,
+   "CPLE3.SA": -12.92,
+   "CSAN3.SA": -46.73,
+   "CSMG3.SA": -23.74,
+   "CSNA3.SA": -17.46,
+   "CURY3.SA": -16.68,
+   "CXSE3.SA": -1.45,
+   "CYRE3.SA": -44.81,
+   "DIRR3.SA": -24.05,
+   "DXCO3.SA": -40.02,
+   "ECOR3.SA": -60.53,
+   "EGIE3.SA": -10.69,
+   "EMBJ3.SA": 8.89,
+   "ENDD11.SA": -5.61,
+   "ENEV3.SA": -15.28,
+   "ENGI11.SA": -28.86,
+   "EQTL3.SA": -28.72,
+   "EZTC3.SA": -42.42,
+   "FLRY3.SA": -20.7,
+   "GGBR4.SA": 0.91,
+   "GOAU4.SA": 1.05,
+   "HYPE3.SA": -24.55,
+   "IGTI11.SA": -23.88,
+   "ITIT11.SA": -5.57,
+   "ITLC34.SA": 12.5,
+   "ITUB4.SA": -13.66,
+   "JBSS32.SA": 9.73,
+   "JHSF3.SA": -23.04,
+   "KDIF11.SA": -7.32,
+   "KNDI11.SA": -2.09,
+   "KNHF11.SA": -4.44,
+   "KNHY11.SA": -5.38,
+   "KNIP11.SA": -6.07,
+   "KNRI11.SA": -5.45,
+   "KNSC11.SA": -2.18,
+   "KNUQ11.SA": -1.45,
+   "KORE11.SA": -11.63,
+   "LREN3.SA": -33.61,
+   "LWSA3.SA": -27.34,
+   "MBRF3.SA": -10.6,
+   "MDIA3.SA": -14.55,
+   "MGLU3.SA": -58.23,
+   "MOTV3.SA": -26.93,
+   "MOVI3.SA": -58.49,
+   "MRVE3.SA": -42.53,
+   "MULT3.SA": -25.26,
+   "MUTC34.SA": 11.04,
+   "NATU3.SA": -25.19,
+   "NFLX34.SA": 6.56,
+   "NVDC34.SA": 10.53,
+   "PETR3.SA": -6.81,
+   "PETR4.SA": -8.18,
+   "POMO4.SA": -14.26,
+   "POSI3.SA": -29.33,
+   "PRIO3.SA": -3.6,
+   "QUAL3.SA": -39.91,
+   "RADL3.SA": -22.53,
+   "RAIL3.SA": -16.76,
+   "RAPT4.SA": -48.39,
+   "RBRY11.SA": -7.23,
+   "RDOR3.SA": -19.92,
+   "RECV3.SA": -12.97,
+   "RENT3.SA": -39.58,
+   "RINV11.SA": -2.99,
+   "ROXO34.SA": -10.84,
+   "SBFG3.SA": -51.41,
+   "SBSP3.SA": -20.98,
+   "SIMH3.SA": -64.86,
+   "SLCE3.SA": -0.23,
+   "SMAL11.SA": -27.96,
+   "SMFT3.SA": -32.74,
+   "SMTO3.SA": -4.66,
+   "SPCX34.SA": 8.16,
+   "SUZB3.SA": 10.08,
+   "TEND3.SA": -26.38,
+   "TIMS3.SA": -5.19,
+   "TOTS3.SA": -14.5,
+   "TSLA34.SA": 13.58,
+   "TSMC34.SA": 9.89,
+   "TUPY3.SA": -23.62,
+   "UGPA3.SA": -8.59,
+   "USIM5.SA": -10.71,
+   "VALE3.SA": 4.01,
+   "VAMO3.SA": -56.79,
+   "VBBR3.SA": -10.08,
+   "VIVA3.SA": -27.75,
+   "WEGE3.SA": 4.21,
+   "XPBR31.SA": -45.06,
+   "YDUQ3.SA": -35.54
   }
  }
 }

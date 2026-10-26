@@ -4,6 +4,7 @@ ate 10 anos de historico (Yahoo). Backlog #38 (26/10/2026). Rodar de tempos em t
 Somente % -- nenhum valor em R$."""
 import json, requests, datetime, concurrent.futures as cf
 H = {'User-Agent': 'Mozilla/5.0'}
+REF = '2026-10-26'   # dia do choque da eleicao (backlog #41): retorno de cada papel nesse dia
 
 def tickers():
     ts = set()
@@ -32,10 +33,13 @@ def pior(t):
         ts = j['timestamp']; c = j['indicators']['quote'][0]['close']
         s = [(datetime.datetime.fromtimestamp(a, datetime.timezone(datetime.timedelta(hours=-3))).strftime('%Y-%m-%d'), b)
              for a, b in zip(ts, c) if b]
-        if len(s) < 60: return t, None
+        if len(s) < 5: return t, None
         r = [(s[i][0], s[i][1] / s[i - 1][1] - 1) for i in range(1, len(s))]
         d, v = min(r, key=lambda x: x[1])
-        return t, {'pior_dia_pct': round(v * 100, 1), 'data': d, 'anos': round(len(s) / 252, 1)}
+        rr = dict(r)
+        out = {'pior_dia_pct': round(v * 100, 1), 'data': d, 'anos': round(len(s) / 252, 1)}
+        if REF in rr: out['ret_ref_pct'] = round(rr[REF] * 100, 2)
+        return t, out
     except Exception:
         return t, None
 
@@ -44,6 +48,9 @@ if __name__ == '__main__':
     with cf.ThreadPoolExecutor(8) as ex:
         for t, r in ex.map(pior, tickers()):
             if r: out[t] = r
-    json.dump({'gerado_em': datetime.date.today().isoformat(), 'papeis': out}, open('pior_dia_10a.json', 'w'),
-              ensure_ascii=False, indent=1)
+    _, ib = pior('^BVSP')
+    ref = {'data': REF, 'ibov_pct': (ib or {}).get('ret_ref_pct'),
+           'retornos': {k: v['ret_ref_pct'] for k, v in out.items() if 'ret_ref_pct' in v}}
+    json.dump({'gerado_em': datetime.date.today().isoformat(), 'papeis': out, 'choque_ref': ref},
+              open('pior_dia_10a.json', 'w'), ensure_ascii=False, indent=1)
     print(len(out), 'papeis')

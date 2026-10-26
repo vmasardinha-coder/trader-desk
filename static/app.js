@@ -926,6 +926,38 @@ async function carregarUltimoProventoCarteira(f){
   await carregarProventosCarteira(f);
 }
 
+async function loadRiscoCarteira(){
+  const cont=document.getElementById('risco-carteira-container');
+  if(!cont)return;
+  const ib=parseFloat((document.getElementById('risco-ibov')||{}).value||'-16');
+  cont.innerHTML='<p style="padding:10px;text-align:center">Calculando cenário...</p>';
+  try{
+    const r=await fetch(B+'/carteira/risco?ibov='+encodeURIComponent(isNaN(ib)?-16:ib));
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
+    const cor=v=>v<0?'var(--red,#e74c3c)':'var(--green,#2ecc71)';
+    const lin=d.posicoes.map(p=>`<tr>
+      <td style="padding:4px 8px;font-weight:700">${p.ticker}</td>
+      <td style="padding:4px 8px;color:var(--muted)">${p.tipo}</td>
+      <td style="padding:4px 8px;color:var(--muted)">${p.segmento}</td>
+      <td style="padding:4px 8px;text-align:right">${p.peso_pct.toFixed(1)}%</td>
+      <td style="padding:4px 8px;text-align:right" title="Retorno do papel em 26/10 dividido pelo do IBOV no mesmo dia">${p.beta_crise.toFixed(2)}</td>
+      <td style="padding:4px 8px;text-align:right;font-weight:700;color:${cor(p.choque_pct)}">${p.choque_pct>0?'+':''}${p.choque_pct.toFixed(1)}%</td>
+      <td style="padding:4px 8px;text-align:right">${p.queda_ate_kdo_pct!=null?p.queda_ate_kdo_pct.toFixed(1)+'%':'—'}</td>
+      <td style="padding:4px 8px;text-align:center;font-weight:700;color:${p.toca_kdo_no_cenario?'var(--red,#e74c3c)':'var(--muted)'}">${p.queda_ate_kdo_pct==null?'':(p.toca_kdo_no_cenario?'TOCA':'ok')}</td></tr>`).join('');
+    const grp=Object.entries(d.por_grupo_pct).map(([k,v])=>`<span style="margin-right:12px;color:${v>d.limite_grupo_pct?'var(--red,#e74c3c)':'inherit'};font-weight:${v>d.limite_grupo_pct?700:400}">${k}: ${v.toFixed(1)}%${v>d.limite_grupo_pct?' ⚠':''}</span>`).join('');
+    const seg=Object.entries(d.por_segmento_pct).map(([k,v])=>`${k} ${v.toFixed(1)}%`).join(' · ');
+    const ev=(d.proximos_eventos||[]).map(e=>`${e.data.split('-').reverse().join('/')} ${e.nome} (${e.impacto}${e.confirmar?', a confirmar':''})`).join(' · ');
+    cont.innerHTML=`<div style="border:1px solid var(--border);padding:10px;background:var(--bg3)">
+      <div style="font-weight:700;margin-bottom:6px">Cenário de crise: IBOV ${d.cenario.ibov_pct}% (repete o dia da eleição, escalado)</div>
+      <div style="margin-bottom:6px">Carteira (estruturas + papéis livres): <b style="color:var(--red,#e74c3c)">${d.perda_carteira_pct.toFixed(1)}%</b> · estruturas que tocam a KDO: <b>${d.estruturas_que_tocam} de ${d.estruturas_total}</b></div>
+      <div style="margin-bottom:6px"><b>Concentração por grupo</b> (limite de aviso ${d.limite_grupo_pct}%): ${grp}</div>
+      <div style="margin-bottom:8px;font-size:10px;color:var(--muted)">Por segmento: ${seg}</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)"><th style="padding:4px 8px">Papel</th><th style="padding:4px 8px">Tipo</th><th style="padding:4px 8px">Segmento</th><th style="padding:4px 8px;text-align:right">Peso</th><th style="padding:4px 8px;text-align:right">Beta crise</th><th style="padding:4px 8px;text-align:right">Choque</th><th style="padding:4px 8px;text-align:right">Queda até KDO</th><th style="padding:4px 8px">KDO</th></tr></thead><tbody>${lin}</tbody></table></div>
+      <div style="margin-top:8px;font-size:10px;color:var(--muted)">Próximos eventos: ${ev||'—'}<br>${d.nota} O beta de crise vem do que cada papel fez em 26/10; só informativo.</div></div>`;
+  }catch(e){cont.innerHTML=`<p style="padding:10px;color:var(--red,#e74c3c)">Falha ao calcular o cenário: ${e.message}</p>`;}
+}
+
 async function loadRankingPosicoes(tipo){
   const cont=document.getElementById('ranking-posicoes-container');
   if(!cont)return;
@@ -3841,6 +3873,9 @@ function tplRanking(d){
     const gapHtml=(r.pior_dia_10a_pct!=null&&r.queda_ate_barreira_pct!=null)
       ? `<br><span style="font-weight:600;font-size:10px;color:${r.alerta_gap==='vermelho'?'var(--red,#e74c3c)':(r.alerta_gap==='amarelo'?'#e6a817':'var(--muted)')}" title="Pior dia do papel em até 10 anos: ${r.pior_dia_10a_pct.toFixed(1)}% (${r.pior_dia_10a_data}). Para tocar a KDO o preço precisa cair ${r.queda_ate_barreira_pct.toFixed(1)}%. ${r.alerta_gap==='vermelho'?'VERMELHO: a queda necessária é menos da metade do pior dia — um dia ruim comum a esse papel já derruba a defesa.':(r.alerta_gap==='amarelo'?'AMARELO: a queda necessária é menor que o pior dia já visto — um único gap pode tocar a KDO.':'A defesa é maior que o pior dia já visto.')} Só aviso; não bloqueia.">${r.alerta_gap?'⚠ ':''}pior dia ${r.pior_dia_10a_pct.toFixed(1)}%</span>`
       : '';
+    const evHtml=(r.eventos_na_janela&&r.eventos_na_janela.length)
+      ? `<br><span style="font-size:10px;font-weight:600;color:${r.eventos_na_janela.some(e=>e.impacto==='alto')?'var(--red,#e74c3c)':'#e6a817'}" title="${r.eventos_na_janela.map(e=>e.data.split('-').reverse().join('/')+' '+e.nome+' ('+e.impacto+(e.confirmar?', data a confirmar':'')+')').join(' · ')}. Evento com data marcada dentro da janela: o risco não está só na volatilidade normal. Só aviso.">📅 ${r.eventos_na_janela.map(e=>e.nome.replace('Eleicoes legislativas EUA','Eleição EUA')+' '+e.data.slice(8)+'/'+e.data.slice(5,7)).join(' · ')}</span>`
+      : '';
     const _fx=(()=>{
       if(r.folga_barreira_pct==null||r.folga_pede_80_estresse_pct==null)return '';
       const lin=(alvo,pede)=>{
@@ -3851,7 +3886,7 @@ function tplRanking(d){
       return `<tr id="rk-fx-${r.id}" style="display:none"><td colspan="20" style="padding:6px 8px 10px 22px;font-size:11px;background:var(--bg3)"><div style="color:var(--muted);margin-bottom:3px">${r.ticker.replace('.SA','')} · ${r.dias_restantes}d · folga da oferta <b>${r.folga_barreira_pct.toFixed(1)}%</b> · estresse = vol 30d ${r.vol_30d_pct}% (modelo ${r.sigma_modelo_pct}%)</div>${lin(80,r.folga_pede_80_estresse_pct)}${lin(90,r.folga_pede_90_estresse_pct)}<div style="color:var(--muted);font-size:9px;margin-top:3px">Aproximação analítica. Só informativo: não altera a ordem do ranking.</div></td></tr>`;
     })();
     return `<tr id="rk-row-${r.id}">
-      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}${gapHtml}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}${gapHtml}${evHtml}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
        <td style="padding:6px 8px;text-align:right" title="Pelo prazo do CONTRATO (fixo). Equivalente se entrasse hoje: ${r.retorno_mensal_hoje_pct!=null?r.retorno_mensal_hoje_pct.toFixed(2):'—'}%/mês — só informativo: a oferta envelhece e deixa de existir poucos dias depois.">${r.retorno_mensal_pct.toFixed(2)}%</td>

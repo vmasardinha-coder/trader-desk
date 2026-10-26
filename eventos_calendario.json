@@ -1,0 +1,11 @@
+{
+ "_nota": "Backlog #40 (26/10/2026). Calendario de eventos de risco. Editavel a mao. impacto: alto | medio. confirmar=true -> data a conferir no calendario oficial.",
+ "eventos": [
+  {"data": "2026-10-28", "nome": "Fed (FOMC)", "impacto": "medio", "confirmar": false},
+  {"data": "2026-11-03", "nome": "Eleicoes legislativas EUA", "impacto": "medio", "confirmar": false},
+  {"data": "2026-11-04", "nome": "Copom", "impacto": "alto", "confirmar": false},
+  {"data": "2026-11-10", "nome": "IPCA (outubro)", "impacto": "medio", "confirmar": true},
+  {"data": "2026-12-09", "nome": "Copom", "impacto": "alto", "confirmar": true},
+  {"data": "2026-12-09", "nome": "Fed (FOMC)", "impacto": "medio", "confirmar": true}
+ ]
+}
