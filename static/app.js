@@ -3838,6 +3838,9 @@ function tplRanking(d){
     const farolHtml=r.farol_vol
       ? ` <span title="Regime de volatilidade: vol 30d = ${r.vol_30d_pct}% (modelo usa ${r.sigma_modelo_pct}%) · razão vol30/vol252 = ${r.razao_vol_30_252} → ${_fTxt[r.farol_vol]}. Verde &lt; 1,15 · amarelo 1,15–1,30 · vermelho &gt; 1,30. Esperar a razão voltar a &lt; ~1,15 reduz o risco de entrar." style="color:${_fCor[r.farol_vol]};cursor:pointer" onclick="document.getElementById('rk-fx-${r.id}').style.display=(document.getElementById('rk-fx-${r.id}').style.display==='none'?'table-row':'none')">●</span>`
       : '';
+    const gapHtml=(r.pior_dia_10a_pct!=null&&r.queda_ate_barreira_pct!=null)
+      ? `<br><span style="font-weight:600;font-size:10px;color:${r.alerta_gap==='vermelho'?'var(--red,#e74c3c)':(r.alerta_gap==='amarelo'?'#e6a817':'var(--muted)')}" title="Pior dia do papel em até 10 anos: ${r.pior_dia_10a_pct.toFixed(1)}% (${r.pior_dia_10a_data}). Para tocar a KDO o preço precisa cair ${r.queda_ate_barreira_pct.toFixed(1)}%. ${r.alerta_gap==='vermelho'?'VERMELHO: a queda necessária é menos da metade do pior dia — um dia ruim comum a esse papel já derruba a defesa.':(r.alerta_gap==='amarelo'?'AMARELO: a queda necessária é menor que o pior dia já visto — um único gap pode tocar a KDO.':'A defesa é maior que o pior dia já visto.')} Só aviso; não bloqueia.">${r.alerta_gap?'⚠ ':''}pior dia ${r.pior_dia_10a_pct.toFixed(1)}%</span>`
+      : '';
     const _fx=(()=>{
       if(r.folga_barreira_pct==null||r.folga_pede_80_estresse_pct==null)return '';
       const lin=(alvo,pede)=>{
@@ -3848,7 +3851,7 @@ function tplRanking(d){
       return `<tr id="rk-fx-${r.id}" style="display:none"><td colspan="20" style="padding:6px 8px 10px 22px;font-size:11px;background:var(--bg3)"><div style="color:var(--muted);margin-bottom:3px">${r.ticker.replace('.SA','')} · ${r.dias_restantes}d · folga da oferta <b>${r.folga_barreira_pct.toFixed(1)}%</b> · estresse = vol 30d ${r.vol_30d_pct}% (modelo ${r.sigma_modelo_pct}%)</div>${lin(80,r.folga_pede_80_estresse_pct)}${lin(90,r.folga_pede_90_estresse_pct)}<div style="color:var(--muted);font-size:9px;margin-top:3px">Aproximação analítica. Só informativo: não altera a ordem do ranking.</div></td></tr>`;
     })();
     return `<tr id="rk-row-${r.id}">
-      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}${gapHtml}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
        <td style="padding:6px 8px;text-align:right" title="Pelo prazo do CONTRATO (fixo). Equivalente se entrasse hoje: ${r.retorno_mensal_hoje_pct!=null?r.retorno_mensal_hoje_pct.toFixed(2):'—'}%/mês — só informativo: a oferta envelhece e deixa de existir poucos dias depois.">${r.retorno_mensal_pct.toFixed(2)}%</td>

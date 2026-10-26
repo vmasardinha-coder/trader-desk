@@ -4129,6 +4129,40 @@ def _folga_pede(sigma, dias, p_alvo):
         return None
 
 
+_PIOR_DIA_CACHE = {'mtime': None, 'dados': {}}
+
+def _pior_dia_10a(ticker):
+    """Backlog #38 (26/10/2026): maior queda em 1 pregao do papel em ate 10 anos, em %
+    (negativa), lida de pior_dia_10a.json (gerado por gerar_pior_dia.py). Devolve
+    {'pior_dia_pct', 'data', 'anos'} ou None. So informativo -- nao entra no score."""
+    try:
+        import os, json as _j
+        arq = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pior_dia_10a.json')
+        mt = os.path.getmtime(arq)
+        if _PIOR_DIA_CACHE['mtime'] != mt:
+            _PIOR_DIA_CACHE['dados'] = _j.load(open(arq, encoding='utf-8')).get('papeis', {})
+            _PIOR_DIA_CACHE['mtime'] = mt
+        tk = (ticker or '')
+        tk = tk if tk.endswith('.SA') else tk + '.SA'
+        return _PIOR_DIA_CACHE['dados'].get(tk)
+    except Exception:
+        return None
+
+
+def _alerta_gap(queda_ate_barreira_pct, pior_dia_pct):
+    """Backlog #39 (26/10/2026): compara a queda que leva o preco ate a barreira com o pior
+    dia do papel. 'vermelho' se a queda necessaria < metade do pior dia; 'amarelo' se
+    < pior dia; None caso contrario. So aviso -- nao bloqueia nada."""
+    if queda_ate_barreira_pct is None or pior_dia_pct is None:
+        return None
+    w = abs(pior_dia_pct)
+    if queda_ate_barreira_pct < w / 2:
+        return 'vermelho'
+    if queda_ate_barreira_pct < w:
+        return 'amarelo'
+    return None
+
+
 def _regime_vol(ticker):
     """Backlog #22 (09/10/2026): razao vol 30d / vol 252d do papel (cache 6 h).
     Devolve {'vol30': , 'razao': } ou None. Fechamentos de 1 ano (Yahoo)."""
@@ -6822,6 +6856,14 @@ def ranking_analises():
                 except Exception:
                     pass
 
+                # 26/10/2026 (backlog #38/#39): pior dia em 10 anos e alerta de gap.
+                # queda_ate_barreira = 1 - KDO/preco (em %); so retorno_controlado/bidirecional.
+                _pd = _pior_dia_10a(ticker)
+                _queda_bar = None
+                if folga_barreira_pct is not None and barreira_tipo == 'KDO':
+                    _queda_bar = round(folga_barreira_pct / (1 + folga_barreira_pct / 100), 2)
+                _alerta_g = _alerta_gap(_queda_bar, _pd['pior_dia_pct']) if _pd else None
+
                 # 07/10/2026 (backlog #2, decisao do Victor): o Fator historico
                 # ENTRA na ordenacao. score_final = score_base x Fator/100.
                 # Quem tem fama de romper aquela defesa naquele prazo desce.
@@ -6843,6 +6885,8 @@ def ranking_analises():
                     'id': a['id'], 'ticker': ticker, 'nome': a.get('nome'),
                     'barreira_valor': barreira_valor, 'barreira_tipo': barreira_tipo,
                     'folga_barreira_pct': folga_barreira_pct,
+                    'pior_dia_10a_pct': (_pd or {}).get('pior_dia_pct'), 'pior_dia_10a_data': (_pd or {}).get('data'),
+                    'queda_ate_barreira_pct': _queda_bar, 'alerta_gap': _alerta_g,
                     'tipo_estrutura': tipo, 'lote': a.get('lote'),
                     'backtest': a.get('backtest'),
                     'prob_meta_saltos_pct': prob_meta_saltos, 'saltos_por_ano': saltos_ano,
