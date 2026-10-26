@@ -157,94 +157,6 @@
       "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
     },
     {
-      "id": "tend33",
-      "ticker": "TEND3.SA",
-      "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-12-01",
-      "entry": 26.97,
-      "kdo": 21.58,
-      "kdo_pct": -20.0,
-      "vol_impl": 0.5,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-09-30",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 61.82,
-      "ganho_sem_barreira": "14.11% fixo",
-      "ganho_prefixado_pct": 14.11,
-      "rolagem_de": "cl-tend3-rolagem-out26",
-      "numeros_confirmados": true,
-      "observacao": "Segunda rolagem de melhora da TEND3, em 30/09/2026 (ver cl-tend3-rolagem-out26). KDO 22,42 -> 21,51, mesma estrutura, premio de 2,26% capturado em 5 dias. PROVISORIO: vencimento, ganho e entry aguardam o boleto.",
-      "prazo_dias": 63,
-      "strike": 30.82,
-      "quantidade": 1000,
-      "marcacao_mercado": {
-        "data": "2026-09-29",
-        "retorno_pct": 1.56,
-        "referencia_mtm": 28.33,
-        "fonte": "extrato oficial Itau 29/09/2026"
-      },
-      "historico_correcoes": [
-        {
-          "campo": "data_entrada",
-          "de": "2026-09-22",
-          "para": "2026-09-25",
-          "em": "2026-09-30T10:51:47",
-          "motivo": "extrato oficial Itau 29/09/2026"
-        },
-        {
-          "campo": "entry",
-          "de": 29.06,
-          "para": 28.06,
-          "em": "2026-09-30T10:51:47",
-          "motivo": "extrato oficial Itau 29/09/2026"
-        },
-        {
-          "campo": "strike",
-          "de": 33.16,
-          "para": 30.82,
-          "em": "2026-10-07",
-          "motivo": "extrato oficial Itau 07/10/2026"
-        },
-        {
-          "campo": "kdo",
-          "de": 21.51,
-          "para": 21.58,
-          "em": "2026-10-07",
-          "motivo": "extrato oficial Itau 07/10/2026"
-        },
-        {
-          "campo": "vencimento",
-          "de": "2026-11-27",
-          "para": "2026-12-02",
-          "em": "2026-10-07",
-          "motivo": "extrato oficial Itau 07/10/2026"
-        },
-        {
-          "campo": "entry",
-          "de": 28.06,
-          "para": 26.97,
-          "em": "2026-10-07",
-          "motivo": "entry = KDO oficial / (1 - defesa do boleto); defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10"
-        },
-        {
-          "campo": "vencimento",
-          "de": "2026-12-02",
-          "para": "2026-12-01",
-          "em": "2026-10-13",
-          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
-        }
-      ],
-      "aguardando_boleto": true,
-      "campos_provisorios": [
-        "ganho_prefixado_pct"
-      ],
-      "fonte_numeros": "extrato oficial Itau 07/10/2026 + defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10",
-      "protecao_pct": 20.0,
-      "entry_confirmado": true
-    },
-    {
       "id": "beef3",
       "ticker": "BEEF3.SA",
       "nome": "BEEF3 Retorno Controlado 63d (Lote 08/10/2026)",
@@ -313,70 +225,6 @@
       "quantidade": 6500
     },
     {
-      "id": "hype3",
-      "ticker": "HYPE3.SA",
-      "nome": "HYPE3",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-28",
-      "entry": 25.92,
-      "kdo": 22.83,
-      "kdo_pct": "-11.9%",
-      "vol_impl": 0.3236,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-10-13",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 93.88,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 95.19,
-      "ganho_sem_barreira": "2.12% fixo",
-      "ganho_prefixado_pct": 2.12,
-      "historico_correcoes": [
-        {
-          "campo": "entry",
-          "de": 25.86,
-          "para": 25.92,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "kdo",
-          "de": 22.71,
-          "para": 22.83,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "strike",
-          "de": null,
-          "para": 26.47,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 1900,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "ganho_prefixado_pct",
-          "de": 1.83,
-          "para": 2.12,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
-        }
-      ],
-      "strike": 26.47,
-      "quantidade": 1900,
-      "entry_confirmado": true,
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
-      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota"
-    },
-    {
       "id": "vbbr3",
       "ticker": "VBBR3.SA",
       "nome": "VBBR3",
@@ -441,85 +289,6 @@
       "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota"
     },
     {
-      "id": "igti11",
-      "ticker": "IGTI11.SA",
-      "nome": "IGTI11",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-28",
-      "entry": 32.23,
-      "kdo": 28.19,
-      "kdo_pct": "-12.5%",
-      "vol_impl": 0.3567,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-10-13",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 94.7,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 94.97,
-      "ganho_sem_barreira": "2.62% fixo",
-      "ganho_prefixado_pct": 2.62,
-      "historico_correcoes": [
-        {
-          "campo": "entry",
-          "de": 32.38,
-          "para": 32.23,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "kdo",
-          "de": 28.43,
-          "para": 28.34,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "strike",
-          "de": null,
-          "para": 33.12,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 1500,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "ganho_prefixado_pct",
-          "de": 2.65,
-          "para": 2.76,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "kdo/strike",
-          "de": "kdo 28.34 / strike 33.12",
-          "para": "kdo 28.19 / strike 32.95",
-          "em": "2026-10-19",
-          "motivo": "extrato oficial Itau 19/10/2026"
-        },
-        {
-          "campo": "ganho_prefixado_pct",
-          "de": 2.76,
-          "para": 2.62,
-          "em": "2026-10-20",
-          "motivo": "confirmado pelo Victor (2,62%); entry segue nao confirmado"
-        }
-      ],
-      "strike": 32.95,
-      "quantidade": 1500,
-      "entry_confirmado": true,
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
-      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota",
-      "observacao": " | 19/10/2026: KDO e strike corrigidos pelo extrato oficial (28.19 e 32.95). ATENCAO: entry (32.23) e ganho (2.76%) continuam do lote e NAO batem com o extrato (com o ganho de 2,70% dito pelo Victor, entry seria ~32.08). Confirmar no boleto."
-    },
-    {
       "id": "tsla34",
       "ticker": "TSLA34.SA",
       "nome": "TSLA34 Retorno Controlado 60d (Lote 19/10/2026 - rolagem)",
@@ -581,150 +350,6 @@
       "quantidade": 530,
       "numeros_confirmados": true,
       "aguardando_boleto": false
-    },
-    {
-      "id": "pomo43",
-      "ticker": "POMO4.SA",
-      "nome": "POMO4 Retorno Controlado 15d (Lote 22/10/2026 - rolagem)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-06",
-      "entry": 4.74,
-      "kdo": 4.17,
-      "kdo_pct": "-12.0%",
-      "vol_impl": 0.3931,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-10-22",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 93.23,
-      "motor_versao": 2,
-      "ganho_sem_barreira": "4.22% fixo",
-      "ganho_prefixado_pct": 4.22,
-      "strike": 4.94,
-      "entry_confirmado": true,
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878. Prazo contratado 15d: fixing 06/11 (sexta); a nota mostra liquidacao em 09/11 (proximo dia util). Probabilidade calculada ate o fixing.",
-      "quantidade": 10500,
-      "historico_correcoes": [
-        {
-          "campo": "entry",
-          "de": 4.73,
-          "para": 4.74,
-          "em": "2026-10-23",
-          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
-        },
-        {
-          "campo": "strike",
-          "de": 4.92,
-          "para": 4.94,
-          "em": "2026-10-23",
-          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
-        },
-        {
-          "campo": "kdo",
-          "de": 4.15,
-          "para": 4.17,
-          "em": "2026-10-23",
-          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
-        },
-        {
-          "campo": "vencimento",
-          "de": "2026-11-06",
-          "para": "2026-11-09",
-          "em": "2026-10-23",
-          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
-        },
-        {
-          "campo": "vencimento",
-          "de": "2026-11-09",
-          "para": "2026-11-06",
-          "em": "2026-10-23",
-          "motivo": "prazo contratado 15d corridos (fixing 06/11); 09/11 e a liquidacao da nota 2814; site contava 17 dias"
-        }
-      ],
-      "ganho_banco_pct": 4.0,
-      "fixing": "2026-11-06",
-      "prazo_dias": 15,
-      "liquidacao": "2026-11-09"
-    },
-    {
-      "id": "smal111",
-      "ticker": "SMAL11.SA",
-      "nome": "SMAL11 Retorno Controlado 15d (21/10/2026 - migracao da SMTO3)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-11-06",
-      "entry": 137.13,
-      "kdo": 120.08,
-      "kdo_pct": "-12.4%",
-      "vol_impl": 0.2679,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-10-21",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 98.17,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 97.88,
-      "ganho_sem_barreira": "4.92% fixo",
-      "ganho_prefixado_pct": 4.92,
-      "strike": 143.87,
-      "entry_confirmado": true,
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau.",
-      "historico_correcoes": [
-        {
-          "campo": "ganho_prefixado_pct",
-          "de": 5.1,
-          "para": 5.18,
-          "em": "2026-10-21",
-          "motivo": "informado pela mesa (5,18% de ganho, 12,2% de protecao); entry/quantidade ainda por nota"
-        },
-        {
-          "campo": "entry",
-          "de": 137.8,
-          "para": 136.76,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 300,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "strike",
-          "de": 144.94,
-          "para": 143.84,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "kdo",
-          "de": 120.99,
-          "para": 120.08,
-          "em": "2026-10-22",
-          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
-        },
-        {
-          "campo": "strike",
-          "de": 143.84,
-          "para": 143.87,
-          "em": "2026-10-22",
-          "motivo": "nota Itau 2573 (pregao 21/10): FPA/FCA 06/11, qtd 300, strike 143,87, KO 120,08"
-        },
-        {
-          "campo": "entry",
-          "de": 136.76,
-          "para": 137.13,
-          "em": "2026-10-22",
-          "motivo": "nota de corretagem Itau pregao 21/10: SMAL11 300 @ 137,13 (136,76 era o preco de tela); ganho efetivo 4,92% (strike 143,87), base banco 5,18%"
-        }
-      ],
-      "quantidade": 300,
-      "ganho_banco_pct": 5.18
     }
   ],
   "encerradas": [
@@ -1947,6 +1572,431 @@
       "ficou_com_papel": true,
       "aguardando_nota": true,
       "resultado_texto": "Opcoes encerradas antes do vencimento com sucesso (Victor, 26/10/2026); ficou com o papel livre. PROVISORIO: valor realizado das opcoes aguarda a nota/extrato."
+    },
+    {
+      "id": "tend33",
+      "ticker": "TEND3.SA",
+      "nome": "TEND3 (Tenda) Retorno Controlado - ROLAGEM 21/09/2026",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-12-01",
+      "entry": 26.97,
+      "kdo": 21.58,
+      "kdo_pct": -20.0,
+      "vol_impl": 0.5,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-09-30",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 61.82,
+      "ganho_sem_barreira": "14.11% fixo",
+      "ganho_prefixado_pct": 14.11,
+      "rolagem_de": "cl-tend3-rolagem-out26",
+      "numeros_confirmados": true,
+      "observacao": "Segunda rolagem de melhora da TEND3, em 30/09/2026 (ver cl-tend3-rolagem-out26). KDO 22,42 -> 21,51, mesma estrutura, premio de 2,26% capturado em 5 dias. PROVISORIO: vencimento, ganho e entry aguardam o boleto.",
+      "prazo_dias": 63,
+      "strike": 30.82,
+      "quantidade": 1000,
+      "marcacao_mercado": {
+        "data": "2026-09-29",
+        "retorno_pct": 1.56,
+        "referencia_mtm": 28.33,
+        "fonte": "extrato oficial Itau 29/09/2026"
+      },
+      "historico_correcoes": [
+        {
+          "campo": "data_entrada",
+          "de": "2026-09-22",
+          "para": "2026-09-25",
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 29.06,
+          "para": 28.06,
+          "em": "2026-09-30T10:51:47",
+          "motivo": "extrato oficial Itau 29/09/2026"
+        },
+        {
+          "campo": "strike",
+          "de": 33.16,
+          "para": 30.82,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 21.51,
+          "para": 21.58,
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-27",
+          "para": "2026-12-02",
+          "em": "2026-10-07",
+          "motivo": "extrato oficial Itau 07/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 28.06,
+          "para": 26.97,
+          "em": "2026-10-07",
+          "motivo": "entry = KDO oficial / (1 - defesa do boleto); defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-12-02",
+          "para": "2026-12-01",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
+        }
+      ],
+      "aguardando_boleto": true,
+      "campos_provisorios": [
+        "ganho_prefixado_pct"
+      ],
+      "fonte_numeros": "extrato oficial Itau 07/10/2026 + defesa 20% da estrutura de TEND3 (boleto 25/09, rolagem de mesma estrutura) + KDO do extrato 07/10",
+      "protecao_pct": 20.0,
+      "entry_confirmado": true,
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "data_toque": "2026-10-26",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 20.88,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+    },
+    {
+      "id": "pomo43",
+      "ticker": "POMO4.SA",
+      "nome": "POMO4 Retorno Controlado 15d (Lote 22/10/2026 - rolagem)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-06",
+      "entry": 4.74,
+      "kdo": 4.17,
+      "kdo_pct": "-12.0%",
+      "vol_impl": 0.3931,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-22",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 93.23,
+      "motor_versao": 2,
+      "ganho_sem_barreira": "4.22% fixo",
+      "ganho_prefixado_pct": 4.22,
+      "strike": 4.94,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "observacao": "Confirmado pela nota 2814 (22/10): venc 09/11, strike/KO acima. Entry = preco medio pago das acoes (nota 13/10 + 100 a mais em 22/10); base do banco = KO/0,878. Prazo contratado 15d: fixing 06/11 (sexta); a nota mostra liquidacao em 09/11 (proximo dia util). Probabilidade calculada ate o fixing.",
+      "quantidade": 10500,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 4.73,
+          "para": 4.74,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "strike",
+          "de": 4.92,
+          "para": 4.94,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "kdo",
+          "de": 4.15,
+          "para": 4.17,
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-06",
+          "para": "2026-11-09",
+          "em": "2026-10-23",
+          "motivo": "nota Itau 2814 (22/10/2026, FPA/FCA abertura venc 09/11) + nota renda variavel 22/10 (100 acoes a mais)"
+        },
+        {
+          "campo": "vencimento",
+          "de": "2026-11-09",
+          "para": "2026-11-06",
+          "em": "2026-10-23",
+          "motivo": "prazo contratado 15d corridos (fixing 06/11); 09/11 e a liquidacao da nota 2814; site contava 17 dias"
+        }
+      ],
+      "ganho_banco_pct": 4.0,
+      "fixing": "2026-11-06",
+      "prazo_dias": 15,
+      "liquidacao": "2026-11-09",
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "data_toque": "2026-10-26",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 4.09,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+    },
+    {
+      "id": "hype3",
+      "ticker": "HYPE3.SA",
+      "nome": "HYPE3",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-28",
+      "entry": 25.92,
+      "kdo": 22.83,
+      "kdo_pct": "-11.9%",
+      "vol_impl": 0.3236,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-13",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 93.88,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 95.19,
+      "ganho_sem_barreira": "2.12% fixo",
+      "ganho_prefixado_pct": 2.12,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 25.86,
+          "para": 25.92,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "kdo",
+          "de": 22.71,
+          "para": 22.83,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "strike",
+          "de": null,
+          "para": 26.47,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 1900,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 1.83,
+          "para": 2.12,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.900 @ 25,92; 1665 FPA/FCA: strike, KO down, qtd)"
+        }
+      ],
+      "strike": 26.47,
+      "quantidade": 1900,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
+      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota",
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "data_toque": "2026-10-26",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 20.56,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+    },
+    {
+      "id": "igti11",
+      "ticker": "IGTI11.SA",
+      "nome": "IGTI11",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-28",
+      "entry": 32.23,
+      "kdo": 28.19,
+      "kdo_pct": "-12.5%",
+      "vol_impl": 0.3567,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-13",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 94.7,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 94.97,
+      "ganho_sem_barreira": "2.62% fixo",
+      "ganho_prefixado_pct": 2.62,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 32.38,
+          "para": 32.23,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "kdo",
+          "de": 28.43,
+          "para": 28.34,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "strike",
+          "de": null,
+          "para": 33.12,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 1500,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 2.65,
+          "para": 2.76,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.500 @ 32,23 (100 + 1.400); 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "kdo/strike",
+          "de": "kdo 28.34 / strike 33.12",
+          "para": "kdo 28.19 / strike 32.95",
+          "em": "2026-10-19",
+          "motivo": "extrato oficial Itau 19/10/2026"
+        },
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 2.76,
+          "para": 2.62,
+          "em": "2026-10-20",
+          "motivo": "confirmado pelo Victor (2,62%); entry segue nao confirmado"
+        }
+      ],
+      "strike": 32.95,
+      "quantidade": 1500,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
+      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota",
+      "observacao": " | 19/10/2026: KDO e strike corrigidos pelo extrato oficial (28.19 e 32.95). ATENCAO: entry (32.23) e ganho (2.76%) continuam do lote e NAO batem com o extrato (com o ganho de 2,70% dito pelo Victor, entry seria ~32.08). Confirmar no boleto.",
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "data_toque": "2026-10-26",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 24.51,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
+    },
+    {
+      "id": "smal111",
+      "ticker": "SMAL11.SA",
+      "nome": "SMAL11 Retorno Controlado 15d (21/10/2026 - migracao da SMTO3)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-11-06",
+      "entry": 137.13,
+      "kdo": 120.08,
+      "kdo_pct": "-12.4%",
+      "vol_impl": 0.2679,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-21",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 98.17,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.88,
+      "ganho_sem_barreira": "4.92% fixo",
+      "ganho_prefixado_pct": 4.92,
+      "strike": 143.87,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "observacao": "PROVISORIO (21/10/2026): mesmas caracteristicas da rolagem anterior (ganho, defesa 12,2%, 15 dias), entry = preco de tela, vencimento estimado. Ajustar pelas notas do Itau.",
+      "historico_correcoes": [
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 5.1,
+          "para": 5.18,
+          "em": "2026-10-21",
+          "motivo": "informado pela mesa (5,18% de ganho, 12,2% de protecao); entry/quantidade ainda por nota"
+        },
+        {
+          "campo": "entry",
+          "de": 137.8,
+          "para": 136.76,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 300,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "strike",
+          "de": 144.94,
+          "para": 143.84,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "kdo",
+          "de": 120.99,
+          "para": 120.08,
+          "em": "2026-10-22",
+          "motivo": "execucao home broker 21/10 13:58: compra 300 a mercado, preco medio R$136,76; strike/KO derivados (ganho 5,18%, defesa 12,2%) ate a nota"
+        },
+        {
+          "campo": "strike",
+          "de": 143.84,
+          "para": 143.87,
+          "em": "2026-10-22",
+          "motivo": "nota Itau 2573 (pregao 21/10): FPA/FCA 06/11, qtd 300, strike 143,87, KO 120,08"
+        },
+        {
+          "campo": "entry",
+          "de": 136.76,
+          "para": 137.13,
+          "em": "2026-10-22",
+          "motivo": "nota de corretagem Itau pregao 21/10: SMAL11 300 @ 137,13 (136,76 era o preco de tela); ganho efetivo 4,92% (strike 143,87), base banco 5,18%"
+        }
+      ],
+      "quantidade": 300,
+      "ganho_banco_pct": 5.18,
+      "status": "encerrada",
+      "data_encerramento": "2026-10-26",
+      "data_toque": "2026-10-26",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 99.84,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota."
     }
   ]
 }
