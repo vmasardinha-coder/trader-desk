@@ -2333,6 +2333,36 @@ def _ganho_contrato_posicao(p):
     except Exception:
         return {'ganho_contrato_pct': None, 'prazo_contrato_dias': None, 'ganho_contrato_mes_pct': None}
 
+@app.route('/carteira/recuperacao', methods=['GET'])
+def rota_carteira_recuperacao():
+    """Backlog #44 (26/10/2026): progresso da recuperacao dos papeis acompanhados (em %)."""
+    try:
+        import risco_carteira as _rc
+        r = _raw_repo_get('positions.json')
+        if not r.ok:
+            return jsonify({'error': 'positions.json indisponivel'}), 500
+        return jsonify(_rc.recuperacao(r.json()))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/carteira/calls-cobertas', methods=['GET'])
+def rota_carteira_calls_cobertas():
+    """Backlog #44 (26/10/2026): estudo de call coberta (premio teorico) nos papeis livres."""
+    try:
+        import risco_carteira as _rc
+        r = _raw_repo_get('positions.json')
+        if not r.ok:
+            return jsonify({'error': 'positions.json indisponivel'}), 500
+        try:
+            dias = int(request.args.get('dias', '15'))
+        except Exception:
+            dias = 15
+        return jsonify(_rc.calls_cobertas(r.json(), dias))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/carteira/risco', methods=['GET'])
 def rota_carteira_risco():
     """Backlog #40/#41/#43 (26/10/2026): cenario de crise da carteira, concentracao por
