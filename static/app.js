@@ -958,46 +958,6 @@ async function loadRiscoCarteira(){
   }catch(e){cont.innerHTML=`<p style="padding:10px;color:var(--red,#e74c3c)">Falha ao calcular o cenário: ${e.message}</p>`;}
 }
 
-async function loadRecuperacao(){
-  const cont=document.getElementById('risco-carteira-container');
-  if(!cont)return;
-  cont.innerHTML='<p style="padding:10px;text-align:center">Calculando recuperação...</p>';
-  try{
-    const r=await fetch(B+'/carteira/recuperacao');const d=await r.json();
-    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
-    const c=d.carteira_acompanhada;
-    const pc=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
-    const barra=v=>`<div style="background:var(--bg);border:1px solid var(--border);height:8px;width:90px;display:inline-block;vertical-align:middle"><div style="background:var(--green,#2ecc71);height:8px;width:${Math.max(0,Math.min(100,v||0))}%"></div></div>`;
-    const lin=d.posicoes.map(p=>`<tr><td style="padding:4px 8px;font-weight:700">${p.ticker}</td><td style="padding:4px 8px;color:var(--muted)">${p.tipo}</td>
-      <td style="padding:4px 8px;text-align:right">${pc(p.preco_medio_vs_hoje_pct)}</td>
-      <td style="padding:4px 8px;text-align:right">${pc(p.queda_26_10_vs_medio_pct)}</td>
-      <td style="padding:4px 8px;text-align:right">${p.recuperado_pct==null?'—':p.recuperado_pct.toFixed(1)+'%'} ${p.recuperado_pct==null?'':barra(p.recuperado_pct)}</td>
-      <td style="padding:4px 8px;text-align:right">${p.faltam_ate_medio_pct>0?'+'+p.faltam_ate_medio_pct.toFixed(1)+'%':'no médio'}</td></tr>`).join('');
-    cont.innerHTML=`<div style="border:1px solid var(--border);padding:10px;background:var(--bg3)">
-      <div style="font-weight:700;margin-bottom:6px">Recuperação desde o fechamento de 26/10</div>
-      <div style="margin-bottom:8px">Carteira acompanhada: perda em 26/10 <b style="color:var(--red,#e74c3c)">${pc(c.perda_26_10_pct_do_custo)}</b> do custo · hoje <b>${pc(c.perda_agora_pct_do_custo)}</b> · <b>${c.recuperado_pct_da_perda==null?'—':c.recuperado_pct_da_perda.toFixed(1)+'%'}</b> da perda recuperada ${barra(c.recuperado_pct_da_perda)}</div>
-      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)"><th style="padding:4px 8px">Papel</th><th style="padding:4px 8px">Tipo</th><th style="padding:4px 8px;text-align:right">Hoje vs médio</th><th style="padding:4px 8px;text-align:right">26/10 vs médio</th><th style="padding:4px 8px;text-align:right">Recuperado</th><th style="padding:4px 8px;text-align:right">Falta p/ o médio</th></tr></thead><tbody>${lin}</tbody></table></div>
-      <div style="margin-top:8px;font-size:10px;color:var(--muted)">${d.nota}</div></div>`;
-  }catch(e){cont.innerHTML=`<p style="padding:10px;color:var(--red,#e74c3c)">Falha: ${e.message}</p>`;}
-}
-
-async function loadCallsCobertas(){
-  const cont=document.getElementById('risco-carteira-container');
-  if(!cont)return;
-  cont.innerHTML='<p style="padding:10px;text-align:center">Calculando prêmios teóricos...</p>';
-  try{
-    const r=await fetch(B+'/carteira/calls-cobertas?dias=15');const d=await r.json();
-    if(!r.ok||d.error)throw new Error(d.error||('HTTP '+r.status));
-    const corRes=v=>v>=0?'var(--green,#2ecc71)':'var(--red,#e74c3c)';
-    const blocos=d.papeis.map(p=>`<tr style="border-top:1px solid var(--border)"><td colspan="6" style="padding:6px 8px;font-weight:700">${p.ticker} <span style="font-weight:400;color:var(--muted)">preço ${p.preco.toFixed(2)} · médio ${p.preco_medio.toFixed(2)} · vol usada ${p.vol_usada_pct}%${p.vol_com_choque_pct?' (com o choque: '+p.vol_com_choque_pct+'%)':''}</span></td></tr>`
-      +p.strikes.map(x=>`<tr><td style="padding:2px 8px 2px 22px;color:var(--muted)">${x.strike_acima_do_preco_pct===0?'no preço':'+'+x.strike_acima_do_preco_pct+'%'}</td><td style="padding:2px 8px;text-align:right">${x.strike.toFixed(2)}</td><td style="padding:2px 8px;text-align:right;font-weight:700">${x.premio_teorico_pct.toFixed(2)}%</td><td style="padding:2px 8px;text-align:right">${x.chance_exercicio_pct.toFixed(0)}%</td><td style="padding:2px 8px;text-align:right;font-weight:700;color:${corRes(x.se_exercida_vs_medio_pct)}">${x.se_exercida_vs_medio_pct>0?'+':''}${x.se_exercida_vs_medio_pct.toFixed(1)}%</td><td></td></tr>`).join('')).join('');
-    cont.innerHTML=`<div style="border:1px solid var(--border);padding:10px;background:var(--bg3)">
-      <div style="font-weight:700;margin-bottom:6px">Call coberta de ${d.dias} dias nos papéis livres (estudo, prêmio teórico)</div>
-      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:var(--muted);text-align:left"><th style="padding:4px 8px">Strike</th><th style="padding:4px 8px;text-align:right">Valor</th><th style="padding:4px 8px;text-align:right">Prêmio (% do preço)</th><th style="padding:4px 8px;text-align:right">Chance de exercício</th><th style="padding:4px 8px;text-align:right">Se exercida vs médio (c/ prêmio)</th><th></th></tr></thead><tbody>${blocos}</tbody></table></div>
-      <div style="margin-top:8px;font-size:10px;color:var(--muted)">${d.nota}</div></div>`;
-  }catch(e){cont.innerHTML=`<p style="padding:10px;color:var(--red,#e74c3c)">Falha: ${e.message}</p>`;}
-}
-
 async function loadRankingPosicoes(tipo){
   const cont=document.getElementById('ranking-posicoes-container');
   if(!cont)return;
