@@ -4712,6 +4712,28 @@ def rota_arquivar_analises():
         return jsonify({'error': str(e)}), 500
 
 
+
+_TRACK_HIP_LOCK = None
+
+def _tracking_hip_aquecer():
+    """Calcula o tracking hipotetico em segundo plano e guarda no cache (28/10/2026)."""
+    import threading as _th, time as _tm
+    global _TRACK_HIP_LOCK
+    if _TRACK_HIP_LOCK is None:
+        _TRACK_HIP_LOCK = _th.Lock()
+    if not _TRACK_HIP_LOCK.acquire(blocking=False):
+        return
+    def _run():
+        try:
+            res = _tracking_hip_calcular(_ler_json_raw('analises.json'),
+                                         _ler_json_raw('analises_arquivo.json'))
+            globals()['_TRACK_HIP_CACHE'] = (_tm.time(), res)
+        except Exception:
+            pass
+        finally:
+            _TRACK_HIP_LOCK.release()
+    _th.Thread(target=_run, daemon=True).start()
+
 @app.route('/analises/tracking-hipotetico', methods=['GET'])
 def tracking_hipotetico_previsoes():
     """
@@ -4747,14 +4769,24 @@ def tracking_hipotetico_previsoes():
         # CACHE 13/10/2026: com lote novo vencendo, o calculo busca preco no
         # Yahoo de cada analise nova e passava de 20 s -- o painel de
         # Encerradas desistia ("tracker nao respondeu"). Resultado fica 30 min.
+        # ATUALIZADO 28/10/2026: o calculo a frio passa de 60 s e o gateway da
+        # Render devolvia 502 (painel de Encerradas: "tracker nao respondeu").
+        # Agora o calculo roda em segundo plano: a rota devolve na hora o ultimo
+        # resultado guardado (mesmo vencido) e atualiza por tras; sem nada
+        # guardado ainda, devolve 503 'calculando' em vez de pendurar a conexao.
         import time as _tm
         c = globals().get('_TRACK_HIP_CACHE')
-        if c and _tm.time() - c[0] < 1800 and request.args.get('fresh') != '1':
+        if request.args.get('fresh') == '1':
+            res = _tracking_hip_calcular(_ler_json_raw('analises.json'),
+                                         _ler_json_raw('analises_arquivo.json'))
+            globals()['_TRACK_HIP_CACHE'] = (_tm.time(), res)
+            return jsonify(res)
+        if c and _tm.time() - c[0] < 1800:
             return jsonify(c[1])
-        res = _tracking_hip_calcular(_ler_json_raw('analises.json'),
-                                     _ler_json_raw('analises_arquivo.json'))
-        globals()['_TRACK_HIP_CACHE'] = (_tm.time(), res)
-        return jsonify(res)
+        _tracking_hip_aquecer()
+        if c:
+            return jsonify(c[1])
+        return jsonify({'error': 'calculando', 'aguarde_segundos': 60}), 503
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -8275,6 +8307,14 @@ def rota_prewarm_status():
 if __import__('os').environ.get('RENDER') and not __import__('os').environ.get('RANK_PREWARM_OFF'):
     __import__('threading').Thread(target=_prewarm_ranking_loop, daemon=True).start()
 
+
+# Aquecimento do tracking hipotetico logo apos subir o servidor (28/10/2026):
+# o primeiro acesso a frio nao fica pendurado esperando o calculo.
+try:
+    import threading as _thw
+    _t = _thw.Timer(25, _tracking_hip_aquecer); _t.daemon = True; _t.start()
+except Exception:
+    pass
 
 if __name__=='__main__':
     app.run(debug=False,host='0.0.0.0',port=int(__import__('os').environ.get('PORT',5000)))
