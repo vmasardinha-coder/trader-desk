@@ -4786,6 +4786,14 @@ def tracking_hipotetico_previsoes():
         _tracking_hip_aquecer()
         if c:
             return jsonify(c[1])
+        # cache frio (deploy/reinicio): entrega o arquivo-base do repositorio na hora
+        try:
+            import os as _os
+            _sp = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'tracking_hipotetico_snapshot.json')
+            with open(_sp, encoding='utf-8') as _f:
+                return jsonify(json.load(_f))
+        except Exception:
+            pass
         return jsonify({'error': 'calculando', 'aguarde_segundos': 60}), 503
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -1549,8 +1549,8 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 20.88,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "aguardando_nota": false,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "realizado_pct": -22.58,
       "encerramento_antecipado": false,
       "alvo_pct": 14.11,
@@ -1560,10 +1560,11 @@
         "referencia_pct": 0.97,
         "referencia": "CDI de ~1.12%/mes no periodo 30/09 a 26/10/2026 (26 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -22.58% vs a entrada. Realizado = queda do papel no toque (marcacao PROVISORIA; o resultado final depende do preco em que o papel for vendido e vem na nota).",
+        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -22.58% vs a entrada. Realizado = queda do papel no toque (papel mantido, sem venda e sem nota; vira resultado so quando o papel for vendido).",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     },
     {
       "id": "pomo43",
@@ -1638,8 +1639,8 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 4.09,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "aguardando_nota": false,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "realizado_pct": -13.71,
       "encerramento_antecipado": false,
       "alvo_pct": 4.22,
@@ -1649,10 +1650,11 @@
         "referencia_pct": 0.15,
         "referencia": "CDI de ~1.12%/mes no periodo 22/10 a 26/10/2026 (4 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -13.71% vs a entrada. Realizado = queda do papel no toque (marcacao PROVISORIA; o resultado final depende do preco em que o papel for vendido e vem na nota).",
+        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -13.71% vs a entrada. Realizado = queda do papel no toque (papel mantido, sem venda e sem nota; vira resultado so quando o papel for vendido).",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     },
     {
       "id": "hype3",
@@ -1725,8 +1727,8 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 20.56,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "aguardando_nota": false,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "realizado_pct": -20.68,
       "encerramento_antecipado": false,
       "alvo_pct": 2.12,
@@ -1736,10 +1738,11 @@
         "referencia_pct": 0.49,
         "referencia": "CDI de ~1.12%/mes no periodo 13/10 a 26/10/2026 (13 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -20.68% vs a entrada. Realizado = queda do papel no toque (marcacao PROVISORIA; o resultado final depende do preco em que o papel for vendido e vem na nota).",
+        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -20.68% vs a entrada. Realizado = queda do papel no toque (papel mantido, sem venda e sem nota; vira resultado so quando o papel for vendido).",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     },
     {
       "id": "igti11",
@@ -1827,8 +1830,8 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 24.51,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "aguardando_nota": false,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "realizado_pct": -23.95,
       "encerramento_antecipado": false,
       "alvo_pct": 2.62,
@@ -1838,10 +1841,11 @@
         "referencia_pct": 0.49,
         "referencia": "CDI de ~1.12%/mes no periodo 13/10 a 26/10/2026 (13 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -23.95% vs a entrada. Realizado = queda do papel no toque (marcacao PROVISORIA; o resultado final depende do preco em que o papel for vendido e vem na nota).",
+        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -23.95% vs a entrada. Realizado = queda do papel no toque (papel mantido, sem venda e sem nota; vira resultado so quando o papel for vendido).",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     },
     {
       "id": "smal111",
@@ -1928,8 +1932,8 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 99.84,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "aguardando_nota": false,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "realizado_pct": -27.19,
       "encerramento_antecipado": false,
       "alvo_pct": 4.92,
@@ -1939,10 +1943,11 @@
         "referencia_pct": 0.19,
         "referencia": "CDI de ~1.12%/mes no periodo 21/10 a 26/10/2026 (5 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -27.19% vs a entrada. Realizado = queda do papel no toque (marcacao PROVISORIA; o resultado final depende do preco em que o papel for vendido e vem na nota).",
+        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -27.19% vs a entrada. Realizado = queda do papel no toque (papel mantido, sem venda e sem nota; vira resultado so quando o papel for vendido).",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     },
     {
       "id": "beef3",
@@ -2019,9 +2024,9 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 3.19,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
+      "aguardando_nota": false,
       "realizado_pct": -27.66,
-      "resultado_texto": "Fracasso por toque da KDO no fechamento de 27/10/2026 (3,19 contra KDO 3,30; sobreviveu ao fechamento de 26/10 com 3,32). Causa: evento politico (eleicao de 25/10, IBOV -13,9%, dolar +9%) -- cisne negro. Victor fica com o papel. Preco aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 27/10/2026 (3,19 contra KDO 3,30; sobreviveu ao fechamento de 26/10 com 3,32). Causa: evento politico (eleicao de 25/10, IBOV -13,9%, dolar +9%) -- cisne negro. Victor fica com o papel. Preco aproximado (Yahoo 17:00); Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "encerramento_antecipado": false,
       "alvo_pct": 7.9,
       "papel_retorno_pct": -27.66,
@@ -2030,10 +2035,11 @@
         "referencia_pct": 0.71,
         "referencia": "CDI de ~1.12%/mes no periodo 08/10 a 27/10/2026 (19 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -27.66% vs a entrada. Realizado = queda do papel no toque (marcacao PROVISORIA; o resultado final depende do preco em que o papel for vendido e vem na nota).",
+        "nota": "Toque da KDO por evento politico (cisne negro): perdeu o ganho fixo e ficou com o papel, que fechou -27.66% vs a entrada. Realizado = queda do papel no toque (papel mantido, sem venda e sem nota; vira resultado so quando o papel for vendido).",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     },
     {
       "id": "vbbr3",
@@ -2106,21 +2112,22 @@
       "causa_fracasso": "evento_politico_cisne_negro",
       "preco_fechamento_toque": 30.66,
       "ficou_com_papel": true,
-      "aguardando_nota": true,
+      "aguardando_nota": false,
       "realizado_pct": -16.0,
       "alvo_pct": 1.86,
       "encerramento_antecipado": false,
       "papel_retorno_pct": -16.0,
-      "resultado_texto": "Fracasso por toque da KDO (32,13) no fechamento de 28/10/2026 (30,66; sobrevivera ao fechamento de 27/10 com 32,18). Causa: queda da bolsa pos-eleicao. Victor fica com o papel; valores aguardam a nota.",
+      "resultado_texto": "Fracasso por toque da KDO (32,13) no fechamento de 28/10/2026 (30,66; sobrevivera ao fechamento de 27/10 com 32,18). Causa: queda da bolsa pos-eleicao. Victor fica com o papel. Sem venda do papel, nao ha nota: realizado = queda do papel no toque.",
       "resultado_vs_referencia": {
         "realizado_pct": -16.0,
         "referencia_pct": 0.56,
         "referencia": "CDI de ~1,12%/mes no periodo (15 dias)",
         "razao_pct": null,
-        "nota": "Toque da KDO (32,13) no fechamento de 28/10/2026 (30,66, Yahoo 17:00). Ficou com o papel (-16.0% vs a entrada). Realizado = queda do papel no toque; resultado final depende da venda e vem na nota.",
+        "nota": "Toque da KDO (32,13) no fechamento de 28/10/2026 (30,66, Yahoo 17:00). Ficou com o papel (-16.0% vs a entrada). Realizado = queda do papel no toque; papel mantido, sem venda e sem nota.",
         "preenchido_em": "2026-10-28",
-        "fonte": "registro de 28/10; ratificar com a nota"
-      }
+        "fonte": "confirmado pelo Victor em 28/10 (papel mantido, sem nota)"
+      },
+      "papel_mantido_sem_venda": true
     }
   ]
 }
