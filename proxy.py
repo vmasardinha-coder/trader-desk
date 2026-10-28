@@ -5293,6 +5293,10 @@ def _resumo_encerradas():
     ant = sum(1 for x in enc if x.get('encerramento_antecipado'))
     linhas = []
     for x in enc:
+        # 28/10/2026: toque de KDO nao e saida antecipada -- nao tem giro. O
+        # realizado dele (queda do papel) aparece em 'Nos fracassos', nao aqui.
+        if x.get('motivo_encerramento') == 'toque_kdo':
+            continue
         alvo, real = x.get('alvo_pct'), x.get('realizado_pct')
         de = x.get('data_entrada')
         vo = x.get('vencimento_original') or x.get('vencimento')
@@ -5431,7 +5435,7 @@ def _resumo_encerradas():
         'nota_parcial': "'parcial' conta como fracasso (decisao do Victor, 23/09/2026)",
         'nota_giro': 'giro = (% do lucro capturado) / (% do prazo consumido). Acima de 1, sair antes rendeu mais por unidade de tempo.',
         'tabela_giro': linhas,
-        'nota_fracassos': 'Nenhum fracasso foi perda de capital -- todos foram perda de oportunidade (abaixo do CDI ou abaixo da diretriz).',
+        'nota_fracassos': 'Ate 25/10/2026 nenhum fracasso foi perda de capital (perda de oportunidade). Os toques de KDO de 26-28/10/2026 (cisne negro) FORAM perda: realizado = queda do papel no toque, provisorio ate a nota.',
         'tabela_fracassos': perdas,
         'nota_giro_rolagem': ('Rolagem tambem e giro: prorrogar antes do prazo captura valor por unidade de '
                               'tempo, igual a sair antes. ganho_por_pct_de_prazo = ganho total (strike+premio) '
