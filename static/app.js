@@ -4332,8 +4332,8 @@ async function preencherPaineisHipotetico(){
     </div>`;
   }else if(elR){ elR.innerHTML=''; }
   if(elR&&h.custo_oportunidade){ elR.innerHTML+=renderCustoOp(h.custo_oportunidade); }
-  // 22/10/2026: card 'Calibracao por faixa' removido da tela a pedido do Victor (a rota ainda devolve o dado).
-  if(false&&elC&&(h.calibracao_por_faixa||[]).length){
+  // 28/10/2026: card 'Calibracao por faixa' VOLTOU a pedido do Victor (quando a previsao e 50%, quanto acerta, por faixa).
+  if(elC&&(h.calibracao_por_faixa||[]).length){
     elC.innerHTML=`<div class="card" style="margin-bottom:16px;overflow-x:auto">
       <div class="cl">🎯 Calibração por faixa de probabilidade <span style="font-size:9px;color:var(--muted);font-weight:400">(${h.total_avaliadas} rejeitadas já vencidas · ${h.taxa_acerto_binario_pct}% de acerto)</span></div>
       <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
