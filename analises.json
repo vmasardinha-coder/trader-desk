@@ -160213,7 +160213,7 @@
     "ticker": "SLCE3.SA",
     "nome": "SLCE3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 18.03,
     "kdo": 15.83,
@@ -160246,7 +160246,15 @@
       "freq_rompimento_hist_pct": 3.0,
       "fator": 78.1
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.52% em 15 dias = 3.081%/mes. Prob 98.18% (GARCH 27.2%; planilha dizia 99.7%), EV 2.495%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 12.2%, ganho 1.52% em 15 dias = 3.081%/mes. Prob 98.18% (GARCH 27.2%; planilha dizia 99.7%), EV 2.495%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-10-28",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "ev_mensal_na_rejeicao": 2.604,
+    "score_na_rejeicao": 10.0564,
+    "prob_meta_na_rejeicao": 100,
+    "preco_encerramento": 17.09
   },
   {
     "id": "an_1791900002",
