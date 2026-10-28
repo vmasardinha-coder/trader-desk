@@ -157,70 +157,6 @@
       "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
     },
     {
-      "id": "vbbr3",
-      "ticker": "VBBR3.SA",
-      "nome": "VBBR3",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "vencimento": "2026-10-28",
-      "entry": 36.5,
-      "kdo": 32.13,
-      "kdo_pct": "-12.0%",
-      "vol_impl": 0.2835,
-      "vol_impl_fonte": "garch",
-      "data_entrada": "2026-10-13",
-      "exercicio": "europeia",
-      "prob_sucesso_prevista_pct": 97.2,
-      "motor_versao": 2,
-      "prob_sucesso_saltos_pct": 97.04,
-      "ganho_sem_barreira": "1.86% fixo",
-      "ganho_prefixado_pct": 1.86,
-      "historico_correcoes": [
-        {
-          "campo": "entry",
-          "de": 36.41,
-          "para": 36.5,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "kdo",
-          "de": 31.97,
-          "para": 32.13,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "strike",
-          "de": null,
-          "para": 37.18,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 1300,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
-        },
-        {
-          "campo": "ganho_prefixado_pct",
-          "de": 1.63,
-          "para": 1.86,
-          "em": "2026-10-14",
-          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
-        }
-      ],
-      "strike": 37.18,
-      "quantidade": 1300,
-      "entry_confirmado": true,
-      "numeros_confirmados": true,
-      "aguardando_boleto": false,
-      "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
-      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota"
-    },
-    {
       "id": "tsla34",
       "ticker": "TSLA34.SA",
       "nome": "TSLA34 Retorno Controlado 60d (Lote 19/10/2026 - rolagem)",
@@ -2097,6 +2033,93 @@
         "nota": "Toque da KDO por evento politico (cisne negro, 26-27/10/2026): perdeu o ganho fixo e ficou com o papel, que fechou -27.66% vs a entrada. Perda de capital depende do preco de saida do papel. PROVISORIO ate a nota.",
         "preenchido_em": "2026-10-28",
         "fonte": "registro de 28/10; CDI aproximado, ratificar com a nota"
+      }
+    },
+    {
+      "id": "vbbr3",
+      "ticker": "VBBR3.SA",
+      "nome": "VBBR3",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "vencimento": "2026-10-28",
+      "entry": 36.5,
+      "kdo": 32.13,
+      "kdo_pct": "-12.0%",
+      "vol_impl": 0.2835,
+      "vol_impl_fonte": "garch",
+      "data_entrada": "2026-10-13",
+      "exercicio": "europeia",
+      "prob_sucesso_prevista_pct": 97.2,
+      "motor_versao": 2,
+      "prob_sucesso_saltos_pct": 97.04,
+      "ganho_sem_barreira": "1.86% fixo",
+      "ganho_prefixado_pct": 1.86,
+      "historico_correcoes": [
+        {
+          "campo": "entry",
+          "de": 36.41,
+          "para": 36.5,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "kdo",
+          "de": 31.97,
+          "para": 32.13,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "strike",
+          "de": null,
+          "para": 37.18,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 1300,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
+        },
+        {
+          "campo": "ganho_prefixado_pct",
+          "de": 1.63,
+          "para": 1.86,
+          "em": "2026-10-14",
+          "motivo": "nota Itau 13/10/2026 (155441 compra a vista: 1.300 @ 36,50; 1665 FPA/FCA: strike, KO down, qtd)"
+        }
+      ],
+      "strike": 37.18,
+      "quantidade": 1300,
+      "entry_confirmado": true,
+      "numeros_confirmados": true,
+      "aguardando_boleto": false,
+      "fonte_numeros": "notas Itau 13/10/2026: 155441 (compras a vista), 1665 (FPA/FCA, folhas 1-3). Vencimento mantido em 28/10 (convencao do extrato, um dia antes do 29/10 da nota)",
+      "prob_foto_nota": "prob_sucesso_prevista_pct e overshoot continuam os da foto do lote 13/10 (KDO e ganho estimados); numeros reais vem da nota",
+      "status": "fracasso",
+      "data_encerramento": "2026-10-28",
+      "data_toque": "2026-10-28",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 30.78,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "realizado_pct": 0.0,
+      "alvo_pct": 1.86,
+      "encerramento_antecipado": false,
+      "papel_retorno_pct": -15.67,
+      "resultado_texto": "Fracasso por toque da KDO (32,13) no vencimento de 28/10/2026: o papel negociava perto de 30,8 a ~1h30 do leilao de fechamento (minima 30,5; sobrevivera ao fechamento de 27/10 com 32,18). Registro PROVISORIO: o fechamento oficial das 17:00 confirma. Causa: queda da bolsa pos-eleicao. Victor fica com o papel; valores aguardam a nota.",
+      "resultado_vs_referencia": {
+        "realizado_pct": 0.0,
+        "referencia_pct": 0.56,
+        "referencia": "CDI de ~1,12%/mes no periodo (15 dias)",
+        "razao_pct": 0.0,
+        "nota": "Toque da KDO no vencimento (28/10/2026); ficou com o papel (-15.67% vs a entrada). PROVISORIO ate o fechamento oficial e a nota.",
+        "preenchido_em": "2026-10-28",
+        "fonte": "registro de 28/10; ratificar com a nota"
       }
     }
   ]
