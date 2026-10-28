@@ -157,74 +157,6 @@
       "overshoot_entrada_nota": "Reconstruido em 06/10/2026: simulado do preco de entrada pelo prazo cheio, GARCH calculado so com dados ate a entrada."
     },
     {
-      "id": "beef3",
-      "ticker": "BEEF3.SA",
-      "nome": "BEEF3 Retorno Controlado 63d (Lote 08/10/2026)",
-      "tipo_posicao": "barreira_simples",
-      "estrategia": "Retorno Controlado",
-      "tipo_estrutura": "retorno_controlado",
-      "exercicio": "europeia",
-      "data_entrada": "2026-10-08",
-      "vencimento": "2026-12-09",
-      "prazo_dias": 63,
-      "entry": 4.41,
-      "kdo": 3.3,
-      "kdo_pct": -25.1,
-      "ganho_prefixado_pct": 7.9,
-      "ganho_sem_barreira": "7.9% fixo",
-      "strike": 4.78,
-      "protecao_pct": 25.1,
-      "prob_sucesso_prevista_pct": 78.56,
-      "prob_overshoot_entrada_pct": 33.17,
-      "teto_overshoot_entrada": 5.0821,
-      "vol_impl": 0.46,
-      "vol_impl_fonte": "garch",
-      "numeros_confirmados": true,
-      "entry_confirmado": true,
-      "aguardando_boleto": false,
-      "origem": "lote 08/10/2026 (planilha do estudo, sem PDF) -- analise an_1791460009",
-      "fonte_numeros": "extrato oficial Itau 13/10/2026 (strike, quantidade, KDO, vencimento) + defesa 25,1% e ganho 7,9% da planilha do lote 08/10; entry = KDO/(1-defesa)",
-      "observacao": "Entrada em 08/10/2026 trocando de posicao (giro da SBSP3, sem aumentar o risco). Defesa 25,1%, ganho 7,9% em 63 dias = 3,81%/mes. Prob 78.56% (motor v2, GARCH 45.94%), EV 0,22%/mes, Fator 60.9. CONFIRMADO em 13/10 pelo extrato (strike/qtd/KDO/venc). Prob e overshoot da entrada foram calculados com os numeros provisorios da planilha e ficam congelados. ANTES: entry, KDO, strike e quantidade vem da planilha, nao do boleto. O boleto oficial chega em ~2 dias (10/10) -- ratificar entry/KDO/strike/vencimento/quantidade e usar a regra entry = KDO oficial / (1 - defesa).",
-      "historico_correcoes": [
-        {
-          "campo": "vencimento",
-          "de": "2026-12-10",
-          "para": "2026-12-09",
-          "em": "2026-10-13",
-          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
-        },
-        {
-          "campo": "strike",
-          "de": 5.08,
-          "para": 4.78,
-          "em": "2026-10-13",
-          "motivo": "extrato oficial Itau 13/10/2026"
-        },
-        {
-          "campo": "quantidade",
-          "de": null,
-          "para": 6500,
-          "em": "2026-10-13",
-          "motivo": "extrato oficial Itau 13/10/2026"
-        },
-        {
-          "campo": "kdo",
-          "de": 3.53,
-          "para": 3.3,
-          "em": "2026-10-13",
-          "motivo": "extrato oficial Itau 13/10/2026"
-        },
-        {
-          "campo": "entry",
-          "de": 4.71,
-          "para": 4.41,
-          "em": "2026-10-13",
-          "motivo": "entry = KDO oficial / (1 - defesa 25,1% da planilha do lote 08/10)"
-        }
-      ],
-      "quantidade": 6500
-    },
-    {
       "id": "vbbr3",
       "ticker": "VBBR3.SA",
       "nome": "VBBR3",
@@ -2002,6 +1934,85 @@
       "aguardando_nota": true,
       "resultado_texto": "Fracasso por toque da KDO no fechamento de 26/10/2026. Causa: evento politico (eleicao presidencial de 25/10, resultado fora do esperado pelo mercado; IBOV -13,9%, dolar +9%) -- cisne negro, choque correlacionado em todas as posicoes domesticas. Victor fica com o papel. Preco de fechamento aproximado (Yahoo 17:00); valores realizados aguardam a nota.",
       "realizado_pct": 0.0
+    },
+    {
+      "id": "beef3",
+      "ticker": "BEEF3.SA",
+      "nome": "BEEF3 Retorno Controlado 63d (Lote 08/10/2026)",
+      "tipo_posicao": "barreira_simples",
+      "estrategia": "Retorno Controlado",
+      "tipo_estrutura": "retorno_controlado",
+      "exercicio": "europeia",
+      "data_entrada": "2026-10-08",
+      "vencimento": "2026-12-09",
+      "prazo_dias": 63,
+      "entry": 4.41,
+      "kdo": 3.3,
+      "kdo_pct": -25.1,
+      "ganho_prefixado_pct": 7.9,
+      "ganho_sem_barreira": "7.9% fixo",
+      "strike": 4.78,
+      "protecao_pct": 25.1,
+      "prob_sucesso_prevista_pct": 78.56,
+      "prob_overshoot_entrada_pct": 33.17,
+      "teto_overshoot_entrada": 5.0821,
+      "vol_impl": 0.46,
+      "vol_impl_fonte": "garch",
+      "numeros_confirmados": true,
+      "entry_confirmado": true,
+      "aguardando_boleto": false,
+      "origem": "lote 08/10/2026 (planilha do estudo, sem PDF) -- analise an_1791460009",
+      "fonte_numeros": "extrato oficial Itau 13/10/2026 (strike, quantidade, KDO, vencimento) + defesa 25,1% e ganho 7,9% da planilha do lote 08/10; entry = KDO/(1-defesa)",
+      "observacao": "Entrada em 08/10/2026 trocando de posicao (giro da SBSP3, sem aumentar o risco). Defesa 25,1%, ganho 7,9% em 63 dias = 3,81%/mes. Prob 78.56% (motor v2, GARCH 45.94%), EV 0,22%/mes, Fator 60.9. CONFIRMADO em 13/10 pelo extrato (strike/qtd/KDO/venc). Prob e overshoot da entrada foram calculados com os numeros provisorios da planilha e ficam congelados. ANTES: entry, KDO, strike e quantidade vem da planilha, nao do boleto. O boleto oficial chega em ~2 dias (10/10) -- ratificar entry/KDO/strike/vencimento/quantidade e usar a regra entry = KDO oficial / (1 - defesa).",
+      "historico_correcoes": [
+        {
+          "campo": "vencimento",
+          "de": "2026-12-10",
+          "para": "2026-12-09",
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026 (data do extrato, um dia antes da usada ate aqui)"
+        },
+        {
+          "campo": "strike",
+          "de": 5.08,
+          "para": 4.78,
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026"
+        },
+        {
+          "campo": "quantidade",
+          "de": null,
+          "para": 6500,
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026"
+        },
+        {
+          "campo": "kdo",
+          "de": 3.53,
+          "para": 3.3,
+          "em": "2026-10-13",
+          "motivo": "extrato oficial Itau 13/10/2026"
+        },
+        {
+          "campo": "entry",
+          "de": 4.71,
+          "para": 4.41,
+          "em": "2026-10-13",
+          "motivo": "entry = KDO oficial / (1 - defesa 25,1% da planilha do lote 08/10)"
+        }
+      ],
+      "quantidade": 6500,
+      "status": "encerrada",
+      "data_encerramento": "2026-10-27",
+      "data_toque": "2026-10-27",
+      "motivo_encerramento": "toque_kdo",
+      "resultado": "fracasso",
+      "causa_fracasso": "evento_politico_cisne_negro",
+      "preco_fechamento_toque": 3.19,
+      "ficou_com_papel": true,
+      "aguardando_nota": true,
+      "realizado_pct": 0.0,
+      "resultado_texto": "Fracasso por toque da KDO no fechamento de 27/10/2026 (3,19 contra KDO 3,30; sobreviveu ao fechamento de 26/10 com 3,32). Causa: evento politico (eleicao de 25/10, IBOV -13,9%, dolar +9%) -- cisne negro. Victor fica com o papel. Preco aproximado (Yahoo 17:00); valores realizados aguardam a nota."
     }
   ]
 }
