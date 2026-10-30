@@ -76,6 +76,7 @@
   },
   {
    "id": "rx2",
+   "preco_entrada": 12.59,
    "ticker": "ROXO34.SA",
    "nome": "ROXO34 (BDR)",
    "tipo_posicao": "simples",
@@ -234,6 +235,8 @@
   },
   {
    "id": "cm3",
+   "preco_entrada": 4.99,
+   "premio_pct_entrada": 0.6,
    "ticker": "CMIN3.SA",
    "nome": "CMIN3 (Semin)",
    "tipo_posicao": "simples",
@@ -254,6 +257,8 @@
   },
   {
    "id": "hy3",
+   "preco_entrada": 25.92,
+   "premio_pct_entrada": 0.31,
    "ticker": "HYPE3.SA",
    "nome": "HYPE3",
    "tipo_posicao": "simples",
@@ -274,6 +279,8 @@
   },
   {
    "id": "po3",
+   "preco_entrada": 4.74,
+   "premio_pct_entrada": 0.42,
    "ticker": "POMO4.SA",
    "nome": "POMO4",
    "tipo_posicao": "simples",
@@ -294,6 +301,8 @@
   },
   {
    "id": "vb3",
+   "preco_entrada": 36.5,
+   "premio_pct_entrada": 1.37,
    "ticker": "VBBR3.SA",
    "nome": "Vibra Energia ON",
    "tipo_posicao": "simples",
@@ -314,6 +323,8 @@
   },
   {
    "id": "rx3",
+   "preco_entrada": 12.59,
+   "premio_pct_entrada": 5.88,
    "ticker": "ROXO34.SA",
    "nome": "ROXO34 (BDR) - 2o bloco",
    "tipo_posicao": "simples",

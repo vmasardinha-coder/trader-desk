@@ -1332,6 +1332,7 @@ function tplSimples(p){
       <div class="sr"><span class="sl">Vol. Simples / GARCH</span><span class="sv" id="${id}-mc-vols">—</span></div>
       ${p.objetivo?`<div class="sr"><span class="sl">Objetivo</span><span class="sv ok">${p.objetivo}</span></div>`:''}
     </div>
+    ${/Coberto/.test(p.estrategia||'')?`<div class="sig" id="${id}-qf"><div class="sgt">📏 Quanto falta (lançamento coberto)</div><div style="color:var(--muted);font-size:12px">calculando...</div></div>`:''}
     <div class="sig">
       <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
       <div id="${id}-mc-l" style="color:var(--muted);font-size:12px">Calculando 5.000 cenários...</div>
@@ -1346,6 +1347,32 @@ function tplSimples(p){
     </div>`:''}
     </div>
   </div>`;
+}
+
+// Quanto falta (lancamento coberto): so percentuais, sem R$ de posicao
+async function loadQuantoFalta(){
+  if(!_posData||!_posData.ativas)return;
+  for(const p of _posData.ativas){
+    const el=document.getElementById(p.id+'-qf');
+    if(!el)continue;
+    try{
+      const r=await fetch(B+'/indicators/'+p.ticker.replace('.SA','')+'.SA');
+      const d=await r.json();
+      const px=d.preco_atual;if(!px)throw 0;
+      const falta=(p.strike/px-1)*100;
+      const itm=falta<=0;
+      const cor=itm?'var(--red)':falta<8?'var(--yellow,#e8b400)':'var(--green)';
+      let h=`<div class="sr"><span class="sl">Falta até o strike</span><span class="sv" style="color:${cor}">${itm?'já passou ('+falta.toFixed(1)+'%)':'+'+falta.toFixed(1)+'%'}</span></div>`;
+      if(p.premio_pct_entrada!=null)h+=`<div class="sr"><span class="sl">Prêmio recebido (% da entrada)</span><span class="sv ok">${p.premio_pct_entrada.toFixed(2)}%</span></div>`;
+      if(p.preco_entrada){
+        const base=(p.strike/p.preco_entrada-1)*100;
+        const tot=base+(p.premio_pct_entrada||0);
+        h+=`<div class="sr"><span class="sl">Se exercida vs. entrada${p.premio_pct_entrada==null?' (s/ prêmio)':''}</span><span class="sv ${tot>=0?'ok':'warn'}">${tot>=0?'+':''}${tot.toFixed(1)}%</span></div>`;
+      }
+      if(p.prob_nao_exercicio_pct!=null)h+=`<div class="sr"><span class="sl">Prob. não exercer (registro)</span><span class="sv">${p.prob_nao_exercicio_pct}%</span></div>`;
+      el.innerHTML='<div class="sgt">📏 Quanto falta (lançamento coberto)</div>'+h;
+    }catch(e){el.innerHTML='<div class="sgt">📏 Quanto falta</div><div style="color:var(--muted);font-size:12px">sem cotação agora</div>';}
+  }
 }
 
 function tplBarreira(p){
@@ -1596,6 +1623,7 @@ function renderPositions(data){
     else html+=tplSimples(p);
   });
   cont.innerHTML=html;
+  setTimeout(loadQuantoFalta,300);
 }
 
 function getAtivaIds(){
