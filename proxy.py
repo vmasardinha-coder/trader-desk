@@ -2449,6 +2449,8 @@ def get_ranking_posicoes(tipo):
                 # ganho fixo (None). Por mes = ganho x 30 / prazo contratado (entrada->vencimento).
                 **_ganho_contrato_posicao(p),
                 'preco_atual': rd.get('preco_atual'),
+                'strike': p.get('strike'), 'preco_entrada': p.get('preco_entrada'),
+                'premio_pct_entrada': p.get('premio_pct_entrada'),
                 # 29/09/2026: a coluna principal passa a ser a CONDICIONAL
                 # (barreira, do preco de hoje, dias que faltam) -- e o que o
                 # contrato exige e o que decide agora. A de origem vira coluna

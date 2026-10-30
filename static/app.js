@@ -977,7 +977,7 @@ async function loadRankingPosicoes(tipo){
     }
     const linhas=d.itens.map(i=>{
       if(i.erro){
-        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="9" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
+        return `<tr><td style="padding:6px 8px;font-weight:700">${i.ticker}</td><td colspan="11" style="padding:6px 8px;color:var(--red)">Erro: ${i.erro}</td></tr>`;
       }
       const p=i.probabilidade_sucesso_pct;
       const cor = p>=70?'var(--green,#2ecc71)':p>=40?'var(--warn,#e6a817)':'var(--red,#e74c3c)';
@@ -1008,6 +1008,13 @@ async function loadRankingPosicoes(tipo){
         <td style="padding:6px 8px;font-weight:700">${i.ticker.replace('.SA','')}${farolHtml}<br><span style="font-weight:400;font-size:9px;color:var(--muted)">${i.estrategia||''}</span></td>
         <td style="padding:6px 8px;text-align:right">${i.vencimento||'—'}</td>
         <td style="padding:6px 8px;text-align:right">${i.dias_restantes!=null?i.dias_restantes+'d':'—'}</td>
+        ${tipo==='lancamento_coberto'?(()=>{
+          const f=(i.strike&&i.preco_atual)?(i.strike/i.preco_atual-1)*100:null;
+          const fc=f==null?'var(--muted)':f<=0?'var(--red,#e74c3c)':f<8?'var(--warn,#e6a817)':'var(--green,#2ecc71)';
+          let ex='—',ec='var(--muted)',sp='';
+          if(i.strike&&i.preco_entrada){const t=(i.strike/i.preco_entrada-1)*100+(i.premio_pct_entrada||0);ex=(t>=0?'+':'')+t.toFixed(1)+'%';ec=t>=0?'var(--green,#2ecc71)':'var(--warn,#e6a817)';if(i.premio_pct_entrada==null)sp='<br><span style="font-size:9px;color:var(--muted)">s/ prêmio</span>';}
+          return `<td style="padding:6px 8px;text-align:right;font-weight:700;color:${fc}">${f==null?'—':(f<=0?'passou '+f.toFixed(1)+'%':'+'+f.toFixed(1)+'%')}</td><td style="padding:6px 8px;text-align:right;font-weight:700;color:${ec}">${ex}${sp}</td>`;
+        })():''}
         <td style="padding:6px 8px;text-align:right;white-space:nowrap" title="Ganho fixo do contrato (prefixado no Retorno Controlado, teto no Bidirecional) e o equivalente ao mês, pelo prazo contratado (${i.prazo_contrato_dias!=null?i.prazo_contrato_dias+' dias':'—'}). Coberta/put não têm ganho fixo.">${i.ganho_contrato_pct!=null?`<b>${i.ganho_contrato_pct.toFixed(2).replace('.',',')}%</b>${i.ganho_contrato_mes_pct!=null?`<br><span style="font-size:9px;color:var(--muted)">${i.ganho_contrato_mes_pct.toFixed(1).replace('.',',')}%/mês</span>`:''}`:'—'}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;color:${cor}">${p!=null?p.toFixed(1)+'%':'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--muted)" title="Mesma conta com saltos (Jump-Diffusion): parte da volatilidade vira quedas/altas bruscas raras, detectadas no histórico do papel (${i.saltos_por_ano!=null?i.saltos_por_ano+' por ano':'—'}). Só comparação, não altera nada.">${i.probabilidade_saltos_pct!=null?i.probabilidade_saltos_pct.toFixed(1)+'%':'—'}</td>
@@ -1026,6 +1033,7 @@ async function loadRankingPosicoes(tipo){
         <th style="padding:6px 8px">Ticker</th>
         <th style="padding:6px 8px;text-align:right">Vencimento</th>
         <th style="padding:6px 8px;text-align:right">Dias rest.</th>
+        ${tipo==='lancamento_coberto'?`<th style="padding:6px 8px;text-align:right" title="Quanto o preço ainda precisa subir até o strike (preço de hoje → strike). Vermelho = já passou do strike.">Falta p/ strike</th><th style="padding:6px 8px;text-align:right" title="Resultado se for exercida: (strike + prêmio) ÷ preço de entrada − 1. Sem prêmio registrado, mostra só o strike.">Se exercida vs. entrada</th>`:''}
         <th style="padding:6px 8px;text-align:right" title="Ganho fixo do contrato e equivalente ao mês (pelo prazo contratado).">Ganho contrato</th>
         <th style="padding:6px 8px;text-align:right" title="Chance de NÃO tocar o KDO daqui pra frente — do preço de hoje até o vencimento. É o que o contrato exige.">Prob. KDO (agora)</th>
         <th style="padding:6px 8px;text-align:right" title="Mesma conta, mas contando quedas bruscas raras (Jump-Diffusion). Compare com a coluna ao lado, que é o modelo atual.">Com saltos</th>
