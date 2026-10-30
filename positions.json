@@ -13,6 +13,7 @@
  "ativas": [
   {
    "id": "pt",
+   "preco_entrada": 52.0,
    "ticker": "PETR4.SA",
    "nome": "Petrobras PN",
    "tipo_posicao": "simples",
@@ -53,6 +54,7 @@
   },
   {
    "id": "bb3",
+   "preco_entrada": 22.0,
    "ticker": "BBAS3.SA",
    "nome": "Banco do Brasil ON",
    "tipo_posicao": "simples",
@@ -76,6 +78,7 @@
   },
   {
    "id": "rx2",
+   "premio_pct_entrada": 5.88,
    "preco_entrada": 12.59,
    "ticker": "ROXO34.SA",
    "nome": "ROXO34 (BDR)",
