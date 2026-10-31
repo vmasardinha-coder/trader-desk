@@ -13,7 +13,7 @@
  "ativas": [
   {
    "id": "pt",
-   "preco_entrada": 52.0,
+   "preco_entrada": 37.0,
    "ticker": "PETR4.SA",
    "nome": "Petrobras PN",
    "tipo_posicao": "simples",
@@ -34,6 +34,7 @@
   },
   {
    "id": "vl",
+   "preco_entrada": 52.0,
    "ticker": "VALE3.SA",
    "nome": "Vale ON",
    "tipo_posicao": "simples",
