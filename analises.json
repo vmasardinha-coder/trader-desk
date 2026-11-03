@@ -12,10 +12,15 @@
     "segmento": "hibrido",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=0.95, DY=12.43%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782822622"
+    "id": "an_1782822622",
+    "preco_encerramento": 88.31,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KNRI11.SA",
@@ -30,10 +35,15 @@
     "segmento": "hibrido",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=0.94, DY=8.14%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782822635"
+    "id": "an_1782822635",
+    "preco_encerramento": 148.3,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KDIF11.SA",
@@ -48,10 +58,15 @@
     "segmento": "fi-infra",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=1.01, DY=12.95%, segmento=Fundo de Infraestrutura (FI-Infra), nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782822657"
+    "id": "an_1782822657",
+    "preco_encerramento": 103.55,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KNDI11.SA",
@@ -66,10 +81,15 @@
     "segmento": "fi-infra",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-06-30. P/VP=1.03, DY=14.85%, segmento=Fundo de Investimentos em Participacoes (FIP-IE), nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782858431"
+    "id": "an_1782858431",
+    "preco_encerramento": 90.19,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KNIP11.SA",
@@ -84,10 +104,15 @@
     "segmento": "papel",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-01. P/VP=0.99, DY=10.37%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782923215"
+    "id": "an_1782923215",
+    "preco_encerramento": 85.1,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KORE11.SA",
@@ -102,10 +127,15 @@
     "segmento": "hibrido",
     "nivel_risco": "high_yield",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-01. P/VP=0.60, DY=18.17%, segmento=Outros, nível de risco=high_yield. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782923293"
+    "id": "an_1782923293",
+    "preco_encerramento": 61.53,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KNSC11.SA",
@@ -120,10 +150,15 @@
     "segmento": "papel",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-01. P/VP=1.05, DY=12.17%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1782923322"
+    "id": "an_1782923322",
+    "preco_encerramento": 8.6,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "BTCI11.SA",
@@ -138,10 +173,15 @@
     "segmento": "papel",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-07-04. P/VP=0.90, DY=12.50%, segmento=Outros, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1783205524"
+    "id": "an_1783205524",
+    "preco_encerramento": 8.2,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "ENDD11.SA",
@@ -12773,10 +12813,15 @@
     "segmento": "papel",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-08-10. P/VP=0.99, DY=9.57%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1786367924"
+    "id": "an_1786367924",
+    "preco_encerramento": 91.06,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "KNUQ11.SA",
@@ -12791,10 +12836,15 @@
     "segmento": "papel",
     "nivel_risco": "high_grade",
     "origem": "screening_fiis",
-    "status": "em_analise",
+    "status": "encerrada",
     "backtest": false,
     "observacao": "FII adicionado via screening em 2026-08-10. P/VP=1.03, DY=12.56%, segmento=Multicategoria, nível de risco=high_grade. Foto tirada no momento da seleção (não retroativa ao histórico de compra real, se já possuído antes).",
-    "id": "an_1786367953"
+    "id": "an_1786367953",
+    "preco_encerramento": 97.09,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false
   },
   {
     "ticker": "BCDI11.SA",
