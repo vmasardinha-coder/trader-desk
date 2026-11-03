@@ -4383,6 +4383,22 @@ async function preencherPaineisHipotetico(){
             <td style="padding:4px;font-weight:700;color:${dv==null?'var(--muted)':(dv<0?'var(--red,#e74c3c)':'var(--green,#2ecc71)')}">${dv==null?'—':(dv>0?'+':'')+dv.toFixed(1)+'p'}</td></tr>`;}).join('')}
       </table></div>`;
   }
+  // 03/11/2026: quadro do evento de cisne negro (choque de 26/10), separado da calibracao normal.
+  if(elC&&h.calibracao_choque&&(h.calibracao_choque.dentro||[]).length){
+    const ch=h.calibracao_choque, fx=['90+','80-90','70-80','<70'];
+    const cel=(t,f)=>{const x=(t||[]).find(y=>y.faixa===f);return x?`${x.acerto_pct}% <span style="color:var(--muted)">(${x.sucessos}/${x.n})</span>`:'—';};
+    const tt=o=>o&&o.n?`${o.acerto_pct}% <span style="color:var(--muted)">(${o.sucessos}/${o.n})</span>`:'—';
+    const gap=(f)=>{const a=(ch.fora||[]).find(y=>y.faixa===f),b=(ch.dentro||[]).find(y=>y.faixa===f);return(a&&b)?(b.acerto_pct-a.acerto_pct).toFixed(1):null;};
+    const gt=(ch.total_dentro.acerto_pct!=null&&ch.total_fora.acerto_pct!=null)?(ch.total_dentro.acerto_pct-ch.total_fora.acerto_pct).toFixed(1):null;
+    elC.innerHTML+=`<div class="card" style="margin-bottom:16px;overflow-x:auto;border-left:2px solid var(--red,#e74c3c)">
+      <div class="cl">🦢 Evento de cisne negro — choque de ${ch.data_choque.split('-').reverse().join('/')} <span style="font-size:9px;color:var(--muted);font-weight:400">(analisadas cuja janela atravessou o choque × as demais)</span></div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+        <tr style="color:var(--muted);text-align:right"><th style="text-align:left;padding:4px">Faixa prevista</th><th style="padding:4px">Fora do choque</th><th style="padding:4px">Atravessou o choque</th><th style="padding:4px">Impacto</th></tr>
+        ${fx.map(f=>{const g=gap(f);return `<tr style="text-align:right;border-top:1px solid var(--border,#333)"><td style="text-align:left;padding:4px">${f}%</td><td style="padding:4px">${cel(ch.fora,f)}</td><td style="padding:4px">${cel(ch.dentro,f)}</td><td style="padding:4px;font-weight:700;color:var(--red,#e74c3c)">${g==null?'—':(g>0?'+':'')+g+'p'}</td></tr>`;}).join('')}
+        <tr style="text-align:right;border-top:2px solid var(--border,#333);font-weight:700"><td style="text-align:left;padding:4px">Total</td><td style="padding:4px">${tt(ch.total_fora)}</td><td style="padding:4px">${tt(ch.total_dentro)}</td><td style="padding:4px;color:var(--red,#e74c3c)">${gt==null?'—':(gt>0?'+':'')+gt+'p'}</td></tr>
+      </table>
+      <div style="font-size:9px;color:var(--muted);margin-top:6px">Impacto = acerto real durante o choque menos fora dele, na mesma faixa de probabilidade prevista. Serve para separar erro do modelo de um evento extremo.</div></div>`;
+  }
 }
 
 function renderAnalises(){

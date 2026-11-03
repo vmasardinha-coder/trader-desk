@@ -4478,6 +4478,30 @@ def _custo_oportunidade(itens, meta=None):
             'geral': resumo(rows), 'realista': resumo(top),
             'nota': 'Hipotetico. Mercado em alta e lotes correlacionados: leia como indicativo. Sem desconto da mesa na saida; IR so na coluna ir15.'}
 
+def _calibracao_choque(itens, data_choque='2026-10-26'):
+    """Evento de cisne negro (03/11/2026): separa a calibracao entre analises cuja janela
+    [data_foto, vencimento_estimado] contem o choque de 26/10 e as demais. So percentuais."""
+    def faixa(p):
+        return '90+' if p >= 90 else '80-90' if p >= 80 else '70-80' if p >= 70 else '<70'
+    ordem = ['90+', '80-90', '70-80', '<70']
+    g = {'dentro': {}, 'fora': {}}
+    for it in itens:
+        if it.get('erro') or it.get('prob_sucesso_prevista_pct') is None:
+            continue
+        df, vc = (it.get('data_foto') or '')[:10], (it.get('vencimento_estimado') or '')[:10]
+        k = 'dentro' if (df and vc and df <= data_choque <= vc) else 'fora'
+        d = g[k].setdefault(faixa(it['prob_sucesso_prevista_pct']), [0, 0])
+        d[0] += 1
+        d[1] += 1 if it.get('resultado_hipotetico') == 'sucesso' else 0
+    def tab(k):
+        return [{'faixa': f, 'n': g[k][f][0], 'sucessos': g[k][f][1],
+                 'acerto_pct': round(g[k][f][1] / g[k][f][0] * 100, 1)} for f in ordem if f in g[k]]
+    def tot(k):
+        n = sum(v[0] for v in g[k].values()); s = sum(v[1] for v in g[k].values())
+        return {'n': n, 'sucessos': s, 'acerto_pct': round(s / n * 100, 1) if n else None}
+    return {'data_choque': data_choque, 'dentro': tab('dentro'), 'fora': tab('fora'),
+            'total_dentro': tot('dentro'), 'total_fora': tot('fora')}
+
 def _tracking_hip_agregar(itens, meta=None):
     """Agrega itens em calibracao por faixa (extraido em 21/09/2026)."""
     # Calibracao por faixa de 10pp (mesmo padrao do tracking oficial)
@@ -4529,6 +4553,7 @@ def _tracking_hip_agregar(itens, meta=None):
         'total_avaliadas': total,
         'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
         'calibracao_por_faixa': calibracao,
+        'calibracao_choque': _calibracao_choque(itens),
         'calibracao_por_versao': _calibracao_por_versao(itens, 'resultado_hipotetico'),
         'comparacao_saltos': _calibracao_saltos(itens, 'resultado_hipotetico'),
         'calibracao_overshoot': _calibracao_overshoot(itens),
