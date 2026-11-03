@@ -166736,7 +166736,7 @@
     "ticker": "JBSS32.SA",
     "nome": "JBSS32 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 64.78,
     "prazo_dias": 15,
@@ -166861,7 +166861,13 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 92.02,
       "prob_sucesso_saltos_pct": 97.95
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 67.89
   },
   {
     "id": "an_ggbr4_20261019",
@@ -172837,7 +172843,7 @@
     "ticker": "EMBJ3.SA",
     "nome": "EMBJ3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 92.54,
     "prazo_dias": 15,
@@ -172962,7 +172968,13 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 89.6,
       "prob_sucesso_saltos_pct": 92.52
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "preco_encerramento": 102.16
   },
   {
     "id": "an_mbrf3_20261019",
@@ -173524,7 +173536,7 @@
     "ticker": "SMTO3.SA",
     "nome": "SMTO3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 20.99,
     "prazo_dias": 15,
@@ -173649,7 +173661,13 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 82.58,
       "prob_sucesso_saltos_pct": 84.0
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 99.99,
+    "preco_encerramento": 20.75
   },
   {
     "data_foto": "2026-10-20",
@@ -173858,7 +173876,7 @@
     "ticker": "GGBR4.SA",
     "nome": "GGBR4 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 23.77,
     "prazo_dias": 15,
@@ -173983,7 +174001,13 @@
       "prob_sucesso_prevista_pct": 95.8,
       "prob_sucesso_saltos_pct": 95.8
     },
-    "prob_sucesso_prevista_pct": 95.8
+    "prob_sucesso_prevista_pct": 95.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.95,
+    "preco_encerramento": 25.26
   },
   {
     "id": "an_tims3_20261028",
@@ -174128,7 +174152,7 @@
     "ticker": "GOAU4.SA",
     "nome": "GOAU4 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 10.62,
     "prazo_dias": 15,
@@ -174253,7 +174277,13 @@
       "prob_sucesso_prevista_pct": 95.74,
       "prob_sucesso_saltos_pct": 95.81
     },
-    "prob_sucesso_prevista_pct": 95.74
+    "prob_sucesso_prevista_pct": 95.74,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.86,
+    "preco_encerramento": 11.09
   },
   {
     "id": "an_vbbr3_20261028",
@@ -174662,7 +174692,7 @@
     "ticker": "JBSS32.SA",
     "nome": "JBSS32 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 63.16,
     "prazo_dias": 15,
@@ -174787,7 +174817,13 @@
       "prob_sucesso_prevista_pct": 90.46,
       "prob_sucesso_saltos_pct": 96.97
     },
-    "prob_sucesso_prevista_pct": 90.46
+    "prob_sucesso_prevista_pct": 90.46,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.9,
+    "preco_encerramento": 67.89
   },
   {
     "id": "an_recv3_20261028",
