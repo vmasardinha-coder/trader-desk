@@ -162049,7 +162049,7 @@
     "ticker": "RECV3.SA",
     "nome": "RECV3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 12.45,
     "kdo": 10.21,
@@ -162082,7 +162082,13 @@
       "freq_rompimento_hist_pct": 11.7,
       "fator": 55.6
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 3.59% em 41 dias = 2.662%/mes. Prob 90.78% (GARCH 34.13%; planilha dizia 95.9%), EV 1.126%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 18.0%, ganho 3.59% em 41 dias = 2.662%/mes. Prob 90.78% (GARCH 34.13%; planilha dizia 95.9%), EV 1.126%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 43.7,
+    "preco_encerramento": 10.78
   },
   {
     "id": "an_1791900045",
@@ -162324,7 +162330,7 @@
     "ticker": "VBBR3.SA",
     "nome": "VBBR3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 36.35,
     "kdo": 31.26,
@@ -162357,7 +162363,13 @@
       "freq_rompimento_hist_pct": 15.9,
       "fator": 50.0
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 4.04% em 41 dias = 2.996%/mes. Prob 87.06% (GARCH 28.52%; planilha dizia 97.1%), EV 1.284%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 4.04% em 41 dias = 2.996%/mes. Prob 87.06% (GARCH 28.52%; planilha dizia 97.1%), EV 1.284%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 29.12
   },
   {
     "id": "an_1791900051",
@@ -162458,7 +162470,7 @@
     "ticker": "UGPA3.SA",
     "nome": "UGPA3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 38.99,
     "kdo": 33.53,
@@ -162491,7 +162503,13 @@
       "freq_rompimento_hist_pct": 17.1,
       "fator": 53.5
     },
-    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 3.89% em 41 dias = 2.884%/mes. Prob 86.46% (GARCH 30.03%; planilha dizia 97.1%), EV 1.04%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial."
+    "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; corte motor>=85% e melhor oferta por papel/prazo). Defesa 14.0%, ganho 3.89% em 41 dias = 2.884%/mes. Prob 86.46% (GARCH 30.03%; planilha dizia 97.1%), EV 1.04%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 31.15
   },
   {
     "id": "an_1791900100",
@@ -162834,7 +162852,7 @@
     "ticker": "MBRF3.SA",
     "nome": "MBRF3",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-13",
     "preco_foto": 18.82,
     "kdo": 16.52,
@@ -162868,7 +162886,13 @@
       "fator": 48.9
     },
     "observacao": "Lote 13/10/2026 (menu Itau, planilha ChatGPT v2; ABAIXO DO CORTE de 85% (carga ampliada a pedido, para medir o corte)). Defesa 12.2%, ganho 3.45% em 15 dias = 6.992%/mes. Prob 78.3% (GARCH 50.74%; planilha dizia 87.4%), EV 0.827%/mes. PRECO DE REFERENCIA = ultima cotacao do Yahoo em 13/10 (pregao aberto), KDO derivado de preco x (1 - defesa), sem o PDF oficial.",
-    "abaixo_corte_85": true
+    "abaixo_corte_85": true,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.38,
+    "preco_encerramento": 15.49
   },
   {
     "data_foto": "2026-10-19",
@@ -166108,7 +166132,7 @@
     "ticker": "PETR4.SA",
     "nome": "PETR4 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 58.37,
     "prazo_dias": 15,
@@ -166233,14 +166257,20 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 96.06,
       "prob_sucesso_saltos_pct": 95.3
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 11.13,
+    "preco_encerramento": 50.65
   },
   {
     "id": "an_usim5_20261019",
     "ticker": "USIM5.SA",
     "nome": "USIM5 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 6.7,
     "prazo_dias": 15,
@@ -166365,7 +166395,13 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 82.08,
       "prob_sucesso_saltos_pct": 85.3
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 0.0,
+    "preco_encerramento": 5.04
   },
   {
     "id": "an_tots3_20261019",
@@ -169423,7 +169459,7 @@
     "ticker": "RECV3.SA",
     "nome": "RECV3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 12.57,
     "prazo_dias": 15,
@@ -169548,7 +169584,13 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 92.6,
       "prob_sucesso_saltos_pct": 93.8
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 4.25,
+    "preco_encerramento": 10.78
   },
   {
     "id": "an_rent3_20261019",
@@ -172877,7 +172919,7 @@
     "ticker": "MBRF3.SA",
     "nome": "MBRF3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 17.87,
     "prazo_dias": 15,
@@ -173002,7 +173044,13 @@
       "motor_versao": 2,
       "prob_sucesso_prevista_pct": 77.24,
       "prob_sucesso_saltos_pct": 80.8
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 15.67,
+    "preco_encerramento": 15.49
   },
   {
     "id": "an_lwsa3_20261019",
@@ -173892,7 +173940,7 @@
     "ticker": "TIMS3.SA",
     "nome": "TIMS3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 19.18,
     "prazo_dias": 15,
@@ -174017,7 +174065,13 @@
       "prob_sucesso_prevista_pct": 95.92,
       "prob_sucesso_saltos_pct": 96.19
     },
-    "prob_sucesso_prevista_pct": 95.92
+    "prob_sucesso_prevista_pct": 95.92,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.37,
+    "preco_encerramento": 19.28
   },
   {
     "id": "an_goau4_20261028",
@@ -174288,7 +174342,7 @@
     "ticker": "CMIG4.SA",
     "nome": "CMIG4 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 10.1,
     "prazo_dias": 15,
@@ -174413,7 +174467,13 @@
       "prob_sucesso_prevista_pct": 95.16,
       "prob_sucesso_saltos_pct": 96.17
     },
-    "prob_sucesso_prevista_pct": 95.16
+    "prob_sucesso_prevista_pct": 95.16,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 99.29,
+    "preco_encerramento": 10.01
   },
   {
     "id": "an_ugpa3_20261028",
@@ -174948,7 +175008,7 @@
     "ticker": "CMIN3.SA",
     "nome": "CMIN3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 4.36,
     "prazo_dias": 15,
@@ -175073,14 +175133,20 @@
       "prob_sucesso_prevista_pct": 85.94,
       "prob_sucesso_saltos_pct": 86.69
     },
-    "prob_sucesso_prevista_pct": 85.94
+    "prob_sucesso_prevista_pct": 85.94,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 99.19,
+    "preco_encerramento": 4.73
   },
   {
     "id": "an_smto3_20261028",
     "ticker": "SMTO3.SA",
     "nome": "SMTO3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 19.26,
     "prazo_dias": 15,
@@ -175205,7 +175271,13 @@
       "prob_sucesso_prevista_pct": 82.42,
       "prob_sucesso_saltos_pct": 83.57
     },
-    "prob_sucesso_prevista_pct": 82.42
+    "prob_sucesso_prevista_pct": 82.42,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 99.37,
+    "preco_encerramento": 20.75
   },
   {
     "id": "an_mdia3_20261028",
@@ -175344,7 +175416,7 @@
     "ticker": "RDOR3.SA",
     "nome": "RDOR3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 33.65,
     "prazo_dias": 15,
@@ -175469,7 +175541,13 @@
       "prob_sucesso_prevista_pct": 85.16,
       "prob_sucesso_saltos_pct": 87.11
     },
-    "prob_sucesso_prevista_pct": 85.16
+    "prob_sucesso_prevista_pct": 85.16,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 53.54,
+    "preco_encerramento": 31.16
   },
   {
     "id": "an_embj3_20261028",
@@ -175608,7 +175686,7 @@
     "ticker": "TOTS3.SA",
     "nome": "TOTS3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 33.58,
     "prazo_dias": 15,
@@ -175733,7 +175811,13 @@
       "prob_sucesso_prevista_pct": 83.5,
       "prob_sucesso_saltos_pct": 85.16
     },
-    "prob_sucesso_prevista_pct": 83.5
+    "prob_sucesso_prevista_pct": 83.5,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 67.68,
+    "preco_encerramento": 31.76
   },
   {
     "id": "an_pomo4_20261028",
@@ -175872,7 +175956,7 @@
     "ticker": "USIM5.SA",
     "nome": "USIM5 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 5.41,
     "prazo_dias": 15,
@@ -175997,14 +176081,20 @@
       "prob_sucesso_prevista_pct": 78.4,
       "prob_sucesso_saltos_pct": 81.88
     },
-    "prob_sucesso_prevista_pct": 78.4
+    "prob_sucesso_prevista_pct": 78.4,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 46.72,
+    "preco_encerramento": 5.05
   },
   {
     "id": "an_rail3_20261028",
     "ticker": "RAIL3.SA",
     "nome": "RAIL3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 14.41,
     "prazo_dias": 15,
@@ -176129,14 +176219,20 @@
       "prob_sucesso_prevista_pct": 81.4,
       "prob_sucesso_saltos_pct": 84.35
     },
-    "prob_sucesso_prevista_pct": 81.4
+    "prob_sucesso_prevista_pct": 81.4,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 62.43,
+    "preco_encerramento": 13.68
   },
   {
     "id": "an_alpa4_20261028",
     "ticker": "ALPA4.SA",
     "nome": "ALPA4 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 13.37,
     "prazo_dias": 15,
@@ -176261,14 +176357,20 @@
       "prob_sucesso_prevista_pct": 70.86,
       "prob_sucesso_saltos_pct": 76.23
     },
-    "prob_sucesso_prevista_pct": 70.86
+    "prob_sucesso_prevista_pct": 70.86,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 32.7,
+    "preco_encerramento": 12.29
   },
   {
     "id": "an_flry3_20261028",
     "ticker": "FLRY3.SA",
     "nome": "FLRY3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 22.08,
     "prazo_dias": 15,
@@ -176393,14 +176495,20 @@
       "prob_sucesso_prevista_pct": 79.86,
       "prob_sucesso_saltos_pct": 83.03
     },
-    "prob_sucesso_prevista_pct": 79.86
+    "prob_sucesso_prevista_pct": 79.86,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 31.84,
+    "preco_encerramento": 20.17
   },
   {
     "id": "an_csmg3_20261028",
     "ticker": "CSMG3.SA",
     "nome": "CSMG3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 49.98,
     "prazo_dias": 15,
@@ -176525,7 +176633,13 @@
       "prob_sucesso_prevista_pct": 79.78,
       "prob_sucesso_saltos_pct": 84.96
     },
-    "prob_sucesso_prevista_pct": 79.78
+    "prob_sucesso_prevista_pct": 79.78,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 67.12,
+    "preco_encerramento": 47.27
   },
   {
     "id": "an_sbsp3_20261028",
@@ -176796,7 +176910,7 @@
     "ticker": "HYPE3.SA",
     "nome": "HYPE3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 21.53,
     "prazo_dias": 15,
@@ -176921,14 +177035,20 @@
       "prob_sucesso_prevista_pct": 77.3,
       "prob_sucesso_saltos_pct": 83.23
     },
-    "prob_sucesso_prevista_pct": 77.3
+    "prob_sucesso_prevista_pct": 77.3,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 67.92,
+    "preco_encerramento": 20.86
   },
   {
     "id": "an_tupy3_20261028",
     "ticker": "TUPY3.SA",
     "nome": "TUPY3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 15.25,
     "prazo_dias": 15,
@@ -177053,14 +177173,20 @@
       "prob_sucesso_prevista_pct": 73.58,
       "prob_sucesso_saltos_pct": 78.03
     },
-    "prob_sucesso_prevista_pct": 73.58
+    "prob_sucesso_prevista_pct": 73.58,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 49.55,
+    "preco_encerramento": 14.37
   },
   {
     "id": "an_tend3_20261028",
     "ticker": "TEND3.SA",
     "nome": "TEND3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 21.06,
     "prazo_dias": 15,
@@ -177185,14 +177311,20 @@
       "prob_sucesso_prevista_pct": 66.28,
       "prob_sucesso_saltos_pct": 70.91
     },
-    "prob_sucesso_prevista_pct": 66.28
+    "prob_sucesso_prevista_pct": 66.28,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 23.12,
+    "preco_encerramento": 19.05
   },
   {
     "id": "an_motv3_20261028",
     "ticker": "MOTV3.SA",
     "nome": "MOTV3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 14.46,
     "prazo_dias": 15,
@@ -177317,14 +177449,20 @@
       "prob_sucesso_prevista_pct": 68.1,
       "prob_sucesso_saltos_pct": 75.59
     },
-    "prob_sucesso_prevista_pct": 68.1
+    "prob_sucesso_prevista_pct": 68.1,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 63.41,
+    "preco_encerramento": 14.03
   },
   {
     "id": "an_cury3_20261028",
     "ticker": "CURY3.SA",
     "nome": "CURY3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 26.27,
     "prazo_dias": 15,
@@ -177449,7 +177587,13 @@
       "prob_sucesso_prevista_pct": 70.72,
       "prob_sucesso_saltos_pct": 70.35
     },
-    "prob_sucesso_prevista_pct": 70.72
+    "prob_sucesso_prevista_pct": 70.72,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 61.62,
+    "preco_encerramento": 25.19
   },
   {
     "id": "an_viva3_20261028",
@@ -177588,7 +177732,7 @@
     "ticker": "RADL3.SA",
     "nome": "RADL3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 15.59,
     "prazo_dias": 15,
@@ -177713,14 +177857,20 @@
       "prob_sucesso_prevista_pct": 57.64,
       "prob_sucesso_saltos_pct": 63.79
     },
-    "prob_sucesso_prevista_pct": 57.64
+    "prob_sucesso_prevista_pct": 57.64,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 50.8,
+    "preco_encerramento": 15.03
   },
   {
     "id": "an_csna3_20261028",
     "ticker": "CSNA3.SA",
     "nome": "CSNA3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 4.35,
     "prazo_dias": 15,
@@ -177845,14 +177995,20 @@
       "prob_sucesso_prevista_pct": 61.12,
       "prob_sucesso_saltos_pct": 64.85
     },
-    "prob_sucesso_prevista_pct": 61.12
+    "prob_sucesso_prevista_pct": 61.12,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 23.86,
+    "preco_encerramento": 3.98
   },
   {
     "id": "an_mult3_20261028",
     "ticker": "MULT3.SA",
     "nome": "MULT3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 25.44,
     "prazo_dias": 15,
@@ -177977,14 +178133,20 @@
       "prob_sucesso_prevista_pct": 62.76,
       "prob_sucesso_saltos_pct": 69.12
     },
-    "prob_sucesso_prevista_pct": 62.76
+    "prob_sucesso_prevista_pct": 62.76,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 51.08,
+    "preco_encerramento": 24.63
   },
   {
     "id": "an_bpac11_20261028",
     "ticker": "BPAC11.SA",
     "nome": "BPAC11 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 55.45,
     "prazo_dias": 15,
@@ -178109,14 +178271,20 @@
       "prob_sucesso_prevista_pct": 60.26,
       "prob_sucesso_saltos_pct": 63.73
     },
-    "prob_sucesso_prevista_pct": 60.26
+    "prob_sucesso_prevista_pct": 60.26,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 22.75,
+    "preco_encerramento": 50.81
   },
   {
     "id": "an_natu3_20261028",
     "ticker": "NATU3.SA",
     "nome": "NATU3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 5.01,
     "prazo_dias": 15,
@@ -178241,14 +178409,20 @@
       "prob_sucesso_prevista_pct": 50.16,
       "prob_sucesso_saltos_pct": 74.22
     },
-    "prob_sucesso_prevista_pct": 50.16
+    "prob_sucesso_prevista_pct": 50.16,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 37.4,
+    "preco_encerramento": 4.81
   },
   {
     "id": "an_dirr3_20261028",
     "ticker": "DIRR3.SA",
     "nome": "DIRR3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 8.52,
     "prazo_dias": 15,
@@ -178373,14 +178547,20 @@
       "prob_sucesso_prevista_pct": 53.48,
       "prob_sucesso_saltos_pct": 57.32
     },
-    "prob_sucesso_prevista_pct": 53.48
+    "prob_sucesso_prevista_pct": 53.48,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 26.48,
+    "preco_encerramento": 7.88
   },
   {
     "id": "an_lwsa3_20261028",
     "ticker": "LWSA3.SA",
     "nome": "LWSA3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 3.39,
     "prazo_dias": 15,
@@ -178505,14 +178685,20 @@
       "prob_sucesso_prevista_pct": 46.18,
       "prob_sucesso_saltos_pct": 48.49
     },
-    "prob_sucesso_prevista_pct": 46.18
+    "prob_sucesso_prevista_pct": 46.18,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 15.27,
+    "preco_encerramento": 3.07
   },
   {
     "id": "an_eqtl3_20261028",
     "ticker": "EQTL3.SA",
     "nome": "EQTL3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 33.79,
     "prazo_dias": 15,
@@ -178637,14 +178823,20 @@
       "prob_sucesso_prevista_pct": 41.8,
       "prob_sucesso_saltos_pct": 49.99
     },
-    "prob_sucesso_prevista_pct": 41.8
+    "prob_sucesso_prevista_pct": 41.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 32.04,
+    "preco_encerramento": 32.13
   },
   {
     "id": "an_engi11_20261028",
     "ticker": "ENGI11.SA",
     "nome": "ENGI11 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 45.09,
     "prazo_dias": 15,
@@ -178769,14 +178961,20 @@
       "prob_sucesso_prevista_pct": 41.06,
       "prob_sucesso_saltos_pct": 49.09
     },
-    "prob_sucesso_prevista_pct": 41.06
+    "prob_sucesso_prevista_pct": 41.06,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 36.56,
+    "preco_encerramento": 43.5
   },
   {
     "id": "an_bbas3_20261028",
     "ticker": "BBAS3.SA",
     "nome": "BBAS3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 16.82,
     "prazo_dias": 15,
@@ -178901,14 +179099,20 @@
       "prob_sucesso_prevista_pct": 40.48,
       "prob_sucesso_saltos_pct": 52.4
     },
-    "prob_sucesso_prevista_pct": 40.48
+    "prob_sucesso_prevista_pct": 40.48,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 43.92,
+    "preco_encerramento": 16.33
   },
   {
     "id": "an_yduq3_20261028",
     "ticker": "YDUQ3.SA",
     "nome": "YDUQ3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 8.77,
     "prazo_dias": 15,
@@ -179033,14 +179237,20 @@
       "prob_sucesso_prevista_pct": 42.8,
       "prob_sucesso_saltos_pct": 47.21
     },
-    "prob_sucesso_prevista_pct": 42.8
+    "prob_sucesso_prevista_pct": 42.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 55.95,
+    "preco_encerramento": 8.82
   },
   {
     "id": "an_jhsf3_20261028",
     "ticker": "JHSF3.SA",
     "nome": "JHSF3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 9.5,
     "prazo_dias": 15,
@@ -179165,14 +179375,20 @@
       "prob_sucesso_prevista_pct": 41.64,
       "prob_sucesso_saltos_pct": 43.79
     },
-    "prob_sucesso_prevista_pct": 41.64
+    "prob_sucesso_prevista_pct": 41.64,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 23.13,
+    "preco_encerramento": 8.85
   },
   {
     "id": "an_hapv3_20261028",
     "ticker": "HAPV3.SA",
     "nome": "HAPV3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 3.97,
     "prazo_dias": 15,
@@ -179297,14 +179513,20 @@
       "prob_sucesso_prevista_pct": 34.64,
       "prob_sucesso_saltos_pct": 50.78
     },
-    "prob_sucesso_prevista_pct": 34.64
+    "prob_sucesso_prevista_pct": 34.64,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 53.79,
+    "preco_encerramento": 4.12
   },
   {
     "id": "an_lren3_20261028",
     "ticker": "LREN3.SA",
     "nome": "LREN3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 9.25,
     "prazo_dias": 15,
@@ -179429,14 +179651,20 @@
       "prob_sucesso_prevista_pct": 33.28,
       "prob_sucesso_saltos_pct": 37.0
     },
-    "prob_sucesso_prevista_pct": 33.28
+    "prob_sucesso_prevista_pct": 33.28,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 24.34,
+    "preco_encerramento": 8.75
   },
   {
     "id": "an_posi3_20261028",
     "ticker": "POSI3.SA",
     "nome": "POSI3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 3.2,
     "prazo_dias": 15,
@@ -179561,14 +179789,20 @@
       "prob_sucesso_prevista_pct": 31.44,
       "prob_sucesso_saltos_pct": 34.87
     },
-    "prob_sucesso_prevista_pct": 31.44
+    "prob_sucesso_prevista_pct": 31.44,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 13.37,
+    "preco_encerramento": 2.9
   },
   {
     "id": "an_asai3_20261028",
     "ticker": "ASAI3.SA",
     "nome": "ASAI3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 7.8,
     "prazo_dias": 15,
@@ -179693,14 +179927,20 @@
       "prob_sucesso_prevista_pct": 34.52,
       "prob_sucesso_saltos_pct": 40.52
     },
-    "prob_sucesso_prevista_pct": 34.52
+    "prob_sucesso_prevista_pct": 34.52,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 38.8,
+    "preco_encerramento": 7.87
   },
   {
     "id": "an_b3sa3_20261028",
     "ticker": "B3SA3.SA",
     "nome": "B3SA3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 14.49,
     "prazo_dias": 15,
@@ -179825,14 +180065,20 @@
       "prob_sucesso_prevista_pct": 36.08,
       "prob_sucesso_saltos_pct": 42.14
     },
-    "prob_sucesso_prevista_pct": 36.08
+    "prob_sucesso_prevista_pct": 36.08,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 18.82,
+    "preco_encerramento": 13.39
   },
   {
     "id": "an_cyre3_20261028",
     "ticker": "CYRE3.SA",
     "nome": "CYRE3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 17.47,
     "prazo_dias": 15,
@@ -179957,14 +180203,20 @@
       "prob_sucesso_prevista_pct": 32.82,
       "prob_sucesso_saltos_pct": 40.46
     },
-    "prob_sucesso_prevista_pct": 32.82
+    "prob_sucesso_prevista_pct": 32.82,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 30.91,
+    "preco_encerramento": 16.71
   },
   {
     "id": "an_azza3_20261028",
     "ticker": "AZZA3.SA",
     "nome": "AZZA3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 14.99,
     "prazo_dias": 15,
@@ -180089,14 +180341,20 @@
       "prob_sucesso_prevista_pct": 26.8,
       "prob_sucesso_saltos_pct": 31.94
     },
-    "prob_sucesso_prevista_pct": 26.8
+    "prob_sucesso_prevista_pct": 26.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 18.16,
+    "preco_encerramento": 13.95
   },
   {
     "id": "an_anim3_20261028",
     "ticker": "ANIM3.SA",
     "nome": "ANIM3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 2.42,
     "prazo_dias": 15,
@@ -180221,14 +180479,20 @@
       "prob_sucesso_prevista_pct": 33.14,
       "prob_sucesso_saltos_pct": 38.31
     },
-    "prob_sucesso_prevista_pct": 33.14
+    "prob_sucesso_prevista_pct": 33.14,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 15.25,
+    "preco_encerramento": 2.23
   },
   {
     "id": "an_eztc3_20261028",
     "ticker": "EZTC3.SA",
     "nome": "EZTC3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 9.64,
     "prazo_dias": 15,
@@ -180353,14 +180617,20 @@
       "prob_sucesso_prevista_pct": 23.8,
       "prob_sucesso_saltos_pct": 29.08
     },
-    "prob_sucesso_prevista_pct": 23.8
+    "prob_sucesso_prevista_pct": 23.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 12.2,
+    "preco_encerramento": 8.74
   },
   {
     "id": "an_rent3_20261028",
     "ticker": "RENT3.SA",
     "nome": "RENT3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 29.55,
     "prazo_dias": 15,
@@ -180485,14 +180755,20 @@
       "prob_sucesso_prevista_pct": 28.04,
       "prob_sucesso_saltos_pct": 32.21
     },
-    "prob_sucesso_prevista_pct": 28.04
+    "prob_sucesso_prevista_pct": 28.04,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 18.82,
+    "preco_encerramento": 27.72
   },
   {
     "id": "an_qual3_20261028",
     "ticker": "QUAL3.SA",
     "nome": "QUAL3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 1.27,
     "prazo_dias": 15,
@@ -180617,14 +180893,20 @@
       "prob_sucesso_prevista_pct": 21.8,
       "prob_sucesso_saltos_pct": 25.53
     },
-    "prob_sucesso_prevista_pct": 21.8
+    "prob_sucesso_prevista_pct": 21.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 33.35,
+    "preco_encerramento": 1.3
   },
   {
     "id": "an_cogn3_20261028",
     "ticker": "COGN3.SA",
     "nome": "COGN3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 1.7,
     "prazo_dias": 15,
@@ -180749,14 +181031,20 @@
       "prob_sucesso_prevista_pct": 23.04,
       "prob_sucesso_saltos_pct": 25.05
     },
-    "prob_sucesso_prevista_pct": 23.04
+    "prob_sucesso_prevista_pct": 23.04,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 4.42,
+    "preco_encerramento": 1.44
   },
   {
     "id": "an_mrve3_20261028",
     "ticker": "MRVE3.SA",
     "nome": "MRVE3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 4.12,
     "prazo_dias": 15,
@@ -180881,14 +181169,20 @@
       "prob_sucesso_prevista_pct": 20.8,
       "prob_sucesso_saltos_pct": 24.88
     },
-    "prob_sucesso_prevista_pct": 20.8
+    "prob_sucesso_prevista_pct": 20.8,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 20.32,
+    "preco_encerramento": 3.98
   },
   {
     "id": "an_dxco3_20261028",
     "ticker": "DXCO3.SA",
     "nome": "DXCO3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 4.61,
     "prazo_dias": 15,
@@ -181013,14 +181307,20 @@
       "prob_sucesso_prevista_pct": 19.52,
       "prob_sucesso_saltos_pct": 24.25
     },
-    "prob_sucesso_prevista_pct": 19.52
+    "prob_sucesso_prevista_pct": 19.52,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 19.27,
+    "preco_encerramento": 4.41
   },
   {
     "id": "an_rapt4_20261028",
     "ticker": "RAPT4.SA",
     "nome": "RAPT4 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 3.67,
     "prazo_dias": 15,
@@ -181145,14 +181445,20 @@
       "prob_sucesso_prevista_pct": 16.4,
       "prob_sucesso_saltos_pct": 20.98
     },
-    "prob_sucesso_prevista_pct": 16.4
+    "prob_sucesso_prevista_pct": 16.4,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 11.96,
+    "preco_encerramento": 3.4
   },
   {
     "id": "an_sbfg3_20261028",
     "ticker": "SBFG3.SA",
     "nome": "SBFG3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 5.03,
     "prazo_dias": 15,
@@ -181277,14 +181583,20 @@
       "prob_sucesso_prevista_pct": 14.64,
       "prob_sucesso_saltos_pct": 15.68
     },
-    "prob_sucesso_prevista_pct": 14.64
+    "prob_sucesso_prevista_pct": 14.64,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 11.21,
+    "preco_encerramento": 4.62
   },
   {
     "id": "an_vamo3_20261028",
     "ticker": "VAMO3.SA",
     "nome": "VAMO3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 2.51,
     "prazo_dias": 15,
@@ -181409,14 +181721,20 @@
       "prob_sucesso_prevista_pct": 14.12,
       "prob_sucesso_saltos_pct": 14.75
     },
-    "prob_sucesso_prevista_pct": 14.12
+    "prob_sucesso_prevista_pct": 14.12,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 9.19,
+    "preco_encerramento": 2.28
   },
   {
     "id": "an_simh3_20261028",
     "ticker": "SIMH3.SA",
     "nome": "SIMH3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 4.96,
     "prazo_dias": 15,
@@ -181541,14 +181859,20 @@
       "prob_sucesso_prevista_pct": 12.16,
       "prob_sucesso_saltos_pct": 14.05
     },
-    "prob_sucesso_prevista_pct": 12.16
+    "prob_sucesso_prevista_pct": 12.16,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 14.02,
+    "preco_encerramento": 4.86
   },
   {
     "id": "an_movi3_20261028",
     "ticker": "MOVI3.SA",
     "nome": "MOVI3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 6.45,
     "prazo_dias": 15,
@@ -181673,14 +181997,20 @@
       "prob_sucesso_prevista_pct": 10.98,
       "prob_sucesso_saltos_pct": 12.17
     },
-    "prob_sucesso_prevista_pct": 10.98
+    "prob_sucesso_prevista_pct": 10.98,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 5.0,
+    "preco_encerramento": 5.51
   },
   {
     "id": "an_ecor3_20261028",
     "ticker": "ECOR3.SA",
     "nome": "ECOR3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 5.21,
     "prazo_dias": 15,
@@ -181805,14 +182135,20 @@
       "prob_sucesso_prevista_pct": 12.2,
       "prob_sucesso_saltos_pct": 16.13
     },
-    "prob_sucesso_prevista_pct": 12.2
+    "prob_sucesso_prevista_pct": 12.2,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 9.96,
+    "preco_encerramento": 4.84
   },
   {
     "id": "an_mglu3_20261028",
     "ticker": "MGLU3.SA",
     "nome": "MGLU3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 5.17,
     "prazo_dias": 15,
@@ -181937,6 +182273,12 @@
       "prob_sucesso_prevista_pct": 11.78,
       "prob_sucesso_saltos_pct": 11.49
     },
-    "prob_sucesso_prevista_pct": 11.78
+    "prob_sucesso_prevista_pct": 11.78,
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-03",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 15.68,
+    "preco_encerramento": 5.18
   }
 ]
