@@ -19,7 +19,7 @@
    "tipo_posicao": "simples",
    "estrategia": "Call Vendida",
    "codigo_opcao": "PETRD304",
-   "strike": 30.4,
+   "strike": 53.0,
    "vol_impl": 0.434,
    "tipo": "call",
    "vencimento": "2027-04-16",
@@ -30,7 +30,7 @@
    "prob_foto_reconstruida": true,
    "fora_das_estatisticas": true,
    "motivo_fora_estatisticas": "decisao anterior ao sistema (sem os mesmos parametros); nao computar como sucesso nem fracasso em nenhuma estatistica -- pedido do Victor em 13/10/2026",
-   "quantidade": 2100, "historico_correcoes": [{"campo": "codigo_opcao/strike/vencimento", "de": "PETRL319 / 30.85 / 2026-12-17", "para": "PETRD304 / 30.40 / 2027-04-16", "em": "2026-11-03", "motivo": "rolagem de 30/10 conforme carteira da corretora 03/11/2026 (PETRD304 -2.100; PETRL319 zerada). Strike pelo codigo da opcao; premio e strike exato a confirmar na nota de 30/10."}]},
+   "quantidade": 2100, "historico_correcoes": [{"campo": "codigo_opcao/strike/vencimento", "de": "PETRL319 / 30.85 / 2026-12-17", "para": "PETRD304 / ~53.00 (PROVISORIO) / 2027-04-16", "em": "2026-11-03", "motivo": "rolagem de 30/10 conforme carteira da corretora 03/11/2026 (PETRD304 -2.100; PETRL319 zerada). ATENCAO: o codigo 304 NAO e o strike -- a opcao vale 4,70 com PETR4 a ~50,7, o que implica strike ~50-53. Strike 53,00 e estimativa pelo preco da opcao; confirmar na nota de 30/10."}]},
   {
    "id": "vl",
    "preco_entrada": 52.0,
