@@ -1066,7 +1066,7 @@ async function loadRankingPosicoes(tipo){
           const f=(i.strike&&i.preco_atual)?(i.strike/i.preco_atual-1)*100:null;
           const fc=f==null?'var(--muted)':f<=0?'var(--red,#e74c3c)':f<8?'var(--warn,#e6a817)':'var(--green,#2ecc71)';
           let ex='—',ec='var(--muted)',sp='';
-          if(i.strike&&i.preco_entrada){const t=(i.strike/i.preco_entrada-1)*100+(i.premio_pct_entrada||0);ex=(t>=0?'+':'')+t.toFixed(1)+'%';ec=t>=0?'var(--green,#2ecc71)':'var(--warn,#e6a817)';if(i.premio_pct_entrada==null)sp='<br><span style="font-size:9px;color:var(--muted)">s/ prêmio</span>';}
+          if(i.strike&&i.preco_entrada){const t=(i.strike/i.preco_entrada-1)*100+(i.premio_pct_entrada||0)+(i.rolagens_credito_pct||0);ex=(t>=0?'+':'')+t.toFixed(1)+'%';ec=t>=0?'var(--green,#2ecc71)':'var(--warn,#e6a817)';if(i.premio_pct_entrada==null)sp='<br><span style="font-size:9px;color:var(--muted)">s/ prêmio</span>';}
           return `<td style="padding:6px 8px;text-align:right;font-weight:700;color:${fc}">${f==null?'—':(f<=0?'passou '+f.toFixed(1)+'%':'+'+f.toFixed(1)+'%')}</td><td style="padding:6px 8px;text-align:right;font-weight:700;color:${ec}">${ex}${sp}</td>`;
         })():''}
         <td style="padding:6px 8px;text-align:right;white-space:nowrap" title="Ganho fixo do contrato (prefixado no Retorno Controlado, teto no Bidirecional) e o equivalente ao mês, pelo prazo contratado (${i.prazo_contrato_dias!=null?i.prazo_contrato_dias+' dias':'—'}). Coberta/put não têm ganho fixo.">${i.ganho_contrato_pct!=null?`<b>${i.ganho_contrato_pct.toFixed(2).replace('.',',')}%</b>${i.ganho_contrato_mes_pct!=null?`<br><span style="font-size:9px;color:var(--muted)">${i.ganho_contrato_mes_pct.toFixed(1).replace('.',',')}%/mês</span>`:''}`:'—'}</td>
@@ -1369,6 +1369,21 @@ function fmtData(iso){
   return `${d}/${m}/${y}`;
 }
 
+// 04/11/2026: premio acumulado = premio da entrada + creditos liquidos das rolagens (tudo em % da entrada).
+function _premioAcum(p){
+  const rol=(p.rolagens||[]).reduce((a,r)=>a+(r.credito_pct_entrada||0),0);
+  return {ent:p.premio_pct_entrada||0, rol:rol, tot:(p.premio_pct_entrada||0)+rol, n:(p.rolagens||[]).length};
+}
+function _blocoRolagens(p){
+  if(!(p.rolagens||[]).length)return '';
+  const f=d=>d?d.split('-').reverse().slice(0,2).join('/'):'—';
+  const lin=p.rolagens.map(r=>{const c=r.credito_pct_entrada||0;
+    return `<tr style="border-top:1px solid var(--border,#333)"><td style="padding:3px 6px">${f(r.data)}</td><td style="padding:3px 6px">${r.de||'—'} → ${r.para||'—'}</td><td style="padding:3px 6px;text-align:right">${r.strike_de!=null?String(r.strike_de).replace('.',','):'—'} → ${r.strike_para!=null?String(r.strike_para).replace('.',','):'—'}</td><td style="padding:3px 6px;text-align:right;color:var(--muted)">${f(r.venc_de)} → ${f(r.venc_para)}</td><td style="padding:3px 6px;text-align:right;font-weight:700;color:${c>=0?'var(--green,#2ecc71)':'var(--red,#e74c3c)'}">${c>=0?'+':''}${c.toFixed(2)}%</td></tr>`;}).join('');
+  const a=_premioAcum(p);
+  return `<div class="sig"><div class="sgt">🔁 Rolagens (${a.n}) <span style="font-weight:400;color:var(--muted);font-size:10px">crédito líquido em % da entrada · débito aparece negativo</span></div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="color:var(--muted);text-align:left"><th style="padding:3px 6px">Data</th><th style="padding:3px 6px">Opção</th><th style="padding:3px 6px;text-align:right">Strike</th><th style="padding:3px 6px;text-align:right">Venc.</th><th style="padding:3px 6px;text-align:right">Crédito</th></tr>${lin}</table></div>
+    <div style="font-size:11px;margin-top:4px">Prêmio acumulado: <b>${a.tot.toFixed(2)}%</b> <span style="color:var(--muted)">(entrada ${a.ent.toFixed(2)}% + rolagens ${a.rol>=0?'+':''}${a.rol.toFixed(2)}%)</span></div></div>`;
+}
 function tplSimples(p){
   const id=p.id;
   const stLabel = p.codigo_opcao ? `Strike (${p.codigo_opcao})` : 'Strike';
@@ -1394,6 +1409,7 @@ function tplSimples(p){
       <div class="sr"><span class="sl">Vol. Simples / GARCH</span><span class="sv" id="${id}-mc-vols">—</span></div>
       ${p.objetivo?`<div class="sr"><span class="sl">Objetivo</span><span class="sv ok">${p.objetivo}</span></div>`:''}
     </div>
+    ${_blocoRolagens(p)}
     ${/Coberto/.test(p.estrategia||'')?`<div class="sig" id="${id}-qf"><div class="sgt">📏 Quanto falta (lançamento coberto)</div><div style="color:var(--muted);font-size:12px">calculando...</div></div>`:''}
     <div class="sig">
       <div class="sgt">🎲 Monte Carlo — Prob. call ser exercida</div>
@@ -1425,10 +1441,11 @@ async function loadQuantoFalta(){
       const itm=falta<=0;
       const cor=itm?'var(--red)':falta<8?'var(--yellow,#e8b400)':'var(--green)';
       let h=`<div class="sr"><span class="sl">Falta até o strike</span><span class="sv" style="color:${cor}">${itm?'já passou ('+falta.toFixed(1)+'%)':'+'+falta.toFixed(1)+'%'}</span></div>`;
-      if(p.premio_pct_entrada!=null)h+=`<div class="sr"><span class="sl">Prêmio recebido (% da entrada)</span><span class="sv ok">${p.premio_pct_entrada.toFixed(2)}%</span></div>`;
+      const pa=_premioAcum(p);
+      if(p.premio_pct_entrada!=null||pa.n)h+=`<div class="sr"><span class="sl">Prêmio acumulado (% da entrada)</span><span class="sv ok">${pa.tot.toFixed(2)}%${pa.n?' <span style="color:var(--muted);font-size:10px">('+pa.ent.toFixed(2)+' + '+pa.n+' rolagem'+(pa.n>1?'ns':'')+')</span>':''}</span></div>`;
       if(p.preco_entrada){
         const base=(p.strike/p.preco_entrada-1)*100;
-        const tot=base+(p.premio_pct_entrada||0);
+        const tot=base+pa.tot;
         h+=`<div class="sr"><span class="sl">Se exercida vs. entrada${p.premio_pct_entrada==null?' (s/ prêmio)':''}</span><span class="sv ${tot>=0?'ok':'warn'}">${tot>=0?'+':''}${tot.toFixed(1)}%</span></div>`;
       }
       if(p.prob_nao_exercicio_pct!=null)h+=`<div class="sr"><span class="sl">Prob. não exercer (registro)</span><span class="sv">${p.prob_nao_exercicio_pct}%</span></div>`;
