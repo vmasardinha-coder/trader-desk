@@ -353,7 +353,7 @@
    "nome": "TEND3 (Tenda)",
    "tipo_posicao": "simples",
    "estrategia": "Lançamento Coberto",
-   "codigo_opcao": null,
+   "codigo_opcao": "TENDD268",
    "strike": 26.86,
    "vol_impl": 0.45,
    "tipo": "call",
@@ -363,8 +363,8 @@
    "quantidade": 1000,
    "objetivo": "Prêmio; strike pelo maior prêmio que respeita o piso. Reavaliar em janeiro.",
    "observacao": "Call vendida em 04/11/2026, prêmio 0.87/ação (mesa). preco_entrada e premio_pct DERIVADOS do preço médio estimado; ratificar com a nota. Strike sujeito a ajuste por proventos.",
-   "fonte_numeros": "ordem enviada em 04/11/2026 (mesa); nota pendente",
-   "numeros_confirmados": false
+   "fonte_numeros": "nota de corretagem Itaú 40215 (pregão 04/11/2026): código, strike, quantidade e prêmio por ação confirmados; preço de entrada e prêmio %% da entrada seguem derivados do preço médio estimado",
+   "numeros_confirmados": true
   },
   {
    "id": "sm11",
@@ -374,7 +374,7 @@
    "nome": "SMAL11",
    "tipo_posicao": "simples",
    "estrategia": "Lançamento Coberto",
-   "codigo_opcao": null,
+   "codigo_opcao": "SMALD12",
    "strike": 126.0,
    "vol_impl": 0.45,
    "tipo": "call",
@@ -384,8 +384,8 @@
    "quantidade": 300,
    "objetivo": "Prêmio; strike pelo maior prêmio que respeita o piso. Reavaliar em janeiro.",
    "observacao": "Call vendida em 04/11/2026, prêmio 0.30/ação (mesa). preco_entrada e premio_pct DERIVADOS do preço médio estimado; ratificar com a nota. Strike sujeito a ajuste por proventos.",
-   "fonte_numeros": "ordem enviada em 04/11/2026 (mesa); nota pendente",
-   "numeros_confirmados": false
+   "fonte_numeros": "nota de corretagem Itaú 40215 (pregão 04/11/2026): código, strike, quantidade e prêmio por ação confirmados; preço de entrada e prêmio %% da entrada seguem derivados do preço médio estimado",
+   "numeros_confirmados": true
   },
   {
    "id": "bf3",
@@ -395,7 +395,7 @@
    "nome": "BEEF3 (Minerva)",
    "tipo_posicao": "simples",
    "estrategia": "Lançamento Coberto",
-   "codigo_opcao": null,
+   "codigo_opcao": "BEEFD392",
    "strike": 3.92,
    "vol_impl": 0.45,
    "tipo": "call",
@@ -405,8 +405,8 @@
    "quantidade": 6500,
    "objetivo": "Prêmio; strike pelo maior prêmio que respeita o piso. Reavaliar em janeiro.",
    "observacao": "Call vendida em 04/11/2026, prêmio 0.07/ação (mesa). preco_entrada e premio_pct DERIVADOS do preço médio estimado; ratificar com a nota. Strike sujeito a ajuste por proventos.",
-   "fonte_numeros": "ordem enviada em 04/11/2026 (mesa); nota pendente",
-   "numeros_confirmados": false
+   "fonte_numeros": "nota de corretagem Itaú 40215 (pregão 04/11/2026): código, strike, quantidade e prêmio por ação confirmados; preço de entrada e prêmio %% da entrada seguem derivados do preço médio estimado",
+   "numeros_confirmados": true
   }
  ],
  "encerradas": [
