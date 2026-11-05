@@ -198762,5 +198762,31 @@
     "direcao": "call",
     "origem": "pronta",
     "observacao": "Lote 05/11/2026 -- ESTUDO de calls de dezembro (18/12) a mao, sem book completo. Codigo CMINL581. Premio de REFERENCIA (~ultimo negocio 0.18 com desconto de book); confirmar no book antes de operar. Opcoes B3 de dezembro (letra L) sao em sua maioria americanas; mesa so fecha europeias. Fonte: opcoes.net.br (ultimo pregao 04/11) + book Itau de BEEFL312/POMOL421/TENDD268."
+  },
+  {
+    "id": "an_1793904587",
+    "ticker": "BSLV39.SA",
+    "nome": "BSLV39 Retorno Controlado 63d (Lote 05/11/2026, referencia p/ rolagem)",
+    "status": "em_analise",
+    "tipo_estrutura": "retorno_controlado",
+    "data_foto": "2026-11-05",
+    "preco_foto": 86.52,
+    "prazo_dias": 63,
+    "vencimento": "2027-01-07",
+    "kdo": 72.42,
+    "ganho_prefixado_pct": 6.4,
+    "origem": "pronta",
+    "observacao": "Lote 05/11/2026 -- cotacao Itau (PDF 05/11, material publicitario) de Retorno Controlado BSLV39: ganho prefixado 6,40% (45,09% a.a.) se em nenhum momento cair mais que 16,30% do preco de contratacao; vencimento 07/01/2027; aplicacao minima R$ 30.000. Barreira 83,60% e strike 106,50% nas opcoes. Preco de referencia = ultima cotacao Yahoo da BSLV39 (86,52) -- o valor inicial real sera o leilao de fechamento da contratacao. REGISTRO so para acompanhar: a posicao atual (bslv393, vence 01/12, KDO 76,43) continua; esta seria candidata a rolagem se fizer sentido. Rolagem = resgate antecipado a mercado da atual (D+2).",
+    "flag_estresse": {
+      "cenario_ibov_pct": -16.0,
+      "beta_crise": -0.54,
+      "beta_medido": true,
+      "choque_pct": 8.6,
+      "queda_ate_kdo_pct": 16.3,
+      "folga_pp": 24.9,
+      "sobrevive": true,
+      "origem": "upload",
+      "versao": 1
+    }
   }
 ]
