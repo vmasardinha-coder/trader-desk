@@ -7094,6 +7094,18 @@ def ranking_analises():
         def _faixa_prob(p):
             if p is None: return 6
             return 0 if p >= 95 else 1 if p >= 90 else 2 if p >= 80 else 3 if p >= 70 else 4 if p >= 60 else 5
+        # BACKLOG #58 (05/11/2026): aviso de dois candidatos do mesmo segmento no lote (so informativo).
+        _gl = {}
+        try:
+            import risco_carteira as _rc58
+            _gl = _rc58.grupos_do_lote(em_analise_total)
+            for r_ in resultado:
+                r_['segmento_lote'] = _rc58.segmento_lote(r_.get('ticker'))
+                _tk = (r_.get('ticker') or '').replace('.SA', '')
+                _par = _gl.get((r_.get('lote') or '-', r_['segmento_lote']))
+                r_['grupo_lote_com'] = [t for t in _par if t != _tk] if (_par and _tk in _par) else []
+        except Exception:
+            pass
         for r_ in resultado:
             r_['faixa_prob'] = _faixa_prob(r_.get('prob_meta_pct'))
             rm_ = r_.get('retorno_mensal_pct')
@@ -7110,6 +7122,7 @@ def ranking_analises():
             'proxima_pagina_existe': bool(limit) and (offset + limit) < total_geral,
             'tempo_ms': int((_tr.time() - _t_ini) * 1000),
             'ranking': resultado,
+            'avisos_grupo_lote': [{'lote': k[0], 'segmento': k[1], 'tickers': v} for k, v in _gl.items()],
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

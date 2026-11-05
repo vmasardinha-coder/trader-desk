@@ -3985,8 +3985,13 @@ function tplRanking(d){
     const _tg=()=>`document.getElementById('rk-det-${r.id}').style.display=(document.getElementById('rk-det-${r.id}').style.display==='none'?'table-row':'none')`;
     const gapHtml=_temGap?` <span onclick="${_tg()}" title="Aviso de gap: clique para ver" style="color:${_corGap};cursor:pointer;font-size:12px">⚠</span>`:'';
     const evHtml=_temEv?` <span onclick="${_tg()}" title="Evento na janela: clique para ver" style="color:${_corEv};cursor:pointer;font-size:12px">📅</span>`:'';
-    const _det=(_temGap||_temEv)?`<tr id="rk-det-${r.id}" style="display:none"><td colspan="20" style="padding:6px 8px 10px 22px;font-size:11px;background:var(--bg3)">`
+    // 05/11/2026 (backlog #58): dois ou mais candidatos do mesmo segmento no lote.
+    const _gr=(r.grupo_lote_com||[]);
+    const _temGr=_gr.length>0;
+    const grHtml=_temGr?` <span onclick="${_tg()}" title="Mesmo segmento no lote: clique para ver" style="color:#8e7cc3;cursor:pointer;font-size:12px">👥</span>`:'';
+    const _det=(_temGap||_temEv||_temGr)?`<tr id="rk-det-${r.id}" style="display:none"><td colspan="20" style="padding:6px 8px 10px 22px;font-size:11px;background:var(--bg3)">`
       +(r.pior_dia_10a_pct!=null&&r.queda_ate_barreira_pct!=null?`<div style="color:${_temGap?_corGap:'var(--muted)'}"><b>Pior dia em 10 anos:</b> ${r.pior_dia_10a_pct.toFixed(1)}% (${r.pior_dia_10a_data.split('-').reverse().join('/')}) · queda até a KDO: ${r.queda_ate_barreira_pct.toFixed(1)}% · ${r.alerta_gap==='vermelho'?'VERMELHO: menos da metade do pior dia — um dia ruim comum a esse papel já derruba a defesa.':(r.alerta_gap==='amarelo'?'AMARELO: menor que o pior dia já visto — um único gap pode tocar a KDO.':'defesa maior que o pior dia já visto.')}</div>`:'')
+      +(_temGr?`<div style="margin-top:3px;color:#8e7cc3"><b>Mesmo segmento no lote (${r.segmento_lote}):</b> ${_gr.join(', ')} — também são candidatos com probabilidade alta. Cair junto num evento do setor é o risco; escolha um ou reduza o tamanho.</div>`:'')
       +(_temEv?`<div style="margin-top:3px;color:${_corEv}"><b>Eventos na janela:</b> ${_evs.map(e=>e.data.split('-').reverse().join('/')+' '+e.nome+' ('+e.impacto+(e.confirmar?', data a confirmar':'')+')').join(' · ')}</div>`:'')
       +`<div style="margin-top:3px;color:var(--muted);font-size:10px">Só aviso; não bloqueia nem muda o score.</div></td></tr>`:'';
     const _fx=(()=>{
@@ -3999,7 +4004,7 @@ function tplRanking(d){
       return `<tr id="rk-fx-${r.id}" style="display:none"><td colspan="20" style="padding:6px 8px 10px 22px;font-size:11px;background:var(--bg3)"><div style="color:var(--muted);margin-bottom:3px">${r.ticker.replace('.SA','')} · ${r.dias_restantes}d · folga da oferta <b>${r.folga_barreira_pct.toFixed(1)}%</b> · estresse = vol 30d ${r.vol_30d_pct}% (modelo ${r.sigma_modelo_pct}%)</div>${lin(80,r.folga_pede_80_estresse_pct)}${lin(90,r.folga_pede_90_estresse_pct)}<div style="color:var(--muted);font-size:9px;margin-top:3px">Aproximação analítica. Só informativo: não altera a ordem do ranking.</div></td></tr>`;
     })();
     return `<tr id="rk-row-${r.id}">
-      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}${gapHtml}${evHtml}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
+      <td style="padding:6px 8px;font-weight:700">${r.ticker.replace('.SA','')}${farolHtml}${loteTag}${volAviso}${pisoAviso}${gapHtml}${evHtml}${grHtml}<br><span style="font-weight:400;font-size:10px;color:var(--muted)">${r.nome||''}</span></td>
       <td style="padding:6px 8px;font-size:10px;color:var(--muted)" title="${tipoFull}">${tipoLabel}</td>
       <td style="padding:6px 8px;text-align:right">${r.dias_restantes}d</td>
        <td style="padding:6px 8px;text-align:right" title="Pelo prazo do CONTRATO (fixo). Equivalente se entrasse hoje: ${r.retorno_mensal_hoje_pct!=null?r.retorno_mensal_hoje_pct.toFixed(2):'—'}%/mês — só informativo: a oferta envelhece e deixa de existir poucos dias depois.">${r.retorno_mensal_pct.toFixed(2)}%</td>

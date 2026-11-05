@@ -252,3 +252,60 @@ def flag_estresse(ticker, preco_foto, kdo, ibov_pct=-16.0, origem='upload'):
                 'origem': origem, 'versao': 1}
     except Exception:
         return None
+
+
+# ---------------------------------------------------------------- #58 aviso de segmento repetido no lote
+SEGMENTO_LOTE = {
+    'BBAS3': 'Bancos', 'BPAC11': 'Bancos', 'B3SA3': 'Bolsa / mercado de capitais', 'INTB3': 'Fintech / pagamentos',
+    'BBSE3': 'Seguros', 'CXSE3': 'Seguros',
+    'AXIA3': 'Energia eletrica', 'CMIG4': 'Energia eletrica', 'CPLE3': 'Energia eletrica', 'EGIE3': 'Energia eletrica',
+    'TAEE11': 'Energia eletrica', 'ENEV3': 'Energia eletrica', 'ENGI11': 'Energia eletrica', 'EQTL3': 'Energia eletrica',
+    'CSMG3': 'Saneamento', 'SBSP3': 'Saneamento',
+    'PETR4': 'Petroleo e gas', 'PRIO3': 'Petroleo e gas', 'RECV3': 'Petroleo e gas',
+    'VBBR3': 'Combustiveis', 'UGPA3': 'Combustiveis',
+    'VALE3': 'Mineracao', 'CMIN3': 'Mineracao',
+    'GGBR4': 'Siderurgia', 'GOAU4': 'Siderurgia', 'CSNA3': 'Siderurgia', 'USIM5': 'Siderurgia',
+    'SUZB3': 'Papel e celulose',
+    'JBSS32': 'Proteina e alimentos', 'MBRF3': 'Proteina e alimentos', 'MDIA3': 'Proteina e alimentos',
+    'CAML3': 'Proteina e alimentos', 'BEEF3': 'Proteina e alimentos',
+    'SMTO3': 'Acucar e etanol', 'SLCE3': 'Agro',
+    'ALOS3': 'Shoppings', 'IGTI11': 'Shoppings', 'MULT3': 'Shoppings',
+    'CURY3': 'Incorporacao', 'CYRE3': 'Incorporacao', 'DIRR3': 'Incorporacao', 'EVEN3': 'Incorporacao',
+    'EZTC3': 'Incorporacao', 'MRVE3': 'Incorporacao', 'TEND3': 'Incorporacao', 'JHSF3': 'Incorporacao',
+    'AZZA3': 'Varejo', 'LREN3': 'Varejo', 'MGLU3': 'Varejo', 'SBFG3': 'Varejo', 'VIVA3': 'Varejo', 'NATU3': 'Varejo',
+    'ASAI3': 'Varejo alimentar', 'GMAT3': 'Varejo alimentar', 'RADL3': 'Farmacia e saude', 'HYPE3': 'Farmacia e saude',
+    'HAPV3': 'Saude', 'RDOR3': 'Saude', 'FLRY3': 'Saude', 'QUAL3': 'Saude',
+    'ANIM3': 'Educacao', 'COGN3': 'Educacao', 'YDUQ3': 'Educacao',
+    'TIMS3': 'Telecom', 'VIVT3': 'Telecom',
+    'LWSA3': 'Tecnologia', 'TOTS3': 'Tecnologia', 'POSI3': 'Tecnologia', 'SMFT3': 'Consumo / lazer',
+    'WEGE3': 'Industriais', 'DXCO3': 'Industriais', 'TUPY3': 'Industriais', 'RAPT4': 'Industriais',
+    'POMO4': 'Industriais', 'EMBJ3': 'Industriais',
+    'ECOR3': 'Concessoes e logistica', 'MOTV3': 'Concessoes e logistica', 'RAIL3': 'Concessoes e logistica',
+    'RENT3': 'Locacao de veiculos', 'MOVI3': 'Locacao de veiculos', 'VAMO3': 'Locacao de veiculos', 'SIMH3': 'Locacao de veiculos',
+    'SMAL11': 'Small caps (indice)', 'TSLA34': 'BDR dolar',
+}
+
+
+def segmento_lote(ticker):
+    t = (ticker or '').replace('.SA', '')
+    return SEGMENTO_LOTE.get(t) or SEGMENTOS.get(t) or 'Outros'
+
+
+def grupos_do_lote(analises, prob_min=80.0):
+    """Backlog #58 (05/11/2026). Candidatos = em_analise de retorno controlado/bidirecional com a
+    probabilidade congelada >= prob_min, por lote. Devolve {(lote, segmento): [tickers]} so dos segmentos com 2+.
+    Informativo: nao altera ordem nem score. 'Outros' nao conta como grupo."""
+    g = {}
+    for a in analises:
+        if a.get('status') != 'em_analise' or a.get('tipo_estrutura') not in ('retorno_controlado', 'bidirecional'):
+            continue
+        p = a.get('prob_sucesso_prevista_pct')
+        if p is None:
+            p = (a.get('bandas_congeladas') or {}).get('prob_sucesso_prevista_pct')
+        if p is None or p < prob_min:
+            continue
+        seg = segmento_lote(a.get('ticker'))
+        if seg == 'Outros':
+            continue
+        g.setdefault((a.get('lote') or '-', seg), set()).add((a.get('ticker') or '').replace('.SA', ''))
+    return {k: sorted(v) for k, v in g.items() if len(v) >= 2}
