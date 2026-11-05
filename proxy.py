@@ -4533,6 +4533,37 @@ def _calibracao_choque(itens, data_choque='2026-10-26'):
     return {'data_choque': data_choque, 'dentro': tab('dentro'), 'fora': tab('fora'),
             'total_dentro': tot('dentro'), 'total_fora': tot('fora')}
 
+def _calibracao_flag_estresse(itens, meta):
+    """Backlog #57 (05/11/2026): acerto real por flag de sobrevivencia ao cenario de estresse
+    (flag_estresse congelado na analise). Separa tambem as janelas que contem o choque de 26/10.
+    So percentuais. Amostra pequena: pista, nao regra."""
+    meta = meta or {}
+    grupos = {}
+    for it in itens:
+        if it.get('erro') or it.get('prob_sucesso_prevista_pct') is None:
+            continue
+        fl = (meta.get(it.get('id')) or {}).get('flag_estresse')
+        chave = 'sem_flag' if not fl else ('sobrevive' if fl.get('sobrevive') else 'rompe')
+        df, vc = (it.get('data_foto') or '')[:10], (it.get('vencimento_estimado') or '')[:10]
+        dentro = bool(df and vc and df <= '2026-10-26' <= vc)
+        for k in (chave + '|todas', chave + ('|dentro' if dentro else '|fora')):
+            d = grupos.setdefault(k, {'n': 0, 'suc': 0, 'prev': 0.0})
+            d['n'] += 1
+            d['suc'] += 1 if it.get('resultado_hipotetico') == 'sucesso' else 0
+            d['prev'] += it['prob_sucesso_prevista_pct']
+    def lin(k):
+        d = grupos.get(k)
+        if not d:
+            return {'n': 0, 'sucessos': 0, 'acerto_pct': None, 'prob_prevista_media_pct': None}
+        return {'n': d['n'], 'sucessos': d['suc'], 'acerto_pct': round(d['suc'] / d['n'] * 100, 1),
+                'prob_prevista_media_pct': round(d['prev'] / d['n'], 1)}
+    out = {}
+    for c in ('sobrevive', 'rompe', 'sem_flag'):
+        out[c] = {'todas': lin(c + '|todas'), 'janela_com_choque': lin(c + '|dentro'), 'janela_sem_choque': lin(c + '|fora')}
+    out['nota'] = ('flag = a analise sobreviveria a um IBOV de -16% com o beta de crise de 26/10 (mesmo mecanismo do Risco da carteira). '
+                   'Analises antigas receberam a flag retroativamente em 05/11/2026 (origem=retroativo).')
+    return out
+
 def _tracking_hip_agregar(itens, meta=None):
     """Agrega itens em calibracao por faixa (extraido em 21/09/2026)."""
     # Calibracao por faixa de 10pp (mesmo padrao do tracking oficial)
@@ -4585,6 +4616,7 @@ def _tracking_hip_agregar(itens, meta=None):
         'taxa_acerto_binario_pct': round(acertos / total * 100, 1) if total else None,
         'calibracao_por_faixa': calibracao,
         'calibracao_choque': _calibracao_choque(itens),
+        'calibracao_flag_estresse': _calibracao_flag_estresse(itens, meta),
         'calibracao_por_versao': _calibracao_por_versao(itens, 'resultado_hipotetico'),
         'comparacao_saltos': _calibracao_saltos(itens, 'resultado_hipotetico'),
         'calibracao_overshoot': _calibracao_overshoot(itens),
@@ -4632,7 +4664,7 @@ def _tracking_hip_calcular(lista_an, arquivo):
 
 _CAMPOS_ARQUIVO = ('id','ticker','nome','tipo_estrutura','status','motivo_encerramento',
     'data_rejeicao','data_foto','prazo_dias','vencimento','preco_foto','kdo','kuo',
-    'ganho_prefixado_pct','teto_retorno_pct','alavancagem','origem','lote')
+    'ganho_prefixado_pct','teto_retorno_pct','alavancagem','origem','lote','flag_estresse')
 
 def _assinatura_tracker(res):
     return (res.get('total_avaliadas'), res.get('taxa_acerto_binario_pct'),
@@ -5826,6 +5858,17 @@ def criar_analise():
         bandas_congeladas = _congelar_bandas_analise(novo)
         if bandas_congeladas:
             novo['bandas_congeladas'] = bandas_congeladas
+
+        # BACKLOG #57 (05/11/2026): flag de sobrevivencia ao cenario de estresse (mesmo mecanismo do
+        # simulador das ativas), congelada no upload para o tracker medir o acerto real por flag.
+        try:
+            if novo.get('kdo') and novo.get('preco_foto') and 'flag_estresse' not in novo:
+                import risco_carteira as _rc
+                _fl = _rc.flag_estresse(novo.get('ticker'), novo.get('preco_foto'), novo.get('kdo'))
+                if _fl:
+                    novo['flag_estresse'] = _fl
+        except Exception:
+            pass
 
         conteudo_str, sha = _github_get_file('analises.json')
         lista = json.loads(conteudo_str) if conteudo_str.strip() else []

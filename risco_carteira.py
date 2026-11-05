@@ -220,3 +220,35 @@ def calls_cobertas(pos, dias=15, juros=0.14):
                     'strikes': linhas})
     return {'dias': dias, 'juros_pct': juros * 100, 'papeis': out,
             'nota': 'Prêmio teórico (Black-Scholes), vol realizada de 30d sem o dia 26/10; NÃO é cotação. Confirme se existe série de opção líquida no papel e o preço real na mesa.'}
+
+
+# ---------------------------------------------------------------- #57 flag de sobrevivencia no upload
+_CHOQUE_REF = None
+
+def flag_estresse(ticker, preco_foto, kdo, ibov_pct=-16.0, origem='upload'):
+    """Backlog #57 (05/11/2026). MESMO mecanismo do simulador das ativas (risco_carteira): beta de crise
+    do papel (retorno em 26/10 / retorno do IBOV no dia) x IBOV do cenario, contra a queda ate o KDO.
+    Congelado na analise (campo flag_estresse) para o tracker medir o acerto real por flag.
+    Papel sem retorno de referencia usa BETA_PADRAO e beta_medido=False. So percentuais."""
+    global _CHOQUE_REF
+    try:
+        if not (ticker and preco_foto and kdo):
+            return None
+        if _CHOQUE_REF is None:
+            _CHOQUE_REF = _ler('pior_dia_10a.json').get('choque_ref', {})
+        ref = _CHOQUE_REF
+        ib_ref = ref.get('ibov_pct')
+        rets = dict(ref.get('retornos', {}))
+        for k, v in RET_REF_MANUAL.items():
+            rets.setdefault(k, v)
+        tk = ticker if ticker.endswith('.SA') else ticker + '.SA'
+        medido = bool(ib_ref and tk in rets and ib_ref != 0)
+        beta = (rets[tk] / ib_ref) if medido else BETA_PADRAO
+        shock = ibov_pct * beta
+        queda_kdo = (1 - float(kdo) / float(preco_foto)) * 100
+        return {'cenario_ibov_pct': ibov_pct, 'beta_crise': round(beta, 2), 'beta_medido': medido,
+                'choque_pct': round(shock, 1), 'queda_ate_kdo_pct': round(queda_kdo, 1),
+                'folga_pp': round(queda_kdo + shock, 1), 'sobrevive': bool(-shock < queda_kdo),
+                'origem': origem, 'versao': 1}
+    except Exception:
+        return None

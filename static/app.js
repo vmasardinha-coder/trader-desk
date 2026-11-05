@@ -4470,6 +4470,21 @@ async function preencherPaineisHipotetico(){
       </table>
       <div style="font-size:9px;color:var(--muted);margin-top:6px">Impacto = acerto real durante o choque menos fora dele, na mesma faixa de probabilidade prevista. Serve para separar erro do modelo de um evento extremo.</div></div>`;
   }
+  // 05/11/2026 (backlog #57): acerto real por flag de sobrevivencia ao cenario de estresse.
+  if(elC&&h.calibracao_flag_estresse){
+    const cf=h.calibracao_flag_estresse;
+    const t=o=>o&&o.n?`${o.acerto_pct}% <span style="color:var(--muted)">(${o.sucessos}/${o.n})</span>`:'—';
+    const pv=o=>o&&o.n?`${o.prob_prevista_media_pct}%`:'—';
+    const nomes={sobrevive:'✅ Sobreviveria',rompe:'⚠️ Romperia',sem_flag:'Sem flag'};
+    const tem=['sobrevive','rompe','sem_flag'].some(k=>(cf[k]&&cf[k].todas&&cf[k].todas.n));
+    if(tem) elC.innerHTML+=`<div class="card" style="margin-bottom:16px;overflow-x:auto;border-left:2px solid var(--gold,#c9a227)">
+      <div class="cl">🌪️ Acerto real por flag de estresse <span style="font-size:9px;color:var(--muted);font-weight:400">(IBOV −16%, beta de crise de 26/10, contra a queda até o KDO)</span></div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px">
+        <tr style="color:var(--muted);text-align:right"><th style="text-align:left;padding:4px">Flag</th><th style="padding:4px">Previsto médio</th><th style="padding:4px">Acerto real (todas)</th><th style="padding:4px">Janela com o choque</th><th style="padding:4px">Janela sem o choque</th></tr>
+        ${['sobrevive','rompe','sem_flag'].filter(k=>cf[k]&&cf[k].todas&&cf[k].todas.n).map(k=>`<tr style="text-align:right;border-top:1px solid var(--border,#333)"><td style="text-align:left;padding:4px">${nomes[k]}</td><td style="padding:4px">${pv(cf[k].todas)}</td><td style="padding:4px;font-weight:700">${t(cf[k].todas)}</td><td style="padding:4px">${t(cf[k].janela_com_choque)}</td><td style="padding:4px">${t(cf[k].janela_sem_choque)}</td></tr>`).join('')}
+      </table>
+      <div style="font-size:9px;color:var(--muted);margin-top:6px">A flag é gravada no upload da análise. Análises antigas receberam a flag retroativamente (05/11/2026). Amostra pequena e um evento só: pista, não regra.</div></div>`;
+  }
 }
 
 function renderAnalises(){
