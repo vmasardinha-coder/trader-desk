@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rolagem de Calls</title>
+<style>
+/* Layout: tabela de trabalho. Uma linha por papel; você digita só o venda (ask) da sua call e o compra (bid) da nova. */
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --fg:#1b2430; --muted:#5d6b7c; --line:#dde2e9;
+  --accent:#1f5fbf; --good:#127a4b; --bad:#b4281e; --warn:#8a5a00; --input:#eef2f8; --est:#8a5a00;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171e; --panel:#1a212b; --fg:#e6ebf2; --muted:#93a1b3; --line:#2a3441;
+  --accent:#6aa5ff; --good:#4cc58b; --bad:#ff7f73; --warn:#e3b04b; --input:#222b38; --est:#e3b04b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171e; --panel:#1a212b; --fg:#e6ebf2; --muted:#93a1b3; --line:#2a3441;
+  --accent:#6aa5ff; --good:#4cc58b; --bad:#ff7f73; --warn:#e3b04b; --input:#222b38; --est:#e3b04b; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  font-variant-numeric:tabular-nums;line-height:1.45}
+main{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:22px;margin:0;font-weight:650;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:70ch}
+.rule{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.rule div{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;min-width:0}
+.rule b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+.wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:1180px;font-size:13.5px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:var(--panel)}
+th.l,td.l{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.l b{font-weight:650}
+.sm{display:block;color:var(--muted);font-size:11.5px}
+input[type=number]{width:74px;background:var(--input);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:6px 6px;font:inherit;text-align:right}
+input[type=number]:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input.q{width:70px}
+.pos{color:var(--good);font-weight:650}.neg{color:var(--bad);font-weight:650}
+.low{color:var(--bad)}.ok{color:var(--good)}
+.est{color:var(--est);font-size:11px;display:block;text-align:right}
+.tot{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.tot b{font-size:20px}
+.notes{color:var(--muted);font-size:13px;max-width:90ch;display:flex;flex-direction:column;gap:4px}
+button{font:inherit;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+</style>
+
+</head><body>
+<main>
+  <header>
+    <h1>Rolagem de calls</h1>
+    <p class="sub">Primeiro recompra a sua call, depois vende a nova. Digite o que vê na tela: o <b>venda (ask)</b> da sua call e o <b>compra (bid)</b> da nova. O resto se recalcula.</p>
+  </header>
+
+  <div class="rule">
+    <div><b>Recomprar precisa de vendedor</b>Se a coluna Venda da sua call está vazia, deixe o campo em branco: aparece "sem vendedor".</div>
+    <div><b>Vender precisa de comprador</b>Use o preço de compra (bid) da nova call. Strike e probabilidade são do fechamento de 05/11, vencimento 18/12.</div>
+    <div><b>Exercido, com prêmios</b>(strike − preço médio + prêmio já recebido + líquido da rolagem) × quantidade.</div>
+  </div>
+
+  <div class="tot" id="live"><span id="livetxt">MT5: aguardando cotações…</span><button id="usemt5" type="button">Usar MT5 em todos os campos</button></div>
+
+  <div class="wrap"><table id="t">
+    <thead><tr>
+      <th class="l">Fazer</th><th class="l">Papel</th><th>Qtd</th>
+      <th class="l">Recomprar</th><th>Venda (ask)</th><th>Custo</th>
+      <th class="l">Vender (dez)</th><th>Compra (bid)</th><th>Recebe</th><th>Líquido</th>
+      <th>Preço médio</th><th>Strike atual → novo</th><th>Prob. não exercer</th>
+      <th>Exercido hoje</th><th>Exercido no novo</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+
+  <div class="tot"><span>Marcadas: <b id="n">0</b></span><span>Líquido das marcadas: <b id="sum">R$ 0</b></span>
+    <button id="reset" type="button">Voltar aos valores de referência</button></div>
+
+  <div class="notes">
+    <span><b>Referência</b> (campos em amarelo): POMOA476 e HYPEA267 têm preço de mercado. TENDD268 usa o melhor bid (0,22), pois não há vendedor. As demais recompras são estimativas minhas, porque o último negócio delas foi a sua própria venda.</span>
+    <span>Prêmio já recebido = preço de entrada × % de prêmio registrado no site. Preço médio de TEND3, SMAL11 e BEEF3 ainda é derivado.</span>
+    <span>SMAL11: nenhuma call de dezembro chega a 80%; a SMALL11 está só como referência. ROXO34: há duas calls registradas (C115 e D125); a conta usa a C115.</span>
+  </div>
+</main>
+
+<script>
+// qtd, pm, kOld, premOld (R$/ação já recebido), codigos, kNew, prob(0-1), ask ref, bid ref, askEst?
+const D=[
+ {p:'POMO4',q:10500,pm:4.74,ko:4.76,po:0.02,old:'POMOA476',nw:'POMOL419',kn:4.06,pr:.819,ask:0.02,bid:0.09,est:false,on:true},
+ {p:'HYPE3',q:1900,pm:25.92,ko:26.35,po:0.08,old:'HYPEA267',nw:'HYPEL253',kn:25.10,pr:.845,ask:0.18,bid:0.26,est:false,on:true},
+ {p:'VBBR3',q:1300,pm:36.50,ko:35.44,po:0.50,old:'VBBRA361',nw:'VBBRL319',kn:31.19,pr:.809,ask:0.20,bid:0.61,est:true,on:true},
+ {p:'TEND3',q:1000,pm:27.83,ko:26.86,po:0.87,old:'TENDD268',nw:'TENDL195',kn:19.62,pr:.819,ask:0.22,bid:0.53,est:true,on:false},
+ {p:'BEEF3',q:6500,pm:4.61,ko:3.92,po:0.07,old:'BEEFD392',nw:'BEEFL302',kn:3.02,pr:.825,ask:0.06,bid:0.12,est:true,on:false},
+ {p:'CMIN3',q:10000,pm:4.99,ko:5.11,po:0.03,old:'CMINA511',nw:'CMINL571',kn:5.71,pr:.816,ask:0.27,bid:0.09,est:true,on:false},
+ {p:'ROXO34',q:2500,pm:12.59,ko:11.50,po:0.74,old:'ROXOC115',nw:'ROXOL122',kn:12.25,pr:.834,ask:0.60,bid:0.24,est:true,on:false},
+ {p:'SMAL11',q:300,pm:140.90,ko:126.00,po:0.30,old:'SMALD12',nw:'SMALL11',kn:111.00,pr:.746,ask:0.15,bid:0.52,est:true,on:false}
+];
+const brl=v=>(v<0?'−':'')+'R$ '+Math.abs(Math.round(v)).toLocaleString('pt-BR');
+const n2=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cls=v=>v>0?'pos':(v<0?'neg':'');
+const tb=document.getElementById('rows');
+function num(el){const s=el.value.trim().replace(',','.');return s===''?null:parseFloat(s)}
+function build(){
+  tb.innerHTML='';
+  D.forEach((d,i)=>{
+    const tr=document.createElement('tr');tr.dataset.i=i;
+    tr.innerHTML=`
+      <td class="l"><input type="checkbox" id="on${i}" aria-label="Fazer ${d.p}" ${d.on?'checked':''}></td>
+      <td class="l"><b>${d.p}</b></td>
+      <td><input class="q" type="number" id="q${i}" value="${d.q}" step="100" min="0" aria-label="Quantidade ${d.p}"></td>
+      <td class="l">${d.old}<span class="sm">strike ${n2(d.ko)}</span></td>
+      <td><input type="number" id="ask${i}" value="${d.ask}" step="0.01" min="0" aria-label="Venda ask ${d.old}">${d.est?'<span class="est">referência</span>':''}</td>
+      <td id="custo${i}"></td>
+      <td class="l">${d.nw}<span class="sm">strike ${n2(d.kn)}</span></td>
+      <td><input type="number" id="bid${i}" value="${d.bid}" step="0.01" min="0" aria-label="Compra bid ${d.nw}"></td>
+      <td id="rec${i}"></td>
+      <td id="liq${i}"></td>
+      <td>${n2(d.pm)}</td>
+      <td>${n2(d.ko)} → <b>${n2(d.kn)}</b></td>
+      <td id="pr${i}">${(d.pr*100).toFixed(1).replace('.',',')}%</td>
+      <td id="hoje${i}"></td>
+      <td id="novo${i}"></td>`;
+    tb.appendChild(tr);
+  });
+  calc();
+}
+function calc(){
+  let sum=0,cnt=0;
+  D.forEach((d,i)=>{
+    const q=num(document.getElementById('q'+i))||0;
+    const ask=num(document.getElementById('ask'+i));
+    const bid=num(document.getElementById('bid'+i));
+    const temAsk=ask!==null&&ask>0, temBid=bid!==null&&bid>0;
+    const custo=temAsk?ask*q:null, rec=temBid?bid*q:null;
+    const set=(id,html)=>{document.getElementById(id+i).innerHTML=html};
+    set('custo',custo===null?'<span class="neg">sem vendedor</span>':brl(custo));
+    set('rec',rec===null?'<span class="neg">sem comprador</span>':brl(rec));
+    const hoje=(d.ko-d.pm+d.po)*q;
+    set('hoje','<span class="'+cls(hoje)+'">'+brl(hoje)+'</span>');
+    const pr=document.getElementById('pr'+i);
+    pr.className=d.pr>=.8?'ok':'low';
+    if(custo!==null&&rec!==null){
+      const liq=rec-custo;
+      set('liq','<span class="'+cls(liq)+'">'+brl(liq)+'</span>');
+      const novo=(d.kn-d.pm+d.po+(q?liq/q:0))*q;
+      set('novo','<span class="'+cls(novo)+'">'+brl(novo)+'</span>');
+      if(document.getElementById('on'+i).checked){sum+=liq;cnt++}
+    }else{
+      set('liq','—');
+      const novo=(d.kn-d.pm+d.po)*q;
+      set('novo','<span class="'+cls(novo)+'">'+brl(novo)+'</span><span class="sm">sem líquido</span>');
+    }
+  });
+  document.getElementById('n').textContent=cnt;
+  const s=document.getElementById('sum');s.textContent=brl(sum);s.className=cls(sum);
+}
+document.getElementById('t').addEventListener('input',calc);
+document.getElementById('t').addEventListener('change',calc);
+document.getElementById('reset').addEventListener('click',build);
+build();
+
+// ── Cotações ao vivo do MT5 (robô TraderDeskCotacoes) ──
+const manual=new Set();
+document.getElementById('t').addEventListener('input',e=>{if(e.target.id&&/^(ask|bid)\d+$/.test(e.target.id))manual.add(e.target.id)});
+let ultimaLive=null;
+async function puxar(forcar){
+  try{
+    const r=await fetch('/cotacoes/opcoes',{cache:'no-store'});
+    const j=await r.json();const Q=j.quotes||{};
+    let vivos=0,idadeMax=0;
+    D.forEach((d,i)=>{
+      const a=Q[d.old],b=Q[d.nw];
+      const fresco=x=>x&&x.idade_s<180;
+      if(fresco(a)){
+        const id='ask'+i;
+        if(forcar||!manual.has(id)){
+          const el=document.getElementById(id);
+          el.value=(a.ask&&a.ask>0)?a.ask:'';
+          if(forcar)manual.delete(id);
+        }
+        vivos++;idadeMax=Math.max(idadeMax,a.idade_s);
+        const td=document.getElementById('ask'+i).parentElement;
+        let t=td.querySelector('.est');if(!t){t=document.createElement('span');t.className='est';td.appendChild(t)}
+        t.textContent='MT5 ao vivo';t.style.color='var(--good)';
+      }
+      if(fresco(b)){
+        const id='bid'+i;
+        if(forcar||!manual.has(id)){
+          const el=document.getElementById(id);
+          el.value=(b.bid&&b.bid>0)?b.bid:'';
+          if(forcar)manual.delete(id);
+        }
+        vivos++;idadeMax=Math.max(idadeMax,b.idade_s);
+        const td=document.getElementById('bid'+i).parentElement;
+        let t=td.querySelector('.est');if(!t){t=document.createElement('span');t.className='est';td.appendChild(t)}
+        t.textContent='MT5 ao vivo';t.style.color='var(--good)';
+      }
+    });
+    const el=document.getElementById('livetxt');
+    if(vivos){el.innerHTML='MT5 ao vivo: <b>'+vivos+'</b> cotações, a mais antiga com '+Math.round(idadeMax)+' s';calc()}
+    else el.textContent='MT5: sem cotações recentes (robô parado, mercado fechado ou lista vazia). Valores de referência.';
+  }catch(e){document.getElementById('livetxt').textContent='MT5: não consegui ler as cotações do servidor.'}
+}
+document.getElementById('usemt5').addEventListener('click',()=>puxar(true));
+puxar(false);setInterval(()=>puxar(false),4000);
+</script>
+
+</body></html>

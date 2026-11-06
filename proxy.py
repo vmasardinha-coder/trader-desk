@@ -8029,6 +8029,70 @@ def black_scholes():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ── COTACOES DE OPCOES VINDAS DO MT5 (06/11/2026) ──────────────────
+# O Victor roda o MT5 (BTG) no computador dele; um robo (mt5/TraderDeskCotacoes.mq5)
+# le compra/venda das calls da lista de rolagem e faz POST aqui a cada poucos
+# segundos. A pagina /rolagem le o GET e preenche sozinha o ask (venda) da call
+# dele e o bid (compra) da nova. Guardado em arquivo temporario (compartilhado
+# entre workers do mesmo servidor); nao vai pro GitHub, e dado volatil.
+import os as _os_cot, tempfile as _tempfile_cot
+_COT_OPC_ARQ = _os_cot.path.join(_tempfile_cot.gettempdir(), 'trader_desk_cotacoes_opcoes.json')
+
+@app.route('/cotacoes/opcoes', methods=['POST'])
+@_requer_auth_escrita
+def post_cotacoes_opcoes():
+    try:
+        corpo = request.get_json(silent=True) or {}
+        itens = corpo.get('quotes') or []
+        if not isinstance(itens, list) or len(itens) > 500:
+            return jsonify({'error': 'quotes deve ser lista com ate 500 itens'}), 422
+        try:
+            with open(_COT_OPC_ARQ, 'r', encoding='utf-8') as f:
+                atual = json.load(f)
+        except Exception:
+            atual = {}
+        agora = time.time()
+        n = 0
+        for q in itens:
+            cod = str(q.get('s') or '').strip().upper()
+            if not cod or len(cod) > 16:
+                continue
+            reg = {'t': agora}
+            for k_in, k_out in (('bid', 'bid'), ('ask', 'ask'), ('bq', 'bid_qtd'), ('aq', 'ask_qtd'), ('last', 'ultimo')):
+                v = q.get(k_in)
+                reg[k_out] = float(v) if isinstance(v, (int, float)) else None
+            atual[cod] = reg
+            n += 1
+        with open(_COT_OPC_ARQ, 'w', encoding='utf-8') as f:
+            json.dump(atual, f)
+        return jsonify({'ok': True, 'recebidas': n})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/cotacoes/opcoes', methods=['GET'])
+def get_cotacoes_opcoes():
+    try:
+        with open(_COT_OPC_ARQ, 'r', encoding='utf-8') as f:
+            atual = json.load(f)
+    except Exception:
+        atual = {}
+    agora = time.time()
+    saida = {c: {**{k: v for k, v in r.items() if k != 't'}, 'idade_s': round(agora - r.get('t', agora), 1)}
+             for c, r in atual.items()}
+    resp = jsonify({'quotes': saida, 'agora': agora})
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+@app.route('/rolagem')
+def serve_rolagem():
+    import os as _o
+    caminho = _o.path.join(app.static_folder, 'rolagem.html')
+    with open(caminho, 'r', encoding='utf-8') as f:
+        resp = make_response(f.read())
+    resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return resp
+
 # ── SERVE HTML ────────────────────────────────────
 from flask import render_template
 import hashlib
