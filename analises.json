@@ -175269,7 +175269,7 @@
     "ticker": "CMIN3.SA",
     "nome": "CMIN3 Retorno Controlado 15d (Lote 19/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-19",
     "preco_foto": 4.96,
     "prazo_dias": 15,
@@ -175405,7 +175405,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": -6.562,
+    "score_na_rejeicao": 18.8055,
+    "preco_encerramento": 5.36
   },
   {
     "id": "an_mrve3_20261019",
@@ -177451,7 +177459,7 @@
     "ticker": "EGIE3.SA",
     "nome": "EGIE3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 27.04,
     "prazo_dias": 15,
@@ -177587,7 +177595,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": 2.053,
+    "score_na_rejeicao": 4.8552,
+    "preco_encerramento": 27.68
   },
   {
     "id": "an_ggbr4_20261028",
@@ -178768,7 +178784,7 @@
     "ticker": "ENEV3.SA",
     "nome": "ENEV3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 26.12,
     "prazo_dias": 15,
@@ -178904,7 +178920,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": 0.282,
+    "score_na_rejeicao": 3.9322,
+    "preco_encerramento": 27.47
   },
   {
     "id": "an_cmin3_20261028",
@@ -179209,7 +179233,7 @@
     "ticker": "MDIA3.SA",
     "nome": "MDIA3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 15.71,
     "prazo_dias": 15,
@@ -179345,7 +179369,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": -1.36,
+    "score_na_rejeicao": 5.7116,
+    "preco_encerramento": 16.97
   },
   {
     "id": "an_rdor3_20261028",
@@ -179501,7 +179533,7 @@
     "ticker": "EMBJ3.SA",
     "nome": "EMBJ3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 96.43,
     "prazo_dias": 15,
@@ -179637,7 +179669,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": -2.685,
+    "score_na_rejeicao": 3.8656,
+    "preco_encerramento": 106.19
   },
   {
     "id": "an_tots3_20261028",
@@ -180681,7 +180721,7 @@
     "ticker": "SBSP3.SA",
     "nome": "SBSP3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 24.89,
     "prazo_dias": 15,
@@ -180817,14 +180857,22 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": -1.252,
+    "score_na_rejeicao": 9.3939,
+    "preco_encerramento": 27.59
   },
   {
     "id": "an_mbrf3_20261028",
     "ticker": "MBRF3.SA",
     "nome": "MBRF3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 15.78,
     "prazo_dias": 15,
@@ -180960,7 +181008,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": -1.729,
+    "score_na_rejeicao": 3.6665,
+    "preco_encerramento": 17.43
   },
   {
     "id": "an_hype3_20261028",
@@ -181712,7 +181768,7 @@
     "ticker": "VIVA3.SA",
     "nome": "VIVA3 Retorno Controlado 15d (Lote 28/10/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-10-28",
     "preco_foto": 17.38,
     "prazo_dias": 15,
@@ -181848,7 +181904,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.92,
+    "ev_mensal_na_rejeicao": 2.462,
+    "score_na_rejeicao": 10.9202,
+    "preco_encerramento": 18.2
   },
   {
     "id": "an_radl3_20261028",
@@ -188345,7 +188409,7 @@
     "ticker": "CMIG4.SA",
     "nome": "CMIG4 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 9.89,
     "prazo_dias": 15,
@@ -188481,7 +188545,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.98,
+    "ev_mensal_na_rejeicao": 1.317,
+    "score_na_rejeicao": 2.3852,
+    "preco_encerramento": 10.64
   },
   {
     "id": "an_cmin3_20261103",
@@ -188774,7 +188846,7 @@
     "ticker": "CPLE3.SA",
     "nome": "CPLE3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 14.07,
     "prazo_dias": 15,
@@ -188910,7 +188982,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.99,
+    "ev_mensal_na_rejeicao": 0.373,
+    "score_na_rejeicao": 1.4561,
+    "preco_encerramento": 15.06
   },
   {
     "id": "an_csmg3_20261103",
@@ -189346,7 +189426,7 @@
     "ticker": "CXSE3.SA",
     "nome": "CXSE3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 21.03,
     "prazo_dias": 15,
@@ -189482,7 +189562,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 99.96,
+    "ev_mensal_na_rejeicao": 1.332,
+    "score_na_rejeicao": 1.3994,
+    "preco_encerramento": 21.14
   },
   {
     "id": "an_cyre3_20261103",
@@ -190061,7 +190149,7 @@
     "ticker": "EGIE3.SA",
     "nome": "EGIE3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 26.24,
     "prazo_dias": 15,
@@ -190197,7 +190285,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.99,
+    "ev_mensal_na_rejeicao": 2.408,
+    "score_na_rejeicao": 3.7225,
+    "preco_encerramento": 27.66
   },
   {
     "id": "an_embj3_20261103",
@@ -190347,7 +190443,7 @@
     "ticker": "ENEV3.SA",
     "nome": "ENEV3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 25.21,
     "prazo_dias": 15,
@@ -190483,7 +190579,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.92,
+    "ev_mensal_na_rejeicao": 0.845,
+    "score_na_rejeicao": 3.0524,
+    "preco_encerramento": 27.48
   },
   {
     "id": "an_engi11_20261103",
@@ -192205,7 +192309,7 @@
     "ticker": "JBSS32.SA",
     "nome": "JBSS32 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 66.91,
     "prazo_dias": 15,
@@ -192341,7 +192445,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.91,
+    "ev_mensal_na_rejeicao": 1.04,
+    "score_na_rejeicao": 3.1752,
+    "preco_encerramento": 72.0
   },
   {
     "id": "an_jhsf3_20261103",
@@ -194350,7 +194462,7 @@
     "ticker": "PRIO3.SA",
     "nome": "PRIO3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 68.53,
     "prazo_dias": 15,
@@ -194486,7 +194598,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 1.38,
+    "ev_mensal_na_rejeicao": -0.744,
+    "score_na_rejeicao": -0.2187,
+    "preco_encerramento": 58.8
   },
   {
     "id": "an_qual3_20261103",
@@ -195923,7 +196043,7 @@
     "ticker": "SLCE3.SA",
     "nome": "SLCE3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 16.74,
     "prazo_dias": 15,
@@ -196059,7 +196179,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 99.98,
+    "ev_mensal_na_rejeicao": 1.473,
+    "score_na_rejeicao": 2.2119,
+    "preco_encerramento": 17.26
   },
   {
     "id": "an_smal11_20261103",
@@ -196495,7 +196623,7 @@
     "ticker": "SUZB3.SA",
     "nome": "SUZB3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 51.27,
     "prazo_dias": 15,
@@ -196631,14 +196759,22 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 99.98,
+    "ev_mensal_na_rejeicao": 0.191,
+    "score_na_rejeicao": 1.1944,
+    "preco_encerramento": 54.0
   },
   {
     "id": "an_taee11_20261103",
     "ticker": "TAEE11.SA",
     "nome": "TAEE11 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 39.1,
     "prazo_dias": 15,
@@ -196774,14 +196910,22 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": 0.805,
+    "score_na_rejeicao": 1.5965,
+    "preco_encerramento": 41.0
   },
   {
     "id": "an_tend3_20261103",
     "ticker": "TEND3.SA",
     "nome": "TEND3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 19.41,
     "prazo_dias": 15,
@@ -196917,7 +197061,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "risco_alto",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 7.43,
+    "ev_mensal_na_rejeicao": 2.369,
+    "score_na_rejeicao": -1.1477,
+    "preco_encerramento": 16.95
   },
   {
     "id": "an_tims3_20261103",
@@ -197639,7 +197791,7 @@
     "ticker": "VALE3.SA",
     "nome": "VALE3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 60.46,
     "prazo_dias": 15,
@@ -197775,7 +197927,15 @@
       "sobrevive": true,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": true,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": 0.908,
+    "score_na_rejeicao": 1.3634,
+    "preco_encerramento": 65.98
   },
   {
     "id": "an_vamo3_20261103",
@@ -198211,7 +198371,7 @@
     "ticker": "VIVT3.SA",
     "nome": "VIVT3 Retorno Controlado 15d (Lote 03/11/2026)",
     "tipo_estrutura": "retorno_controlado",
-    "status": "em_analise",
+    "status": "encerrada",
     "data_foto": "2026-11-03",
     "preco_foto": 30.54,
     "prazo_dias": 15,
@@ -198347,7 +198507,15 @@
       "sobrevive": false,
       "origem": "retroativo",
       "versao": 1
-    }
+    },
+    "motivo_encerramento": "rejeitada",
+    "data_rejeicao": "2026-11-09",
+    "motivo_rejeicao": "sem_capital",
+    "aceita_ficar_com_papel": false,
+    "prob_meta_na_rejeicao": 100.0,
+    "ev_mensal_na_rejeicao": 1.885,
+    "score_na_rejeicao": 2.8826,
+    "preco_encerramento": 32.06
   },
   {
     "id": "an_wege3_20261103",
