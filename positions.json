@@ -433,6 +433,28 @@
       "observacao": "Call vendida em 04/11/2026, prêmio 0.07/ação (mesa). preco_entrada e premio_pct DERIVADOS do preço médio estimado; ratificar com a nota. Strike sujeito a ajuste por proventos.",
       "fonte_numeros": "nota de corretagem Itaú 40215 (pregão 04/11/2026): código, strike, quantidade e prêmio por ação confirmados; preço de entrada e prêmio %% da entrada seguem derivados do preço médio estimado",
       "numeros_confirmados": true
+    },
+    {
+      "id": "bb4",
+      "preco_entrada": 22.0,
+      "ticker": "BBAS3.SA",
+      "nome": "Banco do Brasil ON",
+      "tipo_posicao": "simples",
+      "estrategia": "Lançamento Coberto",
+      "codigo_opcao": "BBASL164",
+      "strike": 16.2,
+      "tipo": "call",
+      "vencimento": "2026-12-18",
+      "objetivo": "Virar po ou recomprar com ~15 dias e rolar",
+      "data_entrada": "2026-11-12",
+      "exercicio": "europeia",
+      "quantidade": 2200,
+      "premio": 0.43,
+      "premio_total": 946.0,
+      "meta_pct": 2.4,
+      "prob_nao_exercicio_pct": 64.81,
+      "prob_sucesso_prevista_pct": 64.81,
+      "observacao": "Venda coberta executada 12/11/2026 13:05, ordem 38354923, 2.200 a R$0,43 (300+1.900) = R$946 de premio. Spot ~15,35 (strike +5,5%; ponto onde o premio acaba 16,63 = +8,3%). Substitui a BBASB211 recomprada a 0,17 no mesmo dia (R$374 de recompra; sobra R$572). Plano: deixar virar po ou recomprar com ~15 dias e rolar. Retorno ~2,4%/mes (abaixo do piso 2,5%). Strike sujeito a ajuste por proventos."
     }
   ],
   "encerradas": [
