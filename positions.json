@@ -454,7 +454,8 @@
       "meta_pct": 2.4,
       "prob_nao_exercicio_pct": 64.81,
       "prob_sucesso_prevista_pct": 64.81,
-      "observacao": "Venda coberta executada 12/11/2026 13:05, ordem 38354923, 2.200 a R$0,43 (300+1.900) = R$946 de premio. Spot ~15,35 (strike +5,5%; ponto onde o premio acaba 16,63 = +8,3%). Substitui a BBASB211 recomprada a 0,17 no mesmo dia (R$374 de recompra; sobra R$572). Plano: deixar virar po ou recomprar com ~15 dias e rolar. Retorno ~2,4%/mes (abaixo do piso 2,5%). Strike sujeito a ajuste por proventos."
+      "observacao": "Venda coberta executada 12/11/2026 13:05, ordem 38354923, 2.200 a R$0,43 (300+1.900) = R$946 de premio. Spot ~15,35 (strike +5,5%; ponto onde o premio acaba 16,63 = +8,3%). Substitui a BBASB211 recomprada a 0,17 no mesmo dia (R$374 de recompra; sobra R$572). Plano: deixar virar po ou recomprar com ~15 dias e rolar. Retorno ~2,4%/mes (abaixo do piso 2,5%). Strike sujeito a ajuste por proventos. | vol_impl 35.7% calculada por Black-Scholes a partir do premio 0,43 (spot 15,35, r 14%, 36 dias) -- nao veio da tela.",
+      "vol_impl": 0.35669
     }
   ],
   "encerradas": [
