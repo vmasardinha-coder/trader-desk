@@ -454,8 +454,9 @@
       "meta_pct": 2.4,
       "prob_nao_exercicio_pct": 64.81,
       "prob_sucesso_prevista_pct": 64.81,
-      "observacao": "Venda coberta executada 12/11/2026 13:05, ordem 38354923, 2.200 a R$0,43 (300+1.900) = R$946 de premio. Spot ~15,35 (strike +5,5%; ponto onde o premio acaba 16,63 = +8,3%). Substitui a BBASB211 recomprada a 0,17 no mesmo dia (R$374 de recompra; sobra R$572). Plano: deixar virar po ou recomprar com ~15 dias e rolar. Retorno ~2,4%/mes (abaixo do piso 2,5%). Strike sujeito a ajuste por proventos. | vol_impl 35.7% calculada por Black-Scholes a partir do premio 0,43 (spot 15,35, r 14%, 36 dias) -- nao veio da tela.",
-      "vol_impl": 0.35669
+      "observacao": "Venda coberta executada 12/11/2026 13:05, ordem 38354923, 2.200 a R$0,43 (300+1.900) = R$946 de premio. Spot ~15,35 (strike +5,5%; ponto onde o premio acaba 16,63 = +8,3%). Substitui a BBASB211 recomprada a 0,17 no mesmo dia (R$374 de recompra; sobra R$572). Plano: deixar virar po ou recomprar com ~15 dias e rolar. Retorno ~2,4%/mes (abaixo do piso 2,5%). Strike sujeito a ajuste por proventos. | vol_impl 35.7% calculada por Black-Scholes a partir do premio 0,43 (spot 15,35, r 14%, 36 dias) -- nao veio da tela. | CONFIRMADO PELA NOTA ITAU 157973 (12/11/2026): BBASL164 K16,20 venc 12/26, venda de 2.200 a R$0,43 = R$946,00 C; na mesma nota, compra de BBASB211 2.200 a R$0,17 = R$374,00 D. Liquido das operacoes R$572,00; taxas R$1,77 (liq 0,36 + registro 0,91 + emolumentos 0,48 + IRRF 0,02); liquido para 13/11 R$570,25 C. Corretagem zero.",
+      "vol_impl": 0.35669,
+      "nota_corretagem": "157973"
     }
   ],
   "encerradas": [
@@ -2383,7 +2384,7 @@
       "data_entrada": "2026-09-23",
       "exercicio": "europeia",
       "meta_pct": 7.55,
-      "observacao": "Rolagem de melhora da BBASL212 em 23/09/2026 (ver cl-bbas3-rolagem-fev27). Strike 21,01, venc 19/02/2027, 2.200 acoes. Prob de NAO ser exercida 43,0% (GARCH 28,5%), contra 35,0% na anterior. Spot 22,37 esta 6,47% ACIMA do strike -- posicao travada, mas a menos travada das tres (PETR4 esta 61,8% e VALE3 25,7%). OBJETIVO: destravar. So volta a ser operacao de giro quando a recuperacao de strike por mes superar a alta do papel; hoje e 0,67%/mes contra 3,33%/mes. Strike sujeito a ajuste por proventos. | ENCERRADA 12/11/2026 POR RECOMPRA ANTECIPADA: apos o choque do resultado do BB, BBASB211 (K21,01, Fev/27) caiu e o Victor recomprou a R$0,17 (R$374 sobre 2.200), vendida a R$3,37 em 23/09 = premio retido R$3,20 x 2.200 = R$7.040 (14,55% sobre R$48.400 de capital a R$22,00), ~50 dias. RESULTADO_VICTOR=SUCESSO (ficou com o premio). Custos/corretagem nao incluidos. As 2.200 acoes seguem em carteira (spot ~15,2, pm 22,00) e viram base para as novas calls (lote 12/11).",
+      "observacao": "Rolagem de melhora da BBASL212 em 23/09/2026 (ver cl-bbas3-rolagem-fev27). Strike 21,01, venc 19/02/2027, 2.200 acoes. Prob de NAO ser exercida 43,0% (GARCH 28,5%), contra 35,0% na anterior. Spot 22,37 esta 6,47% ACIMA do strike -- posicao travada, mas a menos travada das tres (PETR4 esta 61,8% e VALE3 25,7%). OBJETIVO: destravar. So volta a ser operacao de giro quando a recuperacao de strike por mes superar a alta do papel; hoje e 0,67%/mes contra 3,33%/mes. Strike sujeito a ajuste por proventos. | ENCERRADA 12/11/2026 POR RECOMPRA ANTECIPADA: apos o choque do resultado do BB, BBASB211 (K21,01, Fev/27) caiu e o Victor recomprou a R$0,17 (R$374 sobre 2.200), vendida a R$3,37 em 23/09 = premio retido R$3,20 x 2.200 = R$7.040 (14,55% sobre R$48.400 de capital a R$22,00), ~50 dias. RESULTADO_VICTOR=SUCESSO (ficou com o premio). Custos/corretagem nao incluidos. As 2.200 acoes seguem em carteira (spot ~15,2, pm 22,00) e viram base para as novas calls (lote 12/11). | CONFIRMADO PELA NOTA ITAU 157973 (12/11/2026): recompra da BBASB211 a R$0,17 = R$374,00 confirmada (2.200). Custos da nota (R$1,77) sao do par recompra+venda; custo desprezivel, resultado R$7.040 praticamente inalterado.",
       "rolagem_de": "cl-bbas3-rolagem-fev27",
       "prob_nao_exercicio_pct": 43.0,
       "prob_sucesso_prevista_pct": 44.71,
@@ -2401,7 +2402,8 @@
       "preco_recompra": 0.17,
       "valor_financeiro_resultado": 7040.0,
       "retorno_pct": 14.55,
-      "dados_reconstruidos": false
+      "dados_reconstruidos": false,
+      "nota_corretagem": "157973"
     }
   ]
 }
